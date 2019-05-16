@@ -1,0 +1,25 @@
+{
+  "defaultSeverity": "error",
+  "extends": [
+    "tslint:recommended"
+  ],
+  "linterOptions": {
+    "exclude": ["**/*.js"]
+  },
+  "rules": {
+    "arrow-parens": false,
+    "ban-types": false,
+    "interface-name": false,
+    "member-access": [true, "no-public"],
+    "no-empty": {
+      "severity": "warning"
+    },
+    "no-namespace": false,
+    "no-string-literal": false,
+    "no-var-requires": false,
+    "quotemark": [true, "single"],
+    "variable-name": [true, "allow-leading-underscore", "allow-pascal-case"],
+    "unified-signatures": false
+  },
+  "rulesDirectory": []
+}

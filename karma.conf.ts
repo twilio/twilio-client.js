@@ -1,0 +1,94 @@
+const fs = require('fs');
+const yaml = require('js-yaml');
+
+if (fs.existsSync(__dirname + '/config.yaml')) {
+  const creds = yaml.safeLoad(fs.readFileSync(__dirname + '/config.yaml', 'utf8')).prod;
+
+  process.env.ACCOUNT_SID = process.env.ACCOUNT_SID || creds.account_sid;
+  process.env.API_KEY_SID = process.env.API_KEY_SID || creds.api_key_sid;
+  process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || creds.api_key_secret;
+  process.env.APPLICATION_SID = process.env.APPLICATION_SID || creds.app_sid;
+  process.env.AUTH_TOKEN = process.env.AUTH_TOKEN || creds.auth_token;
+}
+
+module.exports = function(config: any) {
+  const supportedBrowsers: Record<string, string[]> = {
+    chrome: ['ChromeWebRTC'],
+    firefox: ['FirefoxWebRTC'],
+    safari: ['SafariTechPreview']
+  };
+
+  let browsers: string[];
+  if (process.env.BROWSER) {
+    browsers = supportedBrowsers[process.env.BROWSER];
+    if (!browsers) {
+      throw new Error('Unknown browser');
+    }
+  } else if (process.platform === 'darwin') {
+    browsers = ['ChromeWebRTC', 'FirefoxWebRTC'];
+  } else {
+    browsers = ['ChromeWebRTC', 'FirefoxWebRTC'];
+  }
+
+  config.set({
+    basePath: '',
+    browsers,
+    colors: true,
+    concurrency: 1,
+    customLaunchers: {
+      ChromeWebRTC: {
+        base: 'Chrome',
+        flags: [
+          '--no-sandbox',
+          '--use-fake-ui-for-media-stream',
+          '--use-fake-device-for-media-stream',
+          '--autoplay-policy=no-user-gesture-required',
+        ],
+      },
+      FirefoxWebRTC: {
+        base: 'Firefox',
+        prefs: {
+          'media.autoplay.default': 0,
+          'media.autoplay.enabled': true,
+          'media.gstreamer.enabled': true,
+          'media.navigator.permission.disabled': true,
+          'media.navigator.streams.fake': true,
+        },
+      },
+    },
+    files: [
+      'lib/twilio/**/*.+(ts|js)',
+      'tests/integration/*.ts',
+    ],
+    frameworks: ['mocha', 'karma-typescript'],
+    karmaTypescriptConfig: {
+      bundlerOptions: {
+        addNodeGlobals: true,
+        resolve: {
+          alias: {
+            buffer: './node_modules/buffer/index.js',
+            deprecate: './scripts/noop.js',
+          }
+        },
+        transforms: [require('karma-typescript-es6-transform')({
+          plugins: [
+            'transform-inline-environment-variables',
+          ]
+        })],
+      },
+      include: [
+        'lib/**/*',
+        'tests/integration/**/*.ts',
+      ],
+      tsconfig: './tsconfig.json',
+    },
+    logLevel: config.LOG_INFO,
+    port: 9876,
+    preprocessors: {
+      'lib/twilio/**/*.+(ts|js)': 'karma-typescript',
+      'tests/integration/*.ts': 'karma-typescript',
+    },
+    reporters: ['spec', 'karma-typescript'],
+    singleRun: true,
+  });
+};

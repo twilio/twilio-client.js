@@ -1,0 +1,153 @@
+[
+  {
+    "id": "RTCCertificate_30:74:CA:5E:6B:4C:DD:D0:63:4A:03:23:F3:F5:A7:3F:82:E9:13:06",
+    "timestamp": 1492027598825.6,
+    "type": "certificate",
+    "fingerprint": "30:74:CA:5E:6B:4C:DD:D0:63:4A:03:23:F3:F5:A7:3F:82:E9:13:06",
+    "fingerprintAlgorithm": "sha-1",
+    "base64Certificate": "MIIBvjCCASegAwIBAAIJANOrNpaVB7j7MA0GCSqGSIb3DQEBBQUAMCExHzAdBgNVBAMMFmNodW5kZXItd2VicnRjLWdhdGV3YXkwHhcNMTcwNDExMTk0NTI5WhcNMTgwNDEyMTk0NTI5WjAhMR8wHQYDVQQDDBZjaHVuZGVyLXdlYnJ0Yy1nYXRld2F5MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDJFPuSFiu4HAGTG9ZqhDC4+EP00ts+2cZDxUtxwKJUtKMIHmJAe1YFu953wnL3Goz44s\/vw7j6ImFnYz0KMY5XtxPI4IrTMASAK8nDbPYrk++FXTzeAGsRHpfifKSEmQkjL3PhvSLH2KiIJOaqiQSHPYvDsHws7nsH7rmgl2EUjQIDAQABMA0GCSqGSIb3DQEBBQUAA4GBALqYhgUXYrEVvDPxGBfW0mYiJNXUfrWR0WVBWEZ5nQDp4TkhMcGulGaGu6KApwKbsnAfwHg4veTx0b41+l3QSMUqqq9HQj9t5h9WrNkXw0A22VcYhZKrxM3TD79jw27JXaLDjROLsSTeITSA8KiVT2haAVM22Eu3f9HxXJ4JS7al"
+  },
+  {
+    "id": "RTCCertificate_AF:45:A0:00:47:1B:0A:13:1A:24:1F:29:5B:0A:58:30:E7:FB:82:80:05:30:BA:B1:06:C4:82:F3:AF:E5:34:E8",
+    "timestamp": 1492027598825.6,
+    "type": "certificate",
+    "fingerprint": "AF:45:A0:00:47:1B:0A:13:1A:24:1F:29:5B:0A:58:30:E7:FB:82:80:05:30:BA:B1:06:C4:82:F3:AF:E5:34:E8",
+    "fingerprintAlgorithm": "sha-256",
+    "base64Certificate": "MIIBFzCBvaADAgECAgkA2QMbhqQJjcMwCgYIKoZIzj0EAwIwETEPMA0GA1UEAwwGV2ViUlRDMB4XDTE3MDQxMTE5NDU1OVoXDTE3MDUxMjE5NDU1OVowETEPMA0GA1UEAwwGV2ViUlRDMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE897j\/D1uHloeT7bpC\/j+LR0ahCrlZ4zTwXMuSSzYte4vA3wLsHIfrGqtv2QB0Z9n2ZKRJ2KFWpvLEAIinf60sDAKBggqhkjOPQQDAgNJADBGAiEAzvhIasad8\/xURewK+\/8PqF6nKDmI7X3DsFdbqNtRas4CIQCC7D125+rCC4n\/wki7pbK6IkUUTqP8SfQOKgmOhJlsQw=="
+  },
+  {
+    "id": "RTCIceCandidatePair_BMuAX3Yg_yB1+bJsu",
+    "timestamp": 1492027598825.6,
+    "type": "candidate-pair",
+    "transportId": "RTCTransport_audio_1",
+    "localCandidateId": "RTCIceCandidate_BMuAX3Yg",
+    "remoteCandidateId": "RTCIceCandidate_yB1+bJsu",
+    "state": "succeeded",
+    "priority": 7.9621167510412e+18,
+    "nominated": false,
+    "writable": true,
+    "bytesSent": 10931341,
+    "bytesReceived": 10858033,
+    "totalRoundTripTime": 45.852,
+    "currentRoundTripTime": 0.086,
+    "requestsReceived": 498,
+    "requestsSent": 1,
+    "responsesReceived": 498,
+    "responsesSent": 498,
+    "consentRequestsSent": 498
+  },
+  {
+    "id": "RTCIceCandidate_BMuAX3Yg",
+    "timestamp": 1492027598825.6,
+    "type": "local-candidate",
+    "transportId": "RTCTransport_audio_1",
+    "isRemote": false,
+    "ip": "107.20.226.156",
+    "port": 52513,
+    "protocol": "udp",
+    "candidateType": "prflx",
+    "priority": 1853824767,
+    "deleted": false
+  },
+  {
+    "id": "RTCIceCandidate_yB1+bJsu",
+    "timestamp": 1492027598825.6,
+    "type": "remote-candidate",
+    "transportId": "RTCTransport_audio_1",
+    "isRemote": true,
+    "ip": "54.172.60.184",
+    "port": 11270,
+    "protocol": "udp",
+    "candidateType": "host",
+    "priority": 2130714367,
+    "deleted": false
+  },
+  {
+    "id": "RTCInboundRTPAudioStream_774468856",
+    "timestamp": 1492027598825.6,
+    "type": "inbound-rtp",
+    "ssrc": 774468856,
+    "isRemote": false,
+    "mediaType": "audio",
+    "trackId": "RTCMediaStreamTrack_remote_audio_3QxtXDYQFYdK4JRKDoWp5w39hRP6y1FzdEhp00_774468856",
+    "transportId": "RTCTransport_audio_1",
+    "codecId": "PCMU",
+    "packetsReceived": 61687,
+    "bytesReceived": 10610164,
+    "packetsLost": 41,
+    "jitter": 0.003,
+    "fractionLost": 0
+  },
+  {
+    "id": "RTCMediaStreamTrack_local_audio_9368eb0d-7249-4d4f-8512-cdb88f01450b_683144352",
+    "timestamp": 1492027598825.6,
+    "type": "track",
+    "trackIdentifier": "9368eb0d-7249-4d4f-8512-cdb88f01450b",
+    "remoteSource": false,
+    "ended": false,
+    "detached": false,
+    "kind": "audio",
+    "audioLevel": 0.3
+  },
+  {
+    "id": "RTCMediaStreamTrack_remote_audio_3QxtXDYQFYdK4JRKDoWp5w39hRP6y1FzdEhp00_774468856",
+    "timestamp": 1492027598825.6,
+    "type": "track",
+    "trackIdentifier": "3QxtXDYQFYdK4JRKDoWp5w39hRP6y1FzdEhp00",
+    "remoteSource": true,
+    "ended": false,
+    "detached": false,
+    "kind": "audio",
+    "audioLevel": 0.6
+  },
+  {
+    "id": "RTCMediaStream_local_xVjVuW5oKZBCkbzdFxvr3693tjsao5zNkSup",
+    "timestamp": 1492027598825.6,
+    "type": "stream",
+    "streamIdentifier": "xVjVuW5oKZBCkbzdFxvr3693tjsao5zNkSup",
+    "trackIds": [
+      "RTCMediaStreamTrack_local_audio_9368eb0d-7249-4d4f-8512-cdb88f01450b_683144352"
+    ]
+  },
+  {
+    "id": "RTCMediaStream_remote_3QxtXDYQFYdK4JRKDoWp5w39hRP6y1FzdEhp",
+    "timestamp": 1492027598825.6,
+    "type": "stream",
+    "streamIdentifier": "3QxtXDYQFYdK4JRKDoWp5w39hRP6y1FzdEhp",
+    "trackIds": [
+      "RTCMediaStreamTrack_remote_audio_3QxtXDYQFYdK4JRKDoWp5w39hRP6y1FzdEhp00_774468856"
+    ]
+  },
+  {
+    "id": "RTCOutboundRTPAudioStream_683144352",
+    "timestamp": 1492027598825.6,
+    "type": "outbound-rtp",
+    "ssrc": 683144352,
+    "isRemote": false,
+    "mediaType": "audio",
+    "trackId": "RTCMediaStreamTrack_local_audio_9368eb0d-7249-4d4f-8512-cdb88f01450b_683144352",
+    "transportId": "RTCTransport_audio_1",
+    "codecId": "opus",
+    "packetsSent": 61939,
+    "bytesSent": 10653508
+  },
+  {
+    "id": "RTCPeerConnection",
+    "timestamp": 1492027598825.6,
+    "type": "peer-connection",
+    "dataChannelsOpened": 0,
+    "dataChannelsClosed": 0
+  },
+  {
+    "id": "RTCTransport_audio_1",
+    "timestamp": 1492027598825.6,
+    "type": "transport",
+    "bytesSent": 10931341,
+    "bytesReceived": 10858033,
+    "dtlsState": "connected",
+    "selectedCandidatePairId": "RTCIceCandidatePair_BMuAX3Yg_yB1+bJsu",
+    "localCertificateId": "RTCCertificate_AF:45:A0:00:47:1B:0A:13:1A:24:1F:29:5B:0A:58:30:E7:FB:82:80:05:30:BA:B1:06:C4:82:F3:AF:E5:34:E8",
+    "remoteCertificateId": "RTCCertificate_30:74:CA:5E:6B:4C:DD:D0:63:4A:03:23:F3:F5:A7:3F:82:E9:13:06"
+  }
+]
+

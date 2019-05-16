@@ -1,0 +1,209 @@
+[
+  {
+    "id": "googTrack_c1fe0280-b8ac-48cc-ad69-52691f822d29",
+    "timestamp": "2017-04-17T23:47:42.784Z",
+    "type": "googTrack",
+    "stats": {
+      "googTrackId": "c1fe0280-b8ac-48cc-ad69-52691f822d29"
+    }
+  },
+  {
+    "id": "googLibjingleSession_5857467059985237818",
+    "timestamp": "2017-04-17T23:47:42.784Z",
+    "type": "googLibjingleSession",
+    "stats": {
+      "googInitiator": "true"
+    }
+  },
+  {
+    "id": "googCertificate_9F:7B:89:12:17:B0:31:66:64:DB:23:55:3B:64:2C:6D:C7:9B:03:BA:CD:4B:25:F1:4F:78:48:7C:8C:41:03:24",
+    "timestamp": "2017-04-17T23:47:42.784Z",
+    "type": "googCertificate",
+    "stats": {
+      "googFingerprint": "9F:7B:89:12:17:B0:31:66:64:DB:23:55:3B:64:2C:6D:C7:9B:03:BA:CD:4B:25:F1:4F:78:48:7C:8C:41:03:24",
+      "googFingerprintAlgorithm": "sha-256",
+      "googDerBase64": "MIIBFjCBvaADAgECAgkA0pb36L\/uYwswCgYIKoZIzj0EAwIwETEPMA0GA1UEAwwGV2ViUlRDMB4XDTE3MDQxNjIzMzkyNVoXDTE3MDUxNzIzMzkyNVowETEPMA0GA1UEAwwGV2ViUlRDMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEk524wt0Y9IUV73JGStT3HS8ul5Rsb3ccw\/AJJp69bpGuRsb0zJVc7CArK8J+cC8zxi6ne3P3YIy9Miy0TqWB5jAKBggqhkjOPQQDAgNIADBFAiEA9xiEM\/qyfgGzv8aevLdsBrcFT\/8XYcmeUuot0PwCcpICICbXiffd9RfCsJxAX+TEzztEgldvGg16Y5AAyF9CF9O2"
+    }
+  },
+  {
+    "id": "Channel-audio-1",
+    "timestamp": "2017-04-17T23:47:42.784Z",
+    "type": "googComponent",
+    "stats": {
+      "googComponent": "1",
+      "remoteCertificateId": "googCertificate_9E:6D:D3:EE:CC:42:92:48:37:C5:7C:99:E1:84:E5:97:9D:17:39:2F",
+      "selectedCandidatePairId": "Conn-audio-1-0",
+      "dtlsCipher": "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
+      "localCertificateId": "googCertificate_9F:7B:89:12:17:B0:31:66:64:DB:23:55:3B:64:2C:6D:C7:9B:03:BA:CD:4B:25:F1:4F:78:48:7C:8C:41:03:24",
+      "srtpCipher": "AES_CM_128_HMAC_SHA1_32"
+    }
+  },
+  {
+    "id": "ssrc_1666418784_send",
+    "timestamp": "2017-04-17T23:47:42.784Z",
+    "type": "ssrc",
+    "stats": {
+      "audioInputLevel": "18",
+      "googResidualEchoLikelihoodRecentMax": "6.5274e-12",
+      "googEchoCancellationReturnLossEnhancement": "-100",
+      "googTrackId": "c1fe0280-b8ac-48cc-ad69-52691f822d29",
+      "googCodecName": "PCMU",
+      "transportId": "Channel-audio-1",
+      "mediaType": "audio",
+      "aecDivergentFilterFraction": "0",
+      "googEchoCancellationReturnLoss": "-100",
+      "googResidualEchoLikelihood": "6.5274e-12",
+      "googEchoCancellationEchoDelayMedian": "20",
+      "googEchoCancellationQualityMin": "0",
+      "ssrc": "1666418784",
+      "googTypingNoiseState": "false",
+      "packetsSent": "24816",
+      "bytesSent": "4268352",
+      "googEchoCancellationEchoDelayStdDev": "0"
+    }
+  },
+  {
+    "id": "googTrack_NxFuozUwTB8bst2AuVXe25nzKEpMiUzEVLfZ00",
+    "timestamp": "2017-04-17T23:47:42.784Z",
+    "type": "googTrack",
+    "stats": {
+      "googTrackId": "NxFuozUwTB8bst2AuVXe25nzKEpMiUzEVLfZ00"
+    }
+  },
+  {
+    "id": "googCertificate_9E:6D:D3:EE:CC:42:92:48:37:C5:7C:99:E1:84:E5:97:9D:17:39:2F",
+    "timestamp": "2017-04-17T23:47:42.784Z",
+    "type": "googCertificate",
+    "stats": {
+      "googFingerprint": "9E:6D:D3:EE:CC:42:92:48:37:C5:7C:99:E1:84:E5:97:9D:17:39:2F",
+      "googFingerprintAlgorithm": "sha-1",
+      "googDerBase64": "MIIBvjCCASegAwIBAAIJAPglKlqgXLEHMA0GCSqGSIb3DQEBBQUAMCExHzAdBgNVBAMMFmNodW5kZXItd2VicnRjLWdhdGV3YXkwHhcNMTcwNDE2MjMzOTE4WhcNMTgwNDE3MjMzOTE4WjAhMR8wHQYDVQQDDBZjaHVuZGVyLXdlYnJ0Yy1nYXRld2F5MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC4pBsjS0IxenQvQ6PKehwD2oMDMsM\/0f7Kk5U4YWOhfFP+QkOPtpiI\/z2eSVRv3oNJT1QE3GFZbO+27aouyLzRyRDtekAX781inQf667+K5yvXKZHzOqTxLAIluG7iq+b2rM4XXUO32mxTimwhSak3puIKMkdX2eRNxpKuwTSd6wIDAQABMA0GCSqGSIb3DQEBBQUAA4GBAA8OeGqn\/xGH\/cV3jBi1LDrbcgf9DrJZjXpNdn1oeimSJemVEWMPezZl6rUqZy4+5GkLwHmLV3E3wsdH89PZtlqmcYvoTyFadagje2CTfHeOf9MZ+6EdHq5DgeRWtkC3Utzrb6TBt1z3yUbv4htp\/JfXw9\/TkutNitkAfgjReqbh"
+    }
+  },
+  {
+    "id": "Conn-audio-1-0",
+    "timestamp": "2017-04-17T23:47:42.784Z",
+    "type": "googCandidatePair",
+    "stats": {
+      "responsesSent": "202",
+      "requestsReceived": "202",
+      "googRemoteCandidateType": "local",
+      "googReadable": "true",
+      "googLocalAddress": "107.20.226.156:57434",
+      "consentRequestsSent": "1",
+      "googTransportType": "udp",
+      "googChannelId": "Channel-audio-1",
+      "googLocalCandidateType": "prflx",
+      "googWritable": "true",
+      "requestsSent": "202",
+      "googRemoteAddress": "54.172.60.181:10652",
+      "googRtt": "85",
+      "googActiveConnection": "true",
+      "packetsDiscardedOnSend": "0",
+      "bytesReceived": "4361697",
+      "responsesReceived": "202",
+      "remoteCandidateId": "Cand-bWrncEMZ",
+      "localCandidateId": "Cand-tn18\/dxD",
+      "bytesSent": "4379945",
+      "packetsSent": "25006"
+    }
+  },
+  {
+    "id": "Cand-tn18\/dxD",
+    "timestamp": "2017-04-17T23:39:27.126Z",
+    "type": "localcandidate",
+    "stats": {
+      "portNumber": "57434",
+      "networkType": "unknown",
+      "ipAddress": "107.20.226.156",
+      "transport": "udp",
+      "candidateType": "peerreflexive",
+      "priority": "1853824767"
+    }
+  },
+  {
+    "id": "Cand-bWrncEMZ",
+    "timestamp": "2017-04-17T23:39:27.126Z",
+    "type": "remotecandidate",
+    "stats": {
+      "portNumber": "10652",
+      "ipAddress": "54.172.60.181",
+      "transport": "udp",
+      "candidateType": "host",
+      "priority": "2130714367"
+    }
+  },
+  {
+    "id": "Conn-audio-1-1",
+    "timestamp": "2017-04-17T23:39:41.127Z",
+    "type": "googCandidatePair",
+    "stats": {
+      "responsesSent": "0",
+      "requestsReceived": "0",
+      "googRemoteCandidateType": "local",
+      "googReadable": "false",
+      "googLocalAddress": "192.168.0.7:52128",
+      "consentRequestsSent": "25",
+      "googTransportType": "udp",
+      "googChannelId": "Channel-audio-1",
+      "googLocalCandidateType": "local",
+      "googWritable": "false",
+      "requestsSent": "25",
+      "googRemoteAddress": "54.172.60.181:10652",
+      "googRtt": "3000",
+      "googActiveConnection": "false",
+      "packetsDiscardedOnSend": "0",
+      "bytesReceived": "0",
+      "responsesReceived": "0",
+      "remoteCandidateId": "Cand-bWrncEMZ",
+      "localCandidateId": "Cand-WgZElJG5",
+      "bytesSent": "0",
+      "packetsSent": "0"
+    }
+  },
+  {
+    "id": "Cand-WgZElJG5",
+    "timestamp": "2017-04-17T23:39:27.126Z",
+    "type": "localcandidate",
+    "stats": {
+      "portNumber": "52128",
+      "networkType": "wlan",
+      "ipAddress": "192.168.0.7",
+      "transport": "udp",
+      "candidateType": "host",
+      "priority": "2122129151"
+    }
+  },
+  {
+    "id": "ssrc_101172669_recv",
+    "timestamp": "2017-04-17T23:47:42.784Z",
+    "type": "ssrc",
+    "stats": {
+      "googDecodingCTN": "49664",
+      "packetsLost": "0",
+      "googSecondaryDecodedRate": "0",
+      "googDecodingPLC": "99",
+      "packetsReceived": "24776",
+      "googJitterReceived": "4",
+      "googDecodingCNG": "0",
+      "ssrc": "101172669",
+      "googPreferredJitterBufferMs": "20",
+      "googSpeechExpandRate": "0",
+      "googTrackId": "NxFuozUwTB8bst2AuVXe25nzKEpMiUzEVLfZ00",
+      "transportId": "Channel-audio-1",
+      "mediaType": "audio",
+      "googDecodingPLCCNG": "104",
+      "googCodecName": "PCMU",
+      "googDecodingNormal": "49461",
+      "audioOutputLevel": "0",
+      "googAccelerateRate": "0",
+      "bytesReceived": "4261472",
+      "googCurrentDelayMs": "46",
+      "googDecodingCTSG": "0",
+      "googExpandRate": "0",
+      "googPreemptiveExpandRate": "0",
+      "googJitterBufferMs": "41",
+      "googDecodingMuted": "100"
+    }
+  }
+]

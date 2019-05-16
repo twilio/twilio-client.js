@@ -1,0 +1,16 @@
+dev:
+  account_sid: ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  auth_token: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  app_sid: APxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+stage:
+  account_sid: ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  auth_token: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  app_sid: APxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+prod:
+  account_sid: ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  auth_token: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  app_sid: APxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  api_key_secret: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  api_key_sid: SKxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx

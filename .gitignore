@@ -1,0 +1,10 @@
+*.sw*
+.idea
+.nyc_output/
+config.yaml
+coverage
+dist
+es5
+extension/token.js
+node_modules
+package-lock.json

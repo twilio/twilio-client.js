@@ -1,0 +1,65 @@
+# NOTE(mroberts): https://github.com/travis-ci/travis-ci/issues/4704
+filter_secrets: false
+language: node_js
+node_js:
+  - 8
+
+# https://github.com/travis-ci/travis-ci/issues/8836#issuecomment-356362524
+sudo: required
+
+addons:
+  apt:
+    packages:
+      - pulseaudio
+
+env:
+  global:
+    - DBUS_SESSION_BUS_ADDRESS=/dev/null
+    - DISPLAY=:99.0
+
+matrix:
+  include:
+    - os: linux
+      env: BROWSER=chrome BVER=stable
+
+    - os: linux
+      env: BROWSER=chrome BVER=beta
+
+    - os: linux
+      env: BROWSER=chrome BVER=unstable
+
+    - os: linux
+      env: BROWSER=firefox BVER=stable
+
+    - os: linux
+      env: BROWSER=firefox BVER=beta
+
+    - os: linux
+      env: BROWSER=firefox BVER=unstable
+
+  allow_failures:
+    - env: BROWSER=chrome BVER=unstable
+    - env: BROWSER=firefox BVER=stable
+    - env: BROWSER=firefox BVER=beta
+    - env: BROWSER=firefox BVER=unstable
+    - env: BROWSER=safari BVER=unstable
+
+before_script:
+  - |
+    set -e
+    cd node_modules/travis-multirunner
+    if [ "${TRAVIS_OS_NAME}" == 'linux' ]; then
+      BROWSER=chrome ./setup.sh
+      BROWSER=firefox ./setup.sh
+      export CHROME_BIN=$(pwd)/browsers/bin/chrome-$BVER
+      export FIREFOX_BIN=$(pwd)/browsers/bin/firefox-$BVER
+    else
+      BROWSER=safari ./setup.sh
+    fi
+    cd ../..
+    if [ "${TRAVIS_OS_NAME}" == 'linux' ]; then
+      sh -e /etc/init.d/xvfb start
+      pulseaudio --start
+    fi
+
+script: npm run build:release
