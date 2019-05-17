@@ -35,7 +35,7 @@
     "lint:ts": "tslint -c tslint.json --project tsconfig.json -t stylish",
     "release": "release",
     "start": "node server.js",
-    "status": "git status && git diff",
+    "status": "git status",
     "test": "npm-run-all test:unit test:frameworks",
     "test:es5": "es-check es5 \"./es5/**/*.js\" ./dist/*.js",
     "test:framework:no-framework": "mocha tests/framework/no-framework.js",
