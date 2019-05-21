@@ -213,6 +213,38 @@ describe('PeerConnection', () => {
     });
   });
 
+  context('PeerConnection.prototype._setInputTracksForUnifiedPlan', () => {
+    const METHOD = PeerConnection.prototype._setInputTracksForUnifiedPlan;
+    const STREAM = { id: 1 };
+
+    let context = null;
+    let toTest = null;
+
+    beforeEach(() => {
+      context = {
+        stream: STREAM,
+        mute: sinon.stub(),
+        _sender: {}
+      };
+      toTest = METHOD.bind(context);
+    });
+
+    it('Should replace tracks before returning the new stream', done => {
+      const replaceTrackCb = sinon.stub();
+      context._updateInputStreamSource = sinon.stub();
+      context._sender.replaceTrack = () => ({ then: (cb) => {
+        replaceTrackCb();
+        return cb();
+      }})
+
+      toTest(false, { getAudioTracks: () => ['foo'] }).then((result) => {
+        assert(context._updateInputStreamSource.calledOnce);
+        assert(replaceTrackCb.calledOnce);
+        assert.strictEqual(result.id, STREAM.id);
+      }).then(done).catch(done);
+    });
+  });
+
   context('PeerConnection.prototype.close', () => {
     const METHOD = PeerConnection.prototype.close;
 
