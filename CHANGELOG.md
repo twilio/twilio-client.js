@@ -1,3 +1,12 @@
+1.7.4 (In Progress)
+====================
+
+Bug Fixes
+---------
+
+* Fixed a bug where changing the input device then later calling `Connection.mute()` will not work.
+
+
 1.7.3 (May 16, 2019)
 ====================
 
