@@ -39,7 +39,7 @@ describe('Connection', function() {
     return mediaStream;
   };
 
-  const RTCMonitor = () => monitor = createEmitterStub(require('../../lib/twilio/rtc/monitor'));
+  const RTCMonitor: any = () => monitor = createEmitterStub(require('../../lib/twilio/rtc/monitor').default);
 
   afterEach(() => {
     clock.restore();
@@ -251,7 +251,6 @@ describe('Connection', function() {
             wait = p.then(() => Promise.resolve());
             return p;
           });
-          monitor.getSample = sinon.stub().returns(Promise.resolve({}));
         });
 
         it('should call mediaStream.answerIncomingCall', () => {
@@ -312,7 +311,6 @@ describe('Connection', function() {
           mediaStream.makeOutgoingCall = sinon.spy((a: any, b: any, c: any, d: any, e: any, _callback: Function) => {
             callback = _callback;
           });
-          monitor.getSample = sinon.stub().returns(Promise.resolve({}));
         });
 
         it('should call mediaStream.makeOutgoingCall with correctly encoded params', () => {
