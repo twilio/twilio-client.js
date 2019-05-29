@@ -589,6 +589,80 @@ describe('PeerConnection', () => {
 
   });
 
+  context('PeerConnection.prototype.iceRestart', () => {
+    const METHOD = PeerConnection.prototype.iceRestart;
+    const SDP = 'sdp';
+    const CALLSID = 'callsid';
+
+    let context;
+    let onAnswerOrRinging;
+    let pstream;
+    let toTest;
+    let version;
+
+    beforeEach(() => {
+      onAnswerOrRinging = () => {};
+      version = {
+        createOffer: sinon.stub().returns({ then: (cb) => cb()}),
+        getSDP: () => SDP,
+        processAnswer: (codecPreferences, sdp, onSuccess, onError) => onSuccess(),
+      };
+      pstream = {
+        addListener: (type, callback) => {
+          if (type === 'answer') {
+            onAnswerOrRinging = callback;
+          }
+        },
+        removeListener: sinon.stub(),
+        publish: sinon.stub(),
+      };
+      context = {
+        callSid: CALLSID,
+        codecPreferences: ['opus'],
+        log: sinon.stub(),
+        onerror: sinon.stub(),
+        pstream,
+        version
+      };
+      toTest = METHOD.bind(context);
+    });
+
+    it('Should call createOffer with iceRestart flag', (done) => {
+      toTest().then(() => {
+        assert(version.createOffer.calledWithExactly(context.codecPreferences, {iceRestart: true}));
+        done();
+      });
+      onAnswerOrRinging({sdp: SDP});
+    });
+
+    it('Should publish reinvite', (done) => {
+      toTest().then(() => {
+        assert(pstream.publish.calledWithExactly('reinvite', {
+          sdp: SDP,
+          callsid: CALLSID
+        }));
+        done();
+      });
+      onAnswerOrRinging({sdp: SDP});
+    });
+
+    it('Should remove answer callback', (done) => {
+      toTest().then(() => {
+        assert(pstream.removeListener.calledWithExactly('answer', onAnswerOrRinging));
+        done();
+      });
+      onAnswerOrRinging({sdp: SDP});
+    });
+
+    it('Should update _answerSdp', (done) => {
+      toTest().then(() => {
+        assert.equal(context._answerSdp, SDP);
+        done();
+      });
+      onAnswerOrRinging({sdp: SDP});
+    });
+  });
+
   context('PeerConnection.prototype.makeOutgoingCall', () => {
     const METHOD = PeerConnection.prototype.makeOutgoingCall;
     const EXPECTED_OFFER_ERROR = {info: {code: 31000, message: 'Error creating the offer: error message'}};
@@ -829,7 +903,7 @@ describe('PeerConnection', () => {
       assert.equal(context._setupChannel.called, false);
     });
 
-    it('Should call setup peer connection and return true when status is not open and pstreaem status is not disconnected', () => {
+    it('Should call setup peer connection and return true when status is not open and pstream status is not disconnected', () => {
       assert.strictEqual(toTest(), true);
       assert(context._setupPeerConnection.calledWithExactly(CONSTRAINTS, ICE_SERVERS));
       assert(context._setupChannel.calledWithExactly());

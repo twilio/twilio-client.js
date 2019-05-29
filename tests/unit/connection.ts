@@ -1280,6 +1280,36 @@ describe('Connection', function() {
     });
   });
 
+  describe('on monitor.disconnect', () => {
+    afterEach(() => {
+      mediaStream.iceRestart.reset();
+    });
+
+    it('should call mediaStream.iceRestart', () => {
+      mediaStream.iceRestart = sinon.stub().returns({ then: (cb: any) => cb() });
+      monitor.emit('disconnect');
+      sinon.assert.callCount(mediaStream.iceRestart, 1);
+    });
+
+    it('should listen to monitor.disconnect again after each previous ice restarts', () => {
+      mediaStream.iceRestart = sinon.stub().returns({ then: (cb: any) => cb() });
+      monitor.emit('disconnect');
+      monitor.emit('disconnect');
+      monitor.emit('disconnect');
+      monitor.emit('disconnect');
+      monitor.emit('disconnect');
+      sinon.assert.callCount(mediaStream.iceRestart, 5);
+    });
+
+    it('should not call mediaStream.iceRestart if a previous restart is pending', () => {
+      mediaStream.iceRestart = sinon.stub().returns({ then: () => {} });
+      monitor.emit('disconnect');
+      monitor.emit('disconnect');
+      monitor.emit('disconnect');
+      sinon.assert.callCount(mediaStream.iceRestart, 1);
+    });
+  });
+
   describe('on monitor.sample', () => {
     const sampleData = {
       timestamp: 0,

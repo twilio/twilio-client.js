@@ -391,6 +391,8 @@ class Connection extends EventEmitter {
     this.on('disconnect', () => {
       this._cleanupEventListeners();
     });
+
+    this._monitorIceConnection();
   }
 
   /**
@@ -957,6 +959,20 @@ class Connection extends EventEmitter {
     if (!wasRemote) {
       this._publisher.info('connection', 'disconnected-by-local', null, this);
     }
+  }
+
+  /**
+   * Monitors and restarts ICE for the current {@link Connection}
+   */
+  private _monitorIceConnection(): void {
+    const reconnectIce = () => this.mediaStream.iceRestart().then(listen, listen);
+
+    const listen = () => this._monitor.once('disconnect', () => {
+      this._log.warn('ICE Connection disconnected.');
+      reconnectIce();
+    });
+
+    listen();
   }
 
   /**
