@@ -6,6 +6,7 @@ Improvements
 
 * ICE Connections will now attempt to reconnect when they transition to the `failed` state, rather
   than immediately disconnecting.
+* We now report bytesSent and bytesReceived within the last second in the webrtc sample object (`RTCSample`).
 
 Bug Fixes
 ---------
