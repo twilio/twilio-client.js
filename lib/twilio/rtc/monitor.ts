@@ -5,6 +5,7 @@
 
 import { EventEmitter } from 'events';
 import RTCSample from './sample';
+import RTCWarning from './warning';
 
 const getRTCStats = require('./stats');
 const Mos = require('./mos');
@@ -212,7 +213,7 @@ class RTCMonitor extends EventEmitter {
    * @param thresholdName - The name of the threshold to clear
    * @param [data] - Any relevant sample data.
    */
-  private _clearWarning(statName: string, thresholdName: string, data?: RTCMonitor.WarningData): void {
+  private _clearWarning(statName: string, thresholdName: string, data?: RTCWarning): void {
     const warningId = `${statName}:${thresholdName}`;
     const activeWarning = this._activeWarnings.get(warningId);
 
@@ -315,7 +316,7 @@ class RTCMonitor extends EventEmitter {
    * @param thresholdName - The name of the threshold to raise
    * @param [data] - Any relevant sample data.
    */
-  private _raiseWarning(statName: string, thresholdName: string, data?: RTCMonitor.WarningData): void {
+  private _raiseWarning(statName: string, thresholdName: string, data?: RTCWarning): void {
     const warningId = `${statName}:${thresholdName}`;
 
     if (this._activeWarnings.has(warningId)) { return; }
@@ -473,22 +474,6 @@ namespace RTCMonitor {
      * Rules to apply to sample.rtt
      */
     rtt?: ThresholdOption;
-  }
-
-  /**
-   * Warning data for a stat
-   * @private
-   */
-  export interface WarningData {
-    /**
-     * Value for this stat
-     */
-    value?: number;
-
-    /**
-     * A list of sample data
-     */
-    values?: RTCSample[];
   }
 
   /**

@@ -9,6 +9,7 @@ import DialtonePlayer from './dialtonePlayer';
 import { Region } from './regions';
 import RTCMonitor from './rtc/monitor';
 import RTCSample from './rtc/sample';
+import RTCWarning from './rtc/warning';
 import Log, { LogLevel } from './tslog';
 
 const C = require('./constants');
@@ -266,7 +267,7 @@ class Connection extends EventEmitter {
     monitor.disableWarnings();
     setTimeout(() => monitor.enableWarnings(), METRICS_DELAY);
 
-    monitor.on('warning', (data: Record<string, any>, wasCleared?: boolean) => {
+    monitor.on('warning', (data: RTCWarning, wasCleared?: boolean) => {
       if (data.name === 'bytesSent' || data.name === 'bytesReceived') {
         this._log.warn('ICE Connection disconnected.');
         clearInterval(this._iceRestartIntervalId);
@@ -275,7 +276,7 @@ class Connection extends EventEmitter {
       }
       this._reemitWarning(data, wasCleared);
     });
-    monitor.on('warning-cleared', (data: Record<string, any>) => {
+    monitor.on('warning-cleared', (data: RTCWarning) => {
       if (data.name === 'bytesSent' || data.name === 'bytesReceived') {
         this._log.info('ICE Connection reestablished.');
         clearInterval(this._iceRestartIntervalId);
