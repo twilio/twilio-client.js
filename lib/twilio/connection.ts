@@ -8,6 +8,7 @@ import Device from './device';
 import DialtonePlayer from './dialtonePlayer';
 import { Region } from './regions';
 import RTCMonitor from './rtc/monitor';
+import RTCSample from './rtc/sample';
 import Log, { LogLevel } from './tslog';
 
 const C = require('./constants');
@@ -1084,7 +1085,7 @@ class Connection extends EventEmitter {
    * Emits stats event and batches the call stats metrics and sends them to Insights.
    * @param sample
    */
-  private _onRTCSample = (sample: RTCMonitor.RTCSample): void => {
+  private _onRTCSample = (sample: RTCSample): void => {
     const callMetrics: Connection.CallMetrics = {
       ...sample,
       audioInputLevel: Math.round(this._latestInternalInputVolume),
@@ -1272,7 +1273,7 @@ namespace Connection {
    * @example `connection.on('sample', sample => { })`
    * @event
    */
-  declare function sampleEvent(sample: RTCMonitor.RTCSample): void;
+  declare function sampleEvent(sample: RTCSample): void;
 
   /**
    * Possible states of the {@link Connection}.
@@ -1510,7 +1511,7 @@ namespace Connection {
    * This include rtc samples and audio information.
    * @private
    */
-  export interface CallMetrics extends RTCMonitor.RTCSample {
+  export interface CallMetrics extends RTCSample {
     /**
      * Audio input level between 0 and 32767, representing -100 to -30 dB.
      */
