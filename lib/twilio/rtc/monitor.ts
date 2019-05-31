@@ -141,7 +141,7 @@ class RTCMonitor extends EventEmitter {
    * @param peerConnection - A PeerConnection to monitor.
    * @returns The current {@link RTCMonitor}.
    */
-  enable(peerConnection: IPeerConnection): RTCMonitor {
+  enable(peerConnection: IPeerConnection): this {
     if (peerConnection) {
       if (this._peerConnection && peerConnection !== this._peerConnection) {
         throw new Error('Attempted to replace an existing PeerConnection in RTCMonitor.enable');
@@ -163,7 +163,7 @@ class RTCMonitor extends EventEmitter {
    * Enable warnings for this {@link RTCMonitor}.
    * @returns The current {@link RTCMonitor}.
    */
-  enableWarnings(): RTCMonitor {
+  enableWarnings(): this {
     this._warningsEnabled = true;
     return this;
   }
@@ -172,7 +172,7 @@ class RTCMonitor extends EventEmitter {
    * Stop sampling RTC statistics for this {@link RTCMonitor}.
    * @returns The current {@link RTCMonitor}.
    */
-  disable(): RTCMonitor {
+  disable(): this {
     clearInterval(this._sampleInterval);
     delete this._sampleInterval;
 
@@ -183,7 +183,7 @@ class RTCMonitor extends EventEmitter {
    * Disable warnings for this {@link RTCMonitor}.
    * @returns The current {@link RTCMonitor}.
    */
-  disableWarnings(): RTCMonitor {
+  disableWarnings(): this {
     if (this._warningsEnabled) {
       this._activeWarnings.clear();
     }
