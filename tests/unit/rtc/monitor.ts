@@ -107,6 +107,8 @@ describe('RTCMonitor', () => {
 
   describe(`RTCMonitor on 'sample'`, () => {
     const REQUIRED_FIELDS = [
+      'bytesReceived',
+      'bytesSent',
       'codecName',
       'jitter',
       'mos',
