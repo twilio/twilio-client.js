@@ -261,7 +261,14 @@ class Connection extends EventEmitter {
     monitor.disableWarnings();
     setTimeout(() => monitor.enableWarnings(), METRICS_DELAY);
 
-    monitor.on('warning', this._reemitWarning);
+    monitor.on('warning', (data: Record<string, any>, wasCleared?: boolean) => {
+      if (data.bytesSent === 0 || data.bytesReceived === 0) {
+        this._log.warn('ICE Connection disconnected.');
+        this.mediaStream.iceRestart();
+      } else {
+        this._reemitWarning(data, wasCleared);
+      }
+    });
     monitor.on('warning-cleared', this._reemitWarningCleared);
 
     this.mediaStream = new (this.options.MediaStream || this.options.mediaStreamFactory)
@@ -391,8 +398,6 @@ class Connection extends EventEmitter {
     this.on('disconnect', () => {
       this._cleanupEventListeners();
     });
-
-    this._monitorIceConnection();
   }
 
   /**
@@ -959,20 +964,6 @@ class Connection extends EventEmitter {
     if (!wasRemote) {
       this._publisher.info('connection', 'disconnected-by-local', null, this);
     }
-  }
-
-  /**
-   * Monitors and restarts ICE for the current {@link Connection}
-   */
-  private _monitorIceConnection(): void {
-    const reconnectIce = () => this.mediaStream.iceRestart().then(listen, listen);
-
-    const listen = () => this._monitor.once('disconnect', () => {
-      this._log.warn('ICE Connection disconnected.');
-      reconnectIce();
-    });
-
-    listen();
   }
 
   /**
@@ -1552,6 +1543,16 @@ namespace Connection {
      * Audio codec used, either pcmu or opus
      */
     codecName: string;
+
+    /**
+     * Bytes received in last second.
+     */
+    bytesReceived: number;
+
+    /**
+     * Bytes sent in last second.
+     */
+    bytesSent: number;
 
     /**
      * Totals for packets and bytes related information
