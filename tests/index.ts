@@ -78,3 +78,4 @@ require('./unit/connection');
 require('./unit/device');
 require('./unit/tslog');
 require('./unit/wstransport');
+require('./unit/rtc/monitor');

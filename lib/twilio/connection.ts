@@ -7,12 +7,14 @@ import { EventEmitter } from 'events';
 import Device from './device';
 import DialtonePlayer from './dialtonePlayer';
 import { Region } from './regions';
+import RTCMonitor from './rtc/monitor';
+import RTCSample from './rtc/sample';
+import RTCWarning from './rtc/warning';
 import Log, { LogLevel } from './tslog';
 
 const C = require('./constants');
 const Exception = require('./util').Exception;
 const PeerConnection = require('./rtc').PeerConnection;
-const RTCMonitor = require('./rtc/monitor');
 const util = require('util');
 
 // Placeholders until we convert the respective files to TypeScript.
@@ -20,10 +22,6 @@ const util = require('util');
  * @private
  */
 export type IAudioHelper = any;
-/**
- * @private
- */
-export type IRTCMonitor = any;
 /**
  * @private
  */
@@ -181,7 +179,7 @@ class Connection extends EventEmitter {
   /**
    * An instance of RTCMonitor.
    */
-  private readonly _monitor: IRTCMonitor;
+  private readonly _monitor: RTCMonitor;
 
   /**
    * An instance of EventPublisher.
@@ -269,7 +267,7 @@ class Connection extends EventEmitter {
     monitor.disableWarnings();
     setTimeout(() => monitor.enableWarnings(), METRICS_DELAY);
 
-    monitor.on('warning', (data: Record<string, any>, wasCleared?: boolean) => {
+    monitor.on('warning', (data: RTCWarning, wasCleared?: boolean) => {
       if (data.name === 'bytesSent' || data.name === 'bytesReceived') {
         this._log.warn('ICE Connection disconnected.');
         clearInterval(this._iceRestartIntervalId);
@@ -278,7 +276,7 @@ class Connection extends EventEmitter {
       }
       this._reemitWarning(data, wasCleared);
     });
-    monitor.on('warning-cleared', (data: Record<string, any>) => {
+    monitor.on('warning-cleared', (data: RTCWarning) => {
       if (data.name === 'bytesSent' || data.name === 'bytesReceived') {
         this._log.info('ICE Connection reestablished.');
         clearInterval(this._iceRestartIntervalId);
@@ -1088,7 +1086,7 @@ class Connection extends EventEmitter {
    * Emits stats event and batches the call stats metrics and sends them to Insights.
    * @param sample
    */
-  private _onRTCSample = (sample: Connection.RTCSample): void => {
+  private _onRTCSample = (sample: RTCSample): void => {
     const callMetrics: Connection.CallMetrics = {
       ...sample,
       audioInputLevel: Math.round(this._latestInternalInputVolume),
@@ -1399,7 +1397,7 @@ namespace Connection {
     /**
      * An override for the RTCMonitor dependency.
      */
-    RTCMonitor?: IRTCMonitor;
+    RTCMonitor?: new () => RTCMonitor;
 
     /**
      * Audio Constraints to pass to getUserMedia when making or accepting a Call.
@@ -1507,108 +1505,6 @@ namespace Connection {
      * Whether to enable warn level logging.
      */
     warnings?: boolean;
-  }
-
-  /**
-   * Sample RTC statistics coming from {@link RTCMonitor}
-   * @private
-   */
-  export interface RTCSample {
-    /**
-     * Timestamp
-     */
-    timestamp: number;
-
-    /**
-     * Number of packets sent in last second.
-     */
-    packetsSent: number;
-
-    /**
-     * Number of packets received in last second.
-     */
-    packetsReceived: number;
-
-    /**
-     * Number of packets lost in last second.
-     */
-    packetsLost: number;
-
-    /**
-     * Packets lost to inbound packets ratio in last second.
-     */
-    packetsLostFraction: number;
-
-    /**
-     * Packets delay variation
-     */
-    jitter: number;
-
-    /**
-     * Round trip time, to the server back to the client.
-     */
-    rtt: number;
-
-    /**
-     * Mean opinion score, 1.0 through roughly 4.5
-     */
-    mos: number;
-
-    /**
-     * Audio codec used, either pcmu or opus
-     */
-    codecName: string;
-
-    /**
-     * Bytes received in last second.
-     */
-    bytesReceived: number;
-
-    /**
-     * Bytes sent in last second.
-     */
-    bytesSent: number;
-
-    /**
-     * Totals for packets and bytes related information
-     */
-    totals: RTCSampleTotals;
-  }
-
-  /**
-   * Totals included in RTC statistics samples
-   * @private
-   */
-  export interface RTCSampleTotals {
-    /**
-     * Total packets received in last second.
-     */
-    packetsReceived: number;
-
-    /**
-     * Total packets lost in last second.
-     */
-    packetsLost: number;
-
-    /**
-     * Total packets sent in last second.
-     */
-    packetsSent: number;
-
-    /**
-     * Total packets lost to total inbound packets ratio
-     */
-    packetsLostFraction: number;
-
-    /**
-     * Total bytes received in last second.
-     */
-    bytesReceived: number;
-
-    /**
-     * Total bytes sent in last second.
-     */
-    bytesSent: number;
   }
 
   /**
