@@ -1333,6 +1333,30 @@ describe('Connection', function() {
   });
 
   describe('on monitor.warning', () => {
+    context('if warningData.name contains bytes', () => {
+      it('should start iceRestart loop for bytesReceived', () => {
+        mediaStream.iceRestart = sinon.stub();
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'maxDuration' } });
+        clock.tick(4000);
+        assert(mediaStream.iceRestart.calledOnce);
+      });
+      it('should start iceRestart loop for bytesSent', () => {
+        mediaStream.iceRestart = sinon.stub();
+        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'maxDuration' } });
+        clock.tick(4000);
+        assert(mediaStream.iceRestart.calledOnce);
+      });
+      it('should start iceRestart loop once', () => {
+        mediaStream.iceRestart = sinon.stub();
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'maxDuration' } });
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'maxDuration' } });
+        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'maxDuration' } });
+        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'maxDuration' } });
+        clock.tick(4000);
+        assert(mediaStream.iceRestart.calledOnce);
+      });
+    });
+
     context('if warningData.name contains audio', () => {
       it('should publish an audio-level-warning-raised warning event', () => {
         monitor.emit('warning', { name: 'audio', threshold: { name: 'max' }, values: [1, 2, 3] });
@@ -1359,6 +1383,24 @@ describe('Connection', function() {
   });
 
   describe('on monitor.warning-cleared', () => {
+    context('if warningData.name contains bytes', () => {
+      it('should stop iceRestart loop for bytesReceived', () => {
+        mediaStream.iceRestart = sinon.stub();
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'maxDuration' } });
+        clock.tick(4000);
+        monitor.emit('warning-cleared', { name: 'bytesReceived', threshold: { name: 'maxDuration' } });
+        clock.tick(4000);
+        assert(mediaStream.iceRestart.calledOnce);
+      });
+      it('should stop iceRestart loop for bytesSent', () => {
+        mediaStream.iceRestart = sinon.stub();
+        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'maxDuration' } });
+        clock.tick(4000);
+        monitor.emit('warning-cleared', { name: 'bytesSent', threshold: { name: 'maxDuration' } });
+        clock.tick(4000);
+        assert(mediaStream.iceRestart.calledOnce);
+      });
+    });
     context('if warningData.name contains audio', () => {
       it('should publish an audio-level-warning-cleared info event', () => {
         monitor.emit('warning-cleared', { name: 'audio', threshold: { name: 'max' } });

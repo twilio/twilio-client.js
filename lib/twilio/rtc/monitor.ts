@@ -20,6 +20,8 @@ const SAMPLE_INTERVAL = 1000;
 const WARNING_TIMEOUT = 5 * 1000;
 
 const DEFAULT_THRESHOLDS: RTCMonitor.ThresholdOptions = {
+  bytesReceived: { maxDuration: 3 },
+  bytesSent: { maxDuration: 3 },
   jitter: { max: 30 },
   mos: { min: 3 },
   packetsLostFraction: { max: 1 },
@@ -80,11 +82,6 @@ class RTCMonitor extends EventEmitter {
   private _currentStreaks: Map<string, number> = new Map();
 
   /**
-   * The PeerConnection to monitor.
-   */
-  private _peerConnection: IPeerConnection;
-
-  /**
    * Method to get stats from a PeerConnection object. Overrides getRTCStats library
    */
   private _getRTCStats: (peerConnection: IPeerConnection) => IRTCStats;
@@ -93,6 +90,11 @@ class RTCMonitor extends EventEmitter {
    * For calculating Mos. Overrides Mos library
    */
   private _mos: IMos;
+
+  /**
+   * The PeerConnection to monitor.
+   */
+  private _peerConnection: IPeerConnection;
 
   /**
    * Sample buffer. Saves most recent samples
@@ -233,10 +235,14 @@ class RTCMonitor extends EventEmitter {
    * @returns A universally-formatted version of RTC stats.
    */
   private _createSample(stats: IRTCStats, previousSample: RTCMonitor.RTCSample | null): RTCMonitor.RTCSample {
+    const previousBytesSent = previousSample && previousSample.totals.bytesSent || 0;
+    const previousBytesReceived = previousSample && previousSample.totals.bytesReceived || 0;
     const previousPacketsSent = previousSample && previousSample.totals.packetsSent || 0;
     const previousPacketsReceived = previousSample && previousSample.totals.packetsReceived || 0;
     const previousPacketsLost = previousSample && previousSample.totals.packetsLost || 0;
 
+    const currentBytesSent = stats.bytesSent - previousBytesSent;
+    const currentBytesReceived = stats.bytesReceived - previousBytesReceived;
     const currentPacketsSent = stats.packetsSent - previousPacketsSent;
     const currentPacketsReceived = stats.packetsReceived - previousPacketsReceived;
     const currentPacketsLost = stats.packetsLost - previousPacketsLost;
@@ -251,6 +257,8 @@ class RTCMonitor extends EventEmitter {
     const rttValue = (typeof stats.rtt === 'number' || !previousSample) ? stats.rtt : previousSample.rtt;
 
     return {
+      bytesReceived: currentBytesReceived,
+      bytesSent: currentBytesSent,
       codecName: stats.codecName,
       jitter: stats.jitter,
       mos: this._mos.calculate(rttValue, stats.jitter, previousSample && currentPacketsLostFraction),
@@ -273,14 +281,12 @@ class RTCMonitor extends EventEmitter {
 
   /**
    * Get stats from the PeerConnection and add it to our list of samples.
-   * @returns A universally-formatted version of RTC stats.
    */
-  private _fetchSample(): Promise<RTCMonitor.RTCSample | void> {
-    return this._getSample().then(sample => {
+  private _fetchSample(): void {
+    this._getSample().then(sample => {
       this._addSample(sample);
       this._raiseWarnings();
       this.emit('sample', sample);
-      return sample;
     }).catch(error => {
       this.disable();
       this.emit('error', error);
@@ -424,6 +430,16 @@ namespace RTCMonitor {
    */
   export interface RTCSample {
     [key: string]: any;
+
+    /**
+     * Bytes received in last second.
+     */
+    bytesReceived: number;
+
+    /**
+     * Bytes sent in last second.
+     */
+    bytesSent: number;
 
     /**
      * Audio codec used, either pcmu or opus

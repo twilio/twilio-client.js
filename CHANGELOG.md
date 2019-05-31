@@ -1,3 +1,18 @@
+1.7.4 (In Progress)
+====================
+
+Improvements
+------------
+
+* ICE Connections will now attempt to reconnect when they transition to the `failed` state, rather
+  than immediately disconnecting.
+
+Bug Fixes
+---------
+
+* Fixed a bug where changing the input device then later calling `Connection.mute()` will not work.
+
+
 1.7.3 (May 16, 2019)
 ====================
 
