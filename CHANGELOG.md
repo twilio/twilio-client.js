@@ -1,6 +1,12 @@
 1.7.4 (In Progress)
 ====================
 
+Improvements
+------------
+
+* ICE Connections will now attempt to reconnect when they transition to the `failed` state, rather
+  than immediately disconnecting.
+
 Bug Fixes
 ---------
 

@@ -45,12 +45,15 @@ const DTMF_INTER_TONE_GAP: number = 70;
 const DTMF_PAUSE_DURATION: number = 500;
 const DTMF_TONE_DURATION: number = 160;
 
+const ICE_RESTART_INTERVAL = 3000;
 const METRICS_BATCH_SIZE: number = 10;
 const METRICS_DELAY: number = 20000;
 
 const WARNING_NAMES: Record<string, string> = {
   audioInputLevel: 'audio-input-level',
   audioOutputLevel: 'audio-output-level',
+  bytesReceived: 'bytes-received',
+  bytesSent: 'bytes-sent',
   jitter: 'jitter',
   mos: 'mos',
   packetsLostFraction: 'packet-loss',
@@ -123,6 +126,11 @@ class Connection extends EventEmitter {
    * will copy whatever we get from RTC stats.
    */
   private _codec: string;
+
+  /**
+   * Interval id for ICE restart loop
+   */
+  private _iceRestartIntervalId: number;
 
   /**
    * The number of times input volume has been the same consecutively.
@@ -261,8 +269,22 @@ class Connection extends EventEmitter {
     monitor.disableWarnings();
     setTimeout(() => monitor.enableWarnings(), METRICS_DELAY);
 
-    monitor.on('warning', this._reemitWarning);
-    monitor.on('warning-cleared', this._reemitWarningCleared);
+    monitor.on('warning', (data: Record<string, any>, wasCleared?: boolean) => {
+      if (data.name === 'bytesSent' || data.name === 'bytesReceived') {
+        this._log.warn('ICE Connection disconnected.');
+        clearInterval(this._iceRestartIntervalId);
+        this._iceRestartIntervalId = setInterval(
+          this.mediaStream.iceRestart.bind(this.mediaStream), ICE_RESTART_INTERVAL);
+      }
+      this._reemitWarning(data, wasCleared);
+    });
+    monitor.on('warning-cleared', (data: Record<string, any>) => {
+      if (data.name === 'bytesSent' || data.name === 'bytesReceived') {
+        this._log.info('ICE Connection reestablished.');
+        clearInterval(this._iceRestartIntervalId);
+      }
+      this._reemitWarningCleared(data);
+    });
 
     this.mediaStream = new (this.options.MediaStream || this.options.mediaStreamFactory)
       (config.audioHelper, config.pstream, config.getUserMedia, {
@@ -1536,6 +1558,16 @@ namespace Connection {
      * Audio codec used, either pcmu or opus
      */
     codecName: string;
+
+    /**
+     * Bytes received in last second.
+     */
+    bytesReceived: number;
+
+    /**
+     * Bytes sent in last second.
+     */
+    bytesSent: number;
 
     /**
      * Totals for packets and bytes related information
