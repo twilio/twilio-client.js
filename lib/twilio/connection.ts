@@ -45,7 +45,7 @@ const DTMF_TONE_DURATION: number = 160;
 
 const ICE_RESTART_INTERVAL = 3000;
 const METRICS_BATCH_SIZE: number = 10;
-const METRICS_DELAY: number = 20000;
+const METRICS_DELAY: number = 5000;
 
 const WARNING_NAMES: Record<string, string> = {
   audioInputLevel: 'audio-input-level',

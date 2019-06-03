@@ -108,8 +108,8 @@ describe('Connection', function() {
       sinon.assert.calledOnce(monitor.disableWarnings);
     });
 
-    it('should enable monitor warnings after 20000 ms', () => {
-      clock.tick(20000 - 10);
+    it('should enable monitor warnings after 5000 ms', () => {
+      clock.tick(5000 - 10);
       sinon.assert.notCalled(monitor.enableWarnings);
       clock.tick(20);
       sinon.assert.calledOnce(monitor.enableWarnings);
