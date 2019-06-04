@@ -136,19 +136,19 @@ class Connection extends EventEmitter {
   private _inputVolumeStreak: number = 0;
 
   /**
+   * Keeps track of internal input volumes in the last second
+   */
+  private _internalInputVolumes: number[] = [];
+
+  /**
+   * Keeps track of internal output volumes in the last second
+   */
+  private _internalOutputVolumes: number[] = [];
+
+  /**
    * The most recent public input volume value. 0 -> 1 representing -100 to -30 dB.
    */
   private _latestInputVolume: number = 0;
-
-  /**
-   * The most recent internal input volume value. 0 -> 1 representing -127 to 0 dB.
-   */
-  private _latestInternalInputVolume: number = 0;
-
-  /**
-   * The most recent internal output volume value. 0 -> 1 representing -127 to 0 dB.
-   */
-  private _latestInternalOutputVolume: number = 0;
 
   /**
    * The most recent public output volume value. 0 -> 1 representing -100 to -30 dB.
@@ -307,8 +307,9 @@ class Connection extends EventEmitter {
       // (rrowland) These values mock the 0 -> 32767 format used by legacy getStats. We should look into
       // migrating to a newer standard, either 0.0 -> linear or -127 to 0 in dB, matching the range
       // chosen below.
-      this._latestInternalInputVolume = (internalInputVolume / 255) * 32767;
-      this._latestInternalOutputVolume = (internalOutputVolume / 255) * 32767;
+
+      this._internalInputVolumes.push((internalInputVolume / 255) * 32767);
+      this._internalOutputVolumes.push((internalOutputVolume / 255) * 32767);
 
       // (rrowland) 0.0 -> 1.0 linear
       this.emit('volume', inputVolume, outputVolume);
@@ -1087,10 +1088,17 @@ class Connection extends EventEmitter {
    * @param sample
    */
   private _onRTCSample = (sample: RTCSample): void => {
+    const extractAverage = (items: number[]) => {
+      if (!items || !items.length) { return 0; }
+
+      const length = items.length;
+      return Math.round(items.splice(0).reduce((t, n) => t + n, 0) / length);
+    };
+
     const callMetrics: Connection.CallMetrics = {
       ...sample,
-      audioInputLevel: Math.round(this._latestInternalInputVolume),
-      audioOutputLevel: Math.round(this._latestInternalOutputVolume),
+      audioInputLevel: extractAverage(this._internalInputVolumes),
+      audioOutputLevel: extractAverage(this._internalOutputVolumes),
       inputVolume: this._latestInputVolume,
       outputVolume: this._latestOutputVolume,
     };
