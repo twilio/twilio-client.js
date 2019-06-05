@@ -104,25 +104,25 @@ class Connection extends EventEmitter {
   mediaStream: IPeerConnection;
 
   /**
-   * Call parameters received from Twilio for an incoming call.
-   */
-  parameters: Record<string, string> = { };
-
-  /**
    * The temporary CallSid for this call, if it's outbound.
    */
   readonly outboundConnectionId?: string;
 
   /**
-   * Whether this {@link Connection} is incoming or outgoing.
+   * Call parameters received from Twilio for an incoming call.
    */
-  private readonly _direction: Connection.CallDirection;
+  parameters: Record<string, string> = { };
 
   /**
    * Audio codec used for this {@link Connection}. Expecting {@link Connection.Codec} but
    * will copy whatever we get from RTC stats.
    */
   private _codec: string;
+
+  /**
+   * Whether this {@link Connection} is incoming or outgoing.
+   */
+  private readonly _direction: Connection.CallDirection;
 
   /**
    * Interval id for ICE restart loop
@@ -145,16 +145,6 @@ class Connection extends EventEmitter {
   private _internalOutputVolumes: number[] = [];
 
   /**
-   * The most recent public input volume value. 0 -> 1 representing -100 to -30 dB.
-   */
-  private _latestInputVolume: number = 0;
-
-  /**
-   * The most recent public output volume value. 0 -> 1 representing -100 to -30 dB.
-   */
-  private _latestOutputVolume: number = 0;
-
-  /**
    * Whether the call has been answered.
    */
   private _isAnswered: boolean = false;
@@ -163,6 +153,16 @@ class Connection extends EventEmitter {
    * Whether or not the browser uses unified-plan SDP by default.
    */
   private readonly _isUnifiedPlanDefault: boolean;
+
+  /**
+   * The most recent public input volume value. 0 -> 1 representing -100 to -30 dB.
+   */
+  private _latestInputVolume: number = 0;
+
+  /**
+   * The most recent public output volume value. 0 -> 1 representing -100 to -30 dB.
+   */
+  private _latestOutputVolume: number = 0;
 
   /**
    * An instance of Log to use.
@@ -181,14 +181,14 @@ class Connection extends EventEmitter {
   private readonly _monitor: RTCMonitor;
 
   /**
-   * An instance of EventPublisher.
-   */
-  private readonly _publisher: IPublisher;
-
-  /**
    * The number of times output volume has been the same consecutively.
    */
   private _outputVolumeStreak: number = 0;
+
+  /**
+   * An instance of EventPublisher.
+   */
+  private readonly _publisher: IPublisher;
 
   /**
    * A Map of Sounds to play.
@@ -681,31 +681,6 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Reject the incoming {@link Connection}.
-   */
-  reject(): void;
-  /**
-   * @deprecated - Set a handler for the {@link rejectEvent}
-   */
-  reject(handler: () => void): void;
-  reject(handler?: () => void): void {
-    if (typeof handler === 'function') {
-      this._addHandler('reject', handler);
-      return;
-    }
-
-    if (this._status !== Connection.State.Pending) {
-      return;
-    }
-
-    const payload = { callsid: this.parameters.CallSid };
-    this.pstream.publish('reject', payload);
-    this.emit('reject');
-    this.mediaStream.reject(this.parameters.CallSid);
-    this._publisher.info('connection', 'rejected-by-local', null, this);
-  }
-
-  /**
    * Post an event to Endpoint Analytics indicating that the end user
    *   has given call quality feedback. Called without a score, this
    *   will report that the customer declined to give feedback.
@@ -733,6 +708,31 @@ class Connection extends EventEmitter {
       issue_name: issue,
       quality_score: score,
     }, this, true);
+  }
+
+  /**
+   * Reject the incoming {@link Connection}.
+   */
+  reject(): void;
+  /**
+   * @deprecated - Set a handler for the {@link rejectEvent}
+   */
+  reject(handler: () => void): void;
+  reject(handler?: () => void): void {
+    if (typeof handler === 'function') {
+      this._addHandler('reject', handler);
+      return;
+    }
+
+    if (this._status !== Connection.State.Pending) {
+      return;
+    }
+
+    const payload = { callsid: this.parameters.CallSid };
+    this.pstream.publish('reject', payload);
+    this.emit('reject');
+    this.mediaStream.reject(this.parameters.CallSid);
+    this._publisher.info('connection', 'rejected-by-local', null, this);
   }
 
   /**
@@ -979,6 +979,47 @@ class Connection extends EventEmitter {
     }
   }
 
+  private _emitWarning = (groupPrefix: string, warningName: string, threshold: number,
+                          value: number|number[], wasCleared?: boolean): void => {
+    const groupSuffix = wasCleared ? '-cleared' : '-raised';
+    const groupName = `${groupPrefix}warning${groupSuffix}`;
+
+    // Ignore constant input if the Connection is muted (Expected)
+    if (warningName === 'constant-audio-input-level' && this.isMuted()) {
+      return;
+    }
+
+    let level = wasCleared ? 'info' : 'warning';
+
+    // Avoid throwing false positives as warnings until we refactor volume metrics
+    if (warningName === 'constant-audio-output-level') {
+      level = 'info';
+    }
+
+    const payloadData: Record<string, any> = { threshold };
+
+    if (value) {
+      if (value instanceof Array) {
+        payloadData.values = value.map((val: any) => {
+          if (typeof val === 'number') {
+            return Math.round(val * 100) / 100;
+          }
+
+          return value;
+        });
+      } else {
+        payloadData.value = value;
+      }
+    }
+
+    this._publisher.post(level, groupName, warningName, { data: payloadData }, this);
+
+    if (warningName !== 'constant-audio-output-level') {
+      const emitName = wasCleared ? 'warning-cleared' : 'warning';
+      this.emit(emitName, warningName);
+    }
+  }
+
   /**
    * Transition to {@link ConnectionStatus.Open} if criteria is met.
    */
@@ -1128,47 +1169,6 @@ class Connection extends EventEmitter {
     ).catch((e: any) => {
       this._log.warn('Unable to post metrics to Insights. Received error:', e);
     });
-  }
-
-  private _emitWarning = (groupPrefix: string, warningName: string, threshold: number,
-                          value: number|number[], wasCleared?: boolean): void => {
-    const groupSuffix = wasCleared ? '-cleared' : '-raised';
-    const groupName = `${groupPrefix}warning${groupSuffix}`;
-
-    // Ignore constant input if the Connection is muted (Expected)
-    if (warningName === 'constant-audio-input-level' && this.isMuted()) {
-      return;
-    }
-
-    let level = wasCleared ? 'info' : 'warning';
-
-    // Avoid throwing false positives as warnings until we refactor volume metrics
-    if (warningName === 'constant-audio-output-level') {
-      level = 'info';
-    }
-
-    const payloadData: Record<string, any> = { threshold };
-
-    if (value) {
-      if (value instanceof Array) {
-        payloadData.values = value.map((val: any) => {
-          if (typeof val === 'number') {
-            return Math.round(val * 100) / 100;
-          }
-
-          return value;
-        });
-      } else {
-        payloadData.value = value;
-      }
-    }
-
-    this._publisher.post(level, groupName, warningName, { data: payloadData }, this);
-
-    if (warningName !== 'constant-audio-output-level') {
-      const emitName = wasCleared ? 'warning-cleared' : 'warning';
-      this.emit(emitName, warningName);
-    }
   }
 
   /**
@@ -1397,11 +1397,6 @@ namespace Connection {
    */
   export interface Options {
     /**
-     * An override for the RTCMonitor dependency.
-     */
-    RTCMonitor?: new () => RTCMonitor;
-
-    /**
      * Audio Constraints to pass to getUserMedia when making or accepting a Call.
      * This is placed directly under `audio` of the MediaStreamConstraints object.
      */
@@ -1487,6 +1482,11 @@ namespace Connection {
      * The format of this object depends on browser.
      */
     rtcConstraints?: MediaStreamConstraints;
+
+    /**
+     * An override for the RTCMonitor dependency.
+     */
+    RTCMonitor?: new () => RTCMonitor;
 
     /**
      * The region passed to {@link Device} on setup.
