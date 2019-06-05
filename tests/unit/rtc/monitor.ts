@@ -269,6 +269,37 @@ describe('RTCMonitor', () => {
     
           return wait().then(() => sinon.assert.notCalled(onWarning));
         });
+
+        it(`Should use raise count parameter if passed in ('${item.thresholdName}' threshold)`, () => {
+          const onWarning = sinon.stub();
+          thresholds[STAT_NAME].raiseCount = SAMPLE_COUNT_RAISE - 1;
+          stats[STAT_NAME] = thresholds[STAT_NAME][item.thresholdName] + item.outOfBoundModifier;
+          monitor = new RTCMonitor({ getRTCStats, thresholds });
+          monitor.enable({});
+    
+          monitor.on('warning', onWarning);
+    
+          clock.tick((SAMPLE_COUNT_RAISE - 1) * 1000);
+          clock.restore();
+    
+          return wait().then(() => sinon.assert.calledOnce(onWarning));
+        });
+
+        it(`Should use sample count parameter if passed in ('${item.thresholdName}' threshold)`, () => {
+          const onWarning = sinon.stub();
+          thresholds[STAT_NAME].sampleCount = 3;
+          thresholds[STAT_NAME].raiseCount = 4;
+          stats[STAT_NAME] = thresholds[STAT_NAME][item.thresholdName] + item.outOfBoundModifier;
+          monitor = new RTCMonitor({ getRTCStats, thresholds });
+          monitor.enable({});
+    
+          monitor.on('warning', onWarning);
+    
+          clock.tick(4000);
+          clock.restore();
+    
+          return wait().then(() => sinon.assert.notCalled(onWarning));
+        });
       });
     });
   });

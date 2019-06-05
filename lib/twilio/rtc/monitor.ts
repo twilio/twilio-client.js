@@ -22,8 +22,8 @@ const SAMPLE_INTERVAL = 1000;
 const WARNING_TIMEOUT = 5 * 1000;
 
 const DEFAULT_THRESHOLDS: RTCMonitor.ThresholdOptions = {
-  bytesReceived: { maxDuration: 3 },
-  bytesSent: { maxDuration: 3 },
+  bytesReceived: { clearCount: 2, min: 1, raiseCount: 3, sampleCount: 3 },
+  bytesSent: { clearCount: 2, min: 1, raiseCount: 3, sampleCount: 3 },
   jitter: { max: 30 },
   mos: { min: 3 },
   packetsLostFraction: { max: 1 },
@@ -109,6 +109,11 @@ class RTCMonitor extends EventEmitter {
   private _sampleInterval: NodeJS.Timer;
 
   /**
+   * // How many samples we use when testing metric thresholds.
+   */
+  private _maxSampleCount: number;
+
+  /**
    * Threshold values for {@link RTCMonitor}
    */
   private _thresholds: RTCMonitor.ThresholdOptions;
@@ -130,6 +135,12 @@ class RTCMonitor extends EventEmitter {
     this._mos = options.Mos || Mos;
     this._peerConnection = options.peerConnection;
     this._thresholds = {...DEFAULT_THRESHOLDS, ...options.thresholds};
+
+    const thresholdSampleCounts = Object.values(this._thresholds)
+      .map((threshold: RTCMonitor.ThresholdOptions) => threshold.sampleCount)
+      .filter((sampleCount: number | undefined) => !!sampleCount);
+
+    this._maxSampleCount = Math.max(SAMPLE_COUNT_METRICS, ...thresholdSampleCounts);
 
     if (this._peerConnection) {
       this.enable(this._peerConnection);
@@ -202,8 +213,8 @@ class RTCMonitor extends EventEmitter {
 
     // We store 1 extra sample so that we always have (current, previous)
     // available for all {sampleBufferSize} threshold validations.
-    if (samples.length > SAMPLE_COUNT_METRICS) {
-      samples.splice(0, samples.length - SAMPLE_COUNT_METRICS);
+    if (samples.length > this._maxSampleCount) {
+      samples.splice(0, samples.length - this._maxSampleCount);
     }
   }
 
@@ -350,7 +361,11 @@ class RTCMonitor extends EventEmitter {
     const samples = this._sampleBuffer;
     const limits = this._thresholds[statName];
 
-    let relevantSamples = samples.slice(-SAMPLE_COUNT_METRICS);
+    const clearCount = limits.clearCount || SAMPLE_COUNT_CLEAR;
+    const raiseCount = limits.raiseCount || SAMPLE_COUNT_RAISE;
+    const sampleCount = limits.sampleCount || this._maxSampleCount;
+
+    let relevantSamples = samples.slice(-sampleCount);
     const values = relevantSamples.map(sample => sample[statName]);
 
     // (rrowland) If we have a bad or missing value in the set, we don't
@@ -364,18 +379,18 @@ class RTCMonitor extends EventEmitter {
     let count;
     if (typeof limits.max === 'number') {
       count = countHigh(limits.max, values);
-      if (count >= SAMPLE_COUNT_RAISE) {
+      if (count >= raiseCount) {
         this._raiseWarning(statName, 'max', { values });
-      } else if (count <= SAMPLE_COUNT_CLEAR) {
+      } else if (count <= clearCount) {
         this._clearWarning(statName, 'max', { values });
       }
     }
 
     if (typeof limits.min === 'number') {
       count = countLow(limits.min, values);
-      if (count >= SAMPLE_COUNT_RAISE) {
+      if (count >= raiseCount) {
         this._raiseWarning(statName, 'min', { values });
-      } else if (count <= SAMPLE_COUNT_CLEAR) {
+      } else if (count <= clearCount) {
         this._clearWarning(statName, 'min', { values });
       }
     }
@@ -432,6 +447,12 @@ namespace RTCMonitor {
    */
   export interface ThresholdOption {
     /**
+     * How many samples that need to cross the threshold to clear a warning.
+     * Overrides SAMPLE_COUNT_CLEAR
+     */
+    clearCount?: number;
+
+    /**
      * Warning will be raised if tracked metric rises above this value.
      */
     max?: number;
@@ -446,6 +467,18 @@ namespace RTCMonitor {
      * Warning will be raised if tracked metric falls below this value.
      */
     min?: number;
+
+    /**
+     * How many samples that need to cross the threshold to raise a warning.
+     * Overrides SAMPLE_COUNT_RAISE
+     */
+    raiseCount?: number;
+
+    /**
+     * How many samples we use when testing metric thresholds.
+     * Overrides _maxSampleCount
+     */
+    sampleCount?: number;
   }
 
   /**
