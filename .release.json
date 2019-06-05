@@ -1,6 +1,6 @@
 {
   "type": "JavaScript",
-  "travis": "pro",
+  "travis": true,
   "slug": "twilio/twilio-client.js",
   "env": {
     "GH_REF": "github.com/twilio/twilio-client.js.git"
@@ -15,15 +15,17 @@
         "node ./node_modules/.bin/release --bump ${CURRENT_VERSION} ${RELEASE_VERSION}",
         "git config user.name \"${GIT_USER_NAME}\"",
         "git config user.email \"${GIT_USER_EMAIL}\"",
-        "git rm -rf --ignore-unmatch dist es5",
+        "git rm -rf --ignore-unmatch dist es5 docs",
         "npm run build:release",
         "git add package.json",
-        "git add -f dist es5",
+        "git add -f dist es5 docs",
         "git commit -m \"${RELEASE_VERSION}\"",
         "git tag ${RELEASE_VERSION}",
         "git remote set-url origin \"https://${GH_TOKEN}@${GH_REF}\"",
         "git rebase HEAD ${BRANCH}",
         "git push origin ${BRANCH} --tags",
+        "git fetch --all",
+        "git checkout ${RELEASE_VERSION}",
         "git subtree add --prefix docs origin gh-pages",
         "npm run docs:ts",
         "git stage docs -f",
@@ -35,7 +37,7 @@
     "development": {
       "commands": [
         "node ./node_modules/.bin/release --bump ${RELEASE_VERSION} ${DEVELOPMENT_VERSION}",
-        "git rm -rf dist es5",
+        "git rm -rf dist es5 docs",
         "npm run clean",
         "npm run docs:clean",
         "git add package.json",
