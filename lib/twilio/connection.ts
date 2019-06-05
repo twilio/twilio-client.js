@@ -11,11 +11,10 @@ import RTCMonitor from './rtc/monitor';
 import RTCSample from './rtc/sample';
 import RTCWarning from './rtc/warning';
 import Log, { LogLevel } from './tslog';
+import { average, Exception } from './util';
 
 const C = require('./constants');
-const Exception = require('./util').Exception;
 const PeerConnection = require('./rtc').PeerConnection;
-const util = require('util');
 
 // Placeholders until we convert the respective files to TypeScript.
 /**
@@ -1088,21 +1087,16 @@ class Connection extends EventEmitter {
    * @param sample
    */
   private _onRTCSample = (sample: RTCSample): void => {
-    const extractAverage = (items: number[]) => {
-      if (!items || !items.length) { return 0; }
-
-      const length = items.length;
-      return Math.round(items.splice(0).reduce((t, n) => t + n, 0) / length);
-    };
-
     const callMetrics: Connection.CallMetrics = {
       ...sample,
-      audioInputLevel: extractAverage(this._internalInputVolumes),
-      audioOutputLevel: extractAverage(this._internalOutputVolumes),
+      audioInputLevel: average(this._internalInputVolumes),
+      audioOutputLevel: average(this._internalOutputVolumes),
       inputVolume: this._latestInputVolume,
       outputVolume: this._latestOutputVolume,
     };
 
+    this._internalInputVolumes.splice(0);
+    this._internalOutputVolumes.splice(0);
     this._codec = callMetrics.codecName;
 
     this._metricsSamples.push(callMetrics);
