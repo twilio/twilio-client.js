@@ -1089,8 +1089,8 @@ class Connection extends EventEmitter {
   private _onRTCSample = (sample: RTCSample): void => {
     const callMetrics: Connection.CallMetrics = {
       ...sample,
-      audioInputLevel: average(this._internalInputVolumes),
-      audioOutputLevel: average(this._internalOutputVolumes),
+      audioInputLevel: Math.round(average(this._internalInputVolumes)),
+      audioOutputLevel: Math.round(average(this._internalOutputVolumes)),
       inputVolume: this._latestInputVolume,
       outputVolume: this._latestOutputVolume,
     };

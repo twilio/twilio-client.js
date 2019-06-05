@@ -1342,8 +1342,8 @@ describe('Connection', function() {
 
           const sample = {
             ...sampleData,
-            audioInputLevel: (convert(internalAudioIn) + convert(2)) / 2,
-            audioOutputLevel: (convert(internalAudioOut) + convert(2)) / 2,
+            audioInputLevel: Math.round((convert(internalAudioIn) + convert(2)) / 2),
+            audioOutputLevel: Math.round((convert(internalAudioOut) + convert(2)) / 2),
             inputVolume: i,
             outputVolume: i
           };
