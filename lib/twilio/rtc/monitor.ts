@@ -111,7 +111,7 @@ class RTCMonitor extends EventEmitter {
   /**
    * // How many samples we use when testing metric thresholds.
    */
-  private _sampleCountMetrics: number;
+  private _maxSampleCount: number;
 
   /**
    * Threshold values for {@link RTCMonitor}
@@ -136,8 +136,11 @@ class RTCMonitor extends EventEmitter {
     this._peerConnection = options.peerConnection;
     this._thresholds = {...DEFAULT_THRESHOLDS, ...options.thresholds};
 
-    this._sampleCountMetrics = Math.max(SAMPLE_COUNT_METRICS, ...Object.values(this._thresholds)
-      .map((v: RTCMonitor.ThresholdOption) => v.sampleCount || 0));
+    const thresholdSampleCounts = Object.values(this._thresholds)
+      .map((threshold: RTCMonitor.ThresholdOptions) => threshold.sampleCount)
+      .filter((sampleCount: number | undefined) => !!sampleCount);
+
+    this._maxSampleCount = Math.max(SAMPLE_COUNT_METRICS, ...thresholdSampleCounts);
 
     if (this._peerConnection) {
       this.enable(this._peerConnection);
@@ -210,8 +213,8 @@ class RTCMonitor extends EventEmitter {
 
     // We store 1 extra sample so that we always have (current, previous)
     // available for all {sampleBufferSize} threshold validations.
-    if (samples.length > this._sampleCountMetrics) {
-      samples.splice(0, samples.length - this._sampleCountMetrics);
+    if (samples.length > this._maxSampleCount) {
+      samples.splice(0, samples.length - this._maxSampleCount);
     }
   }
 
@@ -360,7 +363,7 @@ class RTCMonitor extends EventEmitter {
 
     const clearCount = limits.clearCount || SAMPLE_COUNT_CLEAR;
     const raiseCount = limits.raiseCount || SAMPLE_COUNT_RAISE;
-    const sampleCount = limits.sampleCount || this._sampleCountMetrics;
+    const sampleCount = limits.sampleCount || this._maxSampleCount;
 
     let relevantSamples = samples.slice(-sampleCount);
     const values = relevantSamples.map(sample => sample[statName]);
@@ -473,7 +476,7 @@ namespace RTCMonitor {
 
     /**
      * How many samples we use when testing metric thresholds.
-     * Overrides _sampleCountMetrics
+     * Overrides _maxSampleCount
      */
     sampleCount?: number;
   }
