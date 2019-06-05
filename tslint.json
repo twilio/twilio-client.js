@@ -11,6 +11,10 @@
     "ban-types": false,
     "interface-name": false,
     "member-access": [true, "no-public"],
+    "member-ordering": [true, {
+      "order": "statics-first",
+      "alphabetize": true
+    }],
     "no-empty": {
       "severity": "warning"
     },

@@ -89,6 +89,11 @@ class RTCMonitor extends EventEmitter {
   private _getRTCStats: (peerConnection: IPeerConnection) => IRTCStats;
 
   /**
+   * // How many samples we use when testing metric thresholds.
+   */
+  private _maxSampleCount: number;
+
+  /**
    * For calculating Mos. Overrides Mos library
    */
   private _mos: IMos;
@@ -107,11 +112,6 @@ class RTCMonitor extends EventEmitter {
    * The setInterval id for fetching samples.
    */
   private _sampleInterval: NodeJS.Timer;
-
-  /**
-   * // How many samples we use when testing metric thresholds.
-   */
-  private _maxSampleCount: number;
 
   /**
    * Threshold values for {@link RTCMonitor}
@@ -148,6 +148,30 @@ class RTCMonitor extends EventEmitter {
   }
 
   /**
+   * Stop sampling RTC statistics for this {@link RTCMonitor}.
+   * @returns The current {@link RTCMonitor}.
+   */
+  disable(): this {
+    clearInterval(this._sampleInterval);
+    delete this._sampleInterval;
+
+    return this;
+  }
+
+  /**
+   * Disable warnings for this {@link RTCMonitor}.
+   * @returns The current {@link RTCMonitor}.
+   */
+  disableWarnings(): this {
+    if (this._warningsEnabled) {
+      this._activeWarnings.clear();
+    }
+
+    this._warningsEnabled = false;
+    return this;
+  }
+
+  /**
    * Start sampling RTC statistics for this {@link RTCMonitor}.
    * @param peerConnection - A PeerConnection to monitor.
    * @returns The current {@link RTCMonitor}.
@@ -176,30 +200,6 @@ class RTCMonitor extends EventEmitter {
    */
   enableWarnings(): this {
     this._warningsEnabled = true;
-    return this;
-  }
-
-  /**
-   * Stop sampling RTC statistics for this {@link RTCMonitor}.
-   * @returns The current {@link RTCMonitor}.
-   */
-  disable(): this {
-    clearInterval(this._sampleInterval);
-    delete this._sampleInterval;
-
-    return this;
-  }
-
-  /**
-   * Disable warnings for this {@link RTCMonitor}.
-   * @returns The current {@link RTCMonitor}.
-   */
-  disableWarnings(): this {
-    if (this._warningsEnabled) {
-      this._activeWarnings.clear();
-    }
-
-    this._warningsEnabled = false;
     return this;
   }
 

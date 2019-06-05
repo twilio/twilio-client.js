@@ -60,14 +60,14 @@ export interface IExtendedDeviceOptions extends Device.Options {
   AudioHelper?: any;
 
   /**
-   * Custom {@link Connection} constructor
-   */
-  connectionFactory?: Connection;
-
-  /**
    * Hostname of the signaling gateway to connect to.
    */
   chunderw?: string;
+
+  /**
+   * Custom {@link Connection} constructor
+   */
+  connectionFactory?: Connection;
 
   /**
    * Hostname of the event gateway to connect to.
@@ -97,11 +97,6 @@ export interface IExtendedDeviceOptions extends Device.Options {
   noRegister?: boolean;
 
   /**
-   * Whether Insights events should be published
-   */
-  publishEvents?: boolean;
-
-  /**
    * Custom PStream constructor
    */
   pStreamFactory?: IPStream;
@@ -110,6 +105,11 @@ export interface IExtendedDeviceOptions extends Device.Options {
    * Custom Publisher constructor
    */
   Publisher?: IPublisher;
+
+  /**
+   * Whether Insights events should be published
+   */
+  publishEvents?: boolean;
 
   /**
    * RTC Constraints to pass to getUserMedia when making or accepting a Call.
@@ -732,19 +732,6 @@ class Device extends EventEmitter {
   }
 
   /**
-   * Register the {@link Device}
-   * @param token
-   */
-  private register(token: string): void {
-    if (this.stream) {
-      this.stream.setToken(token);
-      this._publisher.setToken(token);
-    } else {
-      this._setupStream(token);
-    }
-  }
-
-  /**
    * Add a handler for an EventEmitter and emit a deprecation warning on first call.
    * @param eventName - Name of the event
    * @param handler - A handler to call when the event is emitted
@@ -759,6 +746,23 @@ class Device extends EventEmitter {
 
     this.addListener(eventName, handler);
     return this;
+  }
+
+  /**
+   * Called on window's beforeunload event if closeProtection is enabled,
+   * preventing users from accidentally navigating away from an active call.
+   * @param event
+   */
+  private _confirmClose = (event: any): string => {
+    if (!this._activeConnection) { return ''; }
+
+    const closeProtection: boolean | string = this.options.closeProtection || false;
+    const confirmationMsg: string = typeof closeProtection !== 'string'
+      ? 'A call is currently in-progress. Leaving or reloading this page will end the call.'
+      : closeProtection;
+
+    (event || window.event).returnValue = confirmationMsg;
+    return confirmationMsg;
   }
 
   /**
@@ -804,31 +808,6 @@ class Device extends EventEmitter {
     if (this._activeConnection) {
       this._activeConnection.disconnect();
     }
-  }
-
-  /**
-   * Throw an Error if Device.setup has not been called for this instance.
-   * @param methodName - The name of the method being called before setup()
-   */
-  private _throwUnlessSetup(methodName: string) {
-    if (!this.isInitialized) { throw new Error(`Call Device.setup() before ${methodName}`); }
-  }
-
-  /**
-   * Called on window's beforeunload event if closeProtection is enabled,
-   * preventing users from accidentally navigating away from an active call.
-   * @param event
-   */
-  private _confirmClose = (event: any): string => {
-    if (!this._activeConnection) { return ''; }
-
-    const closeProtection: boolean | string = this.options.closeProtection || false;
-    const confirmationMsg: string = typeof closeProtection !== 'string'
-      ? 'A call is currently in-progress. Leaving or reloading this page will end the call.'
-      : closeProtection;
-
-    (event || window.event).returnValue = confirmationMsg;
-    return confirmationMsg;
   }
 
   /**
@@ -1077,6 +1056,20 @@ class Device extends EventEmitter {
   }
 
   /**
+   * Register with the signaling server.
+   */
+  private _sendPresence(): void {
+    if (!this.stream) { return; }
+
+    this.stream.register({ audio: this.mediaPresence.audio });
+    if (this.mediaPresence.audio) {
+      this._startRegistrationTimer();
+    } else {
+      this._stopRegistrationTimer();
+    }
+  }
+
+  /**
    * Set up the connection to the signaling server.
    * @param token
    */
@@ -1093,39 +1086,6 @@ class Device extends EventEmitter {
     this.stream.addListener('invite', this._onSignalingInvite);
     this.stream.addListener('offline', this._onSignalingOffline);
     this.stream.addListener('ready', this._onSignalingReady);
-  }
-
-  /**
-   * Register with the signaling server.
-   */
-  private _sendPresence(): void {
-    if (!this.stream) { return; }
-
-    this.stream.register({ audio: this.mediaPresence.audio });
-    if (this.mediaPresence.audio) {
-      this._startRegistrationTimer();
-    } else {
-      this._stopRegistrationTimer();
-    }
-  }
-
-  /**
-   * Set a timeout to send another register message to the signaling server.
-   */
-  private _startRegistrationTimer(): void {
-    this._stopRegistrationTimer();
-    this.regTimer = setTimeout(() => {
-      this._sendPresence();
-    }, REGISTRATION_INTERVAL);
-  }
-
-  /**
-   * Stop sending registration messages to the signaling server.
-   */
-  private _stopRegistrationTimer(): void {
-    if (this.regTimer) {
-      clearTimeout(this.regTimer);
-    }
   }
 
   /**
@@ -1148,6 +1108,33 @@ class Device extends EventEmitter {
       clearTimeout(timeout);
       this.emit('incoming', connection);
     });
+  }
+
+  /**
+   * Set a timeout to send another register message to the signaling server.
+   */
+  private _startRegistrationTimer(): void {
+    this._stopRegistrationTimer();
+    this.regTimer = setTimeout(() => {
+      this._sendPresence();
+    }, REGISTRATION_INTERVAL);
+  }
+
+  /**
+   * Stop sending registration messages to the signaling server.
+   */
+  private _stopRegistrationTimer(): void {
+    if (this.regTimer) {
+      clearTimeout(this.regTimer);
+    }
+  }
+
+  /**
+   * Throw an Error if Device.setup has not been called for this instance.
+   * @param methodName - The name of the method being called before setup()
+   */
+  private _throwUnlessSetup(methodName: string) {
+    if (!this.isInitialized) { throw new Error(`Call Device.setup() before ${methodName}`); }
   }
 
   /**
@@ -1215,6 +1202,19 @@ class Device extends EventEmitter {
     return connection
       ? connection._setSinkIds(sinkIds)
       : Promise.resolve();
+  }
+
+  /**
+   * Register the {@link Device}
+   * @param token
+   */
+  private register(token: string): void {
+    if (this.stream) {
+      this.stream.setToken(token);
+      this._publisher.setToken(token);
+    } else {
+      this._setupStream(token);
+    }
   }
 }
 
