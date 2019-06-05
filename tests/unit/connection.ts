@@ -1279,32 +1279,37 @@ describe('Connection', function() {
   });
 
   describe('on monitor.sample', () => {
-    const sampleData = {
-      timestamp: 0,
-      totals: {
+    let sampleData: any;
+    let audioData: any;
+
+    beforeEach(() => {
+      sampleData = {
+        timestamp: 0,
+        totals: {
+          packetsReceived: 0,
+          packetsLost: 0,
+          packetsSent: 0,
+          packetsLostFraction: 0,
+          bytesReceived: 0,
+          bytesSent: 0
+        },
+        packetsSent: 0,
         packetsReceived: 0,
         packetsLost: 0,
-        packetsSent: 0,
         packetsLostFraction: 0,
-        bytesReceived: 0,
-        bytesSent: 0
-      },
-      packetsSent: 0,
-      packetsReceived: 0,
-      packetsLost: 0,
-      packetsLostFraction: 0,
-      jitter: 0,
-      rtt: 0,
-      mos: 0,
-      codecName: 'opus'
-    };
-
-    const audioData = {
-      audioInputLevel: 0,
-      audioOutputLevel: 0,
-      inputVolume: 0,
-      outputVolume: 0
-    };
+        jitter: 0,
+        rtt: 0,
+        mos: 0,
+        codecName: 'opus'
+      };
+  
+      audioData = {
+        audioInputLevel: 0,
+        audioOutputLevel: 0,
+        inputVolume: 0,
+        outputVolume: 0
+      };
+    });
 
     context('after 10 samples have been emitted', () => {
       it('should call publisher.postMetrics with the samples', () => {
@@ -1312,6 +1317,37 @@ describe('Connection', function() {
 
         for (let i = 0; i < 10; i++) {
           const sample = {...sampleData, ...audioData}
+          samples.push(sample);
+          monitor.emit('sample', sample);
+        }
+
+        sinon.assert.calledOnce(publisher.postMetrics);
+        sinon.assert.calledWith(publisher.postMetrics, 'quality-metrics-samples', 'metrics-sample', samples);
+      });
+
+      it('should publish correct volume levels', () => {
+        const samples = [];
+        const dataLength = 10;
+
+        const convert = (internalValue: any) => (internalValue / 255) * 32767;
+
+        for (let i = 1; i <= dataLength; i++) {
+          const internalAudioIn = i;
+          const internalAudioOut = i * 2;
+
+          mediaStream.onvolume(i, i, internalAudioIn, internalAudioOut);
+
+          // This helps determine that levels are averaging correctly
+          mediaStream.onvolume(i, i, 2, 2);
+
+          const sample = {
+            ...sampleData,
+            audioInputLevel: Math.round((convert(internalAudioIn) + convert(2)) / 2),
+            audioOutputLevel: Math.round((convert(internalAudioOut) + convert(2)) / 2),
+            inputVolume: i,
+            outputVolume: i
+          };
+
           samples.push(sample);
           monitor.emit('sample', sample);
         }
