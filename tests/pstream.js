@@ -80,9 +80,30 @@ describe('PStream', () => {
   });
 
   describe('when transport fires onerror', () => {
-    it('should fire error', (done) => {
-      pstream.on('error', () => done());
-      pstream.transport.emit('error');
+    it('should fire error with the right format when only error is sent', (done) => {
+      const err = { code: 1234, message: 'foo' };
+
+      pstream.on('error', ({ error }) => {
+        if (error === err) {
+          done();
+        } else {
+          done(new Error('Error payload not correct format'));
+        }
+      });
+      pstream.transport.emit('error', err);
+    });
+
+    it('should fire error with the right format when only error is sent', (done) => {
+      const err = { code: 1234, message: 'foo' };
+
+      pstream.on('error', ({ error }) => {
+        if (error === err) {
+          done();
+        } else {
+          done(new Error('Error payload not correct format'));
+        }
+      });
+      pstream.transport.emit('error', { error: err, callSid: 'CA000' });
     });
 
     it('should not affect status', () => {
