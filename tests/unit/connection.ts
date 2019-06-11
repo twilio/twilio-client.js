@@ -1372,23 +1372,32 @@ describe('Connection', function() {
     context('if warningData.name contains bytes', () => {
       it('should start iceRestart loop for bytesReceived', () => {
         mediaStream.iceRestart = sinon.stub();
-        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'maxDuration' } });
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
         clock.tick(4000);
         assert(mediaStream.iceRestart.calledOnce);
       });
       it('should start iceRestart loop for bytesSent', () => {
         mediaStream.iceRestart = sinon.stub();
-        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'maxDuration' } });
+        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
         clock.tick(4000);
         assert(mediaStream.iceRestart.calledOnce);
       });
       it('should start iceRestart loop once', () => {
         mediaStream.iceRestart = sinon.stub();
-        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'maxDuration' } });
-        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'maxDuration' } });
-        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'maxDuration' } });
-        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'maxDuration' } });
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
+        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
         clock.tick(4000);
+        assert(mediaStream.iceRestart.calledOnce);
+      });
+      it('should stop iceRestart loop on disconnect', () => {
+        mediaStream.iceRestart = sinon.stub();
+        (conn as any)['_status'] = Connection.State.Open;
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+        clock.tick(3000);
+        conn.disconnect();
+        clock.tick(3000);
         assert(mediaStream.iceRestart.calledOnce);
       });
     });
@@ -1422,17 +1431,17 @@ describe('Connection', function() {
     context('if warningData.name contains bytes', () => {
       it('should stop iceRestart loop for bytesReceived', () => {
         mediaStream.iceRestart = sinon.stub();
-        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'maxDuration' } });
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
         clock.tick(4000);
-        monitor.emit('warning-cleared', { name: 'bytesReceived', threshold: { name: 'maxDuration' } });
+        monitor.emit('warning-cleared', { name: 'bytesReceived', threshold: { name: 'min' } });
         clock.tick(4000);
         assert(mediaStream.iceRestart.calledOnce);
       });
       it('should stop iceRestart loop for bytesSent', () => {
         mediaStream.iceRestart = sinon.stub();
-        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'maxDuration' } });
+        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
         clock.tick(4000);
-        monitor.emit('warning-cleared', { name: 'bytesSent', threshold: { name: 'maxDuration' } });
+        monitor.emit('warning-cleared', { name: 'bytesSent', threshold: { name: 'min' } });
         clock.tick(4000);
         assert(mediaStream.iceRestart.calledOnce);
       });
