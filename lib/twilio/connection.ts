@@ -958,6 +958,7 @@ class Connection extends EventEmitter {
     }
 
     this._log.info('Disconnecting...');
+    clearInterval(this._iceRestartIntervalId);
 
     // send pstream hangup message
     if (this.pstream !== null && this.pstream.status !== 'disconnected' && this.sendHangup) {
