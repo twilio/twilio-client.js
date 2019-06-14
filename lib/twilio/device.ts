@@ -209,7 +209,7 @@ class Device extends EventEmitter {
   /**
    * Whether or not the browser uses unified-plan SDP by default.
    */
-  private static _isUnifiedPlanDefault: boolean;
+  private static _isUnifiedPlanDefault: boolean | undefined;
 
   /**
    * The AudioHelper instance associated with this {@link Device}.

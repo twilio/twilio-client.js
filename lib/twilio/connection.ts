@@ -152,7 +152,7 @@ class Connection extends EventEmitter {
   /**
    * Whether or not the browser uses unified-plan SDP by default.
    */
-  private readonly _isUnifiedPlanDefault: boolean;
+  private readonly _isUnifiedPlanDefault: boolean | undefined;
 
   /**
    * The most recent public input volume value. 0 -> 1 representing -100 to -30 dB.
@@ -1374,7 +1374,7 @@ namespace Connection {
     /**
      * Whether or not the browser uses unified-plan SDP by default.
      */
-    isUnifiedPlanDefault: boolean;
+    isUnifiedPlanDefault: boolean | undefined;
 
     /**
      * The PStream instance to use for Twilio call signaling.
