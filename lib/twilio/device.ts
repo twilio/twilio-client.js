@@ -209,11 +209,7 @@ class Device extends EventEmitter {
   /**
    * Whether or not the browser uses unified-plan SDP by default.
    */
-  private static _isUnifiedPlanDefault: boolean = typeof window !== 'undefined'
-      && typeof RTCPeerConnection !== 'undefined'
-      && typeof RTCRtpTransceiver !== 'undefined'
-    ? isUnifiedPlanDefault(window, window.navigator, RTCPeerConnection, RTCRtpTransceiver)
-    : false;
+  private static _isUnifiedPlanDefault: boolean;
 
   /**
    * The AudioHelper instance associated with this {@link Device}.
@@ -543,6 +539,14 @@ class Device extends EventEmitter {
 
     if (!token) {
       throw new Exception('Token is required for Device.setup()');
+    }
+
+    if (typeof Device._isUnifiedPlanDefault === 'undefined') {
+      Device._isUnifiedPlanDefault = typeof window !== 'undefined'
+        && typeof RTCPeerConnection !== 'undefined'
+        && typeof RTCRtpTransceiver !== 'undefined'
+      ? isUnifiedPlanDefault(window, window.navigator, RTCPeerConnection, RTCRtpTransceiver)
+      : false;
     }
 
     if (!Device._audioContext) {

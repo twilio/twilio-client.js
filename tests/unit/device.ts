@@ -55,6 +55,17 @@ describe('Device', function() {
   });
 
   describe('constructor', () => {
+    it('should set _isUnifiedPlanDefault once', () => {
+      assert.equal(Device['_isUnifiedPlanDefault'], undefined);
+      device.setup('temptoken');
+      assert.notEqual(Device['_isUnifiedPlanDefault'], undefined);
+
+      const isUnifiedPlan = Device['_isUnifiedPlanDefault'];
+      Device['_isUnifiedPlanDefault'] = !isUnifiedPlan;
+      device.setup('temptoken');
+      assert.equal(Device['_isUnifiedPlanDefault'], !isUnifiedPlan);
+    });
+
     it('should not call setup if no token is passed', () => {
       stub = sinon.stub(device);
       Device.prototype.constructor.call(stub);

@@ -1,4 +1,5 @@
 const assert = require('assert');
+const sinon = require('sinon');
 
 const util = require('../lib/twilio/util');
 
@@ -205,11 +206,15 @@ describe('Util', () => {
 
       it('should return false if addTransceiver throws', () => {
         PeerConnection.prototype.addTransceiver = () => { throw new Error('Expected failure'); };
+        PeerConnection.prototype.close = sinon.stub();
         assert.equal(false, util.isUnifiedPlanDefault(window, navigator, PeerConnection, RTCRtpTransceiver));
+        sinon.assert.calledOnce(PeerConnection.prototype.close);
       });
 
       it('should return true if addTransceiver succeeds', () => {
+        PeerConnection.prototype.close = sinon.stub();
         assert.equal(true, util.isUnifiedPlanDefault(window, navigator, PeerConnection, RTCRtpTransceiver));
+        sinon.assert.calledOnce(PeerConnection.prototype.close);
       });
     });
   });
