@@ -196,9 +196,9 @@ class Connection extends EventEmitter {
   private readonly _soundcache: Map<Device.SoundName, ISound> = new Map();
 
   /**
-   * State of the {@link Connection}.
+   * Status of the {@link Connection}.
    */
-  private _status: Connection.State = Connection.State.Pending;
+  private _status: Connection.Status = Connection.Status.Pending;
 
   /**
    * TwiML params for the call. May be set for either outgoing or incoming calls.
@@ -368,9 +368,9 @@ class Connection extends EventEmitter {
       // for _status 'open', we'd accidentally close the PeerConnection.
       //
       // See <https://code.google.com/p/webrtc/issues/detail?id=4996>.
-      if (this._status === Connection.State.Open) {
+      if (this._status === Connection.Status.Open) {
         return;
-      } else if (this._status === Connection.State.Ringing || this._status === Connection.State.Connecting) {
+      } else if (this._status === Connection.Status.Ringing || this._status === Connection.Status.Connecting) {
         this.mute(false);
         this._maybeTransitionToOpen();
       } else {
@@ -380,7 +380,7 @@ class Connection extends EventEmitter {
     };
 
     this.mediaStream.onclose = () => {
-      this._status = Connection.State.Closed;
+      this._status = Connection.Status.Closed;
       if (this.options.shouldPlayDisconnect && this.options.shouldPlayDisconnect()) {
         this._soundcache.get(Device.SoundName.Disconnect).play();
       }
@@ -468,15 +468,15 @@ class Connection extends EventEmitter {
       return;
     }
 
-    if (this._status !== Connection.State.Pending) {
+    if (this._status !== Connection.Status.Pending) {
       return;
     }
 
     const audioConstraints = handlerOrConstraints || this.options.audioConstraints;
-    this._status = Connection.State.Connecting;
+    this._status = Connection.Status.Connecting;
 
     const connect = () => {
-      if (this._status !== Connection.State.Connecting) {
+      if (this._status !== Connection.Status.Connecting) {
         // call must have been canceled
         this._cleanupEventListeners();
         this.mediaStream.close();
@@ -638,11 +638,11 @@ class Connection extends EventEmitter {
       return;
     }
 
-    if (this._status !== Connection.State.Pending) {
+    if (this._status !== Connection.Status.Pending) {
       return;
     }
 
-    this._status = Connection.State.Closed;
+    this._status = Connection.Status.Closed;
     this.emit('cancel');
     this.mediaStream.ignore(this.parameters.CallSid);
     this._publisher.info('connection', 'ignored-by-local', null, this);
@@ -724,7 +724,7 @@ class Connection extends EventEmitter {
       return;
     }
 
-    if (this._status !== Connection.State.Pending) {
+    if (this._status !== Connection.Status.Pending) {
       return;
     }
 
@@ -816,7 +816,7 @@ class Connection extends EventEmitter {
   /**
    * Get the current {@link Connection} status.
    */
-  status(): Connection.State {
+  status(): Connection.Status {
     return this._status;
   }
 
@@ -951,9 +951,9 @@ class Connection extends EventEmitter {
   private _disconnect(message?: string | null, wasRemote?: boolean): void {
     message = typeof message === 'string' ? message : null;
 
-    if (this._status !== Connection.State.Open
-        && this._status !== Connection.State.Connecting
-        && this._status !== Connection.State.Ringing) {
+    if (this._status !== Connection.Status.Open
+        && this._status !== Connection.Status.Connecting
+        && this._status !== Connection.Status.Ringing) {
       return;
     }
 
@@ -1026,7 +1026,7 @@ class Connection extends EventEmitter {
    */
   private _maybeTransitionToOpen(): void {
     if (this.mediaStream && this.mediaStream.status === 'open' && this._isAnswered) {
-      this._status = Connection.State.Open;
+      this._status = Connection.Status.Open;
       this.emit('accept', this);
     }
   }
@@ -1057,7 +1057,7 @@ class Connection extends EventEmitter {
     // (rrowland) Is this check necessary? Verify, and if so move to pstream / VSP module.
     const callsid = payload.callsid;
     if (this.parameters.CallSid === callsid) {
-      this._status = Connection.State.Closed;
+      this._status = Connection.Status.Closed;
       this.emit('cancel');
       this.pstream.removeListener('cancel', this._onCancel);
     }
@@ -1106,14 +1106,14 @@ class Connection extends EventEmitter {
   private _onRinging = (payload: Record<string, any>): void => {
     this._setCallSid(payload);
 
-    // If we're not in 'connecting' or 'ringing' state, this event was received out of order.
-    if (this._status !== Connection.State.Connecting && this._status !== Connection.State.Ringing) {
+    // If we're not in 'connecting' or 'ringing' status, this event was received out of order.
+    if (this._status !== Connection.Status.Connecting && this._status !== Connection.Status.Ringing) {
       return;
     }
 
     const hasEarlyMedia = !!payload.sdp;
     if (this.options.enableRingingState) {
-      this._status = Connection.State.Ringing;
+      this._status = Connection.Status.Ringing;
       this._publisher.info('connection', 'outgoing-ringing', { hasEarlyMedia }, this);
       this.emit('ringing', hasEarlyMedia);
     // answerOnBridge=false will send a 183, which we need to interpret as `answer` when
@@ -1280,9 +1280,9 @@ namespace Connection {
   declare function sampleEvent(sample: RTCSample): void;
 
   /**
-   * Possible states of the {@link Connection}.
+   * Possible status of the {@link Connection}.
    */
-  export enum State {
+  export enum Status {
     Closed = 'closed',
     Connecting = 'connecting',
     Open = 'open',

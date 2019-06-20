@@ -701,7 +701,7 @@ describe('Device', function() {
 
       describe('on connection.error', () => {
         it('should should remove the connection if closed', () => {
-          device.connections[0].status = () => Connection.State.Closed;
+          device.connections[0].status = () => Connection.Status.Closed;
           device.connections[0].emit('error');
           assert.equal(device.connections.length, 0);
         });

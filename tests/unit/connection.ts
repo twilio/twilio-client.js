@@ -164,19 +164,19 @@ describe('Connection', function() {
 
   describe('.accept', () => {
     [
-      Connection.State.Open,
-      Connection.State.Connecting,
-      Connection.State.Ringing,
-      Connection.State.Closed,
-    ].forEach((state: Connection.State) => {
-      context(`when state is ${state}`, () => {
+      Connection.Status.Open,
+      Connection.Status.Connecting,
+      Connection.Status.Ringing,
+      Connection.Status.Closed,
+    ].forEach((status: Connection.Status) => {
+      context(`when status is ${status}`, () => {
         beforeEach(() => {
-          (conn as any)['_status'] = state;
+          (conn as any)['_status'] = status;
         });
 
-        it('should not transition state', () => {
+        it('should not transition status', () => {
           conn.accept();
-          assert.equal(conn.status(), state);
+          assert.equal(conn.status(), status);
         });
 
         it('should not call mediaStream.openWithConstraints', () => {
@@ -186,9 +186,9 @@ describe('Connection', function() {
       });
     });
 
-    it('should transition state to Connecting', () => {
+    it('should transition status to Connecting', () => {
       conn.accept();
-      assert.equal(conn.status(), Connection.State.Connecting);
+      assert.equal(conn.status(), Connection.Status.Connecting);
     });
     
     context('when getInputStream is not present', () => {
@@ -341,10 +341,10 @@ describe('Connection', function() {
         });
       });
 
-      context('if connection state transitions before connect finishes', () => {
+      context('if connection status transitions before connect finishes', () => {
         beforeEach(() => {
           mediaStream.setInputTracksFromStream = sinon.spy(() => {
-            (conn as any)['_status'] = Connection.State.Closed;
+            (conn as any)['_status'] = Connection.Status.Closed;
             const p = Promise.resolve();
             wait = p.then(() => Promise.resolve());
             return p;
@@ -429,13 +429,13 @@ describe('Connection', function() {
 
   describe('.disconnect()', () => {
     [
-      Connection.State.Open,
-      Connection.State.Connecting,
-      Connection.State.Ringing,
-    ].forEach((state: Connection.State) => {
-      context(`when state is ${state}`, () => {
+      Connection.Status.Open,
+      Connection.Status.Connecting,
+      Connection.Status.Ringing,
+    ].forEach((status: Connection.Status) => {
+      context(`when status is ${status}`, () => {
         beforeEach(() => {
-          (conn as any)['_status'] = state;
+          (conn as any)['_status'] = status;
         });
 
         it('should call pstream.publish with hangup', () => {
@@ -451,12 +451,12 @@ describe('Connection', function() {
     });
 
     [
-      Connection.State.Pending,
-      Connection.State.Closed,
-    ].forEach((state: Connection.State) => {
-      context(`when state is ${state}`, () => {
+      Connection.Status.Pending,
+      Connection.Status.Closed,
+    ].forEach((status: Connection.Status) => {
+      context(`when status is ${status}`, () => {
         beforeEach(() => {
-          (conn as any)['_status'] = state;
+          (conn as any)['_status'] = status;
         });
 
         it('should not call pstream.publish', () => {
@@ -485,7 +485,7 @@ describe('Connection', function() {
   });
 
   describe('.ignore()', () => {
-    context('when state is pending', () => {
+    context('when status is pending', () => {
       it('should call mediaStream.ignore', () => {
         conn.ignore();
         sinon.assert.calledOnce(mediaStream.ignore);
@@ -496,9 +496,9 @@ describe('Connection', function() {
         conn.ignore();
       });
 
-      it('should transition state to closed', () => {
+      it('should transition status to closed', () => {
         conn.ignore();
-        assert.equal(conn.status(), Connection.State.Closed);
+        assert.equal(conn.status(), Connection.Status.Closed);
       });
 
       it('should publish an event to insights', () => {
@@ -508,14 +508,14 @@ describe('Connection', function() {
     });
 
     [
-      Connection.State.Closed,
-      Connection.State.Connecting,
-      Connection.State.Open,
-      Connection.State.Ringing,
-    ].forEach((state: Connection.State) => {
-      context(`when connection state is ${state}`, () => {
+      Connection.Status.Closed,
+      Connection.Status.Connecting,
+      Connection.Status.Open,
+      Connection.Status.Ringing,
+    ].forEach((status: Connection.Status) => {
+      context(`when connection status is ${status}`, () => {
         beforeEach(() => {
-          (conn as any)['_status'] = state;
+          (conn as any)['_status'] = status;
         });
 
         it('should not call mediaStream.ignore', () => {
@@ -528,9 +528,9 @@ describe('Connection', function() {
           conn.ignore();
         });
 
-        it('should not transition state to closed', () => {
+        it('should not transition status to closed', () => {
           conn.ignore();
-          assert.equal(conn.status(), state);
+          assert.equal(conn.status(), status);
         });
 
         it('should not publish an event to insights', () => {
@@ -638,7 +638,7 @@ describe('Connection', function() {
   });
 
   describe('.reject()', () => {
-    context('when state is pending', () => {
+    context('when status is pending', () => {
       it('should call pstream.publish with reject', () => {
         conn.reject();
         sinon.assert.calledOnce(pstream.publish);
@@ -662,14 +662,14 @@ describe('Connection', function() {
     });
 
     [
-      Connection.State.Closed,
-      Connection.State.Connecting,
-      Connection.State.Open,
-      Connection.State.Ringing,
-    ].forEach((state: Connection.State) => {
-      context(`when connection state is ${state}`, () => {
+      Connection.Status.Closed,
+      Connection.Status.Connecting,
+      Connection.Status.Open,
+      Connection.Status.Ringing,
+    ].forEach((status: Connection.Status) => {
+      context(`when connection status is ${status}`, () => {
         beforeEach(() => {
-          (conn as any)['_status'] = state;
+          (conn as any)['_status'] = status;
         });
 
         it('should not call pstream.publish', () => {
@@ -895,13 +895,13 @@ describe('Connection', function() {
 
       context('when error.disconnect is true', () => {
         [
-          Connection.State.Open,
-          Connection.State.Connecting,
-          Connection.State.Ringing,
-        ].forEach((state: Connection.State) => {
-          context(`and state is ${state}`, () => {
+          Connection.Status.Open,
+          Connection.Status.Connecting,
+          Connection.Status.Ringing,
+        ].forEach((status: Connection.Status) => {
+          context(`and status is ${status}`, () => {
             beforeEach(() => {
-              (conn as any)['_status'] = state;
+              (conn as any)['_status'] = status;
             });
 
             it('should call pstream.publish with hangup', () => {
@@ -918,12 +918,12 @@ describe('Connection', function() {
         });
 
         [
-          Connection.State.Pending,
-          Connection.State.Closed,
-        ].forEach((state: Connection.State) => {
-          context(`and state is ${state}`, () => {
+          Connection.Status.Pending,
+          Connection.Status.Closed,
+        ].forEach((status: Connection.Status) => {
+          context(`and status is ${status}`, () => {
             beforeEach(() => {
-              (conn as any)['_status'] = state;
+              (conn as any)['_status'] = status;
             });
 
             it('should not call pstream.publish', () => {
@@ -941,9 +941,9 @@ describe('Connection', function() {
     });
 
     describe('mediaStream.onopen', () => {
-      context('when state is open', () => {
+      context('when status is open', () => {
         beforeEach(() => {
-          (conn as any)['_status'] = Connection.State.Open;
+          (conn as any)['_status'] = Connection.Status.Open;
         });
 
         it(`should not call mediaStream.close`, () => {
@@ -959,12 +959,12 @@ describe('Connection', function() {
       });
 
       [
-        Connection.State.Ringing,
-        Connection.State.Connecting,
-      ].forEach((state: Connection.State) => {
-        context(`when state is ${state}`, () => {
+        Connection.Status.Ringing,
+        Connection.Status.Connecting,
+      ].forEach((status: Connection.Status) => {
+        context(`when status is ${status}`, () => {
           beforeEach(() => {
-            (conn as any)['_status'] = state;
+            (conn as any)['_status'] = status;
           });
 
           it(`should not call mediaStream.close`, () => {
@@ -991,7 +991,7 @@ describe('Connection', function() {
 
             it('should transition to open', () => {
               mediaStream.onopen();
-              assert.equal(conn.status(), Connection.State.Open);
+              assert.equal(conn.status(), Connection.Status.Open);
             });
           });
 
@@ -1008,19 +1008,19 @@ describe('Connection', function() {
 
             it('should not transition to open', () => {
               mediaStream.onopen();
-              assert.equal(conn.status(), state);
+              assert.equal(conn.status(), status);
             });
           });
         });
       });
 
       [
-        Connection.State.Pending,
-        Connection.State.Closed,
-      ].forEach((state: Connection.State) => {
-        context(`when state is ${state}`, () => {
+        Connection.Status.Pending,
+        Connection.Status.Closed,
+      ].forEach((status: Connection.Status) => {
+        context(`when status is ${status}`, () => {
           beforeEach(() => {
-            (conn as any)['_status'] = state;
+            (conn as any)['_status'] = status;
           });
 
           it(`should call mediaStream.close`, () => {
@@ -1040,7 +1040,7 @@ describe('Connection', function() {
     describe('mediaStream.onclose', () => {
       it('should transition to closed', () => {
         mediaStream.onclose();
-        assert.equal(conn.status(), Connection.State.Closed);
+        assert.equal(conn.status(), Connection.Status.Closed);
       });
 
       it('should call monitor.disable', () => {
@@ -1085,7 +1085,7 @@ describe('Connection', function() {
 
         it('should transition to closed', () => {
           pstream.emit('cancel', { callsid: 'CA123' });
-          assert.equal(conn.status(), Connection.State.Closed);
+          assert.equal(conn.status(), Connection.Status.Closed);
         });
 
         it('should emit a cancel event', (done) => {
@@ -1097,7 +1097,7 @@ describe('Connection', function() {
       context('when the callsid does not match', () => {
         it('should not transition to closed', () => {
           pstream.emit('cancel', { callsid: 'foo' });
-          assert.equal(conn.status(), Connection.State.Pending);
+          assert.equal(conn.status(), Connection.Status.Pending);
         });
 
         it('should not emit a cancel event', () => {
@@ -1170,17 +1170,17 @@ describe('Connection', function() {
     });
 
     describe('pstream.ringing event', () => {
-      [Connection.State.Connecting, Connection.State.Ringing].forEach((state: Connection.State) => {
-        context(`when state is ${state} and enableRingingState is false`, () => {
+      [Connection.Status.Connecting, Connection.Status.Ringing].forEach((status: Connection.Status) => {
+        context(`when status is ${status} and enableRingingState is false`, () => {
           beforeEach(() => {
-            (conn as any)['_status'] = state;
+            (conn as any)['_status'] = status;
           });
 
           context('and sdp is present', () => {
             it('should transition to open if mediastream is open', () => {
               mediaStream.status = 'open';
               pstream.emit('ringing', { sdp: 'foo' });
-              assert.equal(conn.status(), Connection.State.Open);
+              assert.equal(conn.status(), Connection.Status.Open);
             });
 
             it('should emit accept if mediastream is open', (done) => {
@@ -1192,7 +1192,7 @@ describe('Connection', function() {
             it('should not transition to open if mediastream is not open', () => {
               mediaStream.status = 'closed';
               pstream.emit('ringing', { sdp: 'foo' });
-              assert.equal(conn.status(), state);
+              assert.equal(conn.status(), status);
             });
 
             it('should not emit accept if mediastream is not open', () => {
@@ -1206,7 +1206,7 @@ describe('Connection', function() {
             it('should not transition to open if mediastream is open', () => {
               mediaStream.status = 'open';
               pstream.emit('ringing', { });
-              assert.equal(conn.status(), state);
+              assert.equal(conn.status(), status);
             });
 
             it('should not emit accept if mediastream is open', () => {
@@ -1218,7 +1218,7 @@ describe('Connection', function() {
             it('should not transition to open if mediastream is not open', () => {
               mediaStream.status = 'closed';
               pstream.emit('ringing', { });
-              assert.equal(conn.status(), state);
+              assert.equal(conn.status(), status);
             });
 
             it('should not emit accept if mediastream is not open', () => {
@@ -1229,17 +1229,17 @@ describe('Connection', function() {
           });
         });
 
-        context(`when state is ${state} and enableRingingState is true`, () => {
+        context(`when status is ${status} and enableRingingState is true`, () => {
           beforeEach(() => {
             conn = new Connection(config, Object.assign({
               enableRingingState: true,
             }, options));
-            (conn as any)['_status'] = state;
+            (conn as any)['_status'] = status;
           });
 
           it('should set status to ringing', () => {
             pstream.emit('ringing', { callsid: 'ABC123', });
-            assert.equal(conn.status(), Connection.State.Ringing);
+            assert.equal(conn.status(), Connection.Status.Ringing);
           });
 
           it('should publish an outgoing-ringing event with hasEarlyMedia: false if no sdp', () => {
@@ -1393,7 +1393,7 @@ describe('Connection', function() {
       });
       it('should stop iceRestart loop on disconnect', () => {
         mediaStream.iceRestart = sinon.stub();
-        (conn as any)['_status'] = Connection.State.Open;
+        (conn as any)['_status'] = Connection.Status.Open;
         monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
         clock.tick(3000);
         conn.disconnect();
