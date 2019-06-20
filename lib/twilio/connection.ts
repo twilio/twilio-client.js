@@ -275,17 +275,13 @@ class Connection extends EventEmitter {
 
     monitor.on('warning', (data: RTCWarning, wasCleared?: boolean) => {
       if (data.name === 'bytesSent' || data.name === 'bytesReceived') {
-        this._log.warn('ICE Connection disconnected.');
-        clearInterval(this._iceRestartIntervalId);
-        this._iceRestartIntervalId = setInterval(
-          this.mediaStream.iceRestart.bind(this.mediaStream), ICE_RESTART_INTERVAL);
+        this._onIceDisconnected();
       }
       this._reemitWarning(data, wasCleared);
     });
     monitor.on('warning-cleared', (data: RTCWarning) => {
       if (data.name === 'bytesSent' || data.name === 'bytesReceived') {
-        this._log.info('ICE Connection reestablished.');
-        clearInterval(this._iceRestartIntervalId);
+        this._onIceRestored();
       }
       this._reemitWarningCleared(data);
     });
@@ -392,6 +388,8 @@ class Connection extends EventEmitter {
       if (this.options.shouldPlayDisconnect && this.options.shouldPlayDisconnect()) {
         this._soundcache.get(Device.SoundName.Disconnect).play();
       }
+
+      clearInterval(this._iceRestartIntervalId);
 
       monitor.disable();
       this._publishMetrics();
@@ -974,7 +972,6 @@ class Connection extends EventEmitter {
     }
 
     this._log.info('Disconnecting...');
-    clearInterval(this._iceRestartIntervalId);
 
     // send pstream hangup message
     if (this.pstream !== null && this.pstream.status !== 'disconnected' && this.sendHangup) {
@@ -1126,6 +1123,31 @@ class Connection extends EventEmitter {
     this._publisher.info('connection', 'disconnected-by-remote', null, this);
     this._disconnect(null, true);
     this._cleanupEventListeners();
+  }
+
+  /**
+   * Called when {@link RTCMonitor} raises a warning where bytesReceived or bytesSent is zero
+   */
+  private _onIceDisconnected(): void {
+    if (this._state === Connection.State.Reconnecting) {
+      return;
+    }
+
+    this._log.warn('ICE Connection disconnected.');
+    this._setState(Connection.State.Reconnecting);
+
+    clearInterval(this._iceRestartIntervalId);
+    this._iceRestartIntervalId = setInterval(
+      this.mediaStream.iceRestart.bind(this.mediaStream), ICE_RESTART_INTERVAL);
+  }
+
+  /**
+   * Called when {@link RTCMonitor} clears a warning for bytesReceived or bytesSent
+   */
+  private _onIceRestored(): void {
+    this._log.info('ICE Connection reestablished.');
+    this._setState(Connection.State.Connected);
+    clearInterval(this._iceRestartIntervalId);
   }
 
   /**
