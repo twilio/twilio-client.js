@@ -197,6 +197,13 @@ class Connection extends EventEmitter {
 
   /**
    * Status of the {@link Connection}.
+   * @deprecated
+   */
+  private _state: Connection.State = Connection.State.Pending;
+
+  /**
+   * Status of the {@link Connection}.
+   * @deprecated
    */
   private _status: Connection.Status = Connection.Status.Pending;
 
@@ -380,6 +387,7 @@ class Connection extends EventEmitter {
     };
 
     this.mediaStream.onclose = () => {
+      this._setState(Connection.State.Disconnected);
       this._status = Connection.Status.Closed;
       if (this.options.shouldPlayDisconnect && this.options.shouldPlayDisconnect()) {
         this._soundcache.get(Device.SoundName.Disconnect).play();
@@ -387,8 +395,9 @@ class Connection extends EventEmitter {
 
       monitor.disable();
       this._publishMetrics();
+      this._cleanupEventListeners();
 
-      this.emit('disconnect', this);
+      this._maybeEmitWithDeprecationWarning('disconnect', Connection.State.Disconnected, this);
     };
 
     // temporary call sid to be used for outgoing calls
@@ -406,10 +415,6 @@ class Connection extends EventEmitter {
       if (this.pstream && this.pstream.status === 'disconnected') {
         this._cleanupEventListeners();
       }
-    });
-
-    this.on('disconnect', () => {
-      this._cleanupEventListeners();
     });
   }
 
@@ -473,6 +478,7 @@ class Connection extends EventEmitter {
     }
 
     const audioConstraints = handlerOrConstraints || this.options.audioConstraints;
+    this._setState(Connection.State.Connecting);
     this._status = Connection.Status.Connecting;
 
     const connect = () => {
@@ -642,6 +648,7 @@ class Connection extends EventEmitter {
       return;
     }
 
+    this._setState(Connection.State.Disconnected);
     this._status = Connection.Status.Closed;
     this.emit('cancel');
     this.mediaStream.ignore(this.parameters.CallSid);
@@ -814,9 +821,18 @@ class Connection extends EventEmitter {
   }
 
   /**
+   * Get the current {@link Connection} state.
+   */
+  state(): Connection.State {
+    return this._state;
+  }
+
+  /**
    * Get the current {@link Connection} status.
+   * @deprecated Use {@link Connection.state}.
    */
   status(): Connection.Status {
+    this._log.warn('.status() is deprecated. Please use .state() to get connection states.');
     return this._status;
   }
 
@@ -980,6 +996,17 @@ class Connection extends EventEmitter {
     }
   }
 
+  /**
+   * Log a warning if a deprecated event is still being used
+   */
+  protected _maybeEmitWithDeprecationWarning(deprecatedEvent: string, newEvent: string, ...args: any[]): void {
+    this.eventNames().includes(deprecatedEvent) &&
+      this._log.warn(`${this.constructor.name}.on('${deprecatedEvent}') is deprecated. ` +
+      `Please use ${this.constructor.name}.on('${newEvent}).`);
+
+    this.emit(deprecatedEvent, ...args);
+  }
+
   private _emitWarning = (groupPrefix: string, warningName: string, threshold: number,
                           value: number|number[], wasCleared?: boolean): void => {
     const groupSuffix = wasCleared ? '-cleared' : '-raised';
@@ -1026,8 +1053,9 @@ class Connection extends EventEmitter {
    */
   private _maybeTransitionToOpen(): void {
     if (this.mediaStream && this.mediaStream.status === 'open' && this._isAnswered) {
+      this._setState(Connection.State.Connected);
       this._status = Connection.Status.Open;
-      this.emit('accept', this);
+      this._maybeEmitWithDeprecationWarning('accept', Connection.State.Connected, this);
     }
   }
 
@@ -1057,6 +1085,7 @@ class Connection extends EventEmitter {
     // (rrowland) Is this check necessary? Verify, and if so move to pstream / VSP module.
     const callsid = payload.callsid;
     if (this.parameters.CallSid === callsid) {
+      this._setState(Connection.State.Disconnected);
       this._status = Connection.Status.Closed;
       this.emit('cancel');
       this.pstream.removeListener('cancel', this._onCancel);
@@ -1113,9 +1142,10 @@ class Connection extends EventEmitter {
 
     const hasEarlyMedia = !!payload.sdp;
     if (this.options.enableRingingState) {
+      this._setState(Connection.State.Ringing);
       this._status = Connection.Status.Ringing;
       this._publisher.info('connection', 'outgoing-ringing', { hasEarlyMedia }, this);
-      this.emit('ringing', hasEarlyMedia);
+      this.emit('ringing', hasEarlyMedia, this);
     // answerOnBridge=false will send a 183, which we need to interpret as `answer` when
     // the enableRingingState flag is disabled in order to maintain a non-breaking API from 1.4.24
     } else if (hasEarlyMedia) {
@@ -1207,6 +1237,29 @@ class Connection extends EventEmitter {
     this.parameters.CallSid = callSid;
     this.mediaStream.callSid = callSid;
   }
+
+  /**
+   * Set a new state and emit the correct event
+   * @param newState
+   */
+  private _setState(newState: Connection.State, error?: any): void {
+    const previousState = this._state;
+    const { Connected, Disconnected, Reconnecting, Ringing } = Connection.State;
+
+    if (newState === previousState) {
+      return;
+    }
+
+    this._state = newState;
+
+    if (newState === Connected && previousState === Reconnecting) {
+      this.emit('reconnected', this);
+    } else if (newState === Connected || newState === Ringing) {
+      this.emit(newState, this);
+    } else if (newState === Disconnected || newState === Reconnecting) {
+      this.emit(newState, this, error);
+    }
+  }
 }
 
 namespace Connection {
@@ -1280,7 +1333,43 @@ namespace Connection {
   declare function sampleEvent(sample: RTCSample): void;
 
   /**
+   * Possible states of the {@link Connection}.
+   */
+  export enum State {
+    /**
+     * The {@link Connection} is connected.
+     */
+    Connected = 'connected',
+
+    /**
+     * The {@link Connection} is created and in the process of connecting.
+     */
+    Connecting = 'connecting',
+
+    /**
+     * The {@link Connection} was disconnected.
+     */
+    Disconnected = 'disconnected',
+
+    /**
+     * The {@link Connection} is ready to connect.
+     */
+    Pending = 'pending',
+
+    /**
+     * The {@link Connection} is in the process of reconnecting
+     */
+    Reconnecting = 'reconnecting',
+
+    /**
+     * The call is ringing
+     */
+    Ringing = 'ringing',
+  }
+
+  /**
    * Possible status of the {@link Connection}.
+   * @deprecated
    */
   export enum Status {
     Closed = 'closed',
