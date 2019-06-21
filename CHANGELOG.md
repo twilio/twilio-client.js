@@ -1,3 +1,11 @@
+1.7.5 (In Progress)
+====================
+
+Improvements
+------------
+
+* Checking whether plan-b or unified-plan is default on the browser now happens on `Device.setup()` or on device initialization with a token, instead of on page load.
+
 1.7.4 (June 21, 2019)
 ====================
 

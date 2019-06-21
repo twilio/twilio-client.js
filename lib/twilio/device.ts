@@ -209,11 +209,7 @@ class Device extends EventEmitter {
   /**
    * Whether or not the browser uses unified-plan SDP by default.
    */
-  private static _isUnifiedPlanDefault: boolean = typeof window !== 'undefined'
-      && typeof RTCPeerConnection !== 'undefined'
-      && typeof RTCRtpTransceiver !== 'undefined'
-    ? isUnifiedPlanDefault(window, window.navigator, RTCPeerConnection, RTCRtpTransceiver)
-    : false;
+  private static _isUnifiedPlanDefault: boolean | undefined;
 
   /**
    * The AudioHelper instance associated with this {@link Device}.
@@ -545,6 +541,14 @@ class Device extends EventEmitter {
       throw new Exception('Token is required for Device.setup()');
     }
 
+    if (typeof Device._isUnifiedPlanDefault === 'undefined') {
+      Device._isUnifiedPlanDefault = typeof window !== 'undefined'
+        && typeof RTCPeerConnection !== 'undefined'
+        && typeof RTCRtpTransceiver !== 'undefined'
+      ? isUnifiedPlanDefault(window, window.navigator, RTCPeerConnection, RTCRtpTransceiver)
+      : false;
+    }
+
     if (!Device._audioContext) {
       if (typeof AudioContext !== 'undefined') {
         Device._audioContext = new AudioContext();
@@ -825,6 +829,10 @@ class Device extends EventEmitter {
    * @param [options] - Options to be used to instantiate the {@link Connection}.
    */
   private _makeConnection(twimlParams: Record<string, string>, options?: Connection.Options): Connection {
+    if (typeof Device._isUnifiedPlanDefault === 'undefined') {
+      throw new Error('Device has not been initialized.');
+    }
+
     const config: Connection.Config = {
       audioHelper: this.audio,
       getUserMedia,
