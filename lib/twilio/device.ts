@@ -830,7 +830,7 @@ class Device extends EventEmitter {
    */
   private _makeConnection(twimlParams: Record<string, string>, options?: Connection.Options): Connection {
     if (typeof Device._isUnifiedPlanDefault === 'undefined') {
-      throw new Exception(`Device has not been initialized.`);
+      throw new Error('Device has not been initialized.');
     }
 
     const config: Connection.Config = {
