@@ -595,26 +595,18 @@ describe('PeerConnection', () => {
     const CALLSID = 'callsid';
 
     let context;
-    let onAnswerOrRinging;
     let pstream;
     let toTest;
     let version;
 
     beforeEach(() => {
-      onAnswerOrRinging = () => {};
       version = {
         createOffer: sinon.stub().returns({ then: (cb) => cb()}),
         getSDP: () => SDP,
         processAnswer: (codecPreferences, sdp, onSuccess, onError) => onSuccess(),
       };
       pstream = {
-        addListener: (type, callback) => {
-          if (type === 'answer') {
-            onAnswerOrRinging = callback;
-          }
-        },
-        removeListener: sinon.stub(),
-        publish: sinon.stub(),
+        reinvite: sinon.stub().returns(Promise.resolve({ sdp: SDP, callsid: CALLSID }))
       };
       context = {
         callSid: CALLSID,
@@ -632,26 +624,53 @@ describe('PeerConnection', () => {
         assert(version.createOffer.calledWithExactly(context.codecPreferences, {iceRestart: true}));
         done();
       });
-      onAnswerOrRinging({sdp: SDP});
     });
 
     it('Should publish reinvite', (done) => {
       toTest().then(() => {
-        assert(pstream.publish.calledWithExactly('reinvite', {
-          sdp: SDP,
-          callsid: CALLSID
-        }));
+        assert(pstream.reinvite.calledWithExactly(SDP, CALLSID));
         done();
       });
-      onAnswerOrRinging({sdp: SDP});
     });
 
-    it('Should remove answer callback', (done) => {
-      toTest().then(() => {
-        assert(pstream.removeListener.calledWithExactly('answer', onAnswerOrRinging));
+    it('Should return canRetry=true on createOffer fail', (done) => {
+      version.createOffer = sinon.stub().returns(Promise.reject());
+      toTest().catch((canRetry) => {
+        assert.equal(canRetry, true);
         done();
       });
-      onAnswerOrRinging({sdp: SDP});
+    });
+
+    it('Should return canRetry=false if reinvite fail', (done) => {
+      pstream.reinvite = () => Promise.reject({});
+      toTest().catch((canRetry) => {
+        assert.equal(canRetry, false);
+        done();
+      });
+    });
+
+    it('Should return canRetry=true if sdp is missing', (done) => {
+      pstream.reinvite = () => Promise.resolve({});
+      toTest().catch((canRetry) => {
+        assert.equal(canRetry, true);
+        done();
+      });
+    });
+
+    it('Should return canRetry=true on processAnswer fail', (done) => {
+      version.processAnswer = (codecPreferences, sdp, onSuccess, onError) => onError({});
+      toTest().catch((canRetry) => {
+        assert.equal(canRetry, true);
+        done();
+      });
+    });
+
+    it('Should return canRetry=true if current connection is close', (done) => {
+      context.status = 'closed';
+      toTest().catch((canRetry) => {
+        assert.equal(canRetry, true);
+        done();
+      });
     });
 
     it('Should update _answerSdp', (done) => {
@@ -659,7 +678,6 @@ describe('PeerConnection', () => {
         assert.equal(context._answerSdp, SDP);
         done();
       });
-      onAnswerOrRinging({sdp: SDP});
     });
   });
 

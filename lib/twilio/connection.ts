@@ -127,7 +127,7 @@ class Connection extends EventEmitter {
   /**
    * Interval id for ICE restart loop
    */
-  private _iceRestartIntervalId: number;
+  private _iceRestartIntervalId: NodeJS.Timer;
 
   /**
    * The number of times input volume has been the same consecutively.
@@ -269,16 +269,25 @@ class Connection extends EventEmitter {
     monitor.on('warning', (data: RTCWarning, wasCleared?: boolean) => {
       if (data.name === 'bytesSent' || data.name === 'bytesReceived') {
         this._log.warn('ICE Connection disconnected.');
-        clearInterval(this._iceRestartIntervalId);
-        this._iceRestartIntervalId = setInterval(
-          this.mediaStream.iceRestart.bind(this.mediaStream), ICE_RESTART_INTERVAL);
+
+        // Stop existing loops if this warning is emitted multiple times
+        this._stopIceRestarts();
+
+        this._iceRestartIntervalId = setInterval(() => {
+          this.mediaStream.iceRestart().catch((canRetry: boolean) => {
+            if (!canRetry) {
+              this._log.info('Received hangup from the server. Stopping attempts to restart ICE.');
+              this._stopIceRestarts();
+            }
+          });
+        }, ICE_RESTART_INTERVAL);
       }
       this._reemitWarning(data, wasCleared);
     });
     monitor.on('warning-cleared', (data: RTCWarning) => {
       if (data.name === 'bytesSent' || data.name === 'bytesReceived') {
         this._log.info('ICE Connection reestablished.');
-        clearInterval(this._iceRestartIntervalId);
+        this._stopIceRestarts();
       }
       this._reemitWarningCleared(data);
     });
@@ -386,6 +395,7 @@ class Connection extends EventEmitter {
       }
 
       monitor.disable();
+      this._stopIceRestarts();
       this._publishMetrics();
 
       this.emit('disconnect', this);
@@ -950,6 +960,7 @@ class Connection extends EventEmitter {
    */
   private _disconnect(message?: string | null, wasRemote?: boolean): void {
     message = typeof message === 'string' ? message : null;
+    this._stopIceRestarts();
 
     if (this._status !== Connection.State.Open
         && this._status !== Connection.State.Connecting
@@ -958,7 +969,6 @@ class Connection extends EventEmitter {
     }
 
     this._log.info('Disconnecting...');
-    clearInterval(this._iceRestartIntervalId);
 
     // send pstream hangup message
     if (this.pstream !== null && this.pstream.status !== 'disconnected' && this.sendHangup) {
@@ -1206,6 +1216,13 @@ class Connection extends EventEmitter {
 
     this.parameters.CallSid = callSid;
     this.mediaStream.callSid = callSid;
+  }
+
+  /**
+   * Stop ice restart loop
+   */
+  private _stopIceRestarts(): void {
+    clearInterval(this._iceRestartIntervalId);
   }
 }
 
