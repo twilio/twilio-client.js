@@ -311,6 +311,22 @@ describe('Device', function() {
         clock.tick(30000 + 1);
         sinon.assert.notCalled(pstream.register);
       });
+
+      it('should disconnect all connections', () => {
+        const disconnect = sinon.spy();
+        (device as any)['connections'] = [
+          { disconnect },
+          { disconnect },
+        ];
+        device.destroy();
+        sinon.assert.calledTwice(disconnect);
+      });
+
+      it('should disconnect active connection', () => {
+        const connection = device.connect();
+        device.destroy();
+        sinon.assert.calledOnce((connection as any).disconnect);
+      });
     });
 
     describe('.disconnectAll()', () => {
