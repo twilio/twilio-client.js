@@ -8,17 +8,17 @@
  */
 export default class Deferred {
   /**
-   * This {@link Deferred} promise
+   * This {@link Deferred} Promise
    */
   private readonly _promise: Promise<any>;
 
   /**
-   * Rejects this promise
+   * The Promise's reject method.
    */
   private _reject: (reason?: any) => void;
 
   /**
-   * Resolves this promise
+   * The Promise's resolve method.
    */
   private _resolve: (value?: any) => void;
 
@@ -33,7 +33,7 @@ export default class Deferred {
   }
 
   /**
-   * @returns The {@link Deferred} promise
+   * @returns The {@link Deferred} Promise
    */
   get promise(): Promise<any> {
     return this._promise;
