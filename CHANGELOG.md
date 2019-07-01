@@ -4,7 +4,14 @@
 Improvements
 ------------
 
-* Checking whether plan-b or unified-plan is default on the browser now happens on `Device.setup()` or on device initialization with a token, instead of on page load.
+* Checking whether plan-b or unified-plan is default on the browser now happens on `Device.setup()` or on device initialization with a token, instead of on page load. (CLIENT-6279)
+
+Bug Fixes
+---------
+
+* Fixed a bug where ICE restarts will continue to retry when a call gets disconnected while ringing. (CLIENT-6319)
+* `Device.destroy` now disconnects all connections. (CLIENT-6319)
+
 
 1.7.4 (June 21, 2019)
 ====================

@@ -1370,33 +1370,46 @@ describe('Connection', function() {
 
   describe('on monitor.warning', () => {
     context('if warningData.name contains bytes', () => {
+      beforeEach(() => {
+        mediaStream.iceRestart = sinon.stub().returns({catch: () => {}});
+      });
       it('should start iceRestart loop for bytesReceived', () => {
-        mediaStream.iceRestart = sinon.stub();
         monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
-        clock.tick(4000);
-        assert(mediaStream.iceRestart.calledOnce);
+        clock.tick(7000);
+        sinon.assert.callCount(mediaStream.iceRestart, 2);
       });
       it('should start iceRestart loop for bytesSent', () => {
-        mediaStream.iceRestart = sinon.stub();
+        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
+        clock.tick(7000);
+        sinon.assert.callCount(mediaStream.iceRestart, 2);
+      });
+      it('should start iceRestart loop once', () => {
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
         monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
         clock.tick(4000);
         assert(mediaStream.iceRestart.calledOnce);
       });
-      it('should start iceRestart loop once', () => {
-        mediaStream.iceRestart = sinon.stub();
+      it('should stop iceRestart loop if iceRestart is rejected', () => {
+        mediaStream.iceRestart = sinon.stub().returns({catch: (cb: any) => {cb(false)}});
         monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
-        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
-        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
-        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
-        clock.tick(4000);
+        clock.tick(7000);
         assert(mediaStream.iceRestart.calledOnce);
       });
       it('should stop iceRestart loop on disconnect', () => {
-        mediaStream.iceRestart = sinon.stub();
         (conn as any)['_status'] = Connection.State.Open;
         monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
         clock.tick(3000);
         conn.disconnect();
+        clock.tick(3000);
+        assert(mediaStream.iceRestart.calledOnce);
+      });
+
+      it('should stop iceRestart loop on mediaStream close', () => {
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+        clock.tick(3000);
+        mediaStream.onclose();
         clock.tick(3000);
         assert(mediaStream.iceRestart.calledOnce);
       });
@@ -1429,8 +1442,10 @@ describe('Connection', function() {
 
   describe('on monitor.warning-cleared', () => {
     context('if warningData.name contains bytes', () => {
+      beforeEach(() => {
+        mediaStream.iceRestart = sinon.stub().returns({catch: () => {}});
+      });
       it('should stop iceRestart loop for bytesReceived', () => {
-        mediaStream.iceRestart = sinon.stub();
         monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
         clock.tick(4000);
         monitor.emit('warning-cleared', { name: 'bytesReceived', threshold: { name: 'min' } });
@@ -1438,7 +1453,6 @@ describe('Connection', function() {
         assert(mediaStream.iceRestart.calledOnce);
       });
       it('should stop iceRestart loop for bytesSent', () => {
-        mediaStream.iceRestart = sinon.stub();
         monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
         clock.tick(4000);
         monitor.emit('warning-cleared', { name: 'bytesSent', threshold: { name: 'min' } });

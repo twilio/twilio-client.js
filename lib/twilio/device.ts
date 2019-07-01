@@ -420,6 +420,7 @@ class Device extends EventEmitter {
    * Destroy the {@link Device}, freeing references to be garbage collected.
    */
   destroy(): void {
+    this._disconnectAll();
     this._stopRegistrationTimer();
 
     if (this.audio) {
