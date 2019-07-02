@@ -603,10 +603,12 @@ describe('PeerConnection', () => {
       version = {
         createOffer: sinon.stub().returns({ then: (cb) => cb()}),
         getSDP: () => SDP,
-        processAnswer: (codecPreferences, sdp, onSuccess, onError) => onSuccess(),
+        processAnswer: sinon.stub().callsFake((codecPreferences, sdp, onSuccess, onError) => onSuccess()),
       };
       pstream = {
-        reinvite: sinon.stub().returns(Promise.resolve({ sdp: SDP, callsid: CALLSID }))
+        on: sinon.stub(),
+        reinvite: sinon.stub(),
+        removeListener: sinon.stub()
       };
       context = {
         callSid: CALLSID,
@@ -620,57 +622,76 @@ describe('PeerConnection', () => {
     });
 
     it('Should call createOffer with iceRestart flag', (done) => {
-      toTest().then(() => {
+      toTest().catch(() => {
         assert(version.createOffer.calledWithExactly(context.codecPreferences, {iceRestart: true}));
         done();
       });
+      context._onAnswerOrRinging({});
     });
 
     it('Should publish reinvite', (done) => {
       toTest().then(() => {
+        assert(pstream.removeListener.calledWithExactly('answer', context._onAnswerOrRinging));
+        assert(pstream.removeListener.calledWithExactly('hangup', context._onHangup));
         assert(pstream.reinvite.calledWithExactly(SDP, CALLSID));
         done();
       });
+      context._onAnswerOrRinging({ sdp: SDP });
     });
 
     it('Should return canRetry=true on createOffer fail', (done) => {
       version.createOffer = sinon.stub().returns(Promise.reject());
       toTest().catch((canRetry) => {
+        assert(version.createOffer.calledWithExactly(context.codecPreferences, {iceRestart: true}));
         assert.equal(canRetry, true);
         done();
       });
     });
 
     it('Should return canRetry=false if reinvite fail', (done) => {
-      pstream.reinvite = () => Promise.reject({});
       toTest().catch((canRetry) => {
+        assert(pstream.reinvite.calledWithExactly(SDP, CALLSID));
+        assert(pstream.removeListener.calledWithExactly('answer', context._onAnswerOrRinging));
+        assert(pstream.removeListener.calledWithExactly('hangup', context._onHangup));
         assert.equal(canRetry, false);
         done();
       });
+      context._onHangup();
     });
 
     it('Should return canRetry=true if sdp is missing', (done) => {
-      pstream.reinvite = () => Promise.resolve({});
       toTest().catch((canRetry) => {
+        sinon.assert.notCalled(version.processAnswer);
+        assert(pstream.removeListener.calledWithExactly('answer', context._onAnswerOrRinging));
+        assert(pstream.removeListener.calledWithExactly('hangup', context._onHangup));
         assert.equal(canRetry, true);
         done();
       });
+      context._onAnswerOrRinging({});
     });
 
     it('Should return canRetry=true on processAnswer fail', (done) => {
-      version.processAnswer = (codecPreferences, sdp, onSuccess, onError) => onError({});
+      version.processAnswer = sinon.stub().callsFake((codecPreferences, sdp, onSuccess, onError) => onError({}));
       toTest().catch((canRetry) => {
+        sinon.assert.calledOnce(version.processAnswer);
+        assert(pstream.removeListener.calledWithExactly('answer', context._onAnswerOrRinging));
+        assert(pstream.removeListener.calledWithExactly('hangup', context._onHangup));
         assert.equal(canRetry, true);
         done();
       });
+      context._onAnswerOrRinging({ sdp: SDP });
     });
 
     it('Should return canRetry=true if current connection is close', (done) => {
       context.status = 'closed';
       toTest().catch((canRetry) => {
+        sinon.assert.notCalled(version.processAnswer);
+        assert(pstream.removeListener.calledWithExactly('answer', context._onAnswerOrRinging));
+        assert(pstream.removeListener.calledWithExactly('hangup', context._onHangup));
         assert.equal(canRetry, true);
         done();
       });
+      context._onAnswerOrRinging({ sdp: SDP });
     });
 
     it('Should update _answerSdp', (done) => {
@@ -678,6 +699,7 @@ describe('PeerConnection', () => {
         assert.equal(context._answerSdp, SDP);
         done();
       });
+      context._onAnswerOrRinging({ sdp: SDP });
     });
   });
 

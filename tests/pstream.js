@@ -235,114 +235,11 @@ describe('PStream', () => {
     const callsid = 'foo';
     const sdp = 'bar';
 
-    const getMessage = (type) => ({
-      data: JSON.stringify({
-        type, payload: { sdp, callsid }
-      })
-    });
-
-    let wait;
-
-    beforeEach(() => {
-      wait = (timer) => new Promise(r => setTimeout(r, timer || 0));
-    });
-
-    it('should resolve once', () => {
-      const callback = sinon.stub();
-      const error = sinon.stub();
-      pstream.reinvite(sdp, callsid).then(callback).catch(error);
-      pstream._handleTransportMessage(getMessage('answer'));
-      pstream._handleTransportMessage(getMessage('answer'));
-
-      return wait().then(() => {
-        assert(error.notCalled);
-        sinon.assert.callCount(callback, 1);
-        assert.equal(pstream._reinviteDeferreds.get(callsid), undefined);
-      });
-    });
-
-    it('should reject once', () => {
-      const callback = sinon.stub();
-      const error = sinon.stub();
-      pstream.reinvite(sdp, callsid).then(callback).catch(error);
-      pstream._handleTransportMessage(getMessage('hangup'));
-      pstream._handleTransportMessage(getMessage('hangup'));
-
-      return wait().then(() => {
-        assert(callback.notCalled);
-        sinon.assert.callCount(error, 1);
-        assert.equal(pstream._reinviteDeferreds.get(callsid), undefined);
-      });
-    });
-
-    it('should return payload information', (done) => {
-      pstream.reinvite(sdp, callsid).then((payload) => {
-        assert.equal(payload.callsid, callsid);
-        assert.equal(payload.sdp, sdp);
-        done();
-      });
-      pstream._handleTransportMessage(getMessage('answer'));
-    });
-
-    it('should return previous promise if reinvite is called multiple times using the same callsid', () => {
-      const promise1 = pstream.reinvite(sdp, callsid);
-      const promise2 = pstream.reinvite(sdp, callsid);
-
-      assert.notEqual(promise1, undefined);
-      assert.notEqual(promise2, undefined);
-      assert.equal(promise1, promise2);
-    });
-
-    it('should return new promise if reinvite is called multiple times with different callsid', () => {
-      const promise1 = pstream.reinvite(sdp, callsid);
-      const promise2 = pstream.reinvite(sdp, callsid + 'foo');
-
-      assert.notEqual(promise1, undefined);
-      assert.notEqual(promise2, undefined);
-      assert.notEqual(promise1, promise2);
-    });
-
-    [{ type: 'answer', fn: 'then' }, { type: 'hangup', fn: 'catch' }].forEach(item => {
-      it(`should ${item.type} latest reinvite`, () => {
-        // Simulate a scenario where we don't receive a response from the server on the first call
-        let reinviteCount = 0;
-        pstream._publish = () => {
-          if (reinviteCount > 0) {
-            wait(10).then(() => pstream._handleTransportMessage(getMessage(item.type)));
-            reinviteCount++;
-          }
-        };
-
-        const callback = sinon.stub();
-
-        pstream.reinvite(sdp, callsid);
-        reinviteCount++;
-
-        wait(20).then(() => {
-          pstream.reinvite(sdp, callsid)[item.fn](callback);
-          reinviteCount++;
-        });
-
-        return wait(50).then(() => sinon.assert.callCount(callback, 1));
-      });
-
-      it(`should always publish reinvite and receive ${item.type}`, () => {
-        const numReinvites = 8;
-        const timerIncrement = 5;
-        const callback = sinon.stub();
-        pstream._publish = sinon.stub().callsFake(() => {
-          wait(timerIncrement).then(() => pstream._handleTransportMessage(getMessage(item.type)));
-        });
-
-        for (let i = 1; i <= numReinvites; i++) {
-          wait((numReinvites * timerIncrement) + timerIncrement).then(() => pstream.reinvite(sdp, callsid)[item.fn](callback));
-        }
-
-        return wait((numReinvites * timerIncrement * 2) + timerIncrement).then(() => {
-          sinon.assert.callCount(callback, numReinvites);
-          sinon.assert.callCount(pstream._publish, numReinvites);
-        });
-      });
+    it('should publish without retry', () => {
+      const stub = sinon.stub(pstream, '_publish');
+      pstream.reinvite(sdp, callsid);
+      assert(stub.calledWithExactly('reinvite', { sdp, callsid }, false));
+      stub.restore();
     });
   });
 });
