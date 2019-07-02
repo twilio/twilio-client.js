@@ -276,6 +276,7 @@ describe('PeerConnection', () => {
           disconnect: sinon.stub()
         },
         onclose: sinon.spy(),
+        _removeReconnectionListeners: sinon.stub(),
         status: 'open',
         stream,
         pstream: {
@@ -300,8 +301,7 @@ describe('PeerConnection', () => {
       assert(context._stopStream.calledOnce);
       assert(context.mute.calledWithExactly(false));
       assert(context._stopStream.calledWithExactly(stream));
-      assert(context.pstream.removeListener.calledOnce);
-      assert(context.pstream.removeListener.calledWithExactly('answer', context._onAnswerOrRinging));
+      assert(context._removeReconnectionListeners.calledOnce);
       assert(pc.close.calledOnce);
       assert(pc.close.calledWithExactly());
       assert(context.onclose.calledOnce);
@@ -386,8 +386,7 @@ describe('PeerConnection', () => {
       assert.strictEqual(context.stream, null);
       assert.strictEqual(context.version, false);
       assert.strictEqual(context.status, 'closed');
-      assert(context.pstream.removeListener.calledOnce);
-      assert(context.pstream.removeListener.calledWithExactly('answer', context._onAnswerOrRinging));
+      assert(context._removeReconnectionListeners.calledOnce);
     });
 
     it('Should stop everything what is available with stream', () => {
@@ -589,6 +588,33 @@ describe('PeerConnection', () => {
 
   });
 
+  context('PeerConnection.prototype._removeReconnectionListeners', () => {
+    const METHOD = PeerConnection.prototype._removeReconnectionListeners;
+
+    let context;
+    let pstream;
+    let toTest;
+
+    beforeEach(() => {
+      pstream = {
+        removeListener: sinon.stub()
+      };
+      context = {
+        pstream,
+        _onAnswerOrRinging: sinon.stub(),
+        _onHangup: sinon.stub(),
+        _removeReconnectionListeners: sinon.stub()
+      };
+      toTest = METHOD.bind(context);
+    });
+
+    it('Should remove reconnection listeners', () => {
+      toTest();
+      assert(pstream.removeListener.calledWithExactly('answer', context._onAnswerOrRinging));
+      assert(pstream.removeListener.calledWithExactly('hangup', context._onHangup));
+    });
+  });
+
   context('PeerConnection.prototype.iceRestart', () => {
     const METHOD = PeerConnection.prototype.iceRestart;
     const SDP = 'sdp';
@@ -607,8 +633,7 @@ describe('PeerConnection', () => {
       };
       pstream = {
         on: sinon.stub(),
-        reinvite: sinon.stub(),
-        removeListener: sinon.stub()
+        reinvite: sinon.stub()
       };
       context = {
         callSid: CALLSID,
@@ -616,9 +641,11 @@ describe('PeerConnection', () => {
         log: sinon.stub(),
         onerror: sinon.stub(),
         pstream,
+        _removeReconnectionListeners: sinon.stub(),
         version
       };
       toTest = METHOD.bind(context);
+      wait = () => new Promise(r => setTimeout(r, 0));
     });
 
     it('Should call createOffer with iceRestart flag', (done) => {
@@ -631,8 +658,7 @@ describe('PeerConnection', () => {
 
     it('Should publish reinvite', (done) => {
       toTest().then(() => {
-        assert(pstream.removeListener.calledWithExactly('answer', context._onAnswerOrRinging));
-        assert(pstream.removeListener.calledWithExactly('hangup', context._onHangup));
+        assert(!context._removeReconnectionListeners.notCalled);
         assert(pstream.reinvite.calledWithExactly(SDP, CALLSID));
         done();
       });
@@ -651,8 +677,7 @@ describe('PeerConnection', () => {
     it('Should return canRetry=false if reinvite fail', (done) => {
       toTest().catch((canRetry) => {
         assert(pstream.reinvite.calledWithExactly(SDP, CALLSID));
-        assert(pstream.removeListener.calledWithExactly('answer', context._onAnswerOrRinging));
-        assert(pstream.removeListener.calledWithExactly('hangup', context._onHangup));
+        assert(!context._removeReconnectionListeners.notCalled);
         assert.equal(canRetry, false);
         done();
       });
@@ -662,8 +687,7 @@ describe('PeerConnection', () => {
     it('Should return canRetry=true if sdp is missing', (done) => {
       toTest().catch((canRetry) => {
         sinon.assert.notCalled(version.processAnswer);
-        assert(pstream.removeListener.calledWithExactly('answer', context._onAnswerOrRinging));
-        assert(pstream.removeListener.calledWithExactly('hangup', context._onHangup));
+        assert(!context._removeReconnectionListeners.notCalled);
         assert.equal(canRetry, true);
         done();
       });
@@ -674,8 +698,7 @@ describe('PeerConnection', () => {
       version.processAnswer = sinon.stub().callsFake((codecPreferences, sdp, onSuccess, onError) => onError({}));
       toTest().catch((canRetry) => {
         sinon.assert.calledOnce(version.processAnswer);
-        assert(pstream.removeListener.calledWithExactly('answer', context._onAnswerOrRinging));
-        assert(pstream.removeListener.calledWithExactly('hangup', context._onHangup));
+        assert(!context._removeReconnectionListeners.notCalled);
         assert.equal(canRetry, true);
         done();
       });
@@ -686,8 +709,7 @@ describe('PeerConnection', () => {
       context.status = 'closed';
       toTest().catch((canRetry) => {
         sinon.assert.notCalled(version.processAnswer);
-        assert(pstream.removeListener.calledWithExactly('answer', context._onAnswerOrRinging));
-        assert(pstream.removeListener.calledWithExactly('hangup', context._onHangup));
+        assert(!context._removeReconnectionListeners.notCalled);
         assert.equal(canRetry, true);
         done();
       });
