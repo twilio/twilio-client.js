@@ -423,6 +423,10 @@ class Connection extends EventEmitter {
     this.pstream.on('cancel', this._onCancel);
     this.pstream.on('ringing', this._onRinging);
 
+    // When websocket gets disconnected
+    // There's no way to retry this session so we disconnect
+    this.pstream.on('offline', this._disconnect.bind(this));
+
     this.on('error', error => {
       this._publisher.error('connection', 'error', {
         code: error.code, message: error.message,
