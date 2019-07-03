@@ -267,9 +267,16 @@ class Connection extends EventEmitter {
     setTimeout(() => monitor.enableWarnings(), METRICS_DELAY);
 
     monitor.on('warning', (data: RTCWarning, wasCleared?: boolean) => {
-      if (data.name === 'bytesSent' || data.name === 'bytesReceived') {
-        this._log.warn('ICE Connection disconnected.');
+      const { samples, name } = data;
+      if (name === 'bytesSent' || name === 'bytesReceived') {
 
+        if (samples && samples.every(sample => sample.totals[name] === 0)) {
+          // We don't have relevant samples yet, usually at the start of a call.
+          // On Edge browser, this is always zero
+          return;
+        }
+
+        this._log.warn('ICE Connection disconnected.');
         // Stop existing loops if this warning is emitted multiple times
         this._stopIceRestarts();
 
@@ -285,7 +292,15 @@ class Connection extends EventEmitter {
       this._reemitWarning(data, wasCleared);
     });
     monitor.on('warning-cleared', (data: RTCWarning) => {
-      if (data.name === 'bytesSent' || data.name === 'bytesReceived') {
+      const { samples, name } = data;
+      if (name === 'bytesSent' || name === 'bytesReceived') {
+
+        if (samples && samples.every(sample => sample.totals[name] === 0)) {
+          // We don't have relevant samples yet, usually at the start of a call.
+          // On Edge browser, this is always zero
+          return;
+        }
+
         this._log.info('ICE Connection reestablished.');
         this._stopIceRestarts();
       }

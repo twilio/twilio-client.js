@@ -16,6 +16,11 @@ export default interface RTCWarning {
   name?: string;
 
   /**
+   * List of samples for this {@link RTCWarning}.
+   */
+  samples?: RTCSample[];
+
+  /**
    * Threshold data for this {@link RTCWarning}.
    */
   threshold?: ThresholdWarningData;
@@ -26,9 +31,9 @@ export default interface RTCWarning {
   value?: number;
 
   /**
-   * A list of sample data
+   * A list of values for the stat in this {@link RTCWarning}.
    */
-  values?: RTCSample[];
+  values?: number[];
 }
 
 /**

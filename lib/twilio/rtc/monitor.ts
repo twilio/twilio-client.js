@@ -380,18 +380,18 @@ class RTCMonitor extends EventEmitter {
     if (typeof limits.max === 'number') {
       count = countHigh(limits.max, values);
       if (count >= raiseCount) {
-        this._raiseWarning(statName, 'max', { values });
+        this._raiseWarning(statName, 'max', { values, samples: relevantSamples });
       } else if (count <= clearCount) {
-        this._clearWarning(statName, 'max', { values });
+        this._clearWarning(statName, 'max', { values, samples: relevantSamples });
       }
     }
 
     if (typeof limits.min === 'number') {
       count = countLow(limits.min, values);
       if (count >= raiseCount) {
-        this._raiseWarning(statName, 'min', { values });
+        this._raiseWarning(statName, 'min', { values, samples: relevantSamples });
       } else if (count <= clearCount) {
-        this._clearWarning(statName, 'min', { values });
+        this._clearWarning(statName, 'min', { values, samples: relevantSamples });
       }
     }
 
