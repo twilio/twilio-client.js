@@ -11,6 +11,7 @@ Bug Fixes
 
 * Fixed a bug where ICE restarts will continue to retry when a call gets disconnected while ringing. (CLIENT-6319)
 * `Device.destroy` now disconnects all connections. (CLIENT-6319)
+* Fixed a bug where answer is applied multiple times after creating an offer. (CLIENT-6335)
 
 
 1.7.4 (June 21, 2019)

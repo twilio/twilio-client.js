@@ -276,6 +276,7 @@ describe('PeerConnection', () => {
           disconnect: sinon.stub()
         },
         onclose: sinon.spy(),
+        _removeReconnectionListeners: sinon.stub(),
         status: 'open',
         stream,
         pstream: {
@@ -300,8 +301,7 @@ describe('PeerConnection', () => {
       assert(context._stopStream.calledOnce);
       assert(context.mute.calledWithExactly(false));
       assert(context._stopStream.calledWithExactly(stream));
-      assert(context.pstream.removeListener.calledOnce);
-      assert(context.pstream.removeListener.calledWithExactly('answer', context._onAnswerOrRinging));
+      assert(context._removeReconnectionListeners.calledOnce);
       assert(pc.close.calledOnce);
       assert(pc.close.calledWithExactly());
       assert(context.onclose.calledOnce);
@@ -386,8 +386,7 @@ describe('PeerConnection', () => {
       assert.strictEqual(context.stream, null);
       assert.strictEqual(context.version, false);
       assert.strictEqual(context.status, 'closed');
-      assert(context.pstream.removeListener.calledOnce);
-      assert(context.pstream.removeListener.calledWithExactly('answer', context._onAnswerOrRinging));
+      assert(context._removeReconnectionListeners.calledOnce);
     });
 
     it('Should stop everything what is available with stream', () => {
@@ -589,6 +588,33 @@ describe('PeerConnection', () => {
 
   });
 
+  context('PeerConnection.prototype._removeReconnectionListeners', () => {
+    const METHOD = PeerConnection.prototype._removeReconnectionListeners;
+
+    let context;
+    let pstream;
+    let toTest;
+
+    beforeEach(() => {
+      pstream = {
+        removeListener: sinon.stub()
+      };
+      context = {
+        pstream,
+        _onAnswerOrRinging: sinon.stub(),
+        _onHangup: sinon.stub(),
+        _removeReconnectionListeners: sinon.stub()
+      };
+      toTest = METHOD.bind(context);
+    });
+
+    it('Should remove reconnection listeners', () => {
+      toTest();
+      assert(pstream.removeListener.calledWithExactly('answer', context._onAnswerOrRinging));
+      assert(pstream.removeListener.calledWithExactly('hangup', context._onHangup));
+    });
+  });
+
   context('PeerConnection.prototype.iceRestart', () => {
     const METHOD = PeerConnection.prototype.iceRestart;
     const SDP = 'sdp';
@@ -603,10 +629,11 @@ describe('PeerConnection', () => {
       version = {
         createOffer: sinon.stub().returns({ then: (cb) => cb()}),
         getSDP: () => SDP,
-        processAnswer: (codecPreferences, sdp, onSuccess, onError) => onSuccess(),
+        processAnswer: sinon.stub().callsFake((codecPreferences, sdp, onSuccess, onError) => onSuccess()),
       };
       pstream = {
-        reinvite: sinon.stub().returns(Promise.resolve({ sdp: SDP, callsid: CALLSID }))
+        on: sinon.stub(),
+        reinvite: sinon.stub()
       };
       context = {
         callSid: CALLSID,
@@ -614,63 +641,79 @@ describe('PeerConnection', () => {
         log: sinon.stub(),
         onerror: sinon.stub(),
         pstream,
+        _removeReconnectionListeners: sinon.stub(),
         version
       };
       toTest = METHOD.bind(context);
+      wait = () => new Promise(r => setTimeout(r, 0));
     });
 
     it('Should call createOffer with iceRestart flag', (done) => {
-      toTest().then(() => {
+      toTest().catch(() => {
         assert(version.createOffer.calledWithExactly(context.codecPreferences, {iceRestart: true}));
         done();
       });
+      context._onAnswerOrRinging({});
     });
 
     it('Should publish reinvite', (done) => {
       toTest().then(() => {
+        assert(!context._removeReconnectionListeners.notCalled);
         assert(pstream.reinvite.calledWithExactly(SDP, CALLSID));
         done();
       });
+      context._onAnswerOrRinging({ sdp: SDP });
     });
 
     it('Should return canRetry=true on createOffer fail', (done) => {
       version.createOffer = sinon.stub().returns(Promise.reject());
       toTest().catch((canRetry) => {
+        assert(version.createOffer.calledWithExactly(context.codecPreferences, {iceRestart: true}));
         assert.equal(canRetry, true);
         done();
       });
     });
 
     it('Should return canRetry=false if reinvite fail', (done) => {
-      pstream.reinvite = () => Promise.reject({});
       toTest().catch((canRetry) => {
+        assert(pstream.reinvite.calledWithExactly(SDP, CALLSID));
+        assert(!context._removeReconnectionListeners.notCalled);
         assert.equal(canRetry, false);
         done();
       });
+      context._onHangup();
     });
 
     it('Should return canRetry=true if sdp is missing', (done) => {
-      pstream.reinvite = () => Promise.resolve({});
       toTest().catch((canRetry) => {
+        sinon.assert.notCalled(version.processAnswer);
+        assert(!context._removeReconnectionListeners.notCalled);
         assert.equal(canRetry, true);
         done();
       });
+      context._onAnswerOrRinging({});
     });
 
     it('Should return canRetry=true on processAnswer fail', (done) => {
-      version.processAnswer = (codecPreferences, sdp, onSuccess, onError) => onError({});
+      version.processAnswer = sinon.stub().callsFake((codecPreferences, sdp, onSuccess, onError) => onError({}));
       toTest().catch((canRetry) => {
+        sinon.assert.calledOnce(version.processAnswer);
+        assert(!context._removeReconnectionListeners.notCalled);
         assert.equal(canRetry, true);
         done();
       });
+      context._onAnswerOrRinging({ sdp: SDP });
     });
 
     it('Should return canRetry=true if current connection is close', (done) => {
       context.status = 'closed';
       toTest().catch((canRetry) => {
+        sinon.assert.notCalled(version.processAnswer);
+        assert(!context._removeReconnectionListeners.notCalled);
         assert.equal(canRetry, true);
         done();
       });
+      context._onAnswerOrRinging({ sdp: SDP });
     });
 
     it('Should update _answerSdp', (done) => {
@@ -678,6 +721,7 @@ describe('PeerConnection', () => {
         assert.equal(context._answerSdp, SDP);
         done();
       });
+      context._onAnswerOrRinging({ sdp: SDP });
     });
   });
 
