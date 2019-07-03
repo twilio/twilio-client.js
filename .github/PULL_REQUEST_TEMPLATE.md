@@ -23,7 +23,7 @@ A description of what this PR does.
 * [ ] Added unit tests if necessary
 * [ ] Updated affected documentation
 * [ ] Verified locally with `npm run build:release`
-* [ ] Manually sanity tested running locally
+* [ ] Manually sanity tested running locally on Chrome, Firefox, Safari and Edge
 * [ ] Ready for review
 
 ### Before merge
