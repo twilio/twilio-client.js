@@ -267,9 +267,16 @@ class Connection extends EventEmitter {
     setTimeout(() => monitor.enableWarnings(), METRICS_DELAY);
 
     monitor.on('warning', (data: RTCWarning, wasCleared?: boolean) => {
-      if (data.name === 'bytesSent' || data.name === 'bytesReceived') {
-        this._log.warn('ICE Connection disconnected.');
+      const { samples, name } = data;
+      if (name === 'bytesSent' || name === 'bytesReceived') {
 
+        if (samples && samples.every(sample => sample.totals[name] === 0)) {
+          // We don't have relevant samples yet, usually at the start of a call.
+          // This also may mean the browser does not support the required fields.
+          return;
+        }
+
+        this._log.warn('ICE Connection disconnected.');
         // Stop existing loops if this warning is emitted multiple times
         this._stopIceRestarts();
 
@@ -285,7 +292,15 @@ class Connection extends EventEmitter {
       this._reemitWarning(data, wasCleared);
     });
     monitor.on('warning-cleared', (data: RTCWarning) => {
-      if (data.name === 'bytesSent' || data.name === 'bytesReceived') {
+      const { samples, name } = data;
+      if (name === 'bytesSent' || name === 'bytesReceived') {
+
+        if (samples && samples.every(sample => sample.totals[name] === 0)) {
+          // We don't have relevant samples yet, usually at the start of a call.
+          // This also may mean the browser does not support the required fields.
+          return;
+        }
+
         this._log.info('ICE Connection reestablished.');
         this._stopIceRestarts();
       }
@@ -407,6 +422,10 @@ class Connection extends EventEmitter {
     this.pstream = config.pstream;
     this.pstream.on('cancel', this._onCancel);
     this.pstream.on('ringing', this._onRinging);
+
+    // When websocket gets disconnected
+    // There's no way to retry this session so we disconnect
+    this.pstream.on('offline', this._disconnect.bind(this));
 
     this.on('error', error => {
       this._publisher.error('connection', 'error', {
