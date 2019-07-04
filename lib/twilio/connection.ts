@@ -272,7 +272,7 @@ class Connection extends EventEmitter {
 
         if (samples && samples.every(sample => sample.totals[name] === 0)) {
           // We don't have relevant samples yet, usually at the start of a call.
-          // On Edge browser, this is always zero
+          // This also may mean the browser does not support the required fields.
           return;
         }
 
@@ -297,7 +297,7 @@ class Connection extends EventEmitter {
 
         if (samples && samples.every(sample => sample.totals[name] === 0)) {
           // We don't have relevant samples yet, usually at the start of a call.
-          // On Edge browser, this is always zero
+          // This also may mean the browser does not support the required fields.
           return;
         }
 
