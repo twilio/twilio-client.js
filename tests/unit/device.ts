@@ -728,7 +728,7 @@ describe('Device', function() {
 
       describe('on connection.error', () => {
         it('should should remove the connection if closed', () => {
-          device.connections[0].status = () => Connection.State.Closed;
+          device.connections[0].state = () => Connection.State.Disconnected;
           device.connections[0].emit('error');
           assert.equal(device.connections.length, 0);
         });
@@ -753,9 +753,9 @@ describe('Device', function() {
         });
       });
 
-      describe('on connection.disconnect', () => {
+      describe('on connection.disconnected', () => {
         it('should emit Device.disconnect', () => {
-          device.connections[0].emit('disconnect');
+          device.connections[0].emit('disconnected');
           sinon.assert.calledOnce(device.emit as any);
           sinon.assert.calledWith(device.emit as any, 'disconnect');
         });
@@ -766,7 +766,7 @@ describe('Device', function() {
           assert.equal(typeof conn, 'object');
           assert.equal(conn, device.activeConnection());
 
-          device.connections[0].emit('disconnect');
+          device.connections[0].emit('disconnected');
           assert.equal(typeof device.activeConnection(), 'undefined');
         });
       });

@@ -248,6 +248,7 @@ describe('PeerConnection', () => {
   context('PeerConnection.prototype.close', () => {
     const METHOD = PeerConnection.prototype.close;
 
+    let message = { message: 'foo' };
     let context = null;
     let toTest = null;
     let stream = null;
@@ -291,7 +292,7 @@ describe('PeerConnection', () => {
     });
 
     it('Should stop everyhting, removeListeners, disconnect analysers, close sockets, etc..', () => {
-      toTest();
+      toTest(message);
       assert(context._outputAnalyser.disconnect.calledOnce);
       assert(context._outputAnalyser.disconnect.calledWithExactly());
       assert(context._inputAnalyser.disconnect.calledOnce);
@@ -305,7 +306,7 @@ describe('PeerConnection', () => {
       assert(pc.close.calledOnce);
       assert(pc.close.calledWithExactly());
       assert(context.onclose.calledOnce);
-      assert(context.onclose.calledWithExactly());
+      assert(context.onclose.calledWithExactly(message));
       assert.strictEqual(context.stream, null);
       assert.strictEqual(context.version.pc, null);
       assert.strictEqual(context.status, 'closed');
@@ -318,9 +319,9 @@ describe('PeerConnection', () => {
       context._mediaStreamSource = false;
       context._inputAnalyser = false;
       context._outputAnalyser = false;
-      toTest();
+      toTest(message);
       assert(context.onclose.calledOnce);
-      assert(context.onclose.calledWithExactly());
+      assert(context.onclose.calledWithExactly(message));
       assert.strictEqual(context.stream, null);
       assert.strictEqual(context.version, false);
       assert.strictEqual(context.status, 'closed');
@@ -332,9 +333,9 @@ describe('PeerConnection', () => {
       context.pstream = false;
       context._mediaStreamSource = false;
       context._inputAnalyser = false;
-      toTest();
+      toTest(message);
       assert(context.onclose.calledOnce);
-      assert(context.onclose.calledWithExactly());
+      assert(context.onclose.calledWithExactly(message));
       assert.strictEqual(context.stream, null);
       assert.strictEqual(context.version, false);
       assert.strictEqual(context.status, 'closed');
@@ -348,9 +349,9 @@ describe('PeerConnection', () => {
       context.pstream = false;
       context._mediaStreamSource = false;
       context._outputAnalyser = false;
-      toTest();
+      toTest(message);
       assert(context.onclose.calledOnce);
-      assert(context.onclose.calledWithExactly());
+      assert(context.onclose.calledWithExactly(message));
       assert.strictEqual(context.stream, null);
       assert.strictEqual(context.version, false);
       assert.strictEqual(context.status, 'closed');
@@ -364,9 +365,9 @@ describe('PeerConnection', () => {
       context.pstream = false;
       context._inputAnalyser = false;
       context._outputAnalyser = false;
-      toTest();
+      toTest(message);
       assert(context.onclose.calledOnce);
-      assert(context.onclose.calledWithExactly());
+      assert(context.onclose.calledWithExactly(message));
       assert.strictEqual(context.stream, null);
       assert.strictEqual(context.version, false);
       assert.strictEqual(context.status, 'closed');
@@ -380,9 +381,9 @@ describe('PeerConnection', () => {
       context._mediaStreamSource = false;
       context._inputAnalyser = false;
       context._outputAnalyser = false;
-      toTest();
+      toTest(message);
       assert(context.onclose.calledOnce);
-      assert(context.onclose.calledWithExactly());
+      assert(context.onclose.calledWithExactly(message));
       assert.strictEqual(context.stream, null);
       assert.strictEqual(context.version, false);
       assert.strictEqual(context.status, 'closed');
@@ -395,10 +396,10 @@ describe('PeerConnection', () => {
       context._mediaStreamSource = false;
       context._inputAnalyser = false;
       context._outputAnalyser = false;
-      toTest();
+      toTest(message);
       assert(context.onclose.calledOnce);
       assert(context.mute.calledWithExactly(false));
-      assert(context.onclose.calledWithExactly());
+      assert(context.onclose.calledWithExactly(message));
       assert.strictEqual(context.stream, null);
       assert.strictEqual(context.version, false);
       assert.strictEqual(context.status, 'closed');
@@ -413,10 +414,10 @@ describe('PeerConnection', () => {
       context._mediaStreamSource = false;
       context._inputAnalyser = false;
       context._outputAnalyser = false;
-      toTest();
+      toTest(message);
       assert(context.onclose.calledOnce);
       assert(context.mute.calledWithExactly(false));
-      assert(context.onclose.calledWithExactly());
+      assert(context.onclose.calledWithExactly(message));
       assert.strictEqual(context.stream, null);
       assert.strictEqual(context.version, false);
       assert.strictEqual(context.status, 'closed');
@@ -429,9 +430,9 @@ describe('PeerConnection', () => {
       context._mediaStreamSource = false;
       context._inputAnalyser = false;
       context._outputAnalyser = false;
-      toTest();
+      toTest(message);
       assert(context.onclose.calledOnce);
-      assert(context.onclose.calledWithExactly());
+      assert(context.onclose.calledWithExactly(message));
       assert.strictEqual(context.stream, null);
       assert.strictEqual(context.status, 'closed');
       assert.strictEqual(context.version.pc, null);
@@ -446,9 +447,9 @@ describe('PeerConnection', () => {
       context._mediaStreamSource = false;
       context._inputAnalyser = false;
       context._outputAnalyser = false;
-      toTest();
+      toTest(message);
       assert(context.onclose.calledOnce);
-      assert(context.onclose.calledWithExactly());
+      assert(context.onclose.calledWithExactly(message));
       assert.strictEqual(context.stream, null);
       assert.strictEqual(context.status, 'closed');
       assert.strictEqual(context.version.pc, null);
@@ -959,7 +960,10 @@ describe('PeerConnection', () => {
       pstream.status = PSTREAM_STATUS_DISCONNECTED;
       assert.strictEqual(toTest(), false);
       assert(context.onerror.calledWithExactly(CONNECTION_ERROR));
-      assert(context.close.calledWithExactly());
+      assert(context.close.calledWithExactly({
+        code: 31000,
+        message: 'Cannot establish connection. Client is disconnected'
+      }));
       assert(context.onerror.calledBefore(context.close));
       assert.equal(context._setupPeerConnection.called, false);
       assert.equal(context._setupChannel.called, false);

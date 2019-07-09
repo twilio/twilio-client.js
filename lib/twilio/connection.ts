@@ -63,6 +63,12 @@ const WARNING_PREFIXES: Record<string, string> = {
   min: 'low-',
 };
 
+const STATE_MESSAGES = {
+  CANCELLED: { message: 'Call cancelled.' },
+  MEDIA_FAILED: { code: 53405, message: 'Media connection failed.' },
+  WEBSOCKET_CLOSED: {  message: 'Websocket closed.'},
+};
+
 let hasBeenWarnedHandlers = false;
 
 /**
@@ -198,7 +204,7 @@ class Connection extends EventEmitter {
   /**
    * State of the {@link Connection}.
    */
-  private _status: Connection.State = Connection.State.Pending;
+  private _state: Connection.State = Connection.State.Pending;
 
   /**
    * TwiML params for the call. May be set for either outgoing or incoming calls.
@@ -276,18 +282,7 @@ class Connection extends EventEmitter {
           return;
         }
 
-        this._log.warn('ICE Connection disconnected.');
-        // Stop existing loops if this warning is emitted multiple times
-        this._stopIceRestarts();
-
-        this._iceRestartIntervalId = setInterval(() => {
-          this.mediaStream.iceRestart().catch((canRetry: boolean) => {
-            if (!canRetry) {
-              this._log.info('Received hangup from the server. Stopping attempts to restart ICE.');
-              this._stopIceRestarts();
-            }
-          });
-        }, ICE_RESTART_INTERVAL);
+        this._onIceDisconnected();
       }
       this._reemitWarning(data, wasCleared);
     });
@@ -301,8 +296,7 @@ class Connection extends EventEmitter {
           return;
         }
 
-        this._log.info('ICE Connection reestablished.');
-        this._stopIceRestarts();
+        this._onIceRestored();
       }
       this._reemitWarningCleared(data);
     });
@@ -368,16 +362,16 @@ class Connection extends EventEmitter {
     };
 
     this.mediaStream.onerror = (e: any): void => {
-      if (e.disconnect === true) {
-        this._disconnect(e.info && e.info.message);
-      }
-
       const error: Connection.Error = {
         code: e.info.code,
         connection: this,
         info: e.info,
         message: e.info.message || 'Error with mediastream',
       };
+
+      if (e.disconnect === true) {
+        this._disconnect(error.code, error.message);
+      }
 
       this._log.error('Received an error from MediaStream:', e);
       this.emit('error', error);
@@ -389,22 +383,21 @@ class Connection extends EventEmitter {
       // PeerConnection's onsignalingstatechange handler invoked multiple
       // times in the same signalingState 'stable'. When this happens, we
       // invoke this onopen function. If we invoke it twice without checking
-      // for _status 'open', we'd accidentally close the PeerConnection.
+      // for _state 'open', we'd accidentally close the PeerConnection.
       //
       // See <https://code.google.com/p/webrtc/issues/detail?id=4996>.
-      if (this._status === Connection.State.Open) {
+      if (this._state === Connection.State.Connected || this._state === Connection.State.Reconnecting) {
         return;
-      } else if (this._status === Connection.State.Ringing || this._status === Connection.State.Connecting) {
+      } else if (this._state === Connection.State.Ringing || this._state === Connection.State.Connecting) {
         this.mute(false);
         this._maybeTransitionToOpen();
       } else {
         // call was probably canceled sometime before this
-        this.mediaStream.close();
+        this.mediaStream.close(STATE_MESSAGES.CANCELLED);
       }
     };
 
-    this.mediaStream.onclose = () => {
-      this._status = Connection.State.Closed;
+    this.mediaStream.onclose = (reason?: any) => {
       if (this.options.shouldPlayDisconnect && this.options.shouldPlayDisconnect()) {
         this._soundcache.get(Device.SoundName.Disconnect).play();
       }
@@ -412,8 +405,9 @@ class Connection extends EventEmitter {
       monitor.disable();
       this._stopIceRestarts();
       this._publishMetrics();
+      this._cleanupEventListeners();
 
-      this.emit('disconnect', this);
+      this._setState(Connection.State.Disconnected, this, reason);
     };
 
     // temporary call sid to be used for outgoing calls
@@ -425,7 +419,7 @@ class Connection extends EventEmitter {
 
     // When websocket gets disconnected
     // There's no way to retry this session so we disconnect
-    this.pstream.on('offline', this._disconnect.bind(this));
+    this.pstream.on('offline', this._disconnect.bind(this, STATE_MESSAGES.WEBSOCKET_CLOSED));
 
     this.on('error', error => {
       this._publisher.error('connection', 'error', {
@@ -435,10 +429,6 @@ class Connection extends EventEmitter {
       if (this.pstream && this.pstream.status === 'disconnected') {
         this._cleanupEventListeners();
       }
-    });
-
-    this.on('disconnect', () => {
-      this._cleanupEventListeners();
     });
   }
 
@@ -497,18 +487,18 @@ class Connection extends EventEmitter {
       return;
     }
 
-    if (this._status !== Connection.State.Pending) {
+    if (this._state !== Connection.State.Pending) {
       return;
     }
 
     const audioConstraints = handlerOrConstraints || this.options.audioConstraints;
-    this._status = Connection.State.Connecting;
+    this._setState(Connection.State.Connecting);
 
     const connect = () => {
-      if (this._status !== Connection.State.Connecting) {
+      if (this._state !== Connection.State.Connecting) {
         // call must have been canceled
         this._cleanupEventListeners();
-        this.mediaStream.close();
+        this.mediaStream.close(STATE_MESSAGES.CANCELLED);
         return;
       }
 
@@ -541,6 +531,9 @@ class Connection extends EventEmitter {
         const params = Array.from(this.customParameters.entries()).map(pair =>
          `${encodeURIComponent(pair[0])}=${encodeURIComponent(pair[1])}`).join('&');
         this.pstream.once('answer', this._onAnswer.bind(this));
+
+        this._publisher.info('connection', 'outgoing', null, this);
+
         this.mediaStream.makeOutgoingCall(this.pstream.token, params, this.outboundConnectionId,
           this.options.rtcConstraints, this.options.rtcConfiguration, onRemoteAnswer);
       }
@@ -591,8 +584,8 @@ class Connection extends EventEmitter {
         }, this);
       }
 
-      this._disconnect();
-      this.emit('error', { message, code });
+      this._disconnect(code, message);
+      this.emit('error', { code, message });
     });
   }
 
@@ -624,9 +617,10 @@ class Connection extends EventEmitter {
   disconnect(handler: (connection: this) => void): void;
   disconnect(handler?: (connection: this) => void): void {
     if (typeof handler === 'function') {
-      this._addHandler('disconnect', handler);
+      this._addHandler(Connection.State.Disconnected, handler);
       return;
     }
+    this._publisher.info('connection', 'disconnect-called', null, this);
     this._disconnect();
   }
 
@@ -667,11 +661,11 @@ class Connection extends EventEmitter {
       return;
     }
 
-    if (this._status !== Connection.State.Pending) {
+    if (this._state !== Connection.State.Pending) {
       return;
     }
 
-    this._status = Connection.State.Closed;
+    this._setState(Connection.State.Disconnected, this, STATE_MESSAGES.CANCELLED);
     this.emit('cancel');
     this.mediaStream.ignore(this.parameters.CallSid);
     this._publisher.info('connection', 'ignored-by-local', null, this);
@@ -753,7 +747,7 @@ class Connection extends EventEmitter {
       return;
     }
 
-    if (this._status !== Connection.State.Pending) {
+    if (this._state !== Connection.State.Pending) {
       return;
     }
 
@@ -843,10 +837,10 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Get the current {@link Connection} status.
+   * Get the current {@link Connection} state.
    */
-  status(): Connection.State {
-    return this._status;
+  state(): Connection.State {
+    return this._state;
   }
 
   /**
@@ -974,16 +968,18 @@ class Connection extends EventEmitter {
 
   /**
    * Disconnect the {@link Connection}.
+   * @param code - Error code
    * @param message - A message explaining why the {@link Connection} is being disconnected.
    * @param wasRemote - Whether the disconnect was triggered locally or remotely.
    */
-  private _disconnect(message?: string | null, wasRemote?: boolean): void {
+  private _disconnect(code?: number, message?: string | null, wasRemote?: boolean): void {
     message = typeof message === 'string' ? message : null;
     this._stopIceRestarts();
 
-    if (this._status !== Connection.State.Open
-        && this._status !== Connection.State.Connecting
-        && this._status !== Connection.State.Ringing) {
+    if (this._state !== Connection.State.Connected
+        && this._state !== Connection.State.Reconnecting
+        && this._state !== Connection.State.Connecting
+        && this._state !== Connection.State.Ringing) {
       return;
     }
 
@@ -1002,7 +998,7 @@ class Connection extends EventEmitter {
     }
 
     this._cleanupEventListeners();
-    this.mediaStream.close();
+    this.mediaStream.close({ code, message });
 
     if (!wasRemote) {
       this._publisher.info('connection', 'disconnected-by-local', null, this);
@@ -1051,11 +1047,12 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Transition to {@link ConnectionStatus.Open} if criteria is met.
+   * Transition to {@link Connection.State.Open} if criteria is met.
    */
   private _maybeTransitionToOpen(): void {
     if (this.mediaStream && this.mediaStream.status === 'open' && this._isAnswered) {
-      this._status = Connection.State.Open;
+      this._publisher.info('connection', 'connected', null, this);
+      this._setState(Connection.State.Connected, this);
       this.emit('accept', this);
     }
   }
@@ -1086,7 +1083,7 @@ class Connection extends EventEmitter {
     // (rrowland) Is this check necessary? Verify, and if so move to pstream / VSP module.
     const callsid = payload.callsid;
     if (this.parameters.CallSid === callsid) {
-      this._status = Connection.State.Closed;
+      this._setState(Connection.State.Disconnected, this, STATE_MESSAGES.CANCELLED);
       this.emit('cancel');
       this.pstream.removeListener('cancel', this._onCancel);
     }
@@ -1113,38 +1110,79 @@ class Connection extends EventEmitter {
     }
 
     this._log.info('Received HANGUP from gateway');
+    const error = {
+      code: 31000,
+      connection: this,
+      message: 'Error sent from gateway in HANGUP',
+    };
+
     if (payload.error) {
-      const error = {
-        code: payload.error.code || 31000,
-        connection: this,
-        message: payload.error.message || 'Error sent from gateway in HANGUP',
-      };
+      error.code = payload.error.code || error.code;
+      error.message = payload.error.message || error.message;
+
       this._log.error('Received an error from the gateway:', error);
       this.emit('error', error);
     }
+
     this.sendHangup = false;
     this._publisher.info('connection', 'disconnected-by-remote', null, this);
-    this._disconnect(null, true);
+    this._disconnect(error.code, error.message, true);
     this._cleanupEventListeners();
   }
 
   /**
-   * When we get a RINGING signal from PStream, update the {@link Connection} status.
+   * Called when {@link RTCMonitor} raises a warning where bytesReceived or bytesSent is zero
+   */
+  private _onIceDisconnected(): void {
+    if (this._state === Connection.State.Reconnecting) {
+      return;
+    }
+
+    this._log.warn('ICE Connection disconnected.');
+    this._publisher.info('connection', 'reconnecting', null, this);
+
+    // Stop existing loops if this warning is emitted multiple times
+    this._stopIceRestarts();
+
+    this._iceRestartIntervalId = setInterval(() => {
+      this.mediaStream.iceRestart().catch((canRetry: boolean) => {
+        if (!canRetry) {
+          this._log.info('Received hangup from the server. Stopping attempts to restart ICE.');
+          this._stopIceRestarts();
+        }
+      });
+    }, ICE_RESTART_INTERVAL);
+
+    this._setState(Connection.State.Reconnecting, this, STATE_MESSAGES.MEDIA_FAILED);
+  }
+
+  /**
+   * Called when {@link RTCMonitor} clears a warning for bytesReceived or bytesSent
+   */
+  private _onIceRestored(): void {
+    this._log.info('ICE Connection reestablished.');
+    this._publisher.info('connection', 'reconnected', null, this);
+    this._publisher.warn('connection', 'error', STATE_MESSAGES.MEDIA_FAILED, this);
+    this._stopIceRestarts();
+    this._setState(Connection.State.Connected, this);
+  }
+
+  /**
+   * When we get a RINGING signal from PStream, update the {@link Connection} state.
    * @param payload
    */
   private _onRinging = (payload: Record<string, any>): void => {
     this._setCallSid(payload);
 
     // If we're not in 'connecting' or 'ringing' state, this event was received out of order.
-    if (this._status !== Connection.State.Connecting && this._status !== Connection.State.Ringing) {
+    if (this._state !== Connection.State.Connecting && this._state !== Connection.State.Ringing) {
       return;
     }
 
     const hasEarlyMedia = !!payload.sdp;
     if (this.options.enableRingingState) {
-      this._status = Connection.State.Ringing;
       this._publisher.info('connection', 'outgoing-ringing', { hasEarlyMedia }, this);
-      this.emit('ringing', hasEarlyMedia);
+      this._setState(Connection.State.Ringing, this, hasEarlyMedia);
     // answerOnBridge=false will send a 183, which we need to interpret as `answer` when
     // the enableRingingState flag is disabled in order to maintain a non-breaking API from 1.4.24
     } else if (hasEarlyMedia) {
@@ -1238,6 +1276,30 @@ class Connection extends EventEmitter {
   }
 
   /**
+   * Set a new state and emit the correct event
+   * @param newState
+   */
+  private _setState(newState: Connection.State, ...eventParams: any[]): void {
+    const previousState = this._state;
+    const { Connected, Disconnected, Reconnecting, Ringing } = Connection.State;
+
+    if (newState === previousState) {
+      return;
+    }
+
+    this._state = newState;
+
+    if (newState === Connected && previousState === Reconnecting) {
+      this.emit('reconnected', ...eventParams);
+    } else if (newState === Connected
+      || newState === Disconnected
+      || newState === Reconnecting
+      || newState === Ringing) {
+      this.emit(newState, ...eventParams);
+    }
+  }
+
+  /**
    * Stop ice restart loop
    */
   private _stopIceRestarts(): void {
@@ -1264,7 +1326,7 @@ namespace Connection {
   /**
    * Emitted when the {@link Connection} is disconnected.
    * @param connection - The {@link Connection}.
-   * @example `connection.on('disconnect', connection => { })`
+   * @example `connection.on('disconnected', connection => { })`
    * @event
    */
   declare function disconnectEvent(connection: Connection): void;
@@ -1319,10 +1381,34 @@ namespace Connection {
    * Possible states of the {@link Connection}.
    */
   export enum State {
-    Closed = 'closed',
+    /**
+     * The {@link Connection} is connected.
+     */
+    Connected = 'connected',
+
+    /**
+     * The {@link Connection} is created and in the process of connecting.
+     */
     Connecting = 'connecting',
-    Open = 'open',
+
+    /**
+     * The {@link Connection} was disconnected.
+     */
+    Disconnected = 'disconnected',
+
+    /**
+     * The {@link Connection} is ready to connect.
+     */
     Pending = 'pending',
+
+    /**
+     * The {@link Connection} is in the process of reconnecting
+     */
+    Reconnecting = 'reconnecting',
+
+    /**
+     * The call is ringing
+     */
     Ringing = 'ringing',
   }
 

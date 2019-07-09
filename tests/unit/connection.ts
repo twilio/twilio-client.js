@@ -141,7 +141,7 @@ describe('Connection', function() {
   });
 
   describe('deprecated handler methods', () => {
-    ['accept', 'cancel', 'disconnect', 'error', 'mute', 'reject', 'volume'].forEach((eventName: string) => {
+    ['accept', 'cancel', 'error', 'mute', 'reject', 'volume'].forEach((eventName: string) => {
       it(`should set an event listener on Connection for .${eventName}(handler)`, () => {
         const handler = () => { };
         (conn as any).removeAllListeners(eventName);
@@ -164,19 +164,19 @@ describe('Connection', function() {
 
   describe('.accept', () => {
     [
-      Connection.State.Open,
+      Connection.State.Connected,
       Connection.State.Connecting,
       Connection.State.Ringing,
-      Connection.State.Closed,
+      Connection.State.Disconnected,
     ].forEach((state: Connection.State) => {
       context(`when state is ${state}`, () => {
         beforeEach(() => {
-          (conn as any)['_status'] = state;
+          (conn as any)['_state'] = state;
         });
 
         it('should not transition state', () => {
           conn.accept();
-          assert.equal(conn.status(), state);
+          assert.equal(conn.state(), state);
         });
 
         it('should not call mediaStream.openWithConstraints', () => {
@@ -188,7 +188,7 @@ describe('Connection', function() {
 
     it('should transition state to Connecting', () => {
       conn.accept();
-      assert.equal(conn.status(), Connection.State.Connecting);
+      assert.equal(conn.state(), Connection.State.Connecting);
     });
     
     context('when getInputStream is not present', () => {
@@ -322,6 +322,14 @@ describe('Connection', function() {
           });
         });
 
+        it('should publish an outgoing event', () => {
+          conn.accept();
+          return wait.then(() => {
+            callback('foo');
+            sinon.assert.calledWith(publisher.info, 'connection', 'outgoing');
+          });
+        });
+
         context('when the success callback is called', () => {
           it('should publish an accepted-by-remote event', () => {
             conn.accept();
@@ -344,7 +352,7 @@ describe('Connection', function() {
       context('if connection state transitions before connect finishes', () => {
         beforeEach(() => {
           mediaStream.setInputTracksFromStream = sinon.spy(() => {
-            (conn as any)['_status'] = Connection.State.Closed;
+            (conn as any)['_state'] = Connection.State.Disconnected;
             const p = Promise.resolve();
             wait = p.then(() => Promise.resolve());
             return p;
@@ -354,7 +362,7 @@ describe('Connection', function() {
         it('should call mediaStream.close', () => {
           conn.accept();
           return wait.then(() => {
-            sinon.assert.calledOnce(mediaStream.close);
+            assert(mediaStream.close.calledWithExactly({ message: 'Call cancelled.' }));
           });
         });
 
@@ -379,7 +387,11 @@ describe('Connection', function() {
         conn = new Connection(config, options);
 
         mediaStream.setInputTracksFromStream = sinon.spy(() => {
-          const p = Promise.reject({ code: 31208 });
+          const p = Promise.reject({
+            code: 31208,
+            name: 'foo',
+            message: 'bar'
+          });
           wait = p.catch(() => Promise.resolve());
           return p;
         });
@@ -389,6 +401,8 @@ describe('Connection', function() {
         conn.accept({ foo: 'bar' } as MediaTrackConstraints);
         return wait.then(() => {
           sinon.assert.calledWith(publisher.error, 'get-user-media', 'denied');
+          assert(mediaStream.close.calledWithExactly({ code: 31208,
+            message: 'User denied access to microphone, or the web browser did not allow microphone access at this address.' }));
         });
       });
     });
@@ -404,7 +418,9 @@ describe('Connection', function() {
         conn = new Connection(config, options);
 
         mediaStream.setInputTracksFromStream = sinon.spy(() => {
-          const p = Promise.reject({ });
+          const p = Promise.reject({
+            name: 'foo',
+            message: 'bar' });
           wait = p.catch(() => Promise.resolve());
           return p;
         });
@@ -414,6 +430,8 @@ describe('Connection', function() {
         conn.accept({ foo: 'bar' } as MediaTrackConstraints);
         return wait.then(() => {
           sinon.assert.calledWith(publisher.error, 'get-user-media', 'failed');
+          assert(mediaStream.close.calledWithExactly({ code: 31201,
+            message: 'Error occurred while accessing microphone: foo (bar)' }));
         });
       });
     });
@@ -428,14 +446,24 @@ describe('Connection', function() {
   });
 
   describe('.disconnect()', () => {
+    const wait = () => new Promise(r => setTimeout(r, 0));
+
+    it('should publish a disconnect-called event', () => {
+      conn.disconnect();
+      clock.restore();
+      return wait().then(() => {
+        sinon.assert.calledWith(publisher.info, 'connection', 'disconnect-called');
+      });
+    });
+
     [
-      Connection.State.Open,
+      Connection.State.Connected,
       Connection.State.Connecting,
       Connection.State.Ringing,
     ].forEach((state: Connection.State) => {
       context(`when state is ${state}`, () => {
         beforeEach(() => {
-          (conn as any)['_status'] = state;
+          (conn as any)['_state'] = state;
         });
 
         it('should call pstream.publish with hangup', () => {
@@ -452,11 +480,11 @@ describe('Connection', function() {
 
     [
       Connection.State.Pending,
-      Connection.State.Closed,
+      Connection.State.Disconnected,
     ].forEach((state: Connection.State) => {
       context(`when state is ${state}`, () => {
         beforeEach(() => {
-          (conn as any)['_status'] = state;
+          (conn as any)['_state'] = state;
         });
 
         it('should not call pstream.publish', () => {
@@ -486,6 +514,8 @@ describe('Connection', function() {
 
   describe('.ignore()', () => {
     context('when state is pending', () => {
+      const wait = () => new Promise(r => setTimeout(r, 0));
+
       it('should call mediaStream.ignore', () => {
         conn.ignore();
         sinon.assert.calledOnce(mediaStream.ignore);
@@ -496,9 +526,16 @@ describe('Connection', function() {
         conn.ignore();
       });
 
-      it('should transition state to closed', () => {
+      it('should transition state to disconnected', () => {
+        const callback = sinon.stub();
+        conn.on('disconnected', callback);
         conn.ignore();
-        assert.equal(conn.status(), Connection.State.Closed);
+        
+        clock.restore();
+        return wait().then(() => {
+          assert.equal(conn.state(), Connection.State.Disconnected);
+          assert(callback.calledWithExactly(conn, { message: 'Call cancelled.' }));
+        });
       });
 
       it('should publish an event to insights', () => {
@@ -508,14 +545,14 @@ describe('Connection', function() {
     });
 
     [
-      Connection.State.Closed,
+      Connection.State.Disconnected,
       Connection.State.Connecting,
-      Connection.State.Open,
+      Connection.State.Connected,
       Connection.State.Ringing,
     ].forEach((state: Connection.State) => {
       context(`when connection state is ${state}`, () => {
         beforeEach(() => {
-          (conn as any)['_status'] = state;
+          (conn as any)['_state'] = state;
         });
 
         it('should not call mediaStream.ignore', () => {
@@ -530,7 +567,7 @@ describe('Connection', function() {
 
         it('should not transition state to closed', () => {
           conn.ignore();
-          assert.equal(conn.status(), state);
+          assert.equal(conn.state(), state);
         });
 
         it('should not publish an event to insights', () => {
@@ -662,14 +699,14 @@ describe('Connection', function() {
     });
 
     [
-      Connection.State.Closed,
+      Connection.State.Disconnected,
       Connection.State.Connecting,
-      Connection.State.Open,
+      Connection.State.Connected,
       Connection.State.Ringing,
     ].forEach((state: Connection.State) => {
       context(`when connection state is ${state}`, () => {
         beforeEach(() => {
-          (conn as any)['_status'] = state;
+          (conn as any)['_state'] = state;
         });
 
         it('should not call pstream.publish', () => {
@@ -876,32 +913,35 @@ describe('Connection', function() {
     });
 
     describe('mediaStream.onerror', () => {
+      const wait = () => new Promise(r => setTimeout(r, 0));
       const baseError = { info: { code: 123, message: 'foo' } };
 
-      it('should emit an error event', (done) => {
-        conn.on('error', (error) => {
-          assert.deepEqual(error, {
+      it('should emit an error event', () => {
+        const callback = sinon.stub();
+        conn.on('error', callback);
+        mediaStream.onerror(baseError);
+
+        clock.restore();
+        return wait().then(() => {
+          assert(callback.calledWithExactly({
             code: 123,
             connection: conn,
             info: baseError.info,
             message: 'foo',
-          });
-
-          done();
+          }));
         });
-
-        mediaStream.onerror(baseError);
       });
 
       context('when error.disconnect is true', () => {
         [
-          Connection.State.Open,
+          Connection.State.Connected,
           Connection.State.Connecting,
+          Connection.State.Reconnecting,
           Connection.State.Ringing,
         ].forEach((state: Connection.State) => {
           context(`and state is ${state}`, () => {
             beforeEach(() => {
-              (conn as any)['_status'] = state;
+              (conn as any)['_state'] = state;
             });
 
             it('should call pstream.publish with hangup', () => {
@@ -913,17 +953,18 @@ describe('Connection', function() {
             it('should call mediaStream.close', () => {
               mediaStream.onerror(Object.assign({ disconnect: true }, baseError));
               sinon.assert.calledOnce(mediaStream.close);
+              sinon.assert.calledWithExactly(mediaStream.close, { code: baseError.info.code, message: baseError.info.message })
             });
           });
         });
 
         [
           Connection.State.Pending,
-          Connection.State.Closed,
+          Connection.State.Disconnected,
         ].forEach((state: Connection.State) => {
           context(`and state is ${state}`, () => {
             beforeEach(() => {
-              (conn as any)['_status'] = state;
+              (conn as any)['_state'] = state;
             });
 
             it('should not call pstream.publish', () => {
@@ -943,7 +984,24 @@ describe('Connection', function() {
     describe('mediaStream.onopen', () => {
       context('when state is open', () => {
         beforeEach(() => {
-          (conn as any)['_status'] = Connection.State.Open;
+          (conn as any)['_state'] = Connection.State.Connected;
+        });
+
+        it(`should not call mediaStream.close`, () => {
+          mediaStream.onopen();
+          sinon.assert.notCalled(mediaStream.close);
+        });
+
+        it(`should not call connection.mute(false)`, () => {
+          conn.mute = sinon.spy();
+          mediaStream.onopen();
+          sinon.assert.notCalled(conn.mute as SinonSpy);
+        });
+      });
+
+      context('when state is reconnecting', () => {
+        beforeEach(() => {
+          (conn as any)['_state'] = Connection.State.Reconnecting;
         });
 
         it(`should not call mediaStream.close`, () => {
@@ -964,7 +1022,7 @@ describe('Connection', function() {
       ].forEach((state: Connection.State) => {
         context(`when state is ${state}`, () => {
           beforeEach(() => {
-            (conn as any)['_status'] = state;
+            (conn as any)['_state'] = state;
           });
 
           it(`should not call mediaStream.close`, () => {
@@ -990,8 +1048,16 @@ describe('Connection', function() {
             });
 
             it('should transition to open', () => {
+              const callback = sinon.stub();
+              conn.on('connected', callback);
               mediaStream.onopen();
-              assert.equal(conn.status(), Connection.State.Open);
+              assert.equal(conn.state(), Connection.State.Connected);
+              assert(callback.calledWithExactly(conn));
+            });
+
+            it('should publish a connected event', () => {
+              mediaStream.onopen();
+              sinon.assert.calledWith(publisher.info, 'connection', 'connected');
             });
           });
 
@@ -1008,7 +1074,7 @@ describe('Connection', function() {
 
             it('should not transition to open', () => {
               mediaStream.onopen();
-              assert.equal(conn.status(), state);
+              assert.equal(conn.state(), state);
             });
           });
         });
@@ -1016,16 +1082,16 @@ describe('Connection', function() {
 
       [
         Connection.State.Pending,
-        Connection.State.Closed,
+        Connection.State.Disconnected,
       ].forEach((state: Connection.State) => {
         context(`when state is ${state}`, () => {
           beforeEach(() => {
-            (conn as any)['_status'] = state;
+            (conn as any)['_state'] = state;
           });
 
           it(`should call mediaStream.close`, () => {
             mediaStream.onopen();
-            sinon.assert.calledOnce(mediaStream.close);
+            assert(mediaStream.close.calledWithExactly({ message: 'Call cancelled.' }));
           });
 
           it(`should not call connection.mute(false)`, () => {
@@ -1038,9 +1104,11 @@ describe('Connection', function() {
     });
 
     describe('mediaStream.onclose', () => {
+      const wait = () => new Promise(r => setTimeout(r, 0));
+
       it('should transition to closed', () => {
         mediaStream.onclose();
-        assert.equal(conn.status(), Connection.State.Closed);
+        assert.equal(conn.state(), Connection.State.Disconnected);
       });
 
       it('should call monitor.disable', () => {
@@ -1048,13 +1116,16 @@ describe('Connection', function() {
         sinon.assert.calledOnce(monitor.disable);
       });
 
-      it('should emit a disconnect event', (done) => {
-        conn.on('disconnect', (connection) => {
-          assert.equal(conn, connection);
-          done();
-        });
+      it('should emit a disconnect event', () => {
+        const callback = sinon.stub();
+        const message = {message: 'foo'};
+        conn.on('disconnected', callback);
 
-        mediaStream.onclose();
+        mediaStream.onclose(message);
+        clock.restore();
+        return wait().then(() => {
+          assert(callback.calledWithExactly(conn, message));
+        });
       });
 
       it('should play the disconnect ringtone if shouldPlayDisconnect is not specified', () => {
@@ -1085,7 +1156,7 @@ describe('Connection', function() {
 
         it('should transition to closed', () => {
           pstream.emit('cancel', { callsid: 'CA123' });
-          assert.equal(conn.status(), Connection.State.Closed);
+          assert.equal(conn.state(), Connection.State.Disconnected);
         });
 
         it('should emit a cancel event', (done) => {
@@ -1097,7 +1168,7 @@ describe('Connection', function() {
       context('when the callsid does not match', () => {
         it('should not transition to closed', () => {
           pstream.emit('cancel', { callsid: 'foo' });
-          assert.equal(conn.status(), Connection.State.Pending);
+          assert.equal(conn.state(), Connection.State.Pending);
         });
 
         it('should not emit a cancel event', () => {
@@ -1122,6 +1193,19 @@ describe('Connection', function() {
           publisher.info.reset();
           pstream.emit('hangup', { callsid: 'CA123' });
           sinon.assert.calledWith(publisher.info, 'connection', 'disconnected-by-remote');
+        });
+
+        it('should close mediaStream with default error object', () => {
+          pstream.emit('hangup', { callsid: 'CA123' });
+          assert(mediaStream.close.calledWithExactly({code: 31000, message: 'Error sent from gateway in HANGUP'}));
+        });
+
+        it('should close mediaStream with payload error object', () => {
+          pstream.emit('hangup', { callsid: 'CA123', error: {
+            code: 123,
+            message: 'foo',
+          }});
+          assert(mediaStream.close.calledWithExactly({code: 123, message: 'foo'}));
         });
 
         it('should not call pstream.publish with hangup', () => {
@@ -1173,14 +1257,14 @@ describe('Connection', function() {
       [Connection.State.Connecting, Connection.State.Ringing].forEach((state: Connection.State) => {
         context(`when state is ${state} and enableRingingState is false`, () => {
           beforeEach(() => {
-            (conn as any)['_status'] = state;
+            (conn as any)['_state'] = state;
           });
 
           context('and sdp is present', () => {
             it('should transition to open if mediastream is open', () => {
               mediaStream.status = 'open';
               pstream.emit('ringing', { sdp: 'foo' });
-              assert.equal(conn.status(), Connection.State.Open);
+              assert.equal(conn.state(), Connection.State.Connected);
             });
 
             it('should emit accept if mediastream is open', (done) => {
@@ -1192,7 +1276,7 @@ describe('Connection', function() {
             it('should not transition to open if mediastream is not open', () => {
               mediaStream.status = 'closed';
               pstream.emit('ringing', { sdp: 'foo' });
-              assert.equal(conn.status(), state);
+              assert.equal(conn.state(), state);
             });
 
             it('should not emit accept if mediastream is not open', () => {
@@ -1206,7 +1290,7 @@ describe('Connection', function() {
             it('should not transition to open if mediastream is open', () => {
               mediaStream.status = 'open';
               pstream.emit('ringing', { });
-              assert.equal(conn.status(), state);
+              assert.equal(conn.state(), state);
             });
 
             it('should not emit accept if mediastream is open', () => {
@@ -1218,7 +1302,7 @@ describe('Connection', function() {
             it('should not transition to open if mediastream is not open', () => {
               mediaStream.status = 'closed';
               pstream.emit('ringing', { });
-              assert.equal(conn.status(), state);
+              assert.equal(conn.state(), state);
             });
 
             it('should not emit accept if mediastream is not open', () => {
@@ -1234,12 +1318,12 @@ describe('Connection', function() {
             conn = new Connection(config, Object.assign({
               enableRingingState: true,
             }, options));
-            (conn as any)['_status'] = state;
+            (conn as any)['_state'] = state;
           });
 
           it('should set status to ringing', () => {
             pstream.emit('ringing', { callsid: 'ABC123', });
-            assert.equal(conn.status(), Connection.State.Ringing);
+            assert.equal(conn.state(), Connection.State.Ringing);
           });
 
           it('should publish an outgoing-ringing event with hasEarlyMedia: false if no sdp', () => {
@@ -1256,23 +1340,25 @@ describe('Connection', function() {
             });
           });
 
-          it('should emit a ringing event with hasEarlyMedia: false if no sdp', (done) => {
-            conn.on('ringing', (hasEarlyMedia) => {
-              assert(!hasEarlyMedia);
-              done();
+          if (state !== 'ringing') {
+            it('should emit a ringing event with hasEarlyMedia: false if no sdp', (done) => {
+              conn.on('ringing', (conn, hasEarlyMedia) => {
+                assert(!hasEarlyMedia);
+                done();
+              });
+
+              pstream.emit('ringing', { callsid: 'ABC123' });
             });
 
-            pstream.emit('ringing', { callsid: 'ABC123' });
-          });
+            it('should emit a ringing event with hasEarlyMedia: true if sdp', (done) => {
+              conn.on('ringing', (conn, hasEarlyMedia) => {
+                assert(hasEarlyMedia);
+                done();
+              });
 
-          it('should emit a ringing event with hasEarlyMedia: true if sdp', (done) => {
-            conn.on('ringing', (hasEarlyMedia) => {
-              assert(hasEarlyMedia);
-              done();
+              pstream.emit('ringing', { callsid: 'ABC123', sdp: 'foo' });
             });
-
-            pstream.emit('ringing', { callsid: 'ABC123', sdp: 'foo' });
-          });
+          }
         });
       });
     });
@@ -1398,7 +1484,7 @@ describe('Connection', function() {
         assert(mediaStream.iceRestart.calledOnce);
       });
       it('should stop iceRestart loop on disconnect', () => {
-        (conn as any)['_status'] = Connection.State.Open;
+        (conn as any)['_state'] = Connection.State.Connected;
         monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
         clock.tick(3000);
         conn.disconnect();
@@ -1412,6 +1498,21 @@ describe('Connection', function() {
         mediaStream.onclose();
         clock.tick(3000);
         assert(mediaStream.iceRestart.calledOnce);
+      });
+
+      it('should publish a reconnecting event', () => {
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+        clock.tick(4000);
+        sinon.assert.calledWith(publisher.info, 'connection', 'reconnecting');
+      });
+
+      it('should transition to reconnecting state', () => {
+        const callback = sinon.stub();
+        (conn as any)['_state'] = Connection.State.Connected;
+        conn.on('reconnecting', callback);
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+        clock.tick(4000);
+        assert(callback.calledWithExactly(conn, { code: 53405, message: 'Media connection failed.' }));
       });
     });
 
@@ -1458,6 +1559,31 @@ describe('Connection', function() {
         monitor.emit('warning-cleared', { name: 'bytesSent', threshold: { name: 'min' } });
         clock.tick(4000);
         assert(mediaStream.iceRestart.calledOnce);
+      });
+      it('should publish a reconnected event', () => {
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+        clock.tick(4000);
+        monitor.emit('warning-cleared', { name: 'bytesReceived', threshold: { name: 'min' } });
+        clock.tick(4000);
+        sinon.assert.calledWith(publisher.info, 'connection', 'reconnected');
+      });
+      it('should publish an error event', () => {
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+        clock.tick(4000);
+        monitor.emit('warning-cleared', { name: 'bytesReceived', threshold: { name: 'min' } });
+        clock.tick(4000);
+        sinon.assert.calledWith(publisher.warn, 'connection', 'error');
+      });
+      it('should transition to connected state state', () => {
+        const callback = sinon.stub();
+        (conn as any)['_state'] = Connection.State.Connected;
+        conn.on('reconnected', callback);
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+        clock.tick(4000);
+        monitor.emit('warning-cleared', { name: 'bytesReceived', threshold: { name: 'min' } });
+        clock.tick(4000);
+        assert(callback.calledWithExactly(conn));
+        assert.equal(conn.state(), Connection.State.Connected);
       });
     });
     context('if warningData.name contains audio', () => {
