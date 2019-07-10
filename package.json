@@ -15,7 +15,8 @@
     "url": "git@github.com:twilio/twilio-client.js.git"
   },
   "scripts": {
-    "build": "npm-run-all clean docs:ts build:es5 build:ts build:dist build:dist-min",
+    "build": "npm-run-all clean build:errors docs:ts build:es5 build:ts build:dist build:dist-min",
+    "build:errors": "node ./scripts/errors.js",
     "build:es5": "rimraf ./es5 && babel lib -d es5",
     "build:dev": "ENV=dev npm run build",
     "build:dist": "node ./scripts/build.js ./lib/browser.js ./LICENSE.md ./dist/twilio.js",
@@ -110,6 +111,7 @@
   },
   "dependencies": {
     "@twilio/audioplayer": "1.0.4",
+    "@twilio/voice-errors": "^1.0.0",
     "backoff": "2.5.0",
     "rtcpeerconnection-shim": "1.2.8",
     "ws": "6.1.3",
