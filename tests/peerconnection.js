@@ -629,6 +629,9 @@ describe('PeerConnection', () => {
       version = {
         createOffer: sinon.stub().returns({ then: (cb) => cb()}),
         getSDP: () => SDP,
+        pc: {
+          signalingState: 'have-local-offer'
+        },
         processAnswer: sinon.stub().callsFake((codecPreferences, sdp, onSuccess, onError) => onSuccess()),
       };
       pstream = {
@@ -692,6 +695,17 @@ describe('PeerConnection', () => {
         done();
       });
       context._onAnswerOrRinging({});
+    });
+
+    it('Should return canRetry=false if there is no local offer', (done) => {
+      version.pc.signalingState = 'stable';
+      toTest().catch((canRetry) => {
+        sinon.assert.notCalled(version.processAnswer);
+        assert(!context._removeReconnectionListeners.notCalled);
+        assert.equal(canRetry, false);
+        done();
+      });
+      context._onAnswerOrRinging({ sdp: SDP });
     });
 
     it('Should return canRetry=true on processAnswer fail', (done) => {
