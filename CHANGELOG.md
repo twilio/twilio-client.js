@@ -1,6 +1,12 @@
 1.7.6 (In Progress)
 ====================
 
+Improvements
+------------
+
+* We now show an error in the console if the page is not loaded over https for unsupported browsers. (CLIENT-6361)
+
+
 Bug Fixes
 ---------
 
