@@ -38,6 +38,22 @@ export type IPublisher = any;
  */
 export type ISound = any;
 
+// Placeholder until we implement the error classes
+/**
+ * @private
+ */
+export interface TwilioError {
+  /**
+   * Error code
+   */
+  code?: number;
+
+  /**
+   * Error message
+   */
+  message: string;
+}
+
 const DTMF_INTER_TONE_GAP: number = 70;
 const DTMF_PAUSE_DURATION: number = 500;
 const DTMF_TONE_DURATION: number = 160;
@@ -63,11 +79,9 @@ const WARNING_PREFIXES: Record<string, string> = {
   min: 'low-',
 };
 
-const STATE_MESSAGES = {
-  CANCELLED: { message: 'Call cancelled.' },
-  MEDIA_FAILED: { code: 53405, message: 'Media connection failed.' },
-  WEBSOCKET_CLOSED: {  message: 'Websocket closed.'},
-};
+const CallCancelledError: TwilioError = { message: 'Call cancelled.' };
+const MediaFailedError: TwilioError = { code: 53405, message: 'Media connection failed.' };
+const WebsocketClosedError: TwilioError = { message: 'Websocket closed.' };
 
 let hasBeenWarnedHandlers = false;
 
@@ -386,14 +400,14 @@ class Connection extends EventEmitter {
       // for _state 'open', we'd accidentally close the PeerConnection.
       //
       // See <https://code.google.com/p/webrtc/issues/detail?id=4996>.
-      if (this._state === Connection.State.Connected || this._state === Connection.State.Reconnecting) {
+      if (this.state() === Connection.State.Connected || this.state() === Connection.State.Reconnecting) {
         return;
-      } else if (this._state === Connection.State.Ringing || this._state === Connection.State.Connecting) {
+      } else if (this.state() === Connection.State.Ringing || this.state() === Connection.State.Connecting) {
         this.mute(false);
         this._maybeTransitionToOpen();
       } else {
         // call was probably canceled sometime before this
-        this.mediaStream.close(STATE_MESSAGES.CANCELLED);
+        this.mediaStream.close(CallCancelledError);
       }
     };
 
@@ -419,7 +433,7 @@ class Connection extends EventEmitter {
 
     // When websocket gets disconnected
     // There's no way to retry this session so we disconnect
-    this.pstream.on('transportClosed', this._disconnect.bind(this, STATE_MESSAGES.WEBSOCKET_CLOSED));
+    this.pstream.on('transportClosed', this._disconnect.bind(this, WebsocketClosedError));
 
     this.on('error', error => {
       this._publisher.error('connection', 'error', {
@@ -487,7 +501,7 @@ class Connection extends EventEmitter {
       return;
     }
 
-    if (this._state !== Connection.State.Pending) {
+    if (this.state() !== Connection.State.Pending) {
       return;
     }
 
@@ -495,10 +509,10 @@ class Connection extends EventEmitter {
     this._setState(Connection.State.Connecting);
 
     const connect = () => {
-      if (this._state !== Connection.State.Connecting) {
+      if (this.state() !== Connection.State.Connecting) {
         // call must have been canceled
         this._cleanupEventListeners();
-        this.mediaStream.close(STATE_MESSAGES.CANCELLED);
+        this.mediaStream.close(CallCancelledError);
         return;
       }
 
@@ -661,11 +675,11 @@ class Connection extends EventEmitter {
       return;
     }
 
-    if (this._state !== Connection.State.Pending) {
+    if (this.state() !== Connection.State.Pending) {
       return;
     }
 
-    this._setState(Connection.State.Disconnected, this, STATE_MESSAGES.CANCELLED);
+    this._setState(Connection.State.Disconnected, this, CallCancelledError);
     this.emit('cancel');
     this.mediaStream.ignore(this.parameters.CallSid);
     this._publisher.info('connection', 'ignored-by-local', null, this);
@@ -747,7 +761,7 @@ class Connection extends EventEmitter {
       return;
     }
 
-    if (this._state !== Connection.State.Pending) {
+    if (this.state() !== Connection.State.Pending) {
       return;
     }
 
@@ -976,10 +990,10 @@ class Connection extends EventEmitter {
     message = typeof message === 'string' ? message : null;
     this._stopIceRestarts();
 
-    if (this._state !== Connection.State.Connected
-        && this._state !== Connection.State.Reconnecting
-        && this._state !== Connection.State.Connecting
-        && this._state !== Connection.State.Ringing) {
+    if (this.state() !== Connection.State.Connected
+        && this.state() !== Connection.State.Reconnecting
+        && this.state() !== Connection.State.Connecting
+        && this.state() !== Connection.State.Ringing) {
       return;
     }
 
@@ -1083,7 +1097,7 @@ class Connection extends EventEmitter {
     // (rrowland) Is this check necessary? Verify, and if so move to pstream / VSP module.
     const callsid = payload.callsid;
     if (this.parameters.CallSid === callsid) {
-      this._setState(Connection.State.Disconnected, this, STATE_MESSAGES.CANCELLED);
+      this._setState(Connection.State.Disconnected, this, CallCancelledError);
       this.emit('cancel');
       this.pstream.removeListener('cancel', this._onCancel);
     }
@@ -1134,12 +1148,13 @@ class Connection extends EventEmitter {
    * Called when {@link RTCMonitor} raises a warning where bytesReceived or bytesSent is zero
    */
   private _onIceDisconnected(): void {
-    if (this._state === Connection.State.Reconnecting) {
+    if (this.state() === Connection.State.Reconnecting) {
       return;
     }
 
     this._log.warn('ICE Connection disconnected.');
     this._publisher.info('connection', 'reconnecting', null, this);
+    this._publisher.warn('connection', 'error', MediaFailedError, this);
 
     // Stop existing loops if this warning is emitted multiple times
     this._stopIceRestarts();
@@ -1153,7 +1168,7 @@ class Connection extends EventEmitter {
       });
     }, ICE_RESTART_INTERVAL);
 
-    this._setState(Connection.State.Reconnecting, this, STATE_MESSAGES.MEDIA_FAILED);
+    this._setState(Connection.State.Reconnecting, this, MediaFailedError);
   }
 
   /**
@@ -1162,7 +1177,6 @@ class Connection extends EventEmitter {
   private _onIceRestored(): void {
     this._log.info('ICE Connection reestablished.');
     this._publisher.info('connection', 'reconnected', null, this);
-    this._publisher.warn('connection', 'error', STATE_MESSAGES.MEDIA_FAILED, this);
     this._stopIceRestarts();
     this._setState(Connection.State.Connected, this);
   }
@@ -1175,7 +1189,7 @@ class Connection extends EventEmitter {
     this._setCallSid(payload);
 
     // If we're not in 'connecting' or 'ringing' state, this event was received out of order.
-    if (this._state !== Connection.State.Connecting && this._state !== Connection.State.Ringing) {
+    if (this.state() !== Connection.State.Connecting && this.state() !== Connection.State.Ringing) {
       return;
     }
 
@@ -1280,7 +1294,7 @@ class Connection extends EventEmitter {
    * @param newState
    */
   private _setState(newState: Connection.State, ...eventParams: any[]): void {
-    const previousState = this._state;
+    const previousState = this.state();
     const { Connected, Disconnected, Reconnecting, Ringing } = Connection.State;
 
     if (newState === previousState) {
