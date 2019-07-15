@@ -54,6 +54,10 @@ describe('Connection', function() {
     publisher = createEmitterStub(require('../../lib/twilio/eventpublisher'));
     publisher.postMetrics = sinon.spy(() => Promise.resolve());
 
+    pstream.transport = {
+      on: sinon.stub()
+    };
+
     soundcache = new Map()
     Object.values(Device.SoundName).forEach((soundName: Device.SoundName) => {
       soundcache.set(soundName, { play: sinon.spy() });

@@ -419,7 +419,7 @@ class Connection extends EventEmitter {
 
     // When websocket gets disconnected
     // There's no way to retry this session so we disconnect
-    this.pstream.on('offline', this._disconnect.bind(this, STATE_MESSAGES.WEBSOCKET_CLOSED));
+    this.pstream.on('transportClosed', this._disconnect.bind(this, STATE_MESSAGES.WEBSOCKET_CLOSED));
 
     this.on('error', error => {
       this._publisher.error('connection', 'error', {

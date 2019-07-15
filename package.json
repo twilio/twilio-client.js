@@ -85,7 +85,7 @@
     "karma-spec-reporter": "0.0.32",
     "karma-typescript": "3.0.13",
     "karma-typescript-es6-transform": "1.0.4",
-    "lodash": "4.17.11",
+    "lodash": "4.17.14",
     "mocha": "3.5.0",
     "npm-run-all": "4.1.2",
     "nyc": "10.1.2",

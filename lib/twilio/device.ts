@@ -532,6 +532,12 @@ class Device extends EventEmitter {
    */
   setup(token: string, options: Device.Options = { }): this {
     if (!Device.isSupported && !options.ignoreBrowserSupport) {
+      if (window && window.location && window.location.protocol === 'http:') {
+        throw new Exception(`twilio.js wasn't able to find WebRTC browser support. \
+          This is most likely because this page is served over http rather than https, \
+          which does not support WebRTC in many browsers. Please load this page over https and \
+          try again.`);
+      }
       throw new Exception(`twilio.js 1.3+ SDKs require WebRTC/ORTC browser support. \
         For more information, see <https://www.twilio.com/docs/api/client/twilio-js>. \
         If you have any questions about this announcement, please contact \

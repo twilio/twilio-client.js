@@ -1,3 +1,13 @@
+1.7.6 (In Progress)
+====================
+
+Bug Fixes
+---------
+
+* Fixed a bug where active connection gets disconnected when the token expires. (CLIENT-6383)
+* Fixed a bug where an answer during ICE reconnection is applied without a valid offer, resulting into a console error `Failed to set remote answer sdp: Called in wrong state: kStable`. (CLIENT-6372)
+
+
 1.7.5 (Jul 5, 2019)
 ====================
 
