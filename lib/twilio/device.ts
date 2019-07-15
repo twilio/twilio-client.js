@@ -893,7 +893,7 @@ class Device extends EventEmitter {
     });
 
     connection.addListener('error', (error: Connection.Error) => {
-      if (connection.status() === 'closed') {
+      if (connection.state() === Connection.State.Disconnected) {
         this._removeConnection(connection);
       }
       if (this.audio) {
@@ -913,7 +913,7 @@ class Device extends EventEmitter {
       this.emit('cancel', connection);
     });
 
-    connection.once('disconnect', () => {
+    connection.once('disconnected', () => {
       if (this.audio) {
         this.audio._maybeStopPollingVolume();
       }

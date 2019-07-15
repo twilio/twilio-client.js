@@ -143,7 +143,7 @@ describe('Device', function() {
       });
 
       it('should hang up', (done) => {
-        connection1.once('disconnect', () => done());
+        connection1.once('disconnected', () => done());
         connection2.disconnect();
       });
     });
