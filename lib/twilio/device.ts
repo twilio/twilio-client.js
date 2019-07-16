@@ -13,9 +13,11 @@ import Log, { LogLevel } from './tslog';
 import { Exception, queryToJson } from './util';
 
 import {
-  DeviceError,
-  Signaling,
+  InvalidArgumentError,
+  InvalidStateError,
   Media,
+  NotSupportedError,
+  Signaling,
 } from './error';
 
 const C = require('./constants');
@@ -357,7 +359,7 @@ class Device extends EventEmitter {
     if (token) {
       this.setup(token, options);
     } else if (options) {
-      throw new DeviceError('Cannot construct a Device with options but without a token');
+      throw new InvalidArgumentError('Cannot construct a Device with options but without a token');
     }
   }
 
@@ -404,7 +406,7 @@ class Device extends EventEmitter {
     this._throwUnlessSetup('connect');
 
     if (this._activeConnection) {
-      throw new DeviceError('A Connection is already active');
+      throw new InvalidStateError('A Connection is already active');
     }
 
     const params: Record<string, string> = paramsOrHandler || { };
@@ -539,19 +541,19 @@ class Device extends EventEmitter {
   setup(token: string, options: Device.Options = { }): this {
     if (!Device.isSupported && !options.ignoreBrowserSupport) {
       if (window && window.location && window.location.protocol === 'http:') {
-        throw new DeviceError(`twilio.js wasn't able to find WebRTC browser support. \
+        throw new NotSupportedError(`twilio.js wasn't able to find WebRTC browser support. \
           This is most likely because this page is served over http rather than https, \
           which does not support WebRTC in many browsers. Please load this page over https and \
           try again.`);
       }
-      throw new DeviceError(`twilio.js 1.3+ SDKs require WebRTC/ORTC browser support. \
+      throw new NotSupportedError(`twilio.js 1.3+ SDKs require WebRTC/ORTC browser support. \
         For more information, see <https://www.twilio.com/docs/api/client/twilio-js>. \
         If you have any questions about this announcement, please contact \
         Twilio Support at <help@twilio.com>.`);
     }
 
     if (!token) {
-      throw new DeviceError('Token is required for Device.setup()');
+      throw new InvalidArgumentError('Token is required for Device.setup()');
     }
 
     if (typeof Device._isUnifiedPlanDefault === 'undefined') {
@@ -843,7 +845,7 @@ class Device extends EventEmitter {
    */
   private _makeConnection(twimlParams: Record<string, string>, options?: Connection.Options): Connection {
     if (typeof Device._isUnifiedPlanDefault === 'undefined') {
-      throw new DeviceError('Device has not been initialized.');
+      throw new InvalidStateError('Device has not been initialized.');
     }
 
     const config: Connection.Config = {
@@ -1164,7 +1166,7 @@ class Device extends EventEmitter {
    * @param methodName - The name of the method being called before setup()
    */
   private _throwUnlessSetup(methodName: string) {
-    if (!this.isInitialized) { throw new DeviceError(`Call Device.setup() before ${methodName}`); }
+    if (!this.isInitialized) { throw new InvalidStateError(`Call Device.setup() before ${methodName}`); }
   }
 
   /**
