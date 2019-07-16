@@ -15,9 +15,11 @@ import { Exception, queryToJson } from './util';
 import {
   InvalidArgumentError,
   InvalidStateError,
-  Media,
+  MalformedInviteError,
+  MediaPlaybackError,
   NotSupportedError,
-  Signaling,
+  SignalingConnectionDisconnected,
+  UnsetInputDeviceFailed
 } from './error';
 
 const C = require('./constants');
@@ -997,7 +999,7 @@ class Device extends EventEmitter {
     }
 
     if (!payload.callsid || !payload.sdp) {
-      this.emit('error', new Signaling.MalformedInviteError());
+      this.emit('error', new MalformedInviteError());
       return;
     }
 
@@ -1048,7 +1050,7 @@ class Device extends EventEmitter {
    */
   private _onSignalingTransportClose = () => {
     this._log.info('Stream is disconnected');
-    this.emit('error', new Signaling.ConnectionDisconnected());
+    this.emit('error', new SignalingConnectionDisconnected());
   }
 
   /**
@@ -1131,7 +1133,7 @@ class Device extends EventEmitter {
       play(),
       new Promise((resolve, reject) => {
         timeout = setTimeout(() => {
-          reject(new Media.PlaybackError('Playing incoming ringtone took too long; it might not play. Continuing execution...'));
+          reject(new MediaPlaybackError('Playing incoming ringtone took too long; it might not play. Continuing execution...'));
         }, RINGTONE_PLAY_TIMEOUT);
       }),
     ]).catch(reason => {
@@ -1178,7 +1180,7 @@ class Device extends EventEmitter {
     const connection: Connection | null = this._activeConnection;
 
     if (connection && !inputStream) {
-      return Promise.reject(new Media.UnsetInputDeviceFailed('Cannot unset input device while a call is in progress.'));
+      return Promise.reject(new UnsetInputDeviceFailed('Cannot unset input device while a call is in progress.'));
     }
 
     this._connectionInputStream = inputStream;
