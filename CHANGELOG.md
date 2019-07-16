@@ -3,8 +3,8 @@
 New Features
 ------------
 ### Automatic Media Reconnection
-This feature was first introduced in 1.7.4 and was enabeld by default.
-With this release, we have introduce the `enableIceAutoReconnect` reconnect flag to enable or disable Automatic Media Reconnection. The default is disabled. This will allow you to transition your code to utilise this feature.
+This feature was first introduced in 1.7.4 and was enabled by default.
+With this release, we have introduced the `enableIceAutoReconnect` reconnect flag to enable or disable `Automatic Media Reconnection`. The default is disabled. This will allow you to transition your code to utilise this feature.
 
 Improvements
 ------------
