@@ -4,7 +4,7 @@ New Features
 ------------
 ### Automatic Media Reconnection
 This feature was first introduced in 1.7.4 and was enabled by default.
-With this release, we have introduced the `enableIceAutoReconnect` reconnect flag to enable or disable `Automatic Media Reconnection`. The default is disabled. This will allow you to transition your code to utilise this feature.
+With this release, we have introduced the `enableIceRestart` reconnect flag to enable or disable *Automatic Media Reconnection*. The default is disabled. This will allow you to transition your code to utilise this feature.
 
 Improvements
 ------------
@@ -37,7 +37,9 @@ Bug Fixes
 
 Known Issues
 ------------
-The introduction of Automatic Media Reconnection in 1.7.4 is enabled by default. This functionality may affect program flow if you rely on [Device.on('error', …)](https://www.twilio.com/docs/voice/client/javascript/device#error) with error code 31003 to update your UI or reconnect logic. This error is not thrown at the time of media interruption any longer. It is now sent after ICE restart is attempted and fails which may take 10s of seconds.
+*Updated July 16, 2019*
+
+The introduction of *Automatic Media Reconnection* in 1.7.4 is enabled by default. This functionality may affect program flow if you rely on [Device.on('error', …)](https://www.twilio.com/docs/voice/client/javascript/device#error) with error code 31003 to update your UI or reconnect logic. This error is not thrown at the time of media interruption any longer. It is now sent after ICE restart is attempted and fails which may take 10s of seconds.
 
 
 1.7.4 (June 21, 2019)
@@ -46,11 +48,13 @@ The introduction of Automatic Media Reconnection in 1.7.4 is enabled by default.
 New Features
 ------------
 ### Automatic Media Reconnection
-A call may be inadvertently disconnected when media is lost only temporarily. With this release, we will attempt to reconnect the media before dropping the call with a process known as [ICE restart](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Session_lifetime#ICE_restart).
+A call may be inadvertently disconnected when media is temporarily lost. With this release, we will attempt to reconnect the media before dropping the call with a process known as [ICE restart](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Session_lifetime#ICE_restart).
 
-If you are relying on [Device.on('error', …)](https://www.twilio.com/docs/voice/client/javascript/device#error) with error code 31003,  to update your UI or to initiate a reconnect, you will need to update your code to use [Device.on('offline', …)](https://www.twilio.com/docs/voice/client/javascript/device#offline) instead. The 31003 error code may not be reported for some time as ICE restarts are attempted.
+If you are relying on [Device.on('error', …)](https://www.twilio.com/docs/voice/client/javascript/device#error) with error code 31003,  to update your UI or to initiate a reconnect, you will need to update your code to use [Device.on('offline', …)](https://www.twilio.com/docs/voice/client/javascript/device#offline) instead. The 31003 error code may not be reported for some time as ICE restarts are continually attempted.
 
-We have identified this as a potential breaking change and we will include an opt-in feature switch in the 1.7.6 release. We apologize for any inconvenience this may have caused you.ICE Connections will now attempt to reconnect when they transition to the `failed` state, rather than immediately disconnecting.
+*Updated July 16, 2019*
+
+We have identified this as a potential breaking change and we will include an opt-in feature switch in the 1.7.6 release. We apologize for any inconvenience this may have caused you.
 
 Improvements
 ------------
