@@ -304,6 +304,7 @@ class Device extends EventEmitter {
     connectionFactory: Connection,
     debug: false,
     dscp: true,
+    enableIceRestart: false,
     eventgw: 'eventgw.twilio.com',
     iceServers: [],
     noRegister: false,
@@ -866,6 +867,7 @@ class Device extends EventEmitter {
       debug: this.options.debug,
       dialtonePlayer: Device._dialtonePlayer,
       dscp: this.options.dscp,
+      enableIceRestart: this.options.enableIceRestart,
       enableRingingState: this.options.enableRingingState,
       getInputStream: (): MediaStream | null => this._connectionInputStream,
       getSinkIds: (): string[] => this._connectionSinkIds,
@@ -1384,6 +1386,11 @@ namespace Device {
      * Whether to use googDscp in RTC constraints.
      */
     dscp?: boolean;
+
+    /**
+     * Whether to automatically restart ICE when media connection fails
+     */
+    enableIceRestart?: boolean;
 
     /**
      * Whether the ringing state should be enabled on {@link Connection} objects. This is required

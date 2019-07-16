@@ -75,6 +75,7 @@ describe('Connection', function() {
     options = {
       MediaStream: MediaHandler,
       RTCMonitor,
+      enableIceRestart: true,
     };
 
     conn = new Connection(config, options);

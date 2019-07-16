@@ -643,6 +643,7 @@ describe('PeerConnection', () => {
         codecPreferences: ['opus'],
         log: sinon.stub(),
         onerror: sinon.stub(),
+        options: { enableIceRestart: true },
         pstream,
         _removeReconnectionListeners: sinon.stub(),
         version

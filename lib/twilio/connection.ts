@@ -268,7 +268,7 @@ class Connection extends EventEmitter {
 
     monitor.on('warning', (data: RTCWarning, wasCleared?: boolean) => {
       const { samples, name } = data;
-      if (name === 'bytesSent' || name === 'bytesReceived') {
+      if (this.options.enableIceRestart && (name === 'bytesSent' || name === 'bytesReceived')) {
 
         if (samples && samples.every(sample => sample.totals[name] === 0)) {
           // We don't have relevant samples yet, usually at the start of a call.
@@ -312,6 +312,7 @@ class Connection extends EventEmitter {
         codecPreferences: this.options.codecPreferences,
         debug: this.options.debug,
         dscp: this.options.dscp,
+        enableIceRestart: this.options.enableIceRestart,
         isUnifiedPlan: this._isUnifiedPlanDefault,
         warnings: this.options.warnings,
       });
@@ -1468,6 +1469,11 @@ namespace Connection {
      * Whether or not to enable DSCP.
      */
     dscp?: boolean;
+
+    /**
+     * Whether to automatically restart ICE when media connection fails
+     */
+    enableIceRestart?: boolean;
 
     /**
      * Whether the ringing state should be enabled.
