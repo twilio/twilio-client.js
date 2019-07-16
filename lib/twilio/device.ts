@@ -12,6 +12,12 @@ import { getRegionShortcode, getRegionURI, Region } from './regions';
 import Log, { LogLevel } from './tslog';
 import { Exception, queryToJson } from './util';
 
+import {
+  DeviceError,
+  Signaling,
+  Media,
+} from './error';
+
 const C = require('./constants');
 const Publisher = require('./eventpublisher');
 const rtc = require('./rtc');
@@ -351,7 +357,7 @@ class Device extends EventEmitter {
     if (token) {
       this.setup(token, options);
     } else if (options) {
-      throw new Error('Cannot construct a Device with options but without a token');
+      throw new DeviceError('Cannot construct a Device with options but without a token');
     }
   }
 
@@ -398,7 +404,7 @@ class Device extends EventEmitter {
     this._throwUnlessSetup('connect');
 
     if (this._activeConnection) {
-      throw new Error('A Connection is already active');
+      throw new DeviceError('A Connection is already active');
     }
 
     const params: Record<string, string> = paramsOrHandler || { };
@@ -533,19 +539,19 @@ class Device extends EventEmitter {
   setup(token: string, options: Device.Options = { }): this {
     if (!Device.isSupported && !options.ignoreBrowserSupport) {
       if (window && window.location && window.location.protocol === 'http:') {
-        throw new Exception(`twilio.js wasn't able to find WebRTC browser support. \
+        throw new DeviceError(`twilio.js wasn't able to find WebRTC browser support. \
           This is most likely because this page is served over http rather than https, \
           which does not support WebRTC in many browsers. Please load this page over https and \
           try again.`);
       }
-      throw new Exception(`twilio.js 1.3+ SDKs require WebRTC/ORTC browser support. \
+      throw new DeviceError(`twilio.js 1.3+ SDKs require WebRTC/ORTC browser support. \
         For more information, see <https://www.twilio.com/docs/api/client/twilio-js>. \
         If you have any questions about this announcement, please contact \
         Twilio Support at <help@twilio.com>.`);
     }
 
     if (!token) {
-      throw new Exception('Token is required for Device.setup()');
+      throw new DeviceError('Token is required for Device.setup()');
     }
 
     if (typeof Device._isUnifiedPlanDefault === 'undefined') {
@@ -837,7 +843,7 @@ class Device extends EventEmitter {
    */
   private _makeConnection(twimlParams: Record<string, string>, options?: Connection.Options): Connection {
     if (typeof Device._isUnifiedPlanDefault === 'undefined') {
-      throw new Error('Device has not been initialized.');
+      throw new DeviceError('Device has not been initialized.');
     }
 
     const config: Connection.Config = {
@@ -989,7 +995,7 @@ class Device extends EventEmitter {
     }
 
     if (!payload.callsid || !payload.sdp) {
-      this.emit('error', { message: 'Malformed invite from gateway' });
+      this.emit('error', new Signaling.MalformedInviteError());
       return;
     }
 
@@ -1033,6 +1039,14 @@ class Device extends EventEmitter {
     this._log.info('Stream is ready');
     this._status = Device.Status.Ready;
     this.emit('ready', this);
+  }
+
+  /**
+   * Called when websocket is closed
+   */
+  private _onSignalingTransportClose = () => {
+    this._log.info('Stream is disconnected');
+    this.emit('error', new Signaling.ConnectionDisconnected());
   }
 
   /**
@@ -1101,6 +1115,7 @@ class Device extends EventEmitter {
     this.stream.addListener('invite', this._onSignalingInvite);
     this.stream.addListener('offline', this._onSignalingOffline);
     this.stream.addListener('ready', this._onSignalingReady);
+    this.stream.addListener('transportClose', this._onSignalingTransportClose);
   }
 
   /**
@@ -1114,7 +1129,7 @@ class Device extends EventEmitter {
       play(),
       new Promise((resolve, reject) => {
         timeout = setTimeout(() => {
-          reject(new Error('Playing incoming ringtone took too long; it might not play. Continuing execution...'));
+          reject(new Media.PlaybackError('Playing incoming ringtone took too long; it might not play. Continuing execution...'));
         }, RINGTONE_PLAY_TIMEOUT);
       }),
     ]).catch(reason => {
@@ -1149,7 +1164,7 @@ class Device extends EventEmitter {
    * @param methodName - The name of the method being called before setup()
    */
   private _throwUnlessSetup(methodName: string) {
-    if (!this.isInitialized) { throw new Error(`Call Device.setup() before ${methodName}`); }
+    if (!this.isInitialized) { throw new DeviceError(`Call Device.setup() before ${methodName}`); }
   }
 
   /**
@@ -1161,7 +1176,7 @@ class Device extends EventEmitter {
     const connection: Connection | null = this._activeConnection;
 
     if (connection && !inputStream) {
-      return Promise.reject(new Error('Cannot unset input device while a call is in progress.'));
+      return Promise.reject(new Media.UnsetInputDeviceFailed('Cannot unset input device while a call is in progress.'));
     }
 
     this._connectionInputStream = inputStream;
