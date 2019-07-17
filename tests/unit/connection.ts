@@ -1080,6 +1080,32 @@ describe('Connection', function() {
       });
     });
 
+    describe('pstream.transportClosed event', () => {
+      it('should call disconnect if enableIceRestart is true', () => {
+        conn = new Connection(config, Object.assign({
+          callParameters: { CallSid: 'CA123' }
+        }, options));
+
+        conn['_status'] = Connection.State.Open;
+        mediaStream.close = sinon.stub();
+        pstream.emit('transportClosed');
+
+        assert(mediaStream.close.calledOnce);
+      });
+
+      it('should not call disconnect if enableIceRestart is false', () => {
+        conn = new Connection(config, Object.assign({
+          callParameters: { CallSid: 'CA123' }
+        }, options, { enableIceRestart: false }));
+
+        conn['_status'] = Connection.State.Open;
+        mediaStream.close = sinon.stub();
+        pstream.emit('transportClosed');
+
+        assert(mediaStream.close.notCalled);
+      });
+    });
+
     describe('pstream.cancel event', () => {
       context('when the callsid matches', () => {
         beforeEach(() => {

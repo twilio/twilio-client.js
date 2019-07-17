@@ -424,9 +424,12 @@ class Connection extends EventEmitter {
     this.pstream.on('cancel', this._onCancel);
     this.pstream.on('ringing', this._onRinging);
 
-    // When websocket gets disconnected
-    // There's no way to retry this session so we disconnect
-    this.pstream.on('transportClosed', this._disconnect.bind(this));
+    if (this.options.enableIceRestart) {
+      // When websocket gets disconnected
+      // There's no way to retry this session so we disconnect
+      // This is not needed if ice restart is disabled, signaling will automatically disconnect the connection
+      this.pstream.on('transportClosed', this._disconnect.bind(this));
+    }
 
     this.on('error', error => {
       this._publisher.error('connection', 'error', {
