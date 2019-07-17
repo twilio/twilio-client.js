@@ -75,6 +75,7 @@ describe('Connection', function() {
     options = {
       MediaStream: MediaHandler,
       RTCMonitor,
+      enableIceRestart: true,
     };
 
     conn = new Connection(config, options);
@@ -1376,6 +1377,18 @@ describe('Connection', function() {
     context('if warningData.name contains bytes', () => {
       beforeEach(() => {
         mediaStream.iceRestart = sinon.stub().returns({catch: () => {}});
+      });
+
+      it('should not start iceRestart loop if enableIceRestart is false', () => {
+        conn = new Connection(config, Object.assign(options, { enableIceRestart: false }));
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+        clock.tick(7000);
+        sinon.assert.callCount(mediaStream.iceRestart, 0);
+      });
+      it('should start iceRestart loop if enableIceRestart is true', () => {
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+        clock.tick(7000);
+        sinon.assert.callCount(mediaStream.iceRestart, 2);
       });
       it('should start iceRestart loop for bytesReceived', () => {
         monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });

@@ -621,6 +621,7 @@ describe('PeerConnection', () => {
     const CALLSID = 'callsid';
 
     let context;
+    let options;
     let pstream;
     let toTest;
     let version;
@@ -634,6 +635,7 @@ describe('PeerConnection', () => {
         },
         processAnswer: sinon.stub().callsFake((codecPreferences, sdp, onSuccess, onError) => onSuccess()),
       };
+      options = { enableIceRestart: true };
       pstream = {
         on: sinon.stub(),
         reinvite: sinon.stub()
@@ -643,12 +645,19 @@ describe('PeerConnection', () => {
         codecPreferences: ['opus'],
         log: sinon.stub(),
         onerror: sinon.stub(),
+        options,
         pstream,
         _removeReconnectionListeners: sinon.stub(),
         version
       };
       toTest = METHOD.bind(context);
       wait = () => new Promise(r => setTimeout(r, 0));
+    });
+
+    it('Should not proceed iceRestart if enableIceRestart is false', () => {
+      options.enableIceRestart = false;
+      toTest();
+      assert(version.createOffer.notCalled);
     });
 
     it('Should call createOffer with iceRestart flag', (done) => {
@@ -1042,6 +1051,66 @@ describe('PeerConnection', () => {
         assert(context.sinkIds.has('a'));
         assert(!context._updateAudioOutputs.called);
       });
+    });
+  });
+
+  context('PeerConnection.prototype._setupChannel', () => {
+    const METHOD = PeerConnection.prototype._setupChannel;
+
+    let toTest = null;
+    let context = null;
+    let version = null;
+
+    beforeEach(() => {
+      version = {
+        pc: {
+          onicecandidate: sinon.stub(),
+          onicegatheringstatechange: sinon.stub(),
+          onopen: sinon.stub(),
+          onsignalingstatechange: sinon.stub(),
+          oniceconnectionstatechange: sinon.stub(),
+        }
+      };
+      context = {
+        version,
+        options: {},
+        log: sinon.stub(),
+        onopen: sinon.stub(),
+        onicecandidate: sinon.stub(),
+        onicegatheringstatechange: sinon.stub(),
+        oniceconnectionstatechange: sinon.stub(),
+      };
+      toTest = METHOD.bind(context);
+    });
+
+    it('Should call onerror with disconnect flag if enableIceRestart is false', () => {
+      context.onerror = sinon.stub();
+      context.options.enableIceRestart = false;
+      version.pc.iceConnectionState = 'failed';
+      toTest();
+      version.pc.oniceconnectionstatechange();
+      assert(context.onerror.calledWithExactly({
+        info: {
+          code: 31003,
+          message: 'Connection with Twilio was interrupted.'
+        },
+        disconnect: true
+      }));
+    });
+
+    it('Should call onerror without disconnect flag if enableIceRestart is true', () => {
+      context.onerror = sinon.stub();
+      context.options.enableIceRestart = true;
+      version.pc.iceConnectionState = 'failed';
+      toTest();
+      version.pc.oniceconnectionstatechange();
+      assert(context.onerror.calledWithExactly({
+        info: {
+          code: 31003,
+          message: 'Connection with Twilio was interrupted.'
+        },
+        disconnect: false
+      }));
     });
   });
 

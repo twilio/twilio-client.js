@@ -87,6 +87,21 @@ describe('Device', function() {
     it('should throw an error if options are passed but no token', () => {
       assert.throws(() => new (Device as any)(undefined, { } as any), /Cannot construct a Device/);
     });
+
+    it('should set enableIceRestart to false by default', () => {
+      const conn = device.setup(token, setupOptions);
+      assert.equal(conn['options'].enableIceRestart, false);
+    });
+
+    it('should set enableIceRestart to false if passed in as false', () => {
+      const conn = device.setup(token, Object.assign({ enableIceRestart: false}, setupOptions));
+      assert.equal(conn['options'].enableIceRestart, false);
+    });
+
+    it('should set enableIceRestart to false if passed in as true', () => {
+      const conn = device.setup(token, Object.assign({ enableIceRestart: true}, setupOptions));
+      assert.equal(conn['options'].enableIceRestart, true);
+    });
   });
 
   context('before Device is initialized', () => {
