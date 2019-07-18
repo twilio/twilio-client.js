@@ -89,18 +89,21 @@ describe('Device', function() {
     });
 
     it('should set enableIceRestart to false by default', () => {
-      const conn = device.setup(token, setupOptions);
-      assert.equal(conn['options'].enableIceRestart, false);
+      device.setup(token, setupOptions);
+      device.connect();
+      assert.equal((connectOptions as any).enableIceRestart, false);
     });
 
     it('should set enableIceRestart to false if passed in as false', () => {
-      const conn = device.setup(token, Object.assign({ enableIceRestart: false}, setupOptions));
-      assert.equal(conn['options'].enableIceRestart, false);
+      device.setup(token, Object.assign({ enableIceRestart: false}, setupOptions));
+      device.connect();
+      assert.equal((connectOptions as any).enableIceRestart, false);
     });
 
     it('should set enableIceRestart to false if passed in as true', () => {
-      const conn = device.setup(token, Object.assign({ enableIceRestart: true}, setupOptions));
-      assert.equal(conn['options'].enableIceRestart, true);
+      device.setup(token, Object.assign({ enableIceRestart: true}, setupOptions));
+      device.connect();
+      assert.equal((connectOptions as any).enableIceRestart, true);
     });
   });
 
@@ -769,8 +772,16 @@ describe('Device', function() {
       });
 
       describe('on connection.disconnected', () => {
-        it('should emit Device.disconnect', () => {
-          device.connections[0].emit('disconnected');
+        it('should emit Device.disconnect if ice restart is disabled', () => {
+          device.setup(token, Object.assign({ enableIceRestart: false}, setupOptions));
+          device.connect().emit('disconnect');
+          sinon.assert.calledOnce(device.emit as any);
+          sinon.assert.calledWith(device.emit as any, 'disconnect');
+        });
+
+        it('should emit Device.disconnect if ice restart is enabled', () => {
+          device.setup(token, Object.assign({ enableIceRestart: true}, setupOptions));
+          device.connect().emit('disconnect');
           sinon.assert.calledOnce(device.emit as any);
           sinon.assert.calledWith(device.emit as any, 'disconnect');
         });
@@ -781,7 +792,7 @@ describe('Device', function() {
           assert.equal(typeof conn, 'object');
           assert.equal(conn, device.activeConnection());
 
-          device.connections[0].emit('disconnected');
+          device.connections[0].emit('disconnect');
           assert.equal(typeof device.activeConnection(), 'undefined');
         });
       });

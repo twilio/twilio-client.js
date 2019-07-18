@@ -302,7 +302,7 @@ class Connection extends EventEmitter {
     });
     monitor.on('warning-cleared', (data: RTCWarning) => {
       const { samples, name } = data;
-      if (name === 'bytesSent' || name === 'bytesReceived') {
+      if (this.options.enableIceRestart && (name === 'bytesSent' || name === 'bytesReceived')) {
 
         if (samples && samples.every(sample => sample.totals[name] === 0)) {
           // We don't have relevant samples yet, usually at the start of a call.
@@ -422,6 +422,9 @@ class Connection extends EventEmitter {
       this._publishMetrics();
       this._cleanupEventListeners();
 
+      if (!this.options.enableIceRestart) {
+        this.emit('disconnect', this);
+      }
       this._setState(Connection.State.Disconnected, this, reason);
     };
 
@@ -635,7 +638,7 @@ class Connection extends EventEmitter {
   disconnect(handler: (connection: this) => void): void;
   disconnect(handler?: (connection: this) => void): void {
     if (typeof handler === 'function') {
-      this._addHandler(Connection.State.Disconnected, handler);
+      this._addHandler(this.options.enableIceRestart ? Connection.State.Disconnected : 'disconnect', handler);
       return;
     }
     this._publisher.info('connection', 'disconnect-called', null, this);
@@ -862,6 +865,22 @@ class Connection extends EventEmitter {
   }
 
   /**
+   * Get the current {@link Connection} status.
+   * This is to support pre-reconnection implementation (prior 1.7.4)
+   */
+  status(): Connection.State | string {
+    // Prior 1.7.4
+    const { Connected, Disconnected } = Connection.State;
+    if (this._state === Connected) {
+      return 'open';
+    } else if (this._state === Disconnected) {
+      return 'closed';
+    }
+
+    return this._state;
+  }
+
+  /**
    * String representation of {@link Connection} instance.
    * @private
    */
@@ -1065,7 +1084,7 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Transition to {@link Connection.State.Open} if criteria is met.
+   * Transition to {@link Connection.State.Connected} if criteria is met.
    */
   private _maybeTransitionToOpen(): void {
     if (this.mediaStream && this.mediaStream.status === 'open' && this._isAnswered) {
@@ -1152,7 +1171,7 @@ class Connection extends EventEmitter {
    * Called when {@link RTCMonitor} raises a warning where bytesReceived or bytesSent is zero
    */
   private _onIceDisconnected(): void {
-    if (this.state() === Connection.State.Reconnecting) {
+    if (this.state() === Connection.State.Reconnecting || !this.options.enableIceRestart) {
       return;
     }
 
@@ -1179,6 +1198,10 @@ class Connection extends EventEmitter {
    * Called when {@link RTCMonitor} clears a warning for bytesReceived or bytesSent
    */
   private _onIceRestored(): void {
+    if (!this.options.enableIceRestart) {
+      return;
+    }
+
     this._log.info('ICE Connection reestablished.');
     this._publisher.info('connection', 'reconnected', null, this);
     this._stopIceRestarts();
@@ -1200,6 +1223,11 @@ class Connection extends EventEmitter {
     const hasEarlyMedia = !!payload.sdp;
     if (this.options.enableRingingState) {
       this._publisher.info('connection', 'outgoing-ringing', { hasEarlyMedia }, this);
+
+      if (!this.options.enableIceRestart) {
+        this.emit('ringing', hasEarlyMedia);
+      }
+
       this._setState(Connection.State.Ringing, this, hasEarlyMedia);
     // answerOnBridge=false will send a 183, which we need to interpret as `answer` when
     // the enableRingingState flag is disabled in order to maintain a non-breaking API from 1.4.24
@@ -1294,18 +1322,19 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Set a new state and emit the correct event
+   * Set a new state and emit the correct events for new reconnection APIs
    * @param newState
    */
   private _setState(newState: Connection.State, ...eventParams: any[]): void {
     const previousState = this.state();
     const { Connected, Disconnected, Reconnecting, Ringing } = Connection.State;
 
-    if (newState === previousState) {
+    this._state = newState;
+
+    // Don't emit the reconnection-related events if ice restart is not enabled
+    if (newState === previousState || !this.options.enableIceRestart) {
       return;
     }
-
-    this._state = newState;
 
     if (newState === Connected && previousState === Reconnecting) {
       this.emit('reconnected', ...eventParams);
@@ -1344,7 +1373,8 @@ namespace Connection {
   /**
    * Emitted when the {@link Connection} is disconnected.
    * @param connection - The {@link Connection}.
-   * @example `connection.on('disconnected', connection => { })`
+   * @example with enableIceRestart=true: `connection.on('disconnected', connection => { })`
+   * @example with enableIceRestart=false: `connection.on('disconnect', connection => { })`
    * @event
    */
   declare function disconnectEvent(connection: Connection): void;

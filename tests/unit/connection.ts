@@ -75,7 +75,7 @@ describe('Connection', function() {
     options = {
       MediaStream: MediaHandler,
       RTCMonitor,
-      enableIceRestart: true,
+      enableIceRestart: false,
     };
 
     conn = new Connection(config, options);
@@ -146,7 +146,7 @@ describe('Connection', function() {
   });
 
   describe('deprecated handler methods', () => {
-    ['accept', 'cancel', 'error', 'mute', 'reject', 'volume'].forEach((eventName: string) => {
+    ['accept', 'cancel', 'disconnect', 'error', 'mute', 'reject', 'volume'].forEach((eventName: string) => {
       it(`should set an event listener on Connection for .${eventName}(handler)`, () => {
         const handler = () => { };
         (conn as any).removeAllListeners(eventName);
@@ -505,6 +505,33 @@ describe('Connection', function() {
     });
   });
 
+  describe('.status()', () => {
+    it('should return open when state is connected', () => {
+      conn['_state'] = Connection.State.Connected;
+      assert.equal(conn.status(), 'open');
+    });
+    it('should return connecting when state is connecting', () => {
+      conn['_state'] = Connection.State.Connecting;
+      assert.equal(conn.status(), 'connecting');
+    });
+    it('should return closed when state is disconnected', () => {
+      conn['_state'] = Connection.State.Disconnected;
+      assert.equal(conn.status(), 'closed');
+    });
+    it('should return pending when state is pending', () => {
+      conn['_state'] = Connection.State.Pending;
+      assert.equal(conn.status(), 'pending');
+    });
+    it('should return reconnecting when state is reconnecting', () => {
+      conn['_state'] = Connection.State.Reconnecting;
+      assert.equal(conn.status(), 'reconnecting');
+    });
+    it('should return ringing when state is ringing', () => {
+      conn['_state'] = Connection.State.Ringing;
+      assert.equal(conn.status(), 'ringing');
+    });
+  });
+
   describe('.getLocalStream()', () => {
     it('should get the local MediaStream from the MediaHandler', () => {
       assert.equal(conn.getLocalStream(), mediaStream.stream);
@@ -533,6 +560,7 @@ describe('Connection', function() {
 
       it('should transition state to disconnected', () => {
         const callback = sinon.stub();
+        conn['options'].enableIceRestart = true;
         conn.on('disconnected', callback);
         conn.ignore();
         
@@ -1052,12 +1080,22 @@ describe('Connection', function() {
               mediaStream.onopen();
             });
 
-            it('should transition to open', () => {
+            it('should transition to open if ice restart is enabled', () => {
               const callback = sinon.stub();
+              conn['options'].enableIceRestart = true;
               conn.on('connected', callback);
               mediaStream.onopen();
               assert.equal(conn.state(), Connection.State.Connected);
               assert(callback.calledWithExactly(conn));
+            });
+
+            it('should transition to open if ice restart is disabled', () => {
+              const callback = sinon.stub();
+              conn['options'].enableIceRestart = false;
+              conn.on('connected', callback);
+              mediaStream.onopen();
+              assert.equal(conn.state(), Connection.State.Connected);
+              assert(callback.notCalled);
             });
 
             it('should publish a connected event', () => {
@@ -1121,15 +1159,29 @@ describe('Connection', function() {
         sinon.assert.calledOnce(monitor.disable);
       });
 
-      it('should emit a disconnect event', () => {
+      it('should emit a disconnect event if ice restart is enabled', () => {
         const callback = sinon.stub();
         const message = {message: 'foo'};
+        conn['options'].enableIceRestart = true;
         conn.on('disconnected', callback);
 
         mediaStream.onclose(message);
         clock.restore();
         return wait().then(() => {
           assert(callback.calledWithExactly(conn, message));
+        });
+      });
+
+      it('should emit a disconnect event if ice restart is disabled', () => {
+        const callback = sinon.stub();
+        const message = {message: 'foo'};
+        conn['options'].enableIceRestart = false;
+        conn.on('disconnect', callback);
+
+        mediaStream.onclose(message);
+        clock.restore();
+        return wait().then(() => {
+          assert(callback.calledOnce);
         });
       });
 
@@ -1153,9 +1205,11 @@ describe('Connection', function() {
 
     describe('pstream.transportClosed event', () => {
       it('should call disconnect if enableIceRestart is true', () => {
-        conn = new Connection(config, Object.assign({
+        const newOptions = Object.assign({
           callParameters: { CallSid: 'CA123' }
-        }, options));
+        }, options);
+        newOptions.enableIceRestart = true;
+        conn = new Connection(config, newOptions);
 
         (conn as any)['_state'] = Connection.State.Connected;
         mediaStream.close = sinon.stub();
@@ -1372,22 +1426,50 @@ describe('Connection', function() {
           });
 
           if (state !== 'ringing') {
-            it('should emit a ringing event with hasEarlyMedia: false if no sdp', (done) => {
-              conn.on('ringing', (conn, hasEarlyMedia) => {
-                assert(!hasEarlyMedia);
-                done();
+            context('ICE Restart is enabled', () => {
+              beforeEach(() => {
+                conn['options'].enableIceRestart = true;
               });
-
-              pstream.emit('ringing', { callsid: 'ABC123' });
+              it('should emit a ringing event with hasEarlyMedia: false if no sdp', (done) => {
+                conn.on('ringing', (conn, hasEarlyMedia) => {
+                  assert(!hasEarlyMedia);
+                  done();
+                });
+  
+                pstream.emit('ringing', { callsid: 'ABC123' });
+              });
+  
+              it('should emit a ringing event with hasEarlyMedia: true if sdp', (done) => {
+                conn.on('ringing', (conn, hasEarlyMedia) => {
+                  assert(hasEarlyMedia);
+                  done();
+                });
+  
+                pstream.emit('ringing', { callsid: 'ABC123', sdp: 'foo' });
+              });
             });
 
-            it('should emit a ringing event with hasEarlyMedia: true if sdp', (done) => {
-              conn.on('ringing', (conn, hasEarlyMedia) => {
-                assert(hasEarlyMedia);
-                done();
+            context('ICE Restart is disabled', () => {
+              beforeEach(() => {
+                conn['options'].enableIceRestart = false;
               });
-
-              pstream.emit('ringing', { callsid: 'ABC123', sdp: 'foo' });
+              it('should emit a ringing event with hasEarlyMedia: false if no sdp', (done) => {
+                conn.on('ringing', (hasEarlyMedia) => {
+                  assert(!hasEarlyMedia);
+                  done();
+                });
+  
+                pstream.emit('ringing', { callsid: 'ABC123' });
+              });
+  
+              it('should emit a ringing event with hasEarlyMedia: true if sdp', (done) => {
+                conn.on('ringing', (hasEarlyMedia) => {
+                  assert(hasEarlyMedia);
+                  done();
+                });
+  
+                pstream.emit('ringing', { callsid: 'ABC123', sdp: 'foo' });
+              });
             });
           }
         });
@@ -1497,65 +1579,71 @@ describe('Connection', function() {
         clock.tick(7000);
         sinon.assert.callCount(mediaStream.iceRestart, 0);
       });
-      it('should start iceRestart loop if enableIceRestart is true', () => {
-        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
-        clock.tick(7000);
-        sinon.assert.callCount(mediaStream.iceRestart, 2);
-      });
-      it('should start iceRestart loop for bytesReceived', () => {
-        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
-        clock.tick(7000);
-        sinon.assert.callCount(mediaStream.iceRestart, 2);
-      });
-      it('should start iceRestart loop for bytesSent', () => {
-        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
-        clock.tick(7000);
-        sinon.assert.callCount(mediaStream.iceRestart, 2);
-      });
-      it('should start iceRestart loop once', () => {
-        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
-        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
-        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
-        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
-        clock.tick(4000);
-        assert(mediaStream.iceRestart.calledOnce);
-      });
-      it('should stop iceRestart loop if iceRestart is rejected', () => {
-        mediaStream.iceRestart = sinon.stub().returns({catch: (cb: any) => {cb(false)}});
-        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
-        clock.tick(7000);
-        assert(mediaStream.iceRestart.calledOnce);
-      });
-      it('should stop iceRestart loop on disconnect', () => {
-        (conn as any)['_state'] = Connection.State.Connected;
-        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
-        clock.tick(3000);
-        conn.disconnect();
-        clock.tick(3000);
-        assert(mediaStream.iceRestart.calledOnce);
-      });
 
-      it('should stop iceRestart loop on mediaStream close', () => {
-        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
-        clock.tick(3000);
-        mediaStream.onclose();
-        clock.tick(3000);
-        assert(mediaStream.iceRestart.calledOnce);
-      });
-
-      it('should publish a reconnecting event', () => {
-        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
-        clock.tick(4000);
-        sinon.assert.calledWith(publisher.info, 'connection', 'reconnecting');
-      });
-
-      it('should transition to reconnecting state', () => {
-        const callback = sinon.stub();
-        (conn as any)['_state'] = Connection.State.Connected;
-        conn.on('reconnecting', callback);
-        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
-        clock.tick(4000);
-        assert(callback.calledWithExactly(conn, { code: 53405, message: 'Media connection failed.' }));
+      context('When ICE restart is enabled', () => {
+        beforeEach(() => {
+          conn['options'].enableIceRestart = true;
+        });
+        it('should start iceRestart loop if enableIceRestart is true', () => {
+          monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+          clock.tick(7000);
+          sinon.assert.callCount(mediaStream.iceRestart, 2);
+        });
+        it('should start iceRestart loop for bytesReceived', () => {
+          monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+          clock.tick(7000);
+          sinon.assert.callCount(mediaStream.iceRestart, 2);
+        });
+        it('should start iceRestart loop for bytesSent', () => {
+          monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
+          clock.tick(7000);
+          sinon.assert.callCount(mediaStream.iceRestart, 2);
+        });
+        it('should start iceRestart loop once', () => {
+          monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+          monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+          monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
+          monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
+          clock.tick(4000);
+          assert(mediaStream.iceRestart.calledOnce);
+        });
+        it('should stop iceRestart loop if iceRestart is rejected', () => {
+          mediaStream.iceRestart = sinon.stub().returns({catch: (cb: any) => {cb(false)}});
+          monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+          clock.tick(7000);
+          assert(mediaStream.iceRestart.calledOnce);
+        });
+        it('should stop iceRestart loop on disconnect', () => {
+          (conn as any)['_state'] = Connection.State.Connected;
+          monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+          clock.tick(3000);
+          conn.disconnect();
+          clock.tick(3000);
+          assert(mediaStream.iceRestart.calledOnce);
+        });
+  
+        it('should stop iceRestart loop on mediaStream close', () => {
+          monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+          clock.tick(3000);
+          mediaStream.onclose();
+          clock.tick(3000);
+          assert(mediaStream.iceRestart.calledOnce);
+        });
+  
+        it('should publish a reconnecting event', () => {
+          monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+          clock.tick(4000);
+          sinon.assert.calledWith(publisher.info, 'connection', 'reconnecting');
+        });
+  
+        it('should transition to reconnecting state', () => {
+          const callback = sinon.stub();
+          (conn as any)['_state'] = Connection.State.Connected;
+          conn.on('reconnecting', callback);
+          monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+          clock.tick(4000);
+          assert(callback.calledWithExactly(conn, { code: 53405, message: 'Media connection failed.' }));
+        });
       });
     });
 
@@ -1588,6 +1676,7 @@ describe('Connection', function() {
     context('if warningData.name contains bytes', () => {
       beforeEach(() => {
         mediaStream.iceRestart = sinon.stub().returns({catch: () => {}});
+        conn['options'].enableIceRestart = true;
       });
       it('should stop iceRestart loop for bytesReceived', () => {
         monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
@@ -1609,6 +1698,14 @@ describe('Connection', function() {
         monitor.emit('warning-cleared', { name: 'bytesReceived', threshold: { name: 'min' } });
         clock.tick(4000);
         sinon.assert.calledWith(publisher.info, 'connection', 'reconnected');
+      });
+      it('should not publish a reconnected event if ICE restart is disabled', () => {
+        conn['options'].enableIceRestart = false;
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+        clock.tick(4000);
+        monitor.emit('warning-cleared', { name: 'bytesReceived', threshold: { name: 'min' } });
+        clock.tick(4000);
+        assert(publisher.info.notCalled);
       });
       it('should publish an error event', () => {
         monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });

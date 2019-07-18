@@ -784,6 +784,7 @@ class Device extends EventEmitter {
   private _createDefaultPayload = (connection?: Connection): Record<string, any> => {
     const payload: Record<string, any> = {
       dscp: !!this.options.dscp,
+      ice_restart: this.options.enableIceRestart,
       platform: rtc.getMediaEngine(),
       sdk_version: C.RELEASE_VERSION,
       selected_region: this.options.region,
@@ -915,7 +916,7 @@ class Device extends EventEmitter {
       this.emit('cancel', connection);
     });
 
-    connection.once('disconnected', () => {
+    connection.once(this.options.enableIceRestart ? Connection.State.Disconnected : 'disconnect', () => {
       if (this.audio) {
         this.audio._maybeStopPollingVolume();
       }
