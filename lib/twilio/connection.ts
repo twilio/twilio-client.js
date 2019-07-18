@@ -288,7 +288,7 @@ class Connection extends EventEmitter {
 
     monitor.on('warning', (data: RTCWarning, wasCleared?: boolean) => {
       const { samples, name } = data;
-      if (name === 'bytesSent' || name === 'bytesReceived') {
+      if (this.options.enableIceRestart && (name === 'bytesSent' || name === 'bytesReceived')) {
 
         if (samples && samples.every(sample => sample.totals[name] === 0)) {
           // We don't have relevant samples yet, usually at the start of a call.
@@ -320,6 +320,7 @@ class Connection extends EventEmitter {
         codecPreferences: this.options.codecPreferences,
         debug: this.options.debug,
         dscp: this.options.dscp,
+        enableIceRestart: this.options.enableIceRestart,
         isUnifiedPlan: this._isUnifiedPlanDefault,
         warnings: this.options.warnings,
       });
@@ -431,9 +432,12 @@ class Connection extends EventEmitter {
     this.pstream.on('cancel', this._onCancel);
     this.pstream.on('ringing', this._onRinging);
 
-    // When websocket gets disconnected
-    // There's no way to retry this session so we disconnect
-    this.pstream.on('transportClosed', this._disconnect.bind(this, WebsocketClosedError));
+    if (this.options.enableIceRestart) {
+      // When websocket gets disconnected
+      // There's no way to retry this session so we disconnect
+      // This is not needed if ice restart is disabled, signaling will automatically disconnect the connection
+      this.pstream.on('transportClosed', this._disconnect.bind(this, WebsocketClosedError));
+    }
 
     this.on('error', error => {
       this._publisher.error('connection', 'error', {
@@ -1568,6 +1572,11 @@ namespace Connection {
      * Whether or not to enable DSCP.
      */
     dscp?: boolean;
+
+    /**
+     * Whether to automatically restart ICE when media connection fails
+     */
+    enableIceRestart?: boolean;
 
     /**
      * Whether the ringing state should be enabled.

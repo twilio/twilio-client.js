@@ -75,6 +75,7 @@ describe('Connection', function() {
     options = {
       MediaStream: MediaHandler,
       RTCMonitor,
+      enableIceRestart: true,
     };
 
     conn = new Connection(config, options);
@@ -1150,6 +1151,32 @@ describe('Connection', function() {
       });
     });
 
+    describe('pstream.transportClosed event', () => {
+      it('should call disconnect if enableIceRestart is true', () => {
+        conn = new Connection(config, Object.assign({
+          callParameters: { CallSid: 'CA123' }
+        }, options));
+
+        (conn as any)['_state'] = Connection.State.Connected;
+        mediaStream.close = sinon.stub();
+        pstream.emit('transportClosed');
+
+        sinon.assert.callCount(mediaStream.close, 1);
+      });
+
+      it('should not call disconnect if enableIceRestart is false', () => {
+        conn = new Connection(config, Object.assign({
+          callParameters: { CallSid: 'CA123' }
+        }, options, { enableIceRestart: false }));
+
+        (conn as any)['_state'] = Connection.State.Connected;
+        mediaStream.close = sinon.stub();
+        pstream.emit('transportClosed');
+
+        sinon.assert.callCount(mediaStream.close, 0);
+      });
+    });
+
     describe('pstream.cancel event', () => {
       context('when the callsid matches', () => {
         beforeEach(() => {
@@ -1325,7 +1352,7 @@ describe('Connection', function() {
             (conn as any)['_state'] = state;
           });
 
-          it('should set status to ringing', () => {
+          it('should set state to ringing', () => {
             pstream.emit('ringing', { callsid: 'ABC123', });
             assert.equal(conn.state(), Connection.State.Ringing);
           });
@@ -1462,6 +1489,18 @@ describe('Connection', function() {
     context('if warningData.name contains bytes', () => {
       beforeEach(() => {
         mediaStream.iceRestart = sinon.stub().returns({catch: () => {}});
+      });
+
+      it('should not start iceRestart loop if enableIceRestart is false', () => {
+        conn = new Connection(config, Object.assign(options, { enableIceRestart: false }));
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+        clock.tick(7000);
+        sinon.assert.callCount(mediaStream.iceRestart, 0);
+      });
+      it('should start iceRestart loop if enableIceRestart is true', () => {
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+        clock.tick(7000);
+        sinon.assert.callCount(mediaStream.iceRestart, 2);
       });
       it('should start iceRestart loop for bytesReceived', () => {
         monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });

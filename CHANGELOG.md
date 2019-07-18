@@ -1,5 +1,15 @@
 1.7.6 (In Progress)
 ====================
+New Features
+------------
+### Automatic Media Reconnection
+This feature was first introduced in 1.7.4 and was enabled by default.
+With this release, we have introduced the `enableIceRestart` reconnect flag to enable or disable *Automatic Media Reconnection*. The default is disabled. This will allow you to transition your code to utilise this feature.
+
+Improvements
+------------
+* We now show an error in the console if the page is not loaded over https for unsupported browsers. (CLIENT-6361)
+
 
 Bug Fixes
 ---------
@@ -25,15 +35,29 @@ Bug Fixes
 * Fixed a bug where low-bytes warning is raised if total bytes sent and received is zero or not supported. (CLIENT-6341)
 * Fixed a bug where ICE restart will not stop when connection drops on Firefox. (CLIENT-6342)
 
+Known Issues
+------------
+*Updated July 16, 2019*
+
+The introduction of *Automatic Media Reconnection* in 1.7.4 is enabled by default. This functionality may affect program flow if you rely on [Device.on('error', …)](https://www.twilio.com/docs/voice/client/javascript/device#error) with error code 31003 to update your UI or reconnect logic. This error is not thrown at the time of media interruption any longer. It is now sent after ICE restart is attempted and fails which may take 10s of seconds.
+
 
 1.7.4 (June 21, 2019)
 ====================
 
+New Features
+------------
+### Automatic Media Reconnection
+A call may be inadvertently disconnected when media is temporarily lost. With this release, we will attempt to reconnect the media before dropping the call with a process known as [ICE restart](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Session_lifetime#ICE_restart).
+
+If you are relying on [Device.on('error', …)](https://www.twilio.com/docs/voice/client/javascript/device#error) with error code 31003,  to update your UI or to initiate a reconnect, you will need to update your code to use [Device.on('offline', …)](https://www.twilio.com/docs/voice/client/javascript/device#offline) instead. The 31003 error code may not be reported for some time as ICE restarts are continually attempted.
+
+*Updated July 16, 2019*
+
+We have identified this as a potential breaking change and we will include an opt-in feature switch in the 1.7.6 release. We apologize for any inconvenience this may have caused you.
+
 Improvements
 ------------
-
-* ICE Connections will now attempt to reconnect when they transition to the `failed` state, rather
-  than immediately disconnecting.
 * We now report bytesSent and bytesReceived within the last second in the webrtc sample object (`RTCSample`).
 * We now begin monitoring for warnings 5 seconds after the start of a call (originally at 20 seconds).
 
