@@ -6,13 +6,9 @@ New Features
 This feature, when `enableIceRestart` is enabled, allows for detecting when media connection fails which will trigger automatic media reconnection, and for detecting when media connection is restored.
 
 #### New Events
-* `Connection.on('reconnecting', handler(connection, error))` - raised when media connection fails and automatic reconnection has been started. Media connection failure triggers when there is no media flowing for approximately more than 3 seconds. During this period, `Connection.status()` will be set to `reconnecting`;
-  * Parameters passed to the handler
-    * `connection` - the current connection object
-    * `error` - Error object `{ code: 53405, message: 'Media connection failed.' }`
-* `Connection.on('reconnected', handler(connection))` - raised when media connection has been restored which is detected when media starts flowing. Once reconnected, `Connection.status()` will be set to `open`;
-  * Parameters passed to the handler
-    * `connection` - the current connection object
+* `Connection.on('reconnecting', handler(error))` - raised when media connection fails and automatic reconnection has been started. Media connection failure triggers when there is no media flowing for approximately more than 3 seconds. During this period, `Connection.status()` will be set to `reconnecting`;
+  * `error` - Error object `{ code: 53405, message: 'Media connection failed.' }`
+* `Connection.on('reconnected', handler())` - raised when media connection has been restored which is detected when media starts flowing. Once reconnected, `Connection.status()` will be set to `open`;
 
 
 1.7.6 (In Progress)

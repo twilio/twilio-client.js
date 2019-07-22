@@ -280,8 +280,8 @@ class Connection extends EventEmitter {
         const mediaFailedError = { code: 53405, message: 'Media connection failed.' };
 
         this._log.warn('ICE Connection disconnected.');
-        this._publisher.info('connection', 'reconnecting', null, this);
         this._publisher.warn('connection', 'error', mediaFailedError, this);
+        this._publisher.info('connection', 'reconnecting', null, this);
 
         this._stopIceRestarts();
         this._status = Connection.State.Reconnecting;
@@ -294,7 +294,7 @@ class Connection extends EventEmitter {
           });
         }, ICE_RESTART_INTERVAL);
 
-        this.emit('reconnecting', this, mediaFailedError);
+        this.emit('reconnecting', mediaFailedError);
       }
       this._reemitWarning(data, wasCleared);
     });
@@ -313,7 +313,7 @@ class Connection extends EventEmitter {
         this._stopIceRestarts();
 
         this._status = Connection.State.Open;
-        this.emit('reconnected', this);
+        this.emit('reconnected');
       }
       this._reemitWarningCleared(data);
     });

@@ -1471,7 +1471,7 @@ describe('Connection', function() {
         clock.tick(7000);
         clock.restore();
         return wait().then(() => {
-          assert(callback.calledWithExactly(conn, { code: 53405, message: 'Media connection failed.' }));
+          assert(callback.calledWithExactly({ code: 53405, message: 'Media connection failed.' }));
         });
       });
       it('should change status to reconnecting', () => {
@@ -1537,7 +1537,7 @@ describe('Connection', function() {
         clock.tick(4000);
         clock.restore();
         return wait().then(() => {
-          assert(callback.calledWithExactly(conn));
+          assert(callback.calledOnce);
         });
       });
       it('should change status to open', () => {
