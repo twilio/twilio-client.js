@@ -784,6 +784,7 @@ class Device extends EventEmitter {
   private _createDefaultPayload = (connection?: Connection): Record<string, any> => {
     const payload: Record<string, any> = {
       dscp: !!this.options.dscp,
+      ice_restart_enabled: this.options.enableIceRestart,
       platform: rtc.getMediaEngine(),
       sdk_version: C.RELEASE_VERSION,
       selected_region: this.options.region,
