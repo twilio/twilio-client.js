@@ -268,7 +268,8 @@ class Connection extends EventEmitter {
 
     monitor.on('warning', (data: RTCWarning, wasCleared?: boolean) => {
       const { samples, name } = data;
-      if (this.options.enableIceRestart && (name === 'bytesSent' || name === 'bytesReceived')) {
+      if (this.options.enableIceRestart && this._status === Connection.State.Open
+        && (name === 'bytesSent' || name === 'bytesReceived')) {
 
         if (samples && samples.every(sample => sample.totals[name] === 0)) {
           // We don't have relevant samples yet, usually at the start of a call.
@@ -276,10 +277,14 @@ class Connection extends EventEmitter {
           return;
         }
 
-        this._log.warn('ICE Connection disconnected.');
-        // Stop existing loops if this warning is emitted multiple times
-        this._stopIceRestarts();
+        const mediaFailedError = { code: 53405, message: 'Media connection failed.' };
 
+        this._log.warn('ICE Connection disconnected.');
+        this._publisher.warn('connection', 'error', mediaFailedError, this);
+        this._publisher.info('connection', 'reconnecting', null, this);
+
+        this._stopIceRestarts();
+        this._status = Connection.State.Reconnecting;
         this._iceRestartIntervalId = setInterval(() => {
           this.mediaStream.iceRestart().catch((canRetry: boolean) => {
             if (!canRetry) {
@@ -288,12 +293,14 @@ class Connection extends EventEmitter {
             }
           });
         }, ICE_RESTART_INTERVAL);
+
+        this.emit('reconnecting', mediaFailedError);
       }
       this._reemitWarning(data, wasCleared);
     });
     monitor.on('warning-cleared', (data: RTCWarning) => {
       const { samples, name } = data;
-      if (name === 'bytesSent' || name === 'bytesReceived') {
+      if (this.options.enableIceRestart && (name === 'bytesSent' || name === 'bytesReceived')) {
 
         if (samples && samples.every(sample => sample.totals[name] === 0)) {
           // We don't have relevant samples yet, usually at the start of a call.
@@ -302,7 +309,11 @@ class Connection extends EventEmitter {
         }
 
         this._log.info('ICE Connection reestablished.');
+        this._publisher.info('connection', 'reconnected', null, this);
         this._stopIceRestarts();
+
+        this._status = Connection.State.Open;
+        this.emit('reconnected');
       }
       this._reemitWarningCleared(data);
     });
@@ -393,7 +404,7 @@ class Connection extends EventEmitter {
       // for _status 'open', we'd accidentally close the PeerConnection.
       //
       // See <https://code.google.com/p/webrtc/issues/detail?id=4996>.
-      if (this._status === Connection.State.Open) {
+      if (this._status === Connection.State.Open || this._status === Connection.State.Reconnecting) {
         return;
       } else if (this._status === Connection.State.Ringing || this._status === Connection.State.Connecting) {
         this.mute(false);
@@ -987,6 +998,7 @@ class Connection extends EventEmitter {
 
     if (this._status !== Connection.State.Open
         && this._status !== Connection.State.Connecting
+        && this._status !== Connection.State.Reconnecting
         && this._status !== Connection.State.Ringing) {
       return;
     }
@@ -1327,6 +1339,7 @@ namespace Connection {
     Connecting = 'connecting',
     Open = 'open',
     Pending = 'pending',
+    Reconnecting = 'reconnecting',
     Ringing = 'ringing',
   }
 
