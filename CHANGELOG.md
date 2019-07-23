@@ -1,10 +1,10 @@
-1.7.6 (In Progress)
+1.7.6 (Jul 23, 2019)
 ====================
 New Features
 ------------
 ### Automatic Media Reconnection
 This feature was first introduced in 1.7.4 and was enabled by default.
-With this release, we have introduced the `enableIceRestart` reconnect flag to enable or disable *Automatic Media Reconnection*. The default is disabled. This will allow you to transition your code to utilise this feature.
+With this release, we have introduced the `enableIceRestart` reconnect flag to enable or disable *Automatic Media Reconnection*. The default is disabled. This will allow you to transition your code to utilise this feature. (CLIENT-6400, CLIENT-6407)
 
 Improvements
 ------------
