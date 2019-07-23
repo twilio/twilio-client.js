@@ -1401,14 +1401,23 @@ describe('Connection', function() {
 
   describe('on monitor.warning', () => {
     context('if warningData.name contains bytes', () => {
+      const wait = () => new Promise(r => setTimeout(r, 0));
       beforeEach(() => {
         mediaStream.iceRestart = sinon.stub().returns({catch: () => {}});
+        (conn as any)['_status'] = Connection.State.Open;
       });
 
       it('should not start iceRestart loop if enableIceRestart is false', () => {
         conn = new Connection(config, Object.assign(options, { enableIceRestart: false }));
         monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
         clock.tick(7000);
+        sinon.assert.callCount(mediaStream.iceRestart, 0);
+      });
+      it('should not start iceRestart loop if current status is not open', () => {
+        conn = new Connection(config, Object.assign(options, { enableIceRestart: true }));
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+        clock.tick(7000);
+        assert.notEqual(conn.status(), 'open');
         sinon.assert.callCount(mediaStream.iceRestart, 0);
       });
       it('should start iceRestart loop if enableIceRestart is true', () => {
@@ -1448,13 +1457,27 @@ describe('Connection', function() {
         clock.tick(3000);
         assert(mediaStream.iceRestart.calledOnce);
       });
-
       it('should stop iceRestart loop on mediaStream close', () => {
         monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
         clock.tick(3000);
         mediaStream.onclose();
         clock.tick(3000);
         assert(mediaStream.iceRestart.calledOnce);
+      });
+      it('should raise reconnecting event', () => {
+        const callback = sinon.stub();
+        conn.on('reconnecting', callback);
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+        clock.tick(7000);
+        clock.restore();
+        return wait().then(() => {
+          assert(callback.calledWithExactly({ code: 53405, message: 'Media connection failed.' }));
+        });
+      });
+      it('should change status to reconnecting', () => {
+        monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
+        clock.tick(7000);
+        assert.equal(conn.status(), Connection.State.Reconnecting);
       });
     });
 
@@ -1485,10 +1508,12 @@ describe('Connection', function() {
 
   describe('on monitor.warning-cleared', () => {
     context('if warningData.name contains bytes', () => {
+      const wait = () => new Promise(r => setTimeout(r, 0));
       beforeEach(() => {
         mediaStream.iceRestart = sinon.stub().returns({catch: () => {}});
       });
       it('should stop iceRestart loop for bytesReceived', () => {
+        (conn as any)['_status'] = Connection.State.Open;
         monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
         clock.tick(4000);
         monitor.emit('warning-cleared', { name: 'bytesReceived', threshold: { name: 'min' } });
@@ -1496,11 +1521,31 @@ describe('Connection', function() {
         assert(mediaStream.iceRestart.calledOnce);
       });
       it('should stop iceRestart loop for bytesSent', () => {
+        (conn as any)['_status'] = Connection.State.Open;
         monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
         clock.tick(4000);
         monitor.emit('warning-cleared', { name: 'bytesSent', threshold: { name: 'min' } });
         clock.tick(4000);
         assert(mediaStream.iceRestart.calledOnce);
+      });
+      it('should raise reconnected event', () => {
+        const callback = sinon.stub();
+        conn.on('reconnected', callback);
+        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
+        clock.tick(4000);
+        monitor.emit('warning-cleared', { name: 'bytesSent', threshold: { name: 'min' } });
+        clock.tick(4000);
+        clock.restore();
+        return wait().then(() => {
+          assert(callback.calledOnce);
+        });
+      });
+      it('should change status to open', () => {
+        monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
+        clock.tick(4000);
+        monitor.emit('warning-cleared', { name: 'bytesSent', threshold: { name: 'min' } });
+        clock.tick(4000);
+        assert.equal(conn.status(), Connection.State.Open);
       });
     });
     context('if warningData.name contains audio', () => {
