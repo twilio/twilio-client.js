@@ -1080,7 +1080,7 @@ describe('Connection', function() {
       });
     });
 
-    describe('pstream.transportClosed event', () => {
+    describe('pstream.transportClose event', () => {
       it('should call disconnect if enableIceRestart is true', () => {
         conn = new Connection(config, Object.assign({
           callParameters: { CallSid: 'CA123' }
@@ -1088,7 +1088,7 @@ describe('Connection', function() {
 
         conn['_status'] = Connection.State.Open;
         mediaStream.close = sinon.stub();
-        pstream.emit('transportClosed');
+        pstream.emit('transportClose');
 
         assert(mediaStream.close.calledOnce);
       });
@@ -1100,7 +1100,7 @@ describe('Connection', function() {
 
         conn['_status'] = Connection.State.Open;
         mediaStream.close = sinon.stub();
-        pstream.emit('transportClosed');
+        pstream.emit('transportClose');
 
         assert(mediaStream.close.notCalled);
       });

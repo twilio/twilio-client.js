@@ -439,7 +439,7 @@ class Connection extends EventEmitter {
       // When websocket gets disconnected
       // There's no way to retry this session so we disconnect
       // This is not needed if ice restart is disabled, signaling will automatically disconnect the connection
-      this.pstream.on('transportClosed', this._disconnect.bind(this));
+      this.pstream.on('transportClose', this._disconnect.bind(this));
     }
 
     this.on('error', error => {
