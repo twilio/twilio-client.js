@@ -12,6 +12,15 @@ import RTCSample from './rtc/sample';
 import RTCWarning from './rtc/warning';
 import Log, { LogLevel } from './tslog';
 import { average, Exception } from './util';
+import {
+  errorsByCode,
+  InvalidArgumentError,
+  InvalidStateError,
+  MediaErrors,
+  NotSupportedError,
+  SignalingErrors,
+  TwilioError
+} from './errors';
 
 const C = require('./constants');
 const PeerConnection = require('./rtc').PeerConnection;
@@ -277,10 +286,10 @@ class Connection extends EventEmitter {
           return;
         }
 
-        const mediaFailedError = { code: 53405, message: 'Media connection failed.' };
+        const error = new MediaErrors.ConnectionError();
 
         this._log.warn('ICE Connection disconnected.');
-        this._publisher.warn('connection', 'error', mediaFailedError, this);
+        this._publisher.warn('connection', 'error', error, this);
         this._publisher.info('connection', 'reconnecting', null, this);
 
         this._stopIceRestarts();
@@ -294,7 +303,7 @@ class Connection extends EventEmitter {
           });
         }, ICE_RESTART_INTERVAL);
 
-        this.emit('reconnecting', mediaFailedError);
+        this.emit('reconnecting', error);
       }
       this._reemitWarning(data, wasCleared);
     });
@@ -384,12 +393,12 @@ class Connection extends EventEmitter {
         this._disconnect(e.info && e.info.message);
       }
 
-      const error: Connection.Error = {
-        code: e.info.code,
-        connection: this,
-        info: e.info,
-        message: e.info.message || 'Error with mediastream',
-      };
+      const error = new errorsByCode.get(e.info.code)(e.info.message || 'Error with mediastream');
+
+      // TODO: Should pass these to TwilioErrors? e.g. new ErrorType(message, etc, attributes)
+      // Then attributes object properties will get assigned to the returning object.
+      error.info = e.info;
+      error.connection = this;
 
       this._log.error('Received an error from MediaStream:', e);
       this.emit('error', error);
@@ -581,6 +590,7 @@ class Connection extends EventEmitter {
       let message;
       let code;
 
+      // TODO: These codes doesn't seem to exists in errors json. Add them?
       if (error.code && error.code === 31208
         || error.name && error.name === 'PermissionDeniedError') {
         code = 31208;
@@ -607,7 +617,7 @@ class Connection extends EventEmitter {
       }
 
       this._disconnect();
-      this.emit('error', { message, code });
+      this.emit('error', new errorsByCode.get(code)(message));
     });
   }
 
@@ -741,11 +751,11 @@ class Connection extends EventEmitter {
     }
 
     if (!Object.values(Connection.FeedbackScore).includes(score)) {
-      throw new Error(`Feedback score must be one of: ${Object.values(Connection.FeedbackScore)}`);
+      throw new InvalidArgumentError(`Feedback score must be one of: ${Object.values(Connection.FeedbackScore)}`);
     }
 
     if (typeof issue !== 'undefined' && issue !== null && !Object.values(Connection.FeedbackIssue).includes(issue)) {
-      throw new Error(`Feedback issue must be one of: ${Object.values(Connection.FeedbackIssue)}`);
+      throw new InvalidArgumentError(`Feedback issue must be one of: ${Object.values(Connection.FeedbackIssue)}`);
     }
 
     return this._publisher.info('feedback', 'received', {
@@ -785,7 +795,7 @@ class Connection extends EventEmitter {
    */
   sendDigits(digits: string): void {
     if (digits.match(/[^0-9*#w]/)) {
-      throw new Exception('Illegal character passed into sendDigits');
+      throw new InvalidArgumentError('Illegal character passed into sendDigits');
     }
 
     const sequence: string[] = [];
@@ -848,11 +858,9 @@ class Connection extends EventEmitter {
         dtmf: digits,
       });
     } else {
-      const error = {
-        code: 31000,
-        connection: this,
-        message: 'Could not send DTMF: Signaling channel is disconnected',
-      };
+      // TODO: This error code doesn't exists in errors json. We also might be able to pass connection as param
+      const error = new errorsByCode.get(31000)('Could not send DTMF: Signaling channel is disconnected');
+      error.connection = this;
       this.emit('error', error);
     }
   }
@@ -1130,11 +1138,12 @@ class Connection extends EventEmitter {
 
     this._log.info('Received HANGUP from gateway');
     if (payload.error) {
-      const error = {
-        code: payload.error.code || 31000,
-        connection: this,
-        message: payload.error.message || 'Error sent from gateway in HANGUP',
-      };
+      // TODO: Code doesn't exists in errors json
+      const code = payload.error.code || 31000;
+      const message = payload.error.message || 'Error sent from gateway in HANGUP';
+      const error = new errorsByCode.get(code)(message);
+      error.connection = this;
+
       this._log.error('Received an error from the gateway:', error);
       this.emit('error', error);
     }
