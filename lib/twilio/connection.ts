@@ -13,7 +13,7 @@ import RTCWarning from './rtc/warning';
 import Log, { LogLevel } from './tslog';
 import { average, Exception } from './util';
 import {
-  errorsByCode,
+  getErrorByCode,
   InvalidArgumentError,
   InvalidStateError,
   MediaErrors,
@@ -286,10 +286,14 @@ class Connection extends EventEmitter {
           return;
         }
 
-        const error = new MediaErrors.ConnectionError();
+        const mediaFailedError = {
+          code: 53405,
+          message:'Media connection failed.',
+          twilioError: new MediaErrors.ConnectionError()
+        };
 
         this._log.warn('ICE Connection disconnected.');
-        this._publisher.warn('connection', 'error', error, this);
+        this._publisher.warn('connection', 'error', mediaFailedError, this);
         this._publisher.info('connection', 'reconnecting', null, this);
 
         this._stopIceRestarts();
@@ -303,7 +307,7 @@ class Connection extends EventEmitter {
           });
         }, ICE_RESTART_INTERVAL);
 
-        this.emit('reconnecting', error);
+        this.emit('reconnecting', mediaFailedError);
       }
       this._reemitWarning(data, wasCleared);
     });
@@ -392,13 +396,17 @@ class Connection extends EventEmitter {
       if (e.disconnect === true) {
         this._disconnect(e.info && e.info.message);
       }
+      const error: Connection.Error = {
+        code: e.info.code,
+        connection: this,
+        info: e.info,
+        message: e.info.message || 'Error with mediastream'
+      };
 
-      const error = new errorsByCode.get(e.info.code)(e.info.message || 'Error with mediastream');
-
-      // TODO: Should pass these to TwilioErrors? e.g. new ErrorType(message, etc, attributes)
-      // Then attributes object properties will get assigned to the returning object.
-      error.info = e.info;
-      error.connection = this;
+      const ErrorType = getErrorByCode(e.info.code);
+      if (ErrorType) {
+        error.twilioError = new ErrorType();
+      }
 
       this._log.error('Received an error from MediaStream:', e);
       this.emit('error', error);
@@ -590,7 +598,6 @@ class Connection extends EventEmitter {
       let message;
       let code;
 
-      // TODO: These codes doesn't seem to exists in errors json. Add them?
       if (error.code && error.code === 31208
         || error.name && error.name === 'PermissionDeniedError') {
         code = 31208;
@@ -617,7 +624,7 @@ class Connection extends EventEmitter {
       }
 
       this._disconnect();
-      this.emit('error', new errorsByCode.get(code)(message));
+      this.emit('error', { message, code });
     });
   }
 
@@ -858,9 +865,11 @@ class Connection extends EventEmitter {
         dtmf: digits,
       });
     } else {
-      // TODO: This error code doesn't exists in errors json. We also might be able to pass connection as param
-      const error = new errorsByCode.get(31000)('Could not send DTMF: Signaling channel is disconnected');
-      error.connection = this;
+      const error = {
+        code: 31000,
+        connection: this,
+        message: 'Could not send DTMF: Signaling channel is disconnected',
+      };
       this.emit('error', error);
     }
   }
@@ -1138,12 +1147,11 @@ class Connection extends EventEmitter {
 
     this._log.info('Received HANGUP from gateway');
     if (payload.error) {
-      // TODO: Code doesn't exists in errors json
-      const code = payload.error.code || 31000;
-      const message = payload.error.message || 'Error sent from gateway in HANGUP';
-      const error = new errorsByCode.get(code)(message);
-      error.connection = this;
-
+      const error = {
+        code: payload.error.code || 31000,
+        connection: this,
+        message: payload.error.message || 'Error sent from gateway in HANGUP',
+      };
       this._log.error('Received an error from the gateway:', error);
       this.emit('error', error);
     }
@@ -1416,6 +1424,11 @@ namespace Connection {
      * Error message
      */
     message: string;
+
+    /**
+     * Twilio Voice related error
+     */
+    twilioError?: TwilioError
   }
 
   /**

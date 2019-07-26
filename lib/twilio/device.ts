@@ -15,6 +15,7 @@ import {
   InvalidArgumentError,
   InvalidStateError,
   MediaErrors,
+  MediaTimeoutError,
   NotSupportedError,
   SignalingErrors
 } from './errors';
@@ -999,7 +1000,7 @@ class Device extends EventEmitter {
     }
 
     if (!payload.callsid || !payload.sdp) {
-      this.emit('error', new SignalingErrors.MalformedInviteError());
+      this.emit('error', { message: 'Malformed invite from gateway' });
       return;
     }
 
@@ -1134,7 +1135,7 @@ class Device extends EventEmitter {
       play(),
       new Promise((resolve, reject) => {
         timeout = setTimeout(() => {
-          reject(new MediaErrors.UserMediaFailed('Playing incoming ringtone took too long; it might not play. Continuing execution...'));
+          reject(new MediaTimeoutError('Playing incoming ringtone took too long; it might not play. Continuing execution...'));
         }, RINGTONE_PLAY_TIMEOUT);
       }),
     ]).catch(reason => {
@@ -1181,8 +1182,7 @@ class Device extends EventEmitter {
     const connection: Connection | null = this._activeConnection;
 
     if (connection && !inputStream) {
-      // TODO: Add reasons/solution in errors.ts? This also happens when a call is in progress.
-      return Promise.reject(new MediaErrors.SetOutputDevicesFailed('Cannot unset input device while a call is in progress.'));
+      return Promise.reject(new InvalidStateError('Cannot unset input device while a call is in progress.'));
     }
 
     this._connectionInputStream = inputStream;

@@ -25,7 +25,56 @@ function construct(context: TwilioError, messageOrError?: string | Error, origin
   }
 }
 
+export namespace SignalingErrors {
+  export class ConnectionDisconnected extends Error implements TwilioError {
+    causes: string[] = [
+      'The device running your application lost its Internet connection.'
+    ];
+    code: number = 53001;
+    description: string = 'Signaling connection disconnected';
+    explanation: string = 'Raised whenever the signaling connection is unexpectedly disconnected.';
+    solutions: string[] = [
+      'Ensure the device running your application has access to a stable Internet connection.'
+    ];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super('');
+      Object.setPrototypeOf(this, SignalingErrors.ConnectionDisconnected.prototype);
+      construct(this, messageOrError, originalError);
+    }
+  }
+}
+
 export namespace MediaErrors {
+  export class ConnectionError extends Error implements TwilioError {
+    causes: string[] = [
+      'The Client was unable to establish a media connection.',
+      'A media connection which was active failed liveliness checks.'
+    ];
+    code: number = 53405;
+    description: string = 'Media connection failed';
+    explanation: string = 'Raised by the Client or Server whenever a media connection fails.';
+    solutions: string[] = [
+      'If the problem persists, try connecting to another region.',
+      'Check your Client\'s network connectivity.',
+      'If you\'ve provided custom ICE Servers then ensure that the URLs and credentials are valid.'
+    ];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super('');
+      Object.setPrototypeOf(this, MediaErrors.ConnectionError.prototype);
+      construct(this, messageOrError, originalError);
+    }
+  }
+
   export class UserMediaDenied extends Error implements TwilioError {
     causes: string[] = [
       'The user denied the request for user media manually.',
@@ -51,10 +100,39 @@ export namespace MediaErrors {
       construct(this, messageOrError, originalError);
     }
   }
+
+  export class UserMediaFailed extends Error implements TwilioError {
+    causes: string[] = [
+      'No input audio devices are available.',
+      'No input audio devices that match the passed constraints are available.',
+      'A hardware or driver failure has occurred.'
+    ];
+    code: number = 53407;
+    description: string = 'An error occurred while trying to access user media';
+    explanation: string = 'Raised when the user media request is allowed but we still fail to get an input audio stream.';
+    solutions: string[] = [
+      'Add an input device such as a microphone to the computer.',
+      'Loosen any passed in audio constraints so that the device you\'re trying to connect is found.',
+      'Follow recommended hardware troubleshooting steps for your device and/or operating system.'
+    ];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super('');
+      Object.setPrototypeOf(this, MediaErrors.UserMediaFailed.prototype);
+      construct(this, messageOrError, originalError);
+    }
+  }
 }
 
 export const errorsByCode: ReadonlyMap<number, any> = new Map([
-  [ 53406, MediaErrors.UserMediaDenied ]
+  [ 53001, SignalingErrors.ConnectionDisconnected ],
+  [ 53405, MediaErrors.ConnectionError ],
+  [ 53406, MediaErrors.UserMediaDenied ],
+  [ 53407, MediaErrors.UserMediaFailed ]
 ]);
 
 Object.freeze(errorsByCode);
