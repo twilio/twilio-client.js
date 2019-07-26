@@ -17,6 +17,9 @@ env:
     - DBUS_SESSION_BUS_ADDRESS=/dev/null
     - DISPLAY=:99.0
 
+services:
+  - xvfb
+
 matrix:
   include:
     - os: linux
@@ -41,7 +44,6 @@ before_script:
     export CHROME_BIN=$(pwd)/browsers/bin/chrome-$BVER
     export FIREFOX_BIN=$(pwd)/browsers/bin/firefox-$BVER
     cd ../..
-    sh -e /etc/init.d/xvfb start
     pulseaudio --start
 
 script: npm run build:release
