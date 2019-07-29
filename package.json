@@ -15,13 +15,14 @@
     "url": "git@github.com:twilio/twilio-client.js.git"
   },
   "scripts": {
-    "build": "npm-run-all clean docs:ts build:es5 build:ts build:dist build:dist-min",
+    "build": "npm-run-all clean build:version docs:ts build:es5 build:ts build:dist build:dist-min",
     "build:es5": "rimraf ./es5 && babel lib -d es5",
     "build:dev": "ENV=dev npm run build",
     "build:dist": "node ./scripts/build.js ./lib/browser.js ./LICENSE.md ./dist/twilio.js",
     "build:dist-min": "uglifyjs ./dist/twilio.js -o ./dist/twilio.min.js --comments \"/^! twilio-client.js/\" -b beautify=false,ascii_only=true",
     "build:release": "npm-run-all lint build test:unit test:integration test:webpack test:es5 status",
     "build:ts": "tsc",
+    "build:version": "node ./scripts/version.js",
     "clean": "rimraf ./coverage ./dist ./es5",
     "coverage": "nyc ./node_modules/mocha/bin/mocha -r ts-node/register ./tests/index.ts",
     "coverage:check": "nyc check-coverage --lines 60 --branches 60 --functions 60",
