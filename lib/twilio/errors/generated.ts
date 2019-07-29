@@ -25,6 +25,30 @@ function construct(context: TwilioError, messageOrError?: string | Error, origin
   }
 }
 
+export namespace SignalingErrors {
+  export class ConnectionDisconnected extends Error implements TwilioError {
+    causes: string[] = [
+      'The device running your application lost its Internet connection.'
+    ];
+    code: number = 53001;
+    description: string = 'Signaling connection disconnected';
+    explanation: string = 'Raised whenever the signaling connection is unexpectedly disconnected.';
+    solutions: string[] = [
+      'Ensure the device running your application has access to a stable Internet connection.'
+    ];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super('');
+      Object.setPrototypeOf(this, SignalingErrors.ConnectionDisconnected.prototype);
+      construct(this, messageOrError, originalError);
+    }
+  }
+}
+
 export namespace MediaErrors {
   export class UserMediaDenied extends Error implements TwilioError {
     causes: string[] = [
@@ -54,6 +78,7 @@ export namespace MediaErrors {
 }
 
 export const errorsByCode: ReadonlyMap<number, any> = new Map([
+  [ 53001, SignalingErrors.ConnectionDisconnected ],
   [ 53406, MediaErrors.UserMediaDenied ]
 ]);
 

@@ -1,4 +1,4 @@
-import { errorsByCode, MediaErrors, TwilioError } from './generated';
+import { errorsByCode, MediaErrors, SignalingErrors, TwilioError } from './generated';
 
 // Application errors that can be avoided by good app logic
 export class InvalidArgumentError extends Error {
@@ -22,4 +22,4 @@ export function getErrorByCode(code: number): TwilioError {
 }
 
 // All errors we want to throw or emit locally in the SDK need to be passed through here.
-export { MediaErrors, TwilioError };
+export { MediaErrors, SignalingErrors, TwilioError };
