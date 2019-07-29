@@ -13,7 +13,6 @@ import RTCWarning from './rtc/warning';
 import Log, { LogLevel } from './tslog';
 import { average, Exception } from './util';
 import {
-  getErrorByCode,
   InvalidArgumentError,
   InvalidStateError,
   MediaErrors,
@@ -400,13 +399,9 @@ class Connection extends EventEmitter {
         code: e.info.code,
         connection: this,
         info: e.info,
-        message: e.info.message || 'Error with mediastream'
+        message: e.info.message || 'Error with mediastream',
+        twilioError: e.twilioError
       };
-
-      const ErrorType = getErrorByCode(e.info.code);
-      if (ErrorType) {
-        error.twilioError = new ErrorType();
-      }
 
       this._log.error('Received an error from MediaStream:', e);
       this.emit('error', error);
