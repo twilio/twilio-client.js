@@ -8,9 +8,11 @@ import AudioHelper from './audiohelper';
 import Connection from './connection';
 import DialtonePlayer from './dialtonePlayer';
 import {
+  AuthorizationErrors,
+  ClientErrors,
+  GeneralErrors,
   InvalidArgumentError,
   InvalidStateError,
-  MediaTimeoutError,
   NotSupportedError,
   SignalingErrors,
 } from './errors';
@@ -976,9 +978,9 @@ class Device extends EventEmitter {
    * Called when an 'error' event is received from the signaling stream.
    */
   private _onSignalingError = (payload: Record<string, any>) => {
-    const error = payload.error;
-    if (!error) { return; }
+    if (!payload.error) { return; }
 
+    const error = { ...payload.error };
     const sid = payload.callsid;
     if (sid) {
       error.connection = this._findConnection(sid);
@@ -987,6 +989,9 @@ class Device extends EventEmitter {
     // Stop trying to register presence after token expires
     if (error.code === 31205) {
       this._stopRegistrationTimer();
+      error.twilioError = new AuthorizationErrors.AccessTokenExpired();
+    } else if (!error.twilioError) {
+      error.twilioError = new GeneralErrors.UnknownError();
     }
 
     this._log.info('Received error: ', error);
@@ -1004,7 +1009,7 @@ class Device extends EventEmitter {
     }
 
     if (!payload.callsid || !payload.sdp) {
-      this.emit('error', { message: 'Malformed invite from gateway' });
+      this.emit('error', { message: 'Malformed invite from gateway', twilioError: new ClientErrors.BadRequest() });
       return;
     }
 
@@ -1048,15 +1053,6 @@ class Device extends EventEmitter {
     this._log.info('Stream is ready');
     this._status = Device.Status.Ready;
     this.emit('ready', this);
-  }
-
-  /**
-   * Called when websocket is closed
-   */
-  private _onSignalingTransportClose = () => {
-    this._log.info('Stream is disconnected');
-    // TODO: Add reasons/solution in errors.ts? This also happens when token expires
-    this.emit('error', new SignalingErrors.ConnectionDisconnected());
   }
 
   /**
@@ -1125,7 +1121,6 @@ class Device extends EventEmitter {
     this.stream.addListener('invite', this._onSignalingInvite);
     this.stream.addListener('offline', this._onSignalingOffline);
     this.stream.addListener('ready', this._onSignalingReady);
-    this.stream.addListener('transportClose', this._onSignalingTransportClose);
   }
 
   /**
@@ -1140,7 +1135,7 @@ class Device extends EventEmitter {
       new Promise((resolve, reject) => {
         timeout = setTimeout(() => {
           const msg = 'Playing incoming ringtone took too long; it might not play. Continuing execution...';
-          reject(new MediaTimeoutError(msg));
+          reject(new Error(msg));
         }, RINGTONE_PLAY_TIMEOUT);
       }),
     ]).catch(reason => {

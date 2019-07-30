@@ -1473,11 +1473,12 @@ describe('Connection', function() {
         clock.tick(7000);
         clock.restore();
         return wait().then(() => {
-          assert(callback.calledWithExactly({
+          sinon.assert.calledWithMatch(callback, {
             code: 53405,
-            message: 'Media connection failed.',
-            twilioError: new MediaErrors.ConnectionError()
-          }));
+            message: 'Media connection failed.'
+          });
+          const rVal = callback.firstCall.args[0];
+          assert.equal(rVal.twilioError.code, 53405);
         });
       });
       it('should change status to reconnecting', () => {
