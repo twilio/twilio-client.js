@@ -5,8 +5,8 @@
 
 import { EventEmitter } from 'events';
 import * as WebSocket from 'ws';
-import Log, { LogLevel } from './tslog';
 import { SignalingErrors } from './errors';
+import Log, { LogLevel } from './tslog';
 
 // tslint:disable-next-line
 const Backoff = require('backoff');
@@ -268,7 +268,7 @@ export default class WSTransport extends EventEmitter {
       this.emit('error', {
         code: 31000,
         message: e.message || `Could not connect to ${this._uri}`,
-        twilioError: new SignalingErrors.ConnectionDisconnected()
+        twilioError: new SignalingErrors.ConnectionDisconnected(),
       });
       return;
     }

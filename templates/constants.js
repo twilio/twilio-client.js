@@ -7,4 +7,5 @@ module.exports.RELEASE_VERSION = RELEASE_VERSION;
  */
 module.exports.USED_ERRORS = [
   'MediaErrors.UserMediaDenied',
+  'SignalingErrors.ConnectionDisconnected'
 ];
