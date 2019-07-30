@@ -6,5 +6,8 @@ module.exports.RELEASE_VERSION = RELEASE_VERSION;
  * All errors we plan to use need to be defined here.
  */
 module.exports.USED_ERRORS = [
+  'MediaErrors.ConnectionError',
   'MediaErrors.UserMediaDenied',
+  'MediaErrors.UserMediaFailed',
+  'SignalingErrors.ConnectionDisconnected',
 ];
