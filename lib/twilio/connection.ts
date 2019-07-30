@@ -6,20 +6,13 @@
 import { EventEmitter } from 'events';
 import Device from './device';
 import DialtonePlayer from './dialtonePlayer';
+import { InvalidArgumentError, MediaErrors, TwilioError } from './errors';
 import { Region } from './regions';
 import RTCMonitor from './rtc/monitor';
 import RTCSample from './rtc/sample';
 import RTCWarning from './rtc/warning';
 import Log, { LogLevel } from './tslog';
 import { average, Exception } from './util';
-import {
-  InvalidArgumentError,
-  InvalidStateError,
-  MediaErrors,
-  NotSupportedError,
-  SignalingErrors,
-  TwilioError
-} from './errors';
 
 const C = require('./constants');
 const PeerConnection = require('./rtc').PeerConnection;
@@ -287,8 +280,8 @@ class Connection extends EventEmitter {
 
         const mediaFailedError = {
           code: 53405,
-          message:'Media connection failed.',
-          twilioError: new MediaErrors.ConnectionError()
+          message: 'Media connection failed.',
+          twilioError: new MediaErrors.ConnectionError(),
         };
 
         this._log.warn('ICE Connection disconnected.');
@@ -400,7 +393,7 @@ class Connection extends EventEmitter {
         connection: this,
         info: e.info,
         message: e.info.message || 'Error with mediastream',
-        twilioError: e.twilioError
+        twilioError: e.twilioError,
       };
 
       this._log.error('Received an error from MediaStream:', e);
@@ -1423,7 +1416,7 @@ namespace Connection {
     /**
      * Twilio Voice related error
      */
-    twilioError?: TwilioError
+    twilioError?: TwilioError;
   }
 
   /**

@@ -7,18 +7,17 @@ import { EventEmitter } from 'events';
 import AudioHelper from './audiohelper';
 import Connection from './connection';
 import DialtonePlayer from './dialtonePlayer';
+import {
+  InvalidArgumentError,
+  InvalidStateError,
+  MediaTimeoutError,
+  NotSupportedError,
+  SignalingErrors,
+} from './errors';
 import { PStream } from './pstream';
 import { getRegionShortcode, getRegionURI, Region } from './regions';
 import Log, { LogLevel } from './tslog';
 import { Exception, queryToJson } from './util';
-import {
-  InvalidArgumentError,
-  InvalidStateError,
-  MediaErrors,
-  MediaTimeoutError,
-  NotSupportedError,
-  SignalingErrors
-} from './errors';
 
 const C = require('./constants');
 const Publisher = require('./eventpublisher');
@@ -1140,7 +1139,8 @@ class Device extends EventEmitter {
       play(),
       new Promise((resolve, reject) => {
         timeout = setTimeout(() => {
-          reject(new MediaTimeoutError('Playing incoming ringtone took too long; it might not play. Continuing execution...'));
+          const msg = 'Playing incoming ringtone took too long; it might not play. Continuing execution...';
+          reject(new MediaTimeoutError(msg));
         }, RINGTONE_PLAY_TIMEOUT);
       }),
     ]).catch(reason => {
