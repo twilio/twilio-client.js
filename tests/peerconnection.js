@@ -542,7 +542,11 @@ describe('PeerConnection', () => {
       toTest();
       assert(context._initializeMediaStream.calledWithExactly(eConstraints, eIceServers));
       assert(version.processSDP.calledOnce);
-      assert(context.onerror.calledWithExactly(expectedError));
+      assert(context.onerror.calledWithMatch(expectedError));
+
+      const rVal = context.onerror.firstCall.args[0];
+      assert.equal(rVal.info.twilioError.code, 53402);
+
       assert(version.processSDP.calledWithExactly(undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(context.pstream.publish.called, false);
       assert.equal(version.getSDP.called, false);
@@ -555,7 +559,11 @@ describe('PeerConnection', () => {
       toTest();
       assert(context._initializeMediaStream.calledWithExactly(eConstraints, eIceServers));
       assert(version.processSDP.calledOnce);
-      assert(context.onerror.calledWithExactly(EXPECTED_ERROR));
+      assert(context.onerror.calledWithMatch(EXPECTED_ERROR));
+
+      const rVal = context.onerror.firstCall.args[0];
+      assert.equal(rVal.info.twilioError.code, 53402);
+
       assert(version.processSDP.calledWithExactly(undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(context.pstream.publish.called, false);
       assert.equal(version.getSDP.called, false);
@@ -581,7 +589,11 @@ describe('PeerConnection', () => {
       toTest();
       version.processSDP.callArg(4, new Error('error message'));
       version.processSDP.callArg(4, new Error('error message'));
-      assert(context.onerror.calledWithExactly(EXPECTED_ERROR));
+      assert(context.onerror.calledWithMatch(EXPECTED_ERROR));
+
+      const rVal = context.onerror.firstCall.args[0];
+      assert.equal(rVal.info.twilioError.code, 53402);
+
       assert(context.onerror.calledTwice);
       assert.equal(callback.called, false);
     });
@@ -879,7 +891,11 @@ describe('PeerConnection', () => {
     it('Should call onOfferError when createOffer calls error callback with error message', () => {
       version.createOffer.callsArgWith(3, ERROR_MESSAGE);
       toTest();
-      assert(context.onerror.calledWithExactly(EXPECTED_OFFER_ERROR));
+      assert(context.onerror.calledWithMatch(EXPECTED_OFFER_ERROR));
+
+      const rVal = context.onerror.firstCall.args[0];
+      assert.equal(rVal.info.twilioError.code, 53400);
+
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
     });
 
@@ -909,7 +925,7 @@ describe('PeerConnection', () => {
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
       assert(version.processAnswer.calledWithExactly(undefined, PAYLOAD.sdp, sinon.match.func, sinon.match.func));
       assert(version.processAnswer.calledOn(version));
-      assert(context.onerror.calledWithExactly(EXPECTED_PROCESSING_ERROR));
+      assert(context.onerror.calledWithMatch(EXPECTED_PROCESSING_ERROR));
     });
 
     it('Should call onerror and proxy message when processAnswer calls error callback', () => {
@@ -922,7 +938,7 @@ describe('PeerConnection', () => {
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
       assert(version.processAnswer.calledWithExactly(undefined, PAYLOAD.sdp, sinon.match.func, sinon.match.func));
       assert(version.processAnswer.calledOn(version));
-      assert(context.onerror.calledWithExactly(EXPECTED_PROCESSING_ERROR));
+      assert(context.onerror.calledWithMatch(EXPECTED_PROCESSING_ERROR));
       sinon.assert.notCalled(context._setNetworkPriority);
     });
 

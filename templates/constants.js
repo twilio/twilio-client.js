@@ -9,6 +9,8 @@ module.exports.USED_ERRORS = [
   'AuthorizationErrors.AccessTokenExpired',
   'ClientErrors.BadRequest',
   'GeneralErrors.UnknownError',
+  'MediaErrors.ClientLocalDescFailed',
+  'MediaErrors.ClientRemoteDescFailed',
   'MediaErrors.ConnectionError',
   'SignalingErrors.ConnectionDisconnected',
 ];
