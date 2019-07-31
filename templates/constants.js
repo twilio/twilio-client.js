@@ -11,4 +11,5 @@ module.exports.USED_ERRORS = [
   'GeneralErrors.UnknownError',
   'MediaErrors.ConnectionError',
   'SignalingErrors.ConnectionDisconnected',
+  'SignalingErrors.ConnectionError',
 ];
