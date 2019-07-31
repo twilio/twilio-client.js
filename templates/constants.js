@@ -10,8 +10,6 @@ module.exports.USED_ERRORS = [
   'ClientErrors.BadRequest',
   'GeneralErrors.UnknownError',
   'MediaErrors.ConnectionError',
-  'MediaErrors.UserMediaDenied',
-  'MediaErrors.UserMediaFailed',
   'SignalingErrors.ConnectionDisconnected',
   'SignalingErrors.ConnectionError',
 ];

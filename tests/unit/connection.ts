@@ -1477,6 +1477,8 @@ describe('Connection', function() {
             code: 53405,
             message: 'Media connection failed.'
           });
+          const rVal = callback.firstCall.args[0];
+          assert.equal(rVal.twilioError.code, 53405);
         });
       });
       it('should change status to reconnecting', () => {

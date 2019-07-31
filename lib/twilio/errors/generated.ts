@@ -71,7 +71,7 @@ export namespace GeneralErrors {
     causes: string[] = [];
     code: number = 31000;
     description: string = 'Unknown Error';
-    explanation: string = 'We received an unexpected error code. See error details for more information.';
+    explanation: string = 'An unknown error has occurred. See error details for more information.';
     solutions: string[] = [];
 
     constructor();
@@ -153,58 +153,6 @@ export namespace MediaErrors {
       construct(this, messageOrError, originalError);
     }
   }
-
-  export class UserMediaDenied extends Error implements TwilioError {
-    causes: string[] = [
-      'The user denied the request for user media manually.',
-      'The browser applied a custom policy that auto-denies media requests.',
-      'The browser remembered the user\'s previous choice to deny media requests from this page.',
-    ];
-    code: number = 53406;
-    description: string = 'User denied access to user media';
-    explanation: string = 'Raised when we try to call getUserMedia to acquire an audio stream and the end user or their browser denies the request.';
-    solutions: string[] = [
-      'Accept the request for user media.',
-      'Navigate to your browser\'s privacy settings and change the policy to ask for permission, or add this site to the whitelist.',
-      'Navigate to your browser\'s preferences and change or delete the media rules for the affected page.',
-    ];
-
-    constructor();
-    constructor(message: string);
-    constructor(originalError: Error);
-    constructor(message: string, originalError?: Error);
-    constructor(messageOrError?: string | Error, originalError?: Error) {
-      super('');
-      Object.setPrototypeOf(this, MediaErrors.UserMediaDenied.prototype);
-      construct(this, messageOrError, originalError);
-    }
-  }
-
-  export class UserMediaFailed extends Error implements TwilioError {
-    causes: string[] = [
-      'No input audio devices are available.',
-      'No input audio devices that match the passed constraints are available.',
-      'A hardware or driver failure has occurred.',
-    ];
-    code: number = 53407;
-    description: string = 'An error occurred while trying to access user media';
-    explanation: string = 'Raised when the user media request is allowed but we still fail to get an input audio stream.';
-    solutions: string[] = [
-      'Add an input device such as a microphone to the computer.',
-      'Loosen any passed in audio constraints so that the device you\'re trying to connect is found.',
-      'Follow recommended hardware troubleshooting steps for your device and/or operating system.',
-    ];
-
-    constructor();
-    constructor(message: string);
-    constructor(originalError: Error);
-    constructor(message: string, originalError?: Error);
-    constructor(messageOrError?: string | Error, originalError?: Error) {
-      super('');
-      Object.setPrototypeOf(this, MediaErrors.UserMediaFailed.prototype);
-      construct(this, messageOrError, originalError);
-    }
-  }
 }
 
 export const errorsByCode: ReadonlyMap<number, any> = new Map([
@@ -214,8 +162,6 @@ export const errorsByCode: ReadonlyMap<number, any> = new Map([
   [ 53000, SignalingErrors.ConnectionError ],
   [ 53001, SignalingErrors.ConnectionDisconnected ],
   [ 53405, MediaErrors.ConnectionError ],
-  [ 53406, MediaErrors.UserMediaDenied ],
-  [ 53407, MediaErrors.UserMediaFailed ],
 ]);
 
 Object.freeze(errorsByCode);
