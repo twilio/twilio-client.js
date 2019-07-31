@@ -5,6 +5,7 @@
 
 import { EventEmitter } from 'events';
 import * as WebSocket from 'ws';
+import { SignalingErrors } from './errors';
 import Log, { LogLevel } from './tslog';
 
 // tslint:disable-next-line
@@ -264,7 +265,11 @@ export default class WSTransport extends EventEmitter {
     } catch (e) {
       this._log.info('Could not connect to endpoint:', e.message);
       this._close();
-      this.emit('error', { code: 31000, message: e.message || `Could not connect to ${this._uri}` });
+      this.emit('error', {
+        code: 31000,
+        message: e.message || `Could not connect to ${this._uri}`,
+        twilioError: new SignalingErrors.ConnectionDisconnected(),
+      });
       return;
     }
 
@@ -293,7 +298,11 @@ export default class WSTransport extends EventEmitter {
    */
   private _onSocketError = (err: Error): void => {
     this._log.info(`WebSocket received error: ${err.message}`);
-    this.emit('error', { code: 31000, message: err.message || 'WSTransport socket error' });
+    this.emit('error', {
+      code: 31000,
+      message: err.message || 'WSTransport socket error',
+      twilioError: new SignalingErrors.ConnectionDisconnected(),
+    });
   }
 
   /**
