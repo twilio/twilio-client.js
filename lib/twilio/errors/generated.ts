@@ -1,4 +1,5 @@
- /**
+/* tslint:disable max-classes-per-file max-line-length */
+/**
  * @module Voice
  * @publicapi
  * @internal
@@ -25,16 +26,76 @@ function construct(context: TwilioError, messageOrError?: string | Error, origin
   }
 }
 
+export namespace AuthorizationErrors {
+  export class AccessTokenExpired extends Error implements TwilioError {
+    causes: string[] = [];
+    code: number = 20104;
+    description: string = 'Access token expired or expiration date invalid';
+    explanation: string = 'The Access Token provided to the Twilio API has expired, the expiration time specified in the token was invalid, or the expiration time specified was too far in the future';
+    solutions: string[] = [];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super('');
+      Object.setPrototypeOf(this, AuthorizationErrors.AccessTokenExpired.prototype);
+      construct(this, messageOrError, originalError);
+    }
+  }
+}
+
+export namespace ClientErrors {
+  export class BadRequest extends Error implements TwilioError {
+    causes: string[] = [];
+    code: number = 31400;
+    description: string = 'Bad Request (HTTP/SIP)';
+    explanation: string = 'The request could not be understood due to malformed syntax.';
+    solutions: string[] = [];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super('');
+      Object.setPrototypeOf(this, ClientErrors.BadRequest.prototype);
+      construct(this, messageOrError, originalError);
+    }
+  }
+}
+
+export namespace GeneralErrors {
+  export class UnknownError extends Error implements TwilioError {
+    causes: string[] = [];
+    code: number = 31000;
+    description: string = 'Unknown Error';
+    explanation: string = 'We received an unexpected error code. See error details for more information.';
+    solutions: string[] = [];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super('');
+      Object.setPrototypeOf(this, GeneralErrors.UnknownError.prototype);
+      construct(this, messageOrError, originalError);
+    }
+  }
+}
+
 export namespace SignalingErrors {
   export class ConnectionDisconnected extends Error implements TwilioError {
     causes: string[] = [
-      'The device running your application lost its Internet connection.'
+      'The device running your application lost its Internet connection.',
     ];
     code: number = 53001;
     description: string = 'Signaling connection disconnected';
     explanation: string = 'Raised whenever the signaling connection is unexpectedly disconnected.';
     solutions: string[] = [
-      'Ensure the device running your application has access to a stable Internet connection.'
+      'Ensure the device running your application has access to a stable Internet connection.',
     ];
 
     constructor();
@@ -50,11 +111,36 @@ export namespace SignalingErrors {
 }
 
 export namespace MediaErrors {
+  export class ConnectionError extends Error implements TwilioError {
+    causes: string[] = [
+      'The Client was unable to establish a media connection.',
+      'A media connection which was active failed liveliness checks.',
+    ];
+    code: number = 53405;
+    description: string = 'Media connection failed';
+    explanation: string = 'Raised by the Client or Server whenever a media connection fails.';
+    solutions: string[] = [
+      'If the problem persists, try connecting to another region.',
+      'Check your Client\'s network connectivity.',
+      'If you\'ve provided custom ICE Servers then ensure that the URLs and credentials are valid.',
+    ];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super('');
+      Object.setPrototypeOf(this, MediaErrors.ConnectionError.prototype);
+      construct(this, messageOrError, originalError);
+    }
+  }
+
   export class UserMediaDenied extends Error implements TwilioError {
     causes: string[] = [
       'The user denied the request for user media manually.',
       'The browser applied a custom policy that auto-denies media requests.',
-      'The browser remembered the user\'s previous choice to deny media requests from this page.'
+      'The browser remembered the user\'s previous choice to deny media requests from this page.',
     ];
     code: number = 53406;
     description: string = 'User denied access to user media';
@@ -62,7 +148,7 @@ export namespace MediaErrors {
     solutions: string[] = [
       'Accept the request for user media.',
       'Navigate to your browser\'s privacy settings and change the policy to ask for permission, or add this site to the whitelist.',
-      'Navigate to your browser\'s preferences and change or delete the media rules for the affected page.'
+      'Navigate to your browser\'s preferences and change or delete the media rules for the affected page.',
     ];
 
     constructor();
@@ -75,11 +161,42 @@ export namespace MediaErrors {
       construct(this, messageOrError, originalError);
     }
   }
+
+  export class UserMediaFailed extends Error implements TwilioError {
+    causes: string[] = [
+      'No input audio devices are available.',
+      'No input audio devices that match the passed constraints are available.',
+      'A hardware or driver failure has occurred.',
+    ];
+    code: number = 53407;
+    description: string = 'An error occurred while trying to access user media';
+    explanation: string = 'Raised when the user media request is allowed but we still fail to get an input audio stream.';
+    solutions: string[] = [
+      'Add an input device such as a microphone to the computer.',
+      'Loosen any passed in audio constraints so that the device you\'re trying to connect is found.',
+      'Follow recommended hardware troubleshooting steps for your device and/or operating system.',
+    ];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super('');
+      Object.setPrototypeOf(this, MediaErrors.UserMediaFailed.prototype);
+      construct(this, messageOrError, originalError);
+    }
+  }
 }
 
 export const errorsByCode: ReadonlyMap<number, any> = new Map([
+  [ 20104, AuthorizationErrors.AccessTokenExpired ],
+  [ 31400, ClientErrors.BadRequest ],
+  [ 31000, GeneralErrors.UnknownError ],
   [ 53001, SignalingErrors.ConnectionDisconnected ],
-  [ 53406, MediaErrors.UserMediaDenied ]
+  [ 53405, MediaErrors.ConnectionError ],
+  [ 53406, MediaErrors.UserMediaDenied ],
+  [ 53407, MediaErrors.UserMediaFailed ],
 ]);
 
 Object.freeze(errorsByCode);

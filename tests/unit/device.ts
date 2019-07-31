@@ -1,6 +1,7 @@
 import Connection from '../../lib/twilio/connection';
 import Device from '../../lib/twilio/device';
 import { DeprecatedRegion, Region, regionShortcodes } from '../../lib/twilio/regions';
+import { GeneralErrors } from '../../lib/twilio/errors';
 
 import * as assert from 'assert';
 import { EventEmitter } from 'events';    
@@ -555,6 +556,8 @@ describe('Device', function() {
     });
 
     describe('on signaling.error', () => {
+      const twilioError = new GeneralErrors.UnknownError();
+
       it('should not emit Device.error if payload.error is missing', () => {
         device.emit = sinon.spy();
         pstream.emit('error', { });
@@ -563,9 +566,9 @@ describe('Device', function() {
 
       it('should emit Device.error without connection if payload.callsid is missing', () => {
         device.emit = sinon.spy();
-        pstream.emit('error', { error: { } });
+        pstream.emit('error', { error: { twilioError } });
         sinon.assert.calledOnce(device.emit as any);
-        sinon.assert.calledWith(device.emit as any, 'error', { });
+        sinon.assert.calledWith(device.emit as any, 'error', { twilioError });
       });
 
       it('should emit Device.error with connection if payload.callsid is present', () => {
@@ -573,9 +576,9 @@ describe('Device', function() {
         const conn = device.connections[0];
         conn.parameters = { CallSid: 'foo' };
         device.emit = sinon.spy();
-        pstream.emit('error', { error: { }, callsid: 'foo' });
+        pstream.emit('error', { error: { twilioError }, callsid: 'foo' });
         sinon.assert.calledOnce(device.emit as any);
-        sinon.assert.calledWith(device.emit as any, 'error', { connection: conn });
+        sinon.assert.calledWith(device.emit as any, 'error', { connection: conn, twilioError });
       });
 
       it('should not stop registrations if code is not 31205', () => {
