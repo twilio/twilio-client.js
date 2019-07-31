@@ -2,7 +2,8 @@ const fs = require('fs');
 const VoiceErrors = require('@twilio/voice-errors');
 const { USED_ERRORS } = require('../lib/twilio/constants');
 
-let output = ` /**
+let output = `/* tslint:disable max-classes-per-file max-line-length */
+/**
  * @module Voice
  * @publicapi
  * @internal
@@ -32,7 +33,7 @@ function construct(context: TwilioError, messageOrError?: string | Error, origin
 
 const escapeQuotes = str => str.replace("'", "\\'");
 const generateStringArray = arr => arr ? `[
-      ${arr.map(value => `'${escapeQuotes(value)}'`).join(',\n      ')}
+      ${arr.map(value => `'${escapeQuotes(value)}'`).join(',\n      ')},
     ]` : '[]';
 
 const generateDefinition = (code, subclassName, errorName, error) => `\
@@ -74,16 +75,16 @@ for (const topClass of VoiceErrors) {
         mapEntries.push(`[ ${code}, ${fullName} ]`);
       }
     }
-    if (mapEntries.length) {
+    if (mapEntries.length && definitions.length) {
       output += generateNamespace(subclassName, definitions.join('\n\n'));
     }
   }
 }
 
 output += `export const errorsByCode: ReadonlyMap<number, any> = new Map([
-  ${mapEntries.join(',\n  ')}
+  ${mapEntries.join(',\n  ')},
 ]);
 
-Object.freeze(errorsByCode);`;
+Object.freeze(errorsByCode);\n`;
 
 fs.writeFileSync('./lib/twilio/errors/generated.ts', output, 'utf8');

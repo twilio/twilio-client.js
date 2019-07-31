@@ -7,6 +7,15 @@ import { EventEmitter } from 'events';
 import AudioHelper from './audiohelper';
 import Connection from './connection';
 import DialtonePlayer from './dialtonePlayer';
+import {
+  AuthorizationErrors,
+  ClientErrors,
+  GeneralErrors,
+  InvalidArgumentError,
+  InvalidStateError,
+  NotSupportedError,
+  SignalingErrors,
+} from './errors';
 import { PStream } from './pstream';
 import { getRegionShortcode, getRegionURI, Region } from './regions';
 import Log, { LogLevel } from './tslog';
@@ -357,7 +366,7 @@ class Device extends EventEmitter {
     if (token) {
       this.setup(token, options);
     } else if (options) {
-      throw new Error('Cannot construct a Device with options but without a token');
+      throw new InvalidArgumentError('Cannot construct a Device with options but without a token');
     }
   }
 
@@ -404,7 +413,7 @@ class Device extends EventEmitter {
     this._throwUnlessSetup('connect');
 
     if (this._activeConnection) {
-      throw new Error('A Connection is already active');
+      throw new InvalidStateError('A Connection is already active');
     }
 
     const params: Record<string, string> = paramsOrHandler || { };
@@ -539,19 +548,19 @@ class Device extends EventEmitter {
   setup(token: string, options: Device.Options = { }): this {
     if (!Device.isSupported && !options.ignoreBrowserSupport) {
       if (window && window.location && window.location.protocol === 'http:') {
-        throw new Exception(`twilio.js wasn't able to find WebRTC browser support. \
+        throw new NotSupportedError(`twilio.js wasn't able to find WebRTC browser support. \
           This is most likely because this page is served over http rather than https, \
           which does not support WebRTC in many browsers. Please load this page over https and \
           try again.`);
       }
-      throw new Exception(`twilio.js 1.3+ SDKs require WebRTC/ORTC browser support. \
+      throw new NotSupportedError(`twilio.js 1.3+ SDKs require WebRTC/ORTC browser support. \
         For more information, see <https://www.twilio.com/docs/api/client/twilio-js>. \
         If you have any questions about this announcement, please contact \
         Twilio Support at <help@twilio.com>.`);
     }
 
     if (!token) {
-      throw new Exception('Token is required for Device.setup()');
+      throw new InvalidArgumentError('Token is required for Device.setup()');
     }
 
     if (typeof Device._isUnifiedPlanDefault === 'undefined') {
@@ -844,7 +853,7 @@ class Device extends EventEmitter {
    */
   private _makeConnection(twimlParams: Record<string, string>, options?: Connection.Options): Connection {
     if (typeof Device._isUnifiedPlanDefault === 'undefined') {
-      throw new Error('Device has not been initialized.');
+      throw new InvalidStateError('Device has not been initialized.');
     }
 
     const config: Connection.Config = {
@@ -969,9 +978,9 @@ class Device extends EventEmitter {
    * Called when an 'error' event is received from the signaling stream.
    */
   private _onSignalingError = (payload: Record<string, any>) => {
-    const error = payload.error;
-    if (!error) { return; }
+    if (!payload.error) { return; }
 
+    const error = { ...payload.error };
     const sid = payload.callsid;
     if (sid) {
       error.connection = this._findConnection(sid);
@@ -980,6 +989,9 @@ class Device extends EventEmitter {
     // Stop trying to register presence after token expires
     if (error.code === 31205) {
       this._stopRegistrationTimer();
+      error.twilioError = new AuthorizationErrors.AccessTokenExpired();
+    } else if (!error.twilioError) {
+      error.twilioError = new GeneralErrors.UnknownError();
     }
 
     this._log.info('Received error: ', error);
@@ -997,7 +1009,7 @@ class Device extends EventEmitter {
     }
 
     if (!payload.callsid || !payload.sdp) {
-      this.emit('error', { message: 'Malformed invite from gateway' });
+      this.emit('error', { message: 'Malformed invite from gateway', twilioError: new ClientErrors.BadRequest() });
       return;
     }
 
@@ -1122,7 +1134,8 @@ class Device extends EventEmitter {
       play(),
       new Promise((resolve, reject) => {
         timeout = setTimeout(() => {
-          reject(new Error('Playing incoming ringtone took too long; it might not play. Continuing execution...'));
+          const msg = 'Playing incoming ringtone took too long; it might not play. Continuing execution...';
+          reject(new Error(msg));
         }, RINGTONE_PLAY_TIMEOUT);
       }),
     ]).catch(reason => {
@@ -1157,7 +1170,7 @@ class Device extends EventEmitter {
    * @param methodName - The name of the method being called before setup()
    */
   private _throwUnlessSetup(methodName: string) {
-    if (!this.isInitialized) { throw new Error(`Call Device.setup() before ${methodName}`); }
+    if (!this.isInitialized) { throw new InvalidStateError(`Call Device.setup() before ${methodName}`); }
   }
 
   /**
@@ -1169,7 +1182,7 @@ class Device extends EventEmitter {
     const connection: Connection | null = this._activeConnection;
 
     if (connection && !inputStream) {
-      return Promise.reject(new Error('Cannot unset input device while a call is in progress.'));
+      return Promise.reject(new InvalidStateError('Cannot unset input device while a call is in progress.'));
     }
 
     this._connectionInputStream = inputStream;

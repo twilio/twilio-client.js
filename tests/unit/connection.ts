@@ -4,6 +4,7 @@ import * as assert from 'assert';
 import { EventEmitter } from 'events';    
 import { SinonFakeTimers, SinonSpy, SinonStubbedInstance } from 'sinon';
 import * as sinon from 'sinon';
+import { MediaErrors } from '../../lib/twilio/errors';
 
 /* tslint:disable-next-line */
 describe('Connection', function() {
@@ -881,7 +882,7 @@ describe('Connection', function() {
     });
 
     describe('mediaStream.onerror', () => {
-      const baseError = { info: { code: 123, message: 'foo' } };
+      const baseError = { info: { code: 123, message: 'foo' }, twilioError: 'bar' };
 
       it('should emit an error event', (done) => {
         conn.on('error', (error) => {
@@ -890,6 +891,7 @@ describe('Connection', function() {
             connection: conn,
             info: baseError.info,
             message: 'foo',
+            twilioError: 'bar'
           });
 
           done();
@@ -1080,7 +1082,7 @@ describe('Connection', function() {
       });
     });
 
-    describe('pstream.transportClosed event', () => {
+    describe('pstream.transportClose event', () => {
       it('should call disconnect if enableIceRestart is true', () => {
         conn = new Connection(config, Object.assign({
           callParameters: { CallSid: 'CA123' }
@@ -1088,7 +1090,7 @@ describe('Connection', function() {
 
         conn['_status'] = Connection.State.Open;
         mediaStream.close = sinon.stub();
-        pstream.emit('transportClosed');
+        pstream.emit('transportClose');
 
         assert(mediaStream.close.calledOnce);
       });
@@ -1100,7 +1102,7 @@ describe('Connection', function() {
 
         conn['_status'] = Connection.State.Open;
         mediaStream.close = sinon.stub();
-        pstream.emit('transportClosed');
+        pstream.emit('transportClose');
 
         assert(mediaStream.close.notCalled);
       });
@@ -1471,7 +1473,12 @@ describe('Connection', function() {
         clock.tick(7000);
         clock.restore();
         return wait().then(() => {
-          assert(callback.calledWithExactly({ code: 53405, message: 'Media connection failed.' }));
+          sinon.assert.calledWithMatch(callback, {
+            code: 53405,
+            message: 'Media connection failed.'
+          });
+          const rVal = callback.firstCall.args[0];
+          assert.equal(rVal.twilioError.code, 53405);
         });
       });
       it('should change status to reconnecting', () => {

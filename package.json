@@ -112,7 +112,7 @@
   },
   "dependencies": {
     "@twilio/audioplayer": "1.0.4",
-    "@twilio/voice-errors": "1.0.0",
+    "@twilio/voice-errors": "1.0.1",
     "backoff": "2.5.0",
     "rtcpeerconnection-shim": "1.2.8",
     "ws": "6.1.3",
