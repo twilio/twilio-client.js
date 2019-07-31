@@ -3,6 +3,8 @@
  * @internalapi
  */
 
+import { InvalidArgumentError } from './errors';
+
 /**
  * A Map of DTMF Sound Names to their mock frequency pairs.
  */
@@ -54,7 +56,7 @@ export default class DialtonePlayer {
     const frequencies = bandFrequencies[sound];
 
     if (!frequencies) {
-      throw new Error('Invalid DTMF sound name');
+      throw new InvalidArgumentError('Invalid DTMF sound name');
     }
 
     const oscillators: OscillatorNode[] = [
