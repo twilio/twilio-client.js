@@ -13,4 +13,5 @@ module.exports.USED_ERRORS = [
   'MediaErrors.UserMediaDenied',
   'MediaErrors.UserMediaFailed',
   'SignalingErrors.ConnectionDisconnected',
+  'SignalingErrors.ConnectionError',
 ];
