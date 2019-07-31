@@ -948,7 +948,7 @@ describe('PeerConnection', () => {
     const STATUS_NOT_OPEN = 'not open';
     const PSTREAM_STATUS_DISCONNECTED = 'disconnected';
     const PSTREAM_STATUS_NOT_DISCONNECTED = 'not disconnected';
-    const CONNECTION_ERROR = {info: {code: 31000, message: "Cannot establish connection. Client is disconnected"}};
+    const CONNECTION_ERROR = {info: { code: 31000, message: 'Cannot establish connection. Client is disconnected'}};
 
     let context = null;
     let pstream = null;
@@ -981,9 +981,13 @@ describe('PeerConnection', () => {
     it('Should call onerror with error object and return false when pstream status is disconnected', () => {
       pstream.status = PSTREAM_STATUS_DISCONNECTED;
       assert.strictEqual(toTest(), false);
-      assert(context.onerror.calledWithExactly(CONNECTION_ERROR));
       assert(context.close.calledWithExactly());
       assert(context.onerror.calledBefore(context.close));
+      sinon.assert.calledWithMatch(context.onerror, CONNECTION_ERROR);
+
+      const rVal = context.onerror.firstCall.args[0];
+      assert.equal(rVal.info.twilioError.code, 53001);
+
       assert.equal(context._setupPeerConnection.called, false);
       assert.equal(context._setupChannel.called, false);
     });
@@ -1089,13 +1093,16 @@ describe('PeerConnection', () => {
       version.pc.iceConnectionState = 'failed';
       toTest();
       version.pc.oniceconnectionstatechange();
-      assert(context.onerror.calledWithExactly({
+      sinon.assert.calledWithMatch(context.onerror, {
         info: {
           code: 31003,
           message: 'Connection with Twilio was interrupted.'
         },
         disconnect: true
-      }));
+      });
+
+      const rVal = context.onerror.firstCall.args[0];
+      assert.equal(rVal.info.twilioError.code, 53405);
     });
 
     it('Should call onerror without disconnect flag if enableIceRestart is true', () => {
@@ -1104,13 +1111,16 @@ describe('PeerConnection', () => {
       version.pc.iceConnectionState = 'failed';
       toTest();
       version.pc.oniceconnectionstatechange();
-      assert(context.onerror.calledWithExactly({
+      sinon.assert.calledWithMatch(context.onerror, {
         info: {
           code: 31003,
           message: 'Connection with Twilio was interrupted.'
         },
         disconnect: false
-      }));
+      });
+
+      const rVal = context.onerror.firstCall.args[0];
+      assert.equal(rVal.info.twilioError.code, 53405);
     });
   });
 

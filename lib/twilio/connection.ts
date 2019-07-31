@@ -393,7 +393,7 @@ class Connection extends EventEmitter {
         connection: this,
         info: e.info,
         message: e.info.message || 'Error with mediastream',
-        twilioError: e.twilioError,
+        twilioError: e.info.twilioError,
       };
 
       this._log.error('Received an error from MediaStream:', e);
