@@ -2,6 +2,7 @@
  * @module Voice
  * This module describes valid and deprecated regions.
  */
+import { InvalidArgumentError } from './errors';
 import { Exception } from './util';
 
 /**
@@ -111,7 +112,8 @@ export function getRegionURI(region: ValidRegion = Region.Gll, onDeprecated?: (n
       setTimeout(() => onDeprecated(region as Region));
     }
   } else if (!(Object as any).values(Region).includes(region)) {
-    throw new Exception(`Region ${region} is invalid. Valid values are: ${Object.keys(regionURIs).join(', ')}`);
+    const msg = `Region ${region} is invalid. Valid values are: ${Object.keys(regionURIs).join(', ')}`;
+    throw new InvalidArgumentError(msg);
   }
 
   return regionURIs[region as Region];
