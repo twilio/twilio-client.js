@@ -1,4 +1,5 @@
- /**
+/* tslint:disable max-classes-per-file max-line-length */
+/**
  * @module Voice
  * @publicapi
  * @internal
@@ -25,20 +26,76 @@ function construct(context: TwilioError, messageOrError?: string | Error, origin
   }
 }
 
-export namespace MediaErrors {
-  export class UserMediaDenied extends Error implements TwilioError {
+export namespace AuthorizationErrors {
+  export class AccessTokenExpired extends Error implements TwilioError {
+    causes: string[] = [];
+    code: number = 20104;
+    description: string = 'Access token expired or expiration date invalid';
+    explanation: string = 'The Access Token provided to the Twilio API has expired, the expiration time specified in the token was invalid, or the expiration time specified was too far in the future';
+    solutions: string[] = [];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super('');
+      Object.setPrototypeOf(this, AuthorizationErrors.AccessTokenExpired.prototype);
+      construct(this, messageOrError, originalError);
+    }
+  }
+}
+
+export namespace ClientErrors {
+  export class BadRequest extends Error implements TwilioError {
+    causes: string[] = [];
+    code: number = 31400;
+    description: string = 'Bad Request (HTTP/SIP)';
+    explanation: string = 'The request could not be understood due to malformed syntax.';
+    solutions: string[] = [];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super('');
+      Object.setPrototypeOf(this, ClientErrors.BadRequest.prototype);
+      construct(this, messageOrError, originalError);
+    }
+  }
+}
+
+export namespace GeneralErrors {
+  export class UnknownError extends Error implements TwilioError {
+    causes: string[] = [];
+    code: number = 31000;
+    description: string = 'Unknown Error';
+    explanation: string = 'An unknown error has occurred. See error details for more information.';
+    solutions: string[] = [];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super('');
+      Object.setPrototypeOf(this, GeneralErrors.UnknownError.prototype);
+      construct(this, messageOrError, originalError);
+    }
+  }
+}
+
+export namespace SignalingErrors {
+  export class ConnectionDisconnected extends Error implements TwilioError {
     causes: string[] = [
-      'The user denied the request for user media manually.',
-      'The browser applied a custom policy that auto-denies media requests.',
-      'The browser remembered the user\'s previous choice to deny media requests from this page.'
+      'The device running your application lost its Internet connection.',
     ];
-    code: number = 53406;
-    description: string = 'User denied access to user media';
-    explanation: string = 'Raised when we try to call getUserMedia to acquire an audio stream and the end user or their browser denies the request.';
+    code: number = 53001;
+    description: string = 'Signaling connection disconnected';
+    explanation: string = 'Raised whenever the signaling connection is unexpectedly disconnected.';
     solutions: string[] = [
-      'Accept the request for user media.',
-      'Navigate to your browser\'s privacy settings and change the policy to ask for permission, or add this site to the whitelist.',
-      'Navigate to your browser\'s preferences and change or delete the media rules for the affected page.'
+      'Ensure the device running your application has access to a stable Internet connection.',
     ];
 
     constructor();
@@ -47,14 +104,45 @@ export namespace MediaErrors {
     constructor(message: string, originalError?: Error);
     constructor(messageOrError?: string | Error, originalError?: Error) {
       super('');
-      Object.setPrototypeOf(this, MediaErrors.UserMediaDenied.prototype);
+      Object.setPrototypeOf(this, SignalingErrors.ConnectionDisconnected.prototype);
+      construct(this, messageOrError, originalError);
+    }
+  }
+}
+
+export namespace MediaErrors {
+  export class ConnectionError extends Error implements TwilioError {
+    causes: string[] = [
+      'The Client was unable to establish a media connection.',
+      'A media connection which was active failed liveliness checks.',
+    ];
+    code: number = 53405;
+    description: string = 'Media connection failed';
+    explanation: string = 'Raised by the Client or Server whenever a media connection fails.';
+    solutions: string[] = [
+      'If the problem persists, try connecting to another region.',
+      'Check your Client\'s network connectivity.',
+      'If you\'ve provided custom ICE Servers then ensure that the URLs and credentials are valid.',
+    ];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super('');
+      Object.setPrototypeOf(this, MediaErrors.ConnectionError.prototype);
       construct(this, messageOrError, originalError);
     }
   }
 }
 
 export const errorsByCode: ReadonlyMap<number, any> = new Map([
-  [ 53406, MediaErrors.UserMediaDenied ]
+  [ 20104, AuthorizationErrors.AccessTokenExpired ],
+  [ 31400, ClientErrors.BadRequest ],
+  [ 31000, GeneralErrors.UnknownError ],
+  [ 53001, SignalingErrors.ConnectionDisconnected ],
+  [ 53405, MediaErrors.ConnectionError ],
 ]);
 
 Object.freeze(errorsByCode);

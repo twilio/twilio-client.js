@@ -6,6 +6,7 @@
 import { EventEmitter } from 'events';
 import Device from './device';
 import DialtonePlayer from './dialtonePlayer';
+import { InvalidArgumentError, MediaErrors, TwilioError } from './errors';
 import { Region } from './regions';
 import RTCMonitor from './rtc/monitor';
 import RTCSample from './rtc/sample';
@@ -277,7 +278,11 @@ class Connection extends EventEmitter {
           return;
         }
 
-        const mediaFailedError = { code: 53405, message: 'Media connection failed.' };
+        const mediaFailedError = {
+          code: 53405,
+          message: 'Media connection failed.',
+          twilioError: new MediaErrors.ConnectionError(),
+        };
 
         this._log.warn('ICE Connection disconnected.');
         this._publisher.warn('connection', 'error', mediaFailedError, this);
@@ -383,12 +388,12 @@ class Connection extends EventEmitter {
       if (e.disconnect === true) {
         this._disconnect(e.info && e.info.message);
       }
-
       const error: Connection.Error = {
         code: e.info.code,
         connection: this,
         info: e.info,
         message: e.info.message || 'Error with mediastream',
+        twilioError: e.twilioError,
       };
 
       this._log.error('Received an error from MediaStream:', e);
@@ -439,7 +444,7 @@ class Connection extends EventEmitter {
       // When websocket gets disconnected
       // There's no way to retry this session so we disconnect
       // This is not needed if ice restart is disabled, signaling will automatically disconnect the connection
-      this.pstream.on('transportClosed', this._disconnect.bind(this));
+      this.pstream.on('transportClose', this._disconnect.bind(this));
     }
 
     this.on('error', error => {
@@ -741,11 +746,11 @@ class Connection extends EventEmitter {
     }
 
     if (!Object.values(Connection.FeedbackScore).includes(score)) {
-      throw new Error(`Feedback score must be one of: ${Object.values(Connection.FeedbackScore)}`);
+      throw new InvalidArgumentError(`Feedback score must be one of: ${Object.values(Connection.FeedbackScore)}`);
     }
 
     if (typeof issue !== 'undefined' && issue !== null && !Object.values(Connection.FeedbackIssue).includes(issue)) {
-      throw new Error(`Feedback issue must be one of: ${Object.values(Connection.FeedbackIssue)}`);
+      throw new InvalidArgumentError(`Feedback issue must be one of: ${Object.values(Connection.FeedbackIssue)}`);
     }
 
     return this._publisher.info('feedback', 'received', {
@@ -785,7 +790,7 @@ class Connection extends EventEmitter {
    */
   sendDigits(digits: string): void {
     if (digits.match(/[^0-9*#w]/)) {
-      throw new Exception('Illegal character passed into sendDigits');
+      throw new InvalidArgumentError('Illegal character passed into sendDigits');
     }
 
     const sequence: string[] = [];
@@ -1407,6 +1412,11 @@ namespace Connection {
      * Error message
      */
     message: string;
+
+    /**
+     * Twilio Voice related error
+     */
+    twilioError?: TwilioError;
   }
 
   /**
