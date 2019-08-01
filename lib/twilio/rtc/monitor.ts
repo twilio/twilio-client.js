@@ -4,6 +4,7 @@
  */
 
 import { EventEmitter } from 'events';
+import { InvalidArgumentError } from '../errors';
 import RTCSample from './sample';
 import RTCWarning from './warning';
 
@@ -179,13 +180,13 @@ class RTCMonitor extends EventEmitter {
   enable(peerConnection: IPeerConnection): this {
     if (peerConnection) {
       if (this._peerConnection && peerConnection !== this._peerConnection) {
-        throw new Error('Attempted to replace an existing PeerConnection in RTCMonitor.enable');
+        throw new InvalidArgumentError('Attempted to replace an existing PeerConnection in RTCMonitor.enable');
       }
       this._peerConnection = peerConnection;
     }
 
     if (!this._peerConnection) {
-      throw new Error('Can not enable RTCMonitor without a PeerConnection');
+      throw new InvalidArgumentError('Can not enable RTCMonitor without a PeerConnection');
     }
 
     this._sampleInterval = this._sampleInterval ||
@@ -302,6 +303,8 @@ class RTCMonitor extends EventEmitter {
       this.emit('sample', sample);
     }).catch(error => {
       this.disable();
+      // We only bubble up any errors coming from pc.getStats()
+      // No need to attach a twilioError
       this.emit('error', error);
     });
   }

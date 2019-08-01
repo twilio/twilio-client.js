@@ -129,6 +129,53 @@ export namespace SignalingErrors {
 }
 
 export namespace MediaErrors {
+  export class ClientLocalDescFailed extends Error implements TwilioError {
+    causes: string[] = [
+      'The Client may not be using a supported WebRTC implementation.',
+      'The Client may not have the necessary resources to create or apply a new media description.',
+    ];
+    code: number = 53400;
+    description: string = 'Client is unable to create or apply a local media description';
+    explanation: string = 'Raised whenever a Client is unable to create or apply a local media description.';
+    solutions: string[] = [
+      'If you are experiencing this error using the JavaScript SDK, ensure you are running it with a supported WebRTC implementation.',
+    ];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super('');
+      Object.setPrototypeOf(this, MediaErrors.ClientLocalDescFailed.prototype);
+      construct(this, messageOrError, originalError);
+    }
+  }
+
+  export class ClientRemoteDescFailed extends Error implements TwilioError {
+    causes: string[] = [
+      'The Client may not be using a supported WebRTC implementation.',
+      'The Client may be connecting peer-to-peer with another Participant that is not using a supported WebRTC implementation.',
+      'The Client may not have the necessary resources to apply a new media description.',
+    ];
+    code: number = 53402;
+    description: string = 'Client is unable to apply a remote media description';
+    explanation: string = 'Raised whenever the Client receives a remote media description but is unable to apply it.';
+    solutions: string[] = [
+      'If you are experiencing this error using the JavaScript SDK, ensure you are running it with a supported WebRTC implementation.',
+    ];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super('');
+      Object.setPrototypeOf(this, MediaErrors.ClientRemoteDescFailed.prototype);
+      construct(this, messageOrError, originalError);
+    }
+  }
+
   export class ConnectionError extends Error implements TwilioError {
     causes: string[] = [
       'The Client was unable to establish a media connection.',
@@ -161,6 +208,8 @@ export const errorsByCode: ReadonlyMap<number, any> = new Map([
   [ 31000, GeneralErrors.UnknownError ],
   [ 53000, SignalingErrors.ConnectionError ],
   [ 53001, SignalingErrors.ConnectionDisconnected ],
+  [ 53400, MediaErrors.ClientLocalDescFailed ],
+  [ 53402, MediaErrors.ClientRemoteDescFailed ],
   [ 53405, MediaErrors.ConnectionError ],
 ]);
 
