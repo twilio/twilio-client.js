@@ -87,6 +87,24 @@ export namespace GeneralErrors {
 }
 
 export namespace SignalingErrors {
+  export class ConnectionError extends Error implements TwilioError {
+    causes: string[] = [];
+    code: number = 53000;
+    description: string = 'Signaling connection error';
+    explanation: string = 'Raised whenever a signaling connection error occurs that is not covered by a more specific error code.';
+    solutions: string[] = [];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super('');
+      Object.setPrototypeOf(this, SignalingErrors.ConnectionError.prototype);
+      construct(this, messageOrError, originalError);
+    }
+  }
+
   export class ConnectionDisconnected extends Error implements TwilioError {
     causes: string[] = [
       'The device running your application lost its Internet connection.',
@@ -188,6 +206,7 @@ export const errorsByCode: ReadonlyMap<number, any> = new Map([
   [ 20104, AuthorizationErrors.AccessTokenExpired ],
   [ 31400, ClientErrors.BadRequest ],
   [ 31000, GeneralErrors.UnknownError ],
+  [ 53000, SignalingErrors.ConnectionError ],
   [ 53001, SignalingErrors.ConnectionDisconnected ],
   [ 53400, MediaErrors.ClientLocalDescFailed ],
   [ 53402, MediaErrors.ClientRemoteDescFailed ],
