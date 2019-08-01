@@ -542,7 +542,11 @@ describe('PeerConnection', () => {
       toTest();
       assert(context._initializeMediaStream.calledWithExactly(eConstraints, eIceServers));
       assert(version.processSDP.calledOnce);
-      assert(context.onerror.calledWithExactly(expectedError));
+      assert(context.onerror.calledWithMatch(expectedError));
+
+      const rVal = context.onerror.firstCall.args[0];
+      assert.equal(rVal.info.twilioError.code, 53402);
+
       assert(version.processSDP.calledWithExactly(undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(context.pstream.publish.called, false);
       assert.equal(version.getSDP.called, false);
@@ -555,7 +559,11 @@ describe('PeerConnection', () => {
       toTest();
       assert(context._initializeMediaStream.calledWithExactly(eConstraints, eIceServers));
       assert(version.processSDP.calledOnce);
-      assert(context.onerror.calledWithExactly(EXPECTED_ERROR));
+      assert(context.onerror.calledWithMatch(EXPECTED_ERROR));
+
+      const rVal = context.onerror.firstCall.args[0];
+      assert.equal(rVal.info.twilioError.code, 53402);
+
       assert(version.processSDP.calledWithExactly(undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(context.pstream.publish.called, false);
       assert.equal(version.getSDP.called, false);
@@ -581,7 +589,11 @@ describe('PeerConnection', () => {
       toTest();
       version.processSDP.callArg(4, new Error('error message'));
       version.processSDP.callArg(4, new Error('error message'));
-      assert(context.onerror.calledWithExactly(EXPECTED_ERROR));
+      assert(context.onerror.calledWithMatch(EXPECTED_ERROR));
+
+      const rVal = context.onerror.firstCall.args[0];
+      assert.equal(rVal.info.twilioError.code, 53402);
+
       assert(context.onerror.calledTwice);
       assert.equal(callback.called, false);
     });
@@ -879,7 +891,11 @@ describe('PeerConnection', () => {
     it('Should call onOfferError when createOffer calls error callback with error message', () => {
       version.createOffer.callsArgWith(3, ERROR_MESSAGE);
       toTest();
-      assert(context.onerror.calledWithExactly(EXPECTED_OFFER_ERROR));
+      assert(context.onerror.calledWithMatch(EXPECTED_OFFER_ERROR));
+
+      const rVal = context.onerror.firstCall.args[0];
+      assert.equal(rVal.info.twilioError.code, 53400);
+
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
     });
 
@@ -909,7 +925,7 @@ describe('PeerConnection', () => {
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
       assert(version.processAnswer.calledWithExactly(undefined, PAYLOAD.sdp, sinon.match.func, sinon.match.func));
       assert(version.processAnswer.calledOn(version));
-      assert(context.onerror.calledWithExactly(EXPECTED_PROCESSING_ERROR));
+      assert(context.onerror.calledWithMatch(EXPECTED_PROCESSING_ERROR));
     });
 
     it('Should call onerror and proxy message when processAnswer calls error callback', () => {
@@ -922,7 +938,7 @@ describe('PeerConnection', () => {
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
       assert(version.processAnswer.calledWithExactly(undefined, PAYLOAD.sdp, sinon.match.func, sinon.match.func));
       assert(version.processAnswer.calledOn(version));
-      assert(context.onerror.calledWithExactly(EXPECTED_PROCESSING_ERROR));
+      assert(context.onerror.calledWithMatch(EXPECTED_PROCESSING_ERROR));
       sinon.assert.notCalled(context._setNetworkPriority);
     });
 
@@ -948,7 +964,7 @@ describe('PeerConnection', () => {
     const STATUS_NOT_OPEN = 'not open';
     const PSTREAM_STATUS_DISCONNECTED = 'disconnected';
     const PSTREAM_STATUS_NOT_DISCONNECTED = 'not disconnected';
-    const CONNECTION_ERROR = {info: {code: 31000, message: "Cannot establish connection. Client is disconnected"}};
+    const CONNECTION_ERROR = {info: { code: 31000, message: 'Cannot establish connection. Client is disconnected'}};
 
     let context = null;
     let pstream = null;
@@ -981,9 +997,13 @@ describe('PeerConnection', () => {
     it('Should call onerror with error object and return false when pstream status is disconnected', () => {
       pstream.status = PSTREAM_STATUS_DISCONNECTED;
       assert.strictEqual(toTest(), false);
-      assert(context.onerror.calledWithExactly(CONNECTION_ERROR));
       assert(context.close.calledWithExactly());
       assert(context.onerror.calledBefore(context.close));
+      sinon.assert.calledWithMatch(context.onerror, CONNECTION_ERROR);
+
+      const rVal = context.onerror.firstCall.args[0];
+      assert.equal(rVal.info.twilioError.code, 53001);
+
       assert.equal(context._setupPeerConnection.called, false);
       assert.equal(context._setupChannel.called, false);
     });
@@ -1089,13 +1109,16 @@ describe('PeerConnection', () => {
       version.pc.iceConnectionState = 'failed';
       toTest();
       version.pc.oniceconnectionstatechange();
-      assert(context.onerror.calledWithExactly({
+      sinon.assert.calledWithMatch(context.onerror, {
         info: {
           code: 31003,
           message: 'Connection with Twilio was interrupted.'
         },
         disconnect: true
-      }));
+      });
+
+      const rVal = context.onerror.firstCall.args[0];
+      assert.equal(rVal.info.twilioError.code, 53405);
     });
 
     it('Should call onerror without disconnect flag if enableIceRestart is true', () => {
@@ -1104,13 +1127,16 @@ describe('PeerConnection', () => {
       version.pc.iceConnectionState = 'failed';
       toTest();
       version.pc.oniceconnectionstatechange();
-      assert(context.onerror.calledWithExactly({
+      sinon.assert.calledWithMatch(context.onerror, {
         info: {
           code: 31003,
           message: 'Connection with Twilio was interrupted.'
         },
         disconnect: false
-      }));
+      });
+
+      const rVal = context.onerror.firstCall.args[0];
+      assert.equal(rVal.info.twilioError.code, 53405);
     });
   });
 

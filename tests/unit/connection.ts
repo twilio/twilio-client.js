@@ -882,7 +882,7 @@ describe('Connection', function() {
     });
 
     describe('mediaStream.onerror', () => {
-      const baseError = { info: { code: 123, message: 'foo' }, twilioError: 'bar' };
+      const baseError = { info: { code: 123, message: 'foo', twilioError: 'bar' } };
 
       it('should emit an error event', (done) => {
         conn.on('error', (error) => {
