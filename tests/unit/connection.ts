@@ -1162,20 +1162,23 @@ describe('Connection', function() {
           sinon.assert.notCalled(pstream.publish);
         });
 
-        it('should throw an error if the payload contains an error', (done) => {
-          conn.on('error', (e) => {
-            assert.deepEqual(e, {
-              code: 123,
-              message: 'foo',
-              connection: conn,
-            });
-            done();
-          });
+        it('should throw an error if the payload contains an error', () => {
+          const callback = sinon.stub();
+          conn.on('error', callback);
           pstream.emit('cancel', { callsid: 'foo' });
           pstream.emit('hangup', { callsid: 'CA123', error: {
             code: 123,
             message: 'foo',
           }});
+
+          sinon.assert.calledWithMatch(callback, {
+            code: 123,
+            message: 'foo',
+            connection: conn,
+          });
+
+          const rVal = callback.firstCall.args[0];
+          assert.equal(rVal.twilioError.code, 31005);
         });
       });
 

@@ -27,6 +27,24 @@ function construct(context: TwilioError, messageOrError?: string | Error, origin
 }
 
 export namespace AuthorizationErrors {
+  export class AccessTokenInvalid extends Error implements TwilioError {
+    causes: string[] = [];
+    code: number = 20101;
+    description: string = 'Invalid access token';
+    explanation: string = 'Twilio was unable to validate your Access Token';
+    solutions: string[] = [];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super('');
+      Object.setPrototypeOf(this, AuthorizationErrors.AccessTokenInvalid.prototype);
+      construct(this, messageOrError, originalError);
+    }
+  }
+
   export class AccessTokenExpired extends Error implements TwilioError {
     causes: string[] = [];
     code: number = 20104;
@@ -41,6 +59,24 @@ export namespace AuthorizationErrors {
     constructor(messageOrError?: string | Error, originalError?: Error) {
       super('');
       Object.setPrototypeOf(this, AuthorizationErrors.AccessTokenExpired.prototype);
+      construct(this, messageOrError, originalError);
+    }
+  }
+
+  export class AuthenticationFailed extends Error implements TwilioError {
+    causes: string[] = [];
+    code: number = 20151;
+    description: string = 'Authentication Failed';
+    explanation: string = 'The Authentication with the provided JWT failed';
+    solutions: string[] = [];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super('');
+      Object.setPrototypeOf(this, AuthorizationErrors.AuthenticationFailed.prototype);
       construct(this, messageOrError, originalError);
     }
   }
@@ -81,6 +117,42 @@ export namespace GeneralErrors {
     constructor(messageOrError?: string | Error, originalError?: Error) {
       super('');
       Object.setPrototypeOf(this, GeneralErrors.UnknownError.prototype);
+      construct(this, messageOrError, originalError);
+    }
+  }
+
+  export class ConnectionError extends Error implements TwilioError {
+    causes: string[] = [];
+    code: number = 31005;
+    description: string = 'Connection error';
+    explanation: string = 'A connection error occurred during the call';
+    solutions: string[] = [];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super('');
+      Object.setPrototypeOf(this, GeneralErrors.ConnectionError.prototype);
+      construct(this, messageOrError, originalError);
+    }
+  }
+
+  export class TransportError extends Error implements TwilioError {
+    causes: string[] = [];
+    code: number = 31009;
+    description: string = 'Transport error';
+    explanation: string = 'No transport available to send or receive messages';
+    solutions: string[] = [];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super('');
+      Object.setPrototypeOf(this, GeneralErrors.TransportError.prototype);
       construct(this, messageOrError, originalError);
     }
   }
@@ -203,9 +275,13 @@ export namespace MediaErrors {
 }
 
 export const errorsByCode: ReadonlyMap<number, any> = new Map([
+  [ 20101, AuthorizationErrors.AccessTokenInvalid ],
   [ 20104, AuthorizationErrors.AccessTokenExpired ],
+  [ 20151, AuthorizationErrors.AuthenticationFailed ],
   [ 31400, ClientErrors.BadRequest ],
   [ 31000, GeneralErrors.UnknownError ],
+  [ 31005, GeneralErrors.ConnectionError ],
+  [ 31009, GeneralErrors.TransportError ],
   [ 53000, SignalingErrors.ConnectionError ],
   [ 53001, SignalingErrors.ConnectionDisconnected ],
   [ 53400, MediaErrors.ClientLocalDescFailed ],
