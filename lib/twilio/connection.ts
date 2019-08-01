@@ -6,7 +6,7 @@
 import { EventEmitter } from 'events';
 import Device from './device';
 import DialtonePlayer from './dialtonePlayer';
-import { InvalidArgumentError, MediaErrors, TwilioError } from './errors';
+import { GeneralErrors, InvalidArgumentError, MediaErrors, TwilioError } from './errors';
 import { Region } from './regions';
 import RTCMonitor from './rtc/monitor';
 import RTCSample from './rtc/sample';
@@ -1139,6 +1139,7 @@ class Connection extends EventEmitter {
         code: payload.error.code || 31000,
         connection: this,
         message: payload.error.message || 'Error sent from gateway in HANGUP',
+        twilioError: new GeneralErrors.ConnectionError(),
       };
       this._log.error('Received an error from the gateway:', error);
       this.emit('error', error);

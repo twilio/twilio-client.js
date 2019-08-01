@@ -986,8 +986,12 @@ class Device extends EventEmitter {
       error.connection = this._findConnection(sid);
     }
 
-    // Stop trying to register presence after token expires
-    if (error.code === 31205) {
+    if (error.code === 31201) {
+      error.twilioError = new AuthorizationErrors.AuthenticationFailed();
+    } else if (error.code === 31204) {
+      error.twilioError = new AuthorizationErrors.AccessTokenInvalid();
+    } else if (error.code === 31205) {
+      // Stop trying to register presence after token expires
       this._stopRegistrationTimer();
       error.twilioError = new AuthorizationErrors.AccessTokenExpired();
     } else if (!error.twilioError) {
