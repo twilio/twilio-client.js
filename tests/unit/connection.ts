@@ -847,9 +847,9 @@ describe('Connection', function() {
       });
     });
 
-    describe('mediaStream.ondisconnect', () => {
+    describe('mediaStream.onicedisconnect', () => {
       it('should publish a warning event: ice-connectivity-lost', () => {
-        mediaStream.ondisconnect('foo');
+        mediaStream.onicedisconnect('foo');
         sinon.assert.calledWith(publisher.warn, 'network-quality-warning-raised',
           'ice-connectivity-lost', { message: 'foo' });
       });
@@ -860,13 +860,13 @@ describe('Connection', function() {
           done();
         });
 
-        mediaStream.ondisconnect('foo');
+        mediaStream.onicedisconnectw('foo');
       });
     });
 
-    describe('mediaStream.onreconnect', () => {
+    describe('mediaStream.onicereconnect', () => {
       it('should publish an info event: ice-connectivity-lost', () => {
-        mediaStream.onreconnect('foo');
+        mediaStream.onicereconnect('foo');
         sinon.assert.calledWith(publisher.info, 'network-quality-warning-cleared',
           'ice-connectivity-lost', { message: 'foo' });
       });
@@ -877,7 +877,7 @@ describe('Connection', function() {
           done();
         });
 
-        mediaStream.onreconnect('foo');
+        mediaStream.onicereconnect('foo');
       });
     });
 
