@@ -197,6 +197,11 @@ class Device extends EventEmitter {
   }
 
   /**
+   * Current SDK version.
+   */
+  static get version(): string { return C.RELEASE_VERSION; }
+
+  /**
    * An AudioContext to share between {@link Device}s.
    */
   private static _audioContext?: AudioContext;
