@@ -640,12 +640,17 @@ describe('PeerConnection', () => {
 
     beforeEach(() => {
       version = {
-        createOffer: sinon.stub().returns({ then: (cb) => cb()}),
+        createOffer: sinon.stub().returns({then: (cb) => {
+          cb();
+          return {
+            catch: (cb) => {}
+          }
+        }}),
         getSDP: () => SDP,
         pc: {
           signalingState: 'have-local-offer'
         },
-        processAnswer: sinon.stub().callsFake((codecPreferences, sdp, onSuccess, onError) => onSuccess()),
+        processAnswer: sinon.stub().callsFake(() => {}),
       };
       options = { enableIceRestart: true };
       pstream = {
@@ -669,94 +674,68 @@ describe('PeerConnection', () => {
     it('Should not proceed iceRestart if enableIceRestart is false', () => {
       options.enableIceRestart = false;
       toTest();
-      assert(version.createOffer.notCalled);
-    });
-
-    it('Should call createOffer with iceRestart flag', (done) => {
-      toTest().catch(() => {
-        assert(version.createOffer.calledWithExactly(context.codecPreferences, {iceRestart: true}));
-        done();
+      return wait().then(() => {
+        assert(version.createOffer.notCalled);
       });
-      context._onAnswerOrRinging({});
     });
 
-    it('Should publish reinvite', (done) => {
-      toTest().then(() => {
+    it('Should call createOffer with iceRestart flag', () => {
+      toTest();
+      return wait().then(() => {
+        assert(version.createOffer.calledWithExactly(context.codecPreferences, {iceRestart: true}));
+      });
+    });
+
+    it('Should publish reinvite', () => {
+      toTest();
+      return wait().then(() => {
         assert(!context._removeReconnectionListeners.notCalled);
         assert(pstream.reinvite.calledWithExactly(SDP, CALLSID));
-        done();
-      });
-      context._onAnswerOrRinging({ sdp: SDP });
-    });
-
-    it('Should return canRetry=true on createOffer fail', (done) => {
-      version.createOffer = sinon.stub().returns(Promise.reject());
-      toTest().catch((canRetry) => {
-        assert(version.createOffer.calledWithExactly(context.codecPreferences, {iceRestart: true}));
-        assert.equal(canRetry, true);
-        done();
       });
     });
 
-    it('Should return canRetry=false if reinvite fail', (done) => {
-      toTest().catch((canRetry) => {
-        assert(pstream.reinvite.calledWithExactly(SDP, CALLSID));
-        assert(!context._removeReconnectionListeners.notCalled);
-        assert.equal(canRetry, false);
-        done();
+    it('Should call onfailed on createOffer fail', () => {
+      version.createOffer = sinon.stub().returns(Promise.reject('foo'));
+      context.onfailed = sinon.stub();
+      toTest();
+      return wait().then(() => {
+        sinon.assert.calledWithExactly(context.onfailed, 'foo');
       });
+    });
+
+    it('Should release handlers if reinvite fail', () => {
+      toTest();
       context._onHangup();
+      return wait().then(() => {
+        assert(!context._removeReconnectionListeners.notCalled);
+      });
     });
 
-    it('Should return canRetry=true if sdp is missing', (done) => {
-      toTest().catch((canRetry) => {
-        sinon.assert.notCalled(version.processAnswer);
-        assert(!context._removeReconnectionListeners.notCalled);
-        assert.equal(canRetry, true);
-        done();
-      });
+    it('Should release handlers if sdp is missing', () => {
+      toTest();
       context._onAnswerOrRinging({});
+      return wait().then(() => {
+        sinon.assert.notCalled(version.processAnswer);
+        assert(!context._removeReconnectionListeners.notCalled);
+      });
     });
 
-    it('Should return canRetry=false if there is no local offer', (done) => {
+    it('Should release handlersif there is no local offer', () => {
       version.pc.signalingState = 'stable';
-      toTest().catch((canRetry) => {
+      toTest();
+      context._onAnswerOrRinging({ sdp: SDP });
+      return wait().then(() => {
         sinon.assert.notCalled(version.processAnswer);
         assert(!context._removeReconnectionListeners.notCalled);
-        assert.equal(canRetry, false);
-        done();
       });
-      context._onAnswerOrRinging({ sdp: SDP });
     });
 
-    it('Should return canRetry=true on processAnswer fail', (done) => {
-      version.processAnswer = sinon.stub().callsFake((codecPreferences, sdp, onSuccess, onError) => onError({}));
-      toTest().catch((canRetry) => {
-        sinon.assert.calledOnce(version.processAnswer);
-        assert(!context._removeReconnectionListeners.notCalled);
-        assert.equal(canRetry, true);
-        done();
-      });
+    it('Should update _answerSdp', () => {
+      toTest();
       context._onAnswerOrRinging({ sdp: SDP });
-    });
-
-    it('Should return canRetry=true if current connection is close', (done) => {
-      context.status = 'closed';
-      toTest().catch((canRetry) => {
-        sinon.assert.notCalled(version.processAnswer);
-        assert(!context._removeReconnectionListeners.notCalled);
-        assert.equal(canRetry, true);
-        done();
-      });
-      context._onAnswerOrRinging({ sdp: SDP });
-    });
-
-    it('Should update _answerSdp', (done) => {
-      toTest().then(() => {
+      return wait().then(() => {
         assert.equal(context._answerSdp, SDP);
-        done();
       });
-      context._onAnswerOrRinging({ sdp: SDP });
     });
   });
 
@@ -1095,6 +1074,7 @@ describe('PeerConnection', () => {
         version,
         options: {},
         log: sinon.stub(),
+        onfailed: sinon.stub(),
         onopen: sinon.stub(),
         onicecandidate: sinon.stub(),
         onicegatheringstatechange: sinon.stub(),
@@ -1103,40 +1083,11 @@ describe('PeerConnection', () => {
       toTest = METHOD.bind(context);
     });
 
-    it('Should call onerror with disconnect flag if enableIceRestart is false', () => {
-      context.onerror = sinon.stub();
-      context.options.enableIceRestart = false;
+    it('Should call onfailed', () => {
       version.pc.iceConnectionState = 'failed';
       toTest();
       version.pc.oniceconnectionstatechange();
-      sinon.assert.calledWithMatch(context.onerror, {
-        info: {
-          code: 31003,
-          message: 'Connection with Twilio was interrupted.'
-        },
-        disconnect: true
-      });
-
-      const rVal = context.onerror.firstCall.args[0];
-      assert.equal(rVal.info.twilioError.code, 53405);
-    });
-
-    it('Should call onerror without disconnect flag if enableIceRestart is true', () => {
-      context.onerror = sinon.stub();
-      context.options.enableIceRestart = true;
-      version.pc.iceConnectionState = 'failed';
-      toTest();
-      version.pc.oniceconnectionstatechange();
-      sinon.assert.calledWithMatch(context.onerror, {
-        info: {
-          code: 31003,
-          message: 'Connection with Twilio was interrupted.'
-        },
-        disconnect: false
-      });
-
-      const rVal = context.onerror.firstCall.args[0];
-      assert.equal(rVal.info.twilioError.code, 53405);
+      sinon.assert.calledWithMatch(context.onfailed, 'Connection with Twilio was interrupted.');
     });
   });
 

@@ -210,7 +210,7 @@ class RTCMonitor extends EventEmitter {
    * @param thresholdName - The name of the threshold to check
    * @returns Whether there is an active warning for a specific stat and threshold
    */
-  hasWarning(statName: string, thresholdName: string): boolean {
+  hasActiveWarning(statName: string, thresholdName: string): boolean {
     const warningId = `${statName}:${thresholdName}`;
     return !!this._activeWarnings.get(warningId);
   }

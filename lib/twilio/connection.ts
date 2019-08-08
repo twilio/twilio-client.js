@@ -223,11 +223,6 @@ class Connection extends EventEmitter {
   private _status: Connection.State = Connection.State.Pending;
 
   /**
-   * State of the {@link Connection} prior media reconnection.
-   */
-  private _statusPriorMediaFailure: Connection.State;
-
-  /**
    * TwiML params for the call. May be set for either outgoing or incoming calls.
    */
   private readonly message: Record<string, string>;
@@ -280,7 +275,7 @@ class Connection extends EventEmitter {
       : this.options.warnings ? LogLevel.Warn
       : LogLevel.Off);
 
-    this._mediaReconnectBackoff = Backoff.exponential({...BACKOFF_CONFIG});
+    this._mediaReconnectBackoff = Backoff.exponential(BACKOFF_CONFIG);
     this._mediaReconnectBackoff.on('ready', () => this.mediaStream.iceRestart());
 
     const publisher = this._publisher = config.publisher;
@@ -339,9 +334,6 @@ class Connection extends EventEmitter {
     };
 
     this.mediaStream.onconnectionstatechange = (state: string): void => {
-      const level = state === 'failed' ? 'error' : 'debug';
-      this._publisher.post(level, 'pc-connection-state', state, null, this);
-
       if (state === 'failed') {
         this._onMediaFailure(Connection.MediaFailure.PcConnectionFailed);
       } else if (state === 'connected') {
@@ -362,7 +354,7 @@ class Connection extends EventEmitter {
       this._publisher.debug('signaling-state', state, null, this);
     };
 
-    this.mediaStream.onicedisconnect = (msg: string): void => {
+    this.mediaStream.ondisconnected = (msg: string): void => {
       this._log.info(msg);
       this._publisher.warn('network-quality-warning-raised', 'ice-connectivity-lost', {
         message: msg,
@@ -372,11 +364,11 @@ class Connection extends EventEmitter {
       this._onMediaFailure(Connection.MediaFailure.IceConnectionDisconnected);
     };
 
-    this.mediaStream.onicefailure = (msg: string): void => {
+    this.mediaStream.onfailed = (msg: string): void => {
       this._onMediaFailure(Connection.MediaFailure.IceConnectionFailed);
     };
 
-    this.mediaStream.onicereconnect = (msg: string): void => {
+    this.mediaStream.onreconnected = (msg: string): void => {
       this._log.info(msg);
       this._publisher.info('network-quality-warning-cleared', 'ice-connectivity-lost', {
         message: msg,
@@ -439,6 +431,19 @@ class Connection extends EventEmitter {
     this.pstream = config.pstream;
     this.pstream.on('cancel', this._onCancel);
     this.pstream.on('ringing', this._onRinging);
+
+    if (this.options.enableIceRestart) {
+      // When websocket gets disconnected
+      // There's no way to retry this session so we disconnect
+      // This is not needed if ice restart is disabled, signaling will automatically disconnect the connection
+      this.pstream.on('transportClose', () => {
+        const info = {...MEDIA_DISCONNECT_ERROR.info};
+        this._disconnect(info.message);
+
+        this._log.error('Received transportClose from pstream', info);
+        this.emit('error', {...info, connection: this});
+      });
+    }
 
     this.on('error', error => {
       this._publisher.error('connection', 'error', {
@@ -1194,8 +1199,8 @@ class Connection extends EventEmitter {
     }
 
     const isIceDisconnected = this.mediaStream.version.pc.iceConnectionState === 'disconnected';
-    const hasLowBytesWarning = this._monitor.hasWarning('bytesSent', 'min')
-      || this._monitor.hasWarning('bytesReceived', 'min');
+    const hasLowBytesWarning = this._monitor.hasActiveWarning('bytesSent', 'min')
+      || this._monitor.hasActiveWarning('bytesReceived', 'min');
 
     // Only certain conditions can trigger media reconnection
     if ((type === LowBytes && isIceDisconnected)
@@ -1214,7 +1219,6 @@ class Connection extends EventEmitter {
       this._publisher.info('connection', 'reconnecting', null, this);
 
       this._mediaReconnectStartTime = Date.now();
-      this._statusPriorMediaFailure = this._status;
       this._status = Connection.State.Reconnecting;
       this._mediaReconnectBackoff.reset();
       this._mediaReconnectBackoff.backoff();
@@ -1235,7 +1239,7 @@ class Connection extends EventEmitter {
     this._log.info('ICE Connection reestablished.');
     this._publisher.info('connection', 'reconnected', null, this);
 
-    this._status = this._statusPriorMediaFailure;
+    this._status = Connection.State.Open;
     this.emit('reconnected');
   }
 
