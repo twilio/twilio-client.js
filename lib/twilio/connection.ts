@@ -308,6 +308,7 @@ class Connection extends EventEmitter {
         dscp: this.options.dscp,
         enableIceRestart: this.options.enableIceRestart,
         isUnifiedPlan: this._isUnifiedPlanDefault,
+        maxBitrate: this.options.maxBitrate,
         warnings: this.options.warnings,
       });
 
@@ -1602,6 +1603,12 @@ namespace Connection {
      * A method that returns the current SinkIDs set on {@link Device}.
      */
     getSinkIds?: () => string[];
+
+    /**
+     * Max bitrate, in bits per second, for the local audio stream. Only works with Opus as
+     * this parameter is not supported by PCMU, which has a fixed birtate.
+     */
+    maxBitrate?: number;
 
     /**
      * Custom MediaStream (PeerConnection) constructor. Overrides mediaStreamFactory (deprecated).
