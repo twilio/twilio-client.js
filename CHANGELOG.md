@@ -3,15 +3,49 @@
 New Features
 ------------
 ### Media Reconnection States and Events
-This feature, when `enableIceRestart` is enabled, allows for detecting when media connection fails which will trigger automatic media reconnection, and for detecting when media connection is restored.
+This feature, when `enableIceRestart` is enabled, allows for detecting when media connection fails which will trigger automatic media reconnection, and for detecting when media connection is restored. (CLIENT-6444)
 
 #### New Events
-* `Connection.on('reconnecting', handler(error))` - raised when media connection fails and automatic reconnection has been started. Media connection failure triggers when there is no media flowing for approximately more than 3 seconds. During this period, `Connection.status()` will be set to `reconnecting`.
+* `Connection.on('reconnecting', handler(error))` - raised when media connection fails and automatic reconnection has been started. During this period, `Connection.status()` will be set to `reconnecting`.
   * `error` - Error object `{ code: 53405, message: 'Media connection failed.' }`
+  * Media reconnection triggers
+    * [ICE Connection state](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceConnectionState) transitions to `disconnect` and bytes sent and received in the last 3 seconds is zero.
+    * [ICE Connection state](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceConnectionState) or [PeerConnection state](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/connectionState) transitions to `failed`. Only Chrome browser will attempt an ICE restart with this trigger. Other browsers will immediately disconnect the call and raise an error `31003`. This is due to browsers not fully supporting connection states during an ICE restart.
 * `Connection.on('reconnected', handler())` - raised when media connection has been restored which is detected when media starts flowing. Once reconnected, `Connection.status()` will be set to `open`.
 
+#### Retries
+ICE restarts will be retried in the event that previous ICE restarts are unsuccessful. Retry attemps will happen when [ICE Connection state](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceConnectionState) or [PeerConnection state](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/connectionState) transitions to `failed`. If more than 30 seconds has elapsed during this transition, the call will disconnect and raise an error `31003`.
 
-1.7.6 (In Progress)
+Improvements
+------------
+* Added de1-ix to valid list of regions. (CLIENT-6455)
+* Added `Device.version` to return sdk version
+* Emitted errors through `Device.on('error')` and `Connection.on('error')` now has an optional `twilioError` object to provide more information for when an error happens. This `twilioError` property has been added instead of replacing the current error format to prevent a breaking change and to allow you to easily transition your code. (CLIENT-5908, CLIENT-5909)
+```
+// Error object
+{
+  code: number,
+  message: string,
+  ...
+  // New twilioError property
+  twilioError: {
+    causes: Array<string>,
+    code: number,
+    description: string,
+    explanation: string,
+    solutions: Array<string>,
+    message: string,
+    stack: string
+  }
+}
+```
+
+Bug Fixes
+---------
+* Fixed an issue where information in twilio-client.js package.json is included in the build. (CLIENT-6392)
+
+
+1.7.6 (Jul 23, 2019)
 ====================
 New Features
 ------------
