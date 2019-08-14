@@ -824,14 +824,14 @@ describe('Connection', function() {
       });
     });
 
-    describe('mediaStream.oniceconnectionstatechange', () => {
+    describe('mediaStream.onmediaconnectionstatechange', () => {
       it('should publish an error event if state is failed', () => {
-        mediaStream.oniceconnectionstatechange('failed');
+        mediaStream.onmediaconnectionstatechange('failed');
         sinon.assert.calledWith(publisher.post, 'error', 'ice-connection-state', 'failed');
       });
 
       it('should publish a debug event if state is not failed', () => {
-        mediaStream.oniceconnectionstatechange('foo');
+        mediaStream.onmediaconnectionstatechange('foo');
         sinon.assert.calledWith(publisher.post, 'debug', 'ice-connection-state', 'foo');
       });
     });
@@ -1520,22 +1520,14 @@ describe('Connection', function() {
       sinon.assert.callCount(mediaStream.iceRestart, 1);
     });
 
-    it('should restart on pc connection failed', () => {
-      mediaStream.onconnectionstatechange('failed');
-      sinon.assert.callCount(mediaStream.iceRestart, 1);
-    });
-
-    it('should retry on failure', () => {
-      mediaStream.onfailed();
-      mediaStream.onconnectionstatechange('failed');
-      sinon.assert.callCount(mediaStream.iceRestart, 2);
-    });
-
     it('should emit reconnecting once', () => {
       const callback = sinon.stub();
+      mediaStream.version.pc.iceConnectionState = 'disconnected';
+      monitor.hasActiveWarning = sinon.stub().returns(true);
+
       conn.on('reconnecting', callback);
+      mediaStream.ondisconnected();
       mediaStream.onfailed();
-      mediaStream.onconnectionstatechange('failed');
 
       sinon.assert.callCount(callback, 1);
       sinon.assert.calledWithMatch(callback, {
@@ -1547,18 +1539,9 @@ describe('Connection', function() {
       assert.equal(rVal.twilioError.code, 53405);
     });
 
-    it('should emit reconnected on pc reconnected', () => {
-      const callback = sinon.stub();
-      mediaStream.onconnectionstatechange('failed');
-      conn.on('reconnected', callback);
-      mediaStream.onconnectionstatechange('connected');
-
-      sinon.assert.callCount(callback, 1);
-    });
-
     it('should emit reconnected on ice reconnected', () => {
       const callback = sinon.stub();
-      mediaStream.onconnectionstatechange('failed');
+      mediaStream.onfailed();
       conn.on('reconnected', callback);
       mediaStream.onreconnected();
 

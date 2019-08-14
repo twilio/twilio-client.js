@@ -333,15 +333,7 @@ class Connection extends EventEmitter {
       this.emit('volume', inputVolume, outputVolume);
     };
 
-    this.mediaStream.onconnectionstatechange = (state: string): void => {
-      if (state === 'failed') {
-        this._onMediaFailure(Connection.MediaFailure.PcConnectionFailed);
-      } else if (state === 'connected') {
-        this._onMediaReconnected();
-      }
-    };
-
-    this.mediaStream.oniceconnectionstatechange = (state: string): void => {
+    this.mediaStream.onmediaconnectionstatechange = (state: string): void => {
       const level = state === 'failed' ? 'error' : 'debug';
       this._publisher.post(level, 'ice-connection-state', state, null, this);
     };
@@ -361,11 +353,11 @@ class Connection extends EventEmitter {
       }, this);
       this.emit('warning', 'ice-connectivity-lost');
 
-      this._onMediaFailure(Connection.MediaFailure.IceConnectionDisconnected);
+      this._onMediaFailure(Connection.MediaFailure.ConnectionDisconnected);
     };
 
     this.mediaStream.onfailed = (msg: string): void => {
-      this._onMediaFailure(Connection.MediaFailure.IceConnectionFailed);
+      this._onMediaFailure(Connection.MediaFailure.ConnectionFailed);
     };
 
     this.mediaStream.onreconnected = (msg: string): void => {
@@ -1154,16 +1146,16 @@ class Connection extends EventEmitter {
    */
   private _onMediaFailure = (type: Connection.MediaFailure): void => {
     const {
-      IceConnectionDisconnected, IceConnectionFailed, IceGatheringFailed, LowBytes, PcConnectionFailed,
+      ConnectionDisconnected, ConnectionFailed, IceGatheringFailed, LowBytes,
     } = Connection.MediaFailure;
 
     // Default behavior on ice failures with disabled ice restart.
-    if ((!this.options.enableIceRestart && type === IceConnectionFailed)
+    if ((!this.options.enableIceRestart && type === ConnectionFailed)
 
       // All browsers except chrome doesn't update pc.iceConnectionState and pc.connectionState
       // after issuing an ICE Restart, which we use to determine if ICE Restart is complete.
       // Since we cannot detect if ICE Restart is complete, we will not retry.
-      || (!isChrome(window, window.navigator) && type === IceConnectionFailed)) {
+      || (!isChrome(window, window.navigator) && type === ConnectionFailed)) {
 
         return this.mediaStream.onerror(MEDIA_DISCONNECT_ERROR);
     }
@@ -1177,7 +1169,7 @@ class Connection extends EventEmitter {
     if (this._status === Connection.State.Reconnecting) {
 
       // This is a retry. Previous ICE Restart failed
-      if (type === IceConnectionFailed || type === PcConnectionFailed) {
+      if (type === ConnectionFailed) {
 
         // We already exceeded max retry time.
         if (Date.now() - this._mediaReconnectStartTime > BACKOFF_CONFIG.maxDelay) {
@@ -1185,14 +1177,8 @@ class Connection extends EventEmitter {
           return this.mediaStream.onerror(MEDIA_DISCONNECT_ERROR);
         }
 
-        // Triggers the next retry. This throws an error if multiple backoffs are called simultaneously
-        // This is the case for browsers which supports pc.connectionState and hasn't deprecated pc.iceConnectionState
-        // We just ignore subsequent calls
-        try {
-          this._mediaReconnectBackoff.backoff();
-        } catch {
-          this._log.info('Multiple backoff detected. Ignoring..');
-        }
+        // Issue ICE restart with backoff
+        this._mediaReconnectBackoff.backoff();
       }
 
       return;
@@ -1204,10 +1190,9 @@ class Connection extends EventEmitter {
 
     // Only certain conditions can trigger media reconnection
     if ((type === LowBytes && isIceDisconnected)
-      || (type === IceConnectionDisconnected && hasLowBytesWarning)
-      || type === IceConnectionFailed
-      || type === IceGatheringFailed
-      || type === PcConnectionFailed) {
+      || (type === ConnectionDisconnected && hasLowBytesWarning)
+      || type === ConnectionFailed
+      || type === IceGatheringFailed) {
 
       const mediaReconnectionError = {
         code: 53405,
@@ -1480,11 +1465,10 @@ namespace Connection {
    * Possible media failures
    */
   export enum MediaFailure {
-    IceConnectionDisconnected = 'IceConnectionDisconnected',
-    IceConnectionFailed = 'IceConnectionFailed',
+    ConnectionDisconnected = 'ConnectionDisconnected',
+    ConnectionFailed = 'ConnectionFailed',
     IceGatheringFailed = 'IceGatheringFailed',
     LowBytes = 'LowBytes',
-    PcConnectionFailed = 'PcConnectionFailed',
   }
 
   /**

@@ -1067,7 +1067,6 @@ describe('PeerConnection', () => {
           onicegatheringstatechange: sinon.stub(),
           onopen: sinon.stub(),
           onsignalingstatechange: sinon.stub(),
-          oniceconnectionstatechange: sinon.stub(),
         }
       };
       context = {
@@ -1078,16 +1077,107 @@ describe('PeerConnection', () => {
         onopen: sinon.stub(),
         onicecandidate: sinon.stub(),
         onicegatheringstatechange: sinon.stub(),
-        oniceconnectionstatechange: sinon.stub(),
       };
       toTest = METHOD.bind(context);
     });
 
-    it('Should call onfailed', () => {
+    it('Should call _onMediaConnectionStateChange on ice failed', () => {
+      context._onMediaConnectionStateChange = sinon.stub();
       version.pc.iceConnectionState = 'failed';
       toTest();
       version.pc.oniceconnectionstatechange();
-      sinon.assert.calledWithMatch(context.onfailed, 'Connection with Twilio was interrupted.');
+      sinon.assert.callCount(context._onMediaConnectionStateChange, 1);
+    });
+
+    it('Should call _onMediaConnectionStateChange on pc failed', () => {
+      context._onMediaConnectionStateChange = sinon.stub();
+      version.pc.connectionState = 'failed';
+      toTest();
+      version.pc.onconnectionstatechange();
+      sinon.assert.callCount(context._onMediaConnectionStateChange, 1);
+    });
+  });
+
+  context('PeerConnection.prototype._onMediaConnectionStateChange', () => {
+    const METHOD = PeerConnection.prototype._onMediaConnectionStateChange;
+
+    let toTest = null;
+    let context = null;
+
+    beforeEach(() => {
+      context = {
+        _iceState: 'new',
+        log: sinon.stub(),
+        onreconnected: sinon.stub(),
+        ondisconnected: sinon.stub(),
+        onfailed: sinon.stub(),
+        onmediaconnectionstatechange: sinon.stub(),
+      };
+      toTest = METHOD.bind(context);
+    });
+
+    it('Should ignore other states', () => {
+      context._iceState = 'connected';
+      toTest('new');
+      toTest('connecting');
+      toTest('checking');
+      toTest('completed');
+      toTest('closed');
+      sinon.assert.notCalled(context.onmediaconnectionstatechange);
+    });
+
+    it('Should ignore if new state and previous states are the same', () => {
+      context._iceState = 'connected';
+      toTest('connected');
+      sinon.assert.notCalled(context.onmediaconnectionstatechange);
+    });
+
+    it('Should save current state internally', () => {
+      context._iceState = 'connected';
+      toTest('disconnected');
+      sinon.assert.calledWith(context.onmediaconnectionstatechange, 'disconnected');
+      assert.equal(context._iceState, 'disconnected');
+    });
+
+    it('Should call ondisconnected', () => {
+      context._iceState = 'connected';
+      toTest('disconnected');
+      sinon.assert.calledWith(context.ondisconnected, 'ICE liveliness check failed. May be having trouble connecting to Twilio');
+    });
+
+    it('Should call onfailed', () => {
+      context._iceState = 'connected';
+      toTest('failed');
+      sinon.assert.calledWith(context.onfailed, 'Connection with Twilio was interrupted.');
+
+      context._iceState = 'disconnected';
+      toTest('failed');
+      sinon.assert.calledWith(context.onfailed, 'Connection with Twilio was interrupted.');
+    });
+
+    it('Should call onreconnected', () => {
+      context._iceState = 'disconnected';
+      toTest('connected');
+      sinon.assert.calledWith(context.onreconnected, 'ICE liveliness check succeeded. Connection with Twilio restored');
+
+      context._iceState = 'failed';
+      toTest('connected');
+      sinon.assert.calledWith(context.onreconnected, 'ICE liveliness check succeeded. Connection with Twilio restored');
+    });
+
+    it('Should call onmediaconnectionstatechange', () => {
+      context._iceState = 'new';
+      toTest('connected');
+      sinon.assert.calledWith(context.onmediaconnectionstatechange, 'connected');
+
+      toTest('disconnected');
+      sinon.assert.calledWith(context.onmediaconnectionstatechange, 'disconnected');
+
+      toTest('failed');
+      sinon.assert.calledWith(context.onmediaconnectionstatechange, 'failed');
+
+      toTest('connected');
+      sinon.assert.calledWith(context.onmediaconnectionstatechange, 'connected');
     });
   });
 
