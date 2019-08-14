@@ -20,7 +20,7 @@ Improvements
 ------------
 * Added de1-ix to valid list of regions. (CLIENT-6455)
 * Added `Device.version` to return sdk version
-* Emitted errors through `Device.on('error')` and `Connection.on('error')` now has an optional `twilioError` object to provide more information for when an error happens. This `twilioError` property has been added instead of replacing the current error format to prevent a breaking change and to allow you to easily transition your code. (CLIENT-5908, CLIENT-5909)
+* When applicable, errors emitted through Device.on('error') and Connection.on('error') now contain a twilioError field, providing more information about the error. This twilioError represents the new TwilioError format that will become the default Error format in 2.0. (CLIENT-5908, CLIENT-5909)
 ```
 // Error object
 {
@@ -42,7 +42,7 @@ Improvements
 
 Bug Fixes
 ---------
-* Fixed an issue where information in twilio-client.js package.json is included in the build. (CLIENT-6392)
+* Fixed an issue causing local environment information to get bundled into the build artifact in local npm builds. (CLIENT-6392)
 
 
 1.7.6 (Jul 23, 2019)
