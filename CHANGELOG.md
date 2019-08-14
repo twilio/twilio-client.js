@@ -19,7 +19,7 @@ ICE restarts will be retried in the event that previous ICE restarts are unsucce
 
 #### Maximum Bitrate
 When using the Opus codec, it is now possible to also specify the maximum bitrate to use for the local
-audio stream. Example usage:
+audio stream (CLIENT-5589). Example usage:
 ```
 const device = new Device(TOKEN, {
   codecPreferences: ['opus', 'pcmu'],
