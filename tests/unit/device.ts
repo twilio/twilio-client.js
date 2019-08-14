@@ -751,6 +751,13 @@ describe('Device', function() {
           assert.equal(device.connections.length, 0);
         });
 
+        it('should remove the connection if the connection was pending and' +
+            ' the PStream was broken with error code 31003', () => {
+          device.connections[0].status = () => Connection.State.Pending;
+          device.connections[0].emit('error', { code: 31003 });
+          assert.equal(device.connections.length, 0);
+        });
+
         it('should emit Device.error', () => {
           device.connections[0].emit('error');
           sinon.assert.calledOnce(device.emit as any);

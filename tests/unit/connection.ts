@@ -1098,7 +1098,7 @@ describe('Connection', function() {
         assert(mediaStream.close.calledOnce);
       });
 
-      it('should not call disconnect if enableIceRestart is false', () => {
+      it('should call disconnect if enableIceRestart is false', () => {
         conn = new Connection(config, Object.assign({
           callParameters: { CallSid: 'CA123' }
         }, options, { enableIceRestart: false }));
@@ -1107,7 +1107,41 @@ describe('Connection', function() {
         mediaStream.close = sinon.stub();
         pstream.emit('transportClose');
 
-        assert(mediaStream.close.notCalled);
+        assert(mediaStream.close.called);
+      });
+
+      context('when enableIceRestart is true', () => {
+        it('should emit an error with code 31003', async () => {
+          conn = new Connection(config, {
+            callParameters: { CallSid: 'CA123' },
+            ...options,
+            enableIceRestart: true,
+          });
+          const connectionError: Promise<Connection.Error> = new Promise(resolve => {
+            conn.on('error', resolve);
+          });
+
+          pstream.emit('transportClose');
+
+          assert.equal((await connectionError).code, 31003);
+        });
+      });
+
+      context('when enableIceRestart is false', () => {
+        it('should emit an error with code 31003', async () => {
+          conn = new Connection(config, {
+            callParameters: { CallSid: 'CA123' },
+            ...options,
+            enableIceRestart: false,
+          });
+          const connectionError: Promise<Connection.Error> = new Promise(resolve => {
+            conn.on('error', resolve);
+          });
+
+          pstream.emit('transportClose');
+
+          assert.equal((await connectionError).code, 31003);
+        });
       });
     });
 

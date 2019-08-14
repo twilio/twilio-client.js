@@ -911,7 +911,14 @@ class Device extends EventEmitter {
     });
 
     connection.addListener('error', (error: Connection.Error) => {
-      if (connection.status() === 'closed') {
+      if (
+        connection.status() === 'closed' ||
+        // mhuynh(CLIENT-6336): This check is for the case where there is a
+        // pending call, but the PStream connection to Twilio is broken, which
+        // is an unrecoverable error. This situation typically occurs when a
+        // call is pending, and the network loses connection.
+        (connection.status() === 'pending' && error.code === 31003)
+      ) {
         this._removeConnection(connection);
       }
       if (this.audio) {
