@@ -12,8 +12,9 @@ import RTCMonitor from './rtc/monitor';
 import RTCSample from './rtc/sample';
 import RTCWarning from './rtc/warning';
 import Log, { LogLevel } from './tslog';
-import { average, Exception } from './util';
+import { average, isChrome } from './util';
 
+const Backoff = require('backoff');
 const C = require('./constants');
 const PeerConnection = require('./rtc').PeerConnection;
 
@@ -39,13 +40,28 @@ export type IPublisher = any;
  */
 export type ISound = any;
 
+const BACKOFF_CONFIG = {
+  factor: 1.1,
+  initialDelay: 1,
+  maxDelay: 30000,
+  randomisationFactor: 0.5,
+};
+
 const DTMF_INTER_TONE_GAP: number = 70;
 const DTMF_PAUSE_DURATION: number = 500;
 const DTMF_TONE_DURATION: number = 160;
 
-const ICE_RESTART_INTERVAL = 3000;
 const METRICS_BATCH_SIZE: number = 10;
 const METRICS_DELAY: number = 5000;
+
+const MEDIA_DISCONNECT_ERROR = {
+  disconnect: true,
+  info: {
+    code: 31003,
+    message: 'Connection with Twilio was interrupted.',
+    twilioError: new MediaErrors.ConnectionError(),
+  },
+};
 
 const WARNING_NAMES: Record<string, string> = {
   audioInputLevel: 'audio-input-level',
@@ -126,11 +142,6 @@ class Connection extends EventEmitter {
   private readonly _direction: Connection.CallDirection;
 
   /**
-   * Interval id for ICE restart loop
-   */
-  private _iceRestartIntervalId: NodeJS.Timer;
-
-  /**
    * The number of times input volume has been the same consecutively.
    */
   private _inputVolumeStreak: number = 0;
@@ -169,6 +180,16 @@ class Connection extends EventEmitter {
    * An instance of Log to use.
    */
   private readonly _log: Log = new Log(LogLevel.Off);
+
+  /**
+   * An instance of Backoff for media reconnection
+   */
+  private _mediaReconnectBackoff: any;
+
+  /**
+   * Timestamp for the initial media reconnection
+   */
+  private _mediaReconnectStartTime: number;
 
   /**
    * A batch of metrics samples to send to Insights. Gets cleared after
@@ -254,6 +275,9 @@ class Connection extends EventEmitter {
       : this.options.warnings ? LogLevel.Warn
       : LogLevel.Off);
 
+    this._mediaReconnectBackoff = Backoff.exponential(BACKOFF_CONFIG);
+    this._mediaReconnectBackoff.on('ready', () => this.mediaStream.iceRestart());
+
     const publisher = this._publisher = config.publisher;
 
     if (this._direction === Connection.CallDirection.Incoming) {
@@ -268,58 +292,12 @@ class Connection extends EventEmitter {
     setTimeout(() => monitor.enableWarnings(), METRICS_DELAY);
 
     monitor.on('warning', (data: RTCWarning, wasCleared?: boolean) => {
-      const { samples, name } = data;
-      if (this.options.enableIceRestart && this._status === Connection.State.Open
-        && (name === 'bytesSent' || name === 'bytesReceived')) {
-
-        if (samples && samples.every(sample => sample.totals[name] === 0)) {
-          // We don't have relevant samples yet, usually at the start of a call.
-          // This also may mean the browser does not support the required fields.
-          return;
-        }
-
-        const mediaFailedError = {
-          code: 53405,
-          message: 'Media connection failed.',
-          twilioError: new MediaErrors.ConnectionError(),
-        };
-
-        this._log.warn('ICE Connection disconnected.');
-        this._publisher.warn('connection', 'error', mediaFailedError, this);
-        this._publisher.info('connection', 'reconnecting', null, this);
-
-        this._stopIceRestarts();
-        this._status = Connection.State.Reconnecting;
-        this._iceRestartIntervalId = setInterval(() => {
-          this.mediaStream.iceRestart().catch((canRetry: boolean) => {
-            if (!canRetry) {
-              this._log.info('Received hangup from the server. Stopping attempts to restart ICE.');
-              this._stopIceRestarts();
-            }
-          });
-        }, ICE_RESTART_INTERVAL);
-
-        this.emit('reconnecting', mediaFailedError);
+      if (data.name === 'bytesSent' || data.name === 'bytesReceived') {
+        this._onMediaFailure(Connection.MediaFailure.LowBytes);
       }
       this._reemitWarning(data, wasCleared);
     });
     monitor.on('warning-cleared', (data: RTCWarning) => {
-      const { samples, name } = data;
-      if (this.options.enableIceRestart && (name === 'bytesSent' || name === 'bytesReceived')) {
-
-        if (samples && samples.every(sample => sample.totals[name] === 0)) {
-          // We don't have relevant samples yet, usually at the start of a call.
-          // This also may mean the browser does not support the required fields.
-          return;
-        }
-
-        this._log.info('ICE Connection reestablished.');
-        this._publisher.info('connection', 'reconnected', null, this);
-        this._stopIceRestarts();
-
-        this._status = Connection.State.Open;
-        this.emit('reconnected');
-      }
       this._reemitWarningCleared(data);
     });
 
@@ -355,7 +333,7 @@ class Connection extends EventEmitter {
       this.emit('volume', inputVolume, outputVolume);
     };
 
-    this.mediaStream.oniceconnectionstatechange = (state: string): void => {
+    this.mediaStream.onmediaconnectionstatechange = (state: string): void => {
       const level = state === 'failed' ? 'error' : 'debug';
       this._publisher.post(level, 'ice-connection-state', state, null, this);
     };
@@ -368,20 +346,27 @@ class Connection extends EventEmitter {
       this._publisher.debug('signaling-state', state, null, this);
     };
 
-    this.mediaStream.ondisconnect = (msg: string): void => {
+    this.mediaStream.ondisconnected = (msg: string): void => {
       this._log.info(msg);
       this._publisher.warn('network-quality-warning-raised', 'ice-connectivity-lost', {
         message: msg,
       }, this);
       this.emit('warning', 'ice-connectivity-lost');
+
+      this._onMediaFailure(Connection.MediaFailure.ConnectionDisconnected);
     };
 
-    this.mediaStream.onreconnect = (msg: string): void => {
+    this.mediaStream.onfailed = (msg: string): void => {
+      this._onMediaFailure(Connection.MediaFailure.ConnectionFailed);
+    };
+
+    this.mediaStream.onreconnected = (msg: string): void => {
       this._log.info(msg);
       this._publisher.info('network-quality-warning-cleared', 'ice-connectivity-lost', {
         message: msg,
       }, this);
       this.emit('warning-cleared', 'ice-connectivity-lost');
+      this._onMediaReconnected();
     };
 
     this.mediaStream.onerror = (e: any): void => {
@@ -427,7 +412,6 @@ class Connection extends EventEmitter {
       }
 
       monitor.disable();
-      this._stopIceRestarts();
       this._publishMetrics();
 
       this.emit('disconnect', this);
@@ -444,7 +428,13 @@ class Connection extends EventEmitter {
       // When websocket gets disconnected
       // There's no way to retry this session so we disconnect
       // This is not needed if ice restart is disabled, signaling will automatically disconnect the connection
-      this.pstream.on('transportClose', this._disconnect.bind(this));
+      this.pstream.on('transportClose', () => {
+        const info = {...MEDIA_DISCONNECT_ERROR.info};
+        this._disconnect(info.message);
+
+        this._log.error('Received transportClose from pstream', info);
+        this.emit('error', {...info, connection: this});
+      });
     }
 
     this.on('error', error => {
@@ -999,7 +989,6 @@ class Connection extends EventEmitter {
    */
   private _disconnect(message?: string | null, wasRemote?: boolean): void {
     message = typeof message === 'string' ? message : null;
-    this._stopIceRestarts();
 
     if (this._status !== Connection.State.Open
         && this._status !== Connection.State.Connecting
@@ -1151,6 +1140,95 @@ class Connection extends EventEmitter {
   }
 
   /**
+   * Called when there is a media failure.
+   * Manages all media-related states and takes action base on the states
+   * @param type - Type of media failure
+   */
+  private _onMediaFailure = (type: Connection.MediaFailure): void => {
+    const {
+      ConnectionDisconnected, ConnectionFailed, IceGatheringFailed, LowBytes,
+    } = Connection.MediaFailure;
+
+    // Default behavior on ice failures with disabled ice restart.
+    if ((!this.options.enableIceRestart && type === ConnectionFailed)
+
+      // All browsers except chrome doesn't update pc.iceConnectionState and pc.connectionState
+      // after issuing an ICE Restart, which we use to determine if ICE Restart is complete.
+      // Since we cannot detect if ICE Restart is complete, we will not retry.
+      || (!isChrome(window, window.navigator) && type === ConnectionFailed)) {
+
+        return this.mediaStream.onerror(MEDIA_DISCONNECT_ERROR);
+    }
+
+    // Ignore any other type of media failure if ice restart is disabled
+    if (!this.options.enableIceRestart) {
+      return;
+    }
+
+    // Ignore subsequent requests if ice restart is in progress
+    if (this._status === Connection.State.Reconnecting) {
+
+      // This is a retry. Previous ICE Restart failed
+      if (type === ConnectionFailed) {
+
+        // We already exceeded max retry time.
+        if (Date.now() - this._mediaReconnectStartTime > BACKOFF_CONFIG.maxDelay) {
+          this._log.info('Exceeded max ICE retries');
+          return this.mediaStream.onerror(MEDIA_DISCONNECT_ERROR);
+        }
+
+        // Issue ICE restart with backoff
+        this._mediaReconnectBackoff.backoff();
+      }
+
+      return;
+    }
+
+    const isIceDisconnected = this.mediaStream.version.pc.iceConnectionState === 'disconnected';
+    const hasLowBytesWarning = this._monitor.hasActiveWarning('bytesSent', 'min')
+      || this._monitor.hasActiveWarning('bytesReceived', 'min');
+
+    // Only certain conditions can trigger media reconnection
+    if ((type === LowBytes && isIceDisconnected)
+      || (type === ConnectionDisconnected && hasLowBytesWarning)
+      || type === ConnectionFailed
+      || type === IceGatheringFailed) {
+
+      const mediaReconnectionError = {
+        code: 53405,
+        message: 'Media connection failed.',
+        twilioError: new MediaErrors.ConnectionError(),
+      };
+      this._log.warn('ICE Connection disconnected.');
+      this._publisher.warn('connection', 'error', mediaReconnectionError, this);
+      this._publisher.info('connection', 'reconnecting', null, this);
+
+      this._mediaReconnectStartTime = Date.now();
+      this._status = Connection.State.Reconnecting;
+      this._mediaReconnectBackoff.reset();
+      this._mediaReconnectBackoff.backoff();
+
+      this.emit('reconnecting', mediaReconnectionError);
+    }
+  }
+
+  /**
+   * Called when media connection is restored
+   */
+  private _onMediaReconnected = (): void => {
+    // Only trigger once.
+    // This can trigger on pc.onIceConnectionChange and pc.onConnectionChange.
+    if (this._status !== Connection.State.Reconnecting) {
+      return;
+    }
+    this._log.info('ICE Connection reestablished.');
+    this._publisher.info('connection', 'reconnected', null, this);
+
+    this._status = Connection.State.Open;
+    this.emit('reconnected');
+  }
+
+  /**
    * When we get a RINGING signal from PStream, update the {@link Connection} status.
    * @param payload
    */
@@ -1257,13 +1335,6 @@ class Connection extends EventEmitter {
 
     this.parameters.CallSid = callSid;
     this.mediaStream.callSid = callSid;
-  }
-
-  /**
-   * Stop ice restart loop
-   */
-  private _stopIceRestarts(): void {
-    clearInterval(this._iceRestartIntervalId);
   }
 }
 
@@ -1388,6 +1459,16 @@ namespace Connection {
   export enum Codec {
     Opus = 'opus',
     PCMU = 'pcmu',
+  }
+
+  /**
+   * Possible media failures
+   */
+  export enum MediaFailure {
+    ConnectionDisconnected = 'ConnectionDisconnected',
+    ConnectionFailed = 'ConnectionFailed',
+    IceGatheringFailed = 'IceGatheringFailed',
+    LowBytes = 'LowBytes',
   }
 
   /**
