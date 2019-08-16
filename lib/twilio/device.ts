@@ -1458,6 +1458,13 @@ namespace Device {
     fakeLocalDTMF?: boolean;
 
     /**
+     * Max bitrate, in bits per second, for the local audio stream. Only works with Opus as
+     * this parameter is not supported by PCMU, which has a fixed bitrate. The minimum
+     * bitrate supported by Opus is 6kbit/s.
+     */
+    maxBitrate?: number;
+
+    /**
      * The region code of the region to connect to.
      */
     region?: Region;
