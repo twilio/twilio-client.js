@@ -27,7 +27,7 @@ describe('PeerConnection', () => {
       cStream = createStream();
       eStream = createStream();
       version = {
-        createOffer: sinon.stub().callsArgWith(2),
+        createOffer: sinon.stub().callsArgWith(3),
         processAnswer: sinon.stub().callsArgWith(2),
         pc: {
           addTrack: sinon.stub(),
@@ -38,6 +38,7 @@ describe('PeerConnection', () => {
       context = {
         isMuted: 'isMuted',
         mute: sinon.stub(),
+        options: { },
         stream: cStream,
         version,
         _answerSdp: '_answerSdp',
@@ -90,12 +91,12 @@ describe('PeerConnection', () => {
 
     it('Should reject when createOffer calls error callback', done => {
       eStream.getAudioTracks.returns([{track: 'track'}]);
-      version.createOffer.callsArgWith(3, MESSAGE);
+      version.createOffer.callsArgWith(4, MESSAGE);
       toTest(false, eStream).then(() => done(new Error('Should not resolve'))).catch(aMessage => {
         assert.equal(aMessage, MESSAGE);
         assert(context.mute.calledWithExactly(context.isMuted));
-        version.createOffer.calledWithExactly(undefined, {audio: true}, sinon.match.func, sinon.match.func);
-      }).then(done).catch(done);
+        version.createOffer.calledWithExactly(undefined, undefined, {audio: true}, sinon.match.func, sinon.match.func);
+      }).then(done, done);
     });
 
     it('Should reject when processAnswer calls error callback', done => {
@@ -103,17 +104,17 @@ describe('PeerConnection', () => {
       version.processAnswer.callsArgWith(3, MESSAGE);
       toTest(false, eStream).then(() => done(new Error('Should not resolve'))).catch(aMessage => {
         assert.equal(aMessage, MESSAGE);
-        version.createOffer.calledWithExactly({audio: true}, sinon.match.func, sinon.match.func);
+        version.createOffer.calledWithExactly(undefined, undefined, {audio: true}, sinon.match.func, sinon.match.func);
         version.processAnswer.calledWithExactly(undefined, context._answerSdp, sinon.match.func, sinon.match.func);
         assert(version.createOffer.calledBefore(version.processAnswer));
-      }).then(done).catch(done);
+      }).then(done, done);
     });
 
     it('Should resolve when createOffer and processAnswer calls success callbacks', done => {
       eStream.getAudioTracks.returns([{track: 'track'}]);
       toTest(false, eStream).then(aStream => {
         assert.equal(cStream, aStream);
-        assert(version.createOffer.calledWithExactly(undefined, {audio: true}, sinon.match.func, sinon.match.func));
+        assert(version.createOffer.calledWithExactly(undefined ,undefined, {audio: true}, sinon.match.func, sinon.match.func));
         assert(version.processAnswer.calledWithExactly(undefined, context._answerSdp, sinon.match.func, sinon.match.func));
         assert(version.createOffer.calledBefore(version.processAnswer));
         assert(version.processAnswer.calledBefore(context._createAnalyser));
@@ -530,7 +531,7 @@ describe('PeerConnection', () => {
       assert(version.getSDP.calledWithExactly());
       assert(version.getSDP.calledOn(version));
       assert.equal(context._setEncodingParameters.callCount, 1);
-      sinon.assert.calledWith(context._setEncodingParameters, true, 1234);
+      sinon.assert.calledWith(context._setEncodingParameters, true);
       assert(callback.calledWithExactly(version.pc));
       assert.equal(context.onerror.called, false);
     });
@@ -683,7 +684,7 @@ describe('PeerConnection', () => {
     it('Should call createOffer with iceRestart flag', () => {
       toTest();
       return wait().then(() => {
-        assert(version.createOffer.calledWithExactly(context.codecPreferences, {iceRestart: true}));
+        assert(version.createOffer.calledWithExactly(undefined, context.codecPreferences, {iceRestart: true}));
       });
     });
 
@@ -777,6 +778,7 @@ describe('PeerConnection', () => {
         version,
         status: CLOSED,
         onerror: sinon.stub(),
+        options: { },
         pstream: {
           once: sinon.stub(),
           on: sinon.stub(),
@@ -809,17 +811,17 @@ describe('PeerConnection', () => {
       toTest();
       assert(context._initializeMediaStream.calledWithExactly(eConstraints, eIceServers));
       assert(version.createOffer.calledOnce);
-      assert(version.createOffer.calledWithExactly(undefined, {audio: true}, sinon.match.func, sinon.match.func));
+      assert(version.createOffer.calledWithExactly(undefined, undefined, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(callback.called, false);
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
     });
 
     it('Should call onOfferSuccess and do nothting when createOffer calls success callback and status is closed', () => {
-      version.createOffer.callsArg(2);
+      version.createOffer.callsArg(3);
       toTest();
       assert(context._initializeMediaStream.calledWithExactly(eConstraints, eIceServers));
       assert(version.createOffer.calledOnce);
-      assert(version.createOffer.calledWithExactly(undefined, {audio: true}, sinon.match.func, sinon.match.func));
+      assert(version.createOffer.calledWithExactly(undefined, undefined, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(callback.called, false);
       assert.equal(context.pstream.publish.called, false);
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
@@ -827,11 +829,11 @@ describe('PeerConnection', () => {
 
     it('Should call onOfferSuccess and pstream publish when createOffer calls success callback and status is not closed', () => {
       context.status = 'not closed';
-      version.createOffer.callsArg(2);
+      version.createOffer.callsArg(3);
       toTest();
       assert(context._initializeMediaStream.calledWithExactly(eConstraints, eIceServers));
       assert(version.createOffer.calledOnce);
-      assert(version.createOffer.calledWithExactly(undefined, {audio: true}, sinon.match.func, sinon.match.func));
+      assert(version.createOffer.calledWithExactly(undefined, undefined, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(callback.called, false);
       assert(context.pstream.publish.calledOnce);
       assert(context.pstream.publish.calledWithExactly('invite', {
@@ -849,11 +851,11 @@ describe('PeerConnection', () => {
     it('Should call onOfferSuccess when createOffer calls success callback and status is not closed and device token is not truthy', () => {
       context.device.token = 'this is device token';
       context.status = NOT_CLOSED;
-      version.createOffer.callsArg(2);
+      version.createOffer.callsArg(3);
       toTest();
       assert(context._initializeMediaStream.calledWithExactly(eConstraints, eIceServers));
       assert(version.createOffer.calledOnce);
-      assert(version.createOffer.calledWithExactly(undefined, {audio: true}, sinon.match.func, sinon.match.func));
+      assert(version.createOffer.calledWithExactly(undefined, undefined, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(callback.called, false);
       assert(context.pstream.publish.calledOnce);
       assert(context.pstream.publish.calledWithExactly('invite', {
@@ -869,7 +871,7 @@ describe('PeerConnection', () => {
     });
 
     it('Should call onOfferError when createOffer calls error callback with error message', () => {
-      version.createOffer.callsArgWith(3, ERROR_MESSAGE);
+      version.createOffer.callsArgWith(4, ERROR_MESSAGE);
       toTest();
       assert(context.onerror.calledWithMatch(EXPECTED_OFFER_ERROR));
 
@@ -1883,7 +1885,7 @@ describe('PeerConnection', () => {
 
   describe('PeerConnection.prototype._setEncodingParameters', () => {
     const METHOD = PeerConnection.prototype._setEncodingParameters;
-    const LOG = 'log';
+    const LOG = () => { };
     const STREAM = 'stream';
     const MESSAGE = 'error message';
     const ERROR = new Error(MESSAGE);
@@ -1923,15 +1925,15 @@ describe('PeerConnection', () => {
         _startPollingVolume: sinon.stub(),
         _getProtocol: sinon.stub().returns(version),
       };
-      toTest = METHOD.bind(context, true, 1234);
+      toTest = METHOD.bind(context, true);
     });
 
     it('Should set network priority to high when dscp is enabled', () => {
       context.options.dscp = true;
       toTest();
       assert.deepEqual(sender.setParameters.args[0][0], { foo: 'bar', priority: 'high', encodings: [
-        { priority: 'high', networkPriority: 'high', maxBitrate: 1234 },
-        { priority: 'high', networkPriority: 'high', maxBitrate: 1234 },
+        { priority: 'high', networkPriority: 'high' },
+        { priority: 'high', networkPriority: 'high' },
       ] });
     });
   });
