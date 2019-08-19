@@ -758,6 +758,19 @@ describe('Device', function() {
         });
       });
 
+      describe('on connection.transportClose', () => {
+        it('should remove the connection if the connection was pending', () => {
+          device.connections[0].status = () => Connection.State.Pending;
+          device.connections[0].emit('transportClose');
+          assert.equal(device.connections.length, 0);
+        });
+        it('should not remove the connection if the connection was open', () => {
+          device.connections[0].status = () => Connection.State.Open;
+          device.connections[0].emit('transportClose');
+          assert.equal(device.connections.length, 1);
+        });
+      });
+
       describe('on connection.cancel', () => {
         it('should emit Device.cancel', () => {
           it('should should remove the connection', () => {
