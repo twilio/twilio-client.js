@@ -1086,62 +1086,16 @@ describe('Connection', function() {
     });
 
     describe('pstream.transportClose event', () => {
-      it('should call disconnect if enableIceRestart is true', () => {
+      it('should re-emit transportClose event', () => {
+        const callback = sinon.stub();
         conn = new Connection(config, Object.assign({
           callParameters: { CallSid: 'CA123' }
         }, options));
 
-        conn['_status'] = Connection.State.Open;
-        mediaStream.close = sinon.stub();
+        conn.on('transportClose', callback);
         pstream.emit('transportClose');
 
-        assert(mediaStream.close.calledOnce);
-      });
-
-      it('should call disconnect if enableIceRestart is false', () => {
-        conn = new Connection(config, Object.assign({
-          callParameters: { CallSid: 'CA123' }
-        }, options, { enableIceRestart: false }));
-
-        conn['_status'] = Connection.State.Open;
-        mediaStream.close = sinon.stub();
-        pstream.emit('transportClose');
-
-        assert(mediaStream.close.called);
-      });
-
-      context('when enableIceRestart is true', () => {
-        it('should emit an error with code 31003', async () => {
-          conn = new Connection(config, {
-            callParameters: { CallSid: 'CA123' },
-            ...options,
-            enableIceRestart: true,
-          });
-          const connectionError: Promise<Connection.Error> = new Promise(resolve => {
-            conn.on('error', resolve);
-          });
-
-          pstream.emit('transportClose');
-
-          assert.equal((await connectionError).code, 31003);
-        });
-      });
-
-      context('when enableIceRestart is false', () => {
-        it('should emit an error with code 31003', async () => {
-          conn = new Connection(config, {
-            callParameters: { CallSid: 'CA123' },
-            ...options,
-            enableIceRestart: false,
-          });
-          const connectionError: Promise<Connection.Error> = new Promise(resolve => {
-            conn.on('error', resolve);
-          });
-
-          pstream.emit('transportClose');
-
-          assert.equal((await connectionError).code, 31003);
-        });
+        assert(callback.calledOnce);
       });
     });
 
