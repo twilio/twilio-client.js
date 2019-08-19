@@ -425,18 +425,10 @@ class Connection extends EventEmitter {
     this.pstream.on('cancel', this._onCancel);
     this.pstream.on('ringing', this._onRinging);
 
-    if (this.options.enableIceRestart) {
-      // When websocket gets disconnected
-      // There's no way to retry this session so we disconnect
-      // This is not needed if ice restart is disabled, signaling will automatically disconnect the connection
-      this.pstream.on('transportClose', () => {
-        const info = {...MEDIA_DISCONNECT_ERROR.info};
-        this._disconnect(info.message);
-
-        this._log.error('Received transportClose from pstream', info);
-        this.emit('error', {...info, connection: this});
-      });
-    }
+    this.pstream.on('transportClose', () => {
+      this._log.error('Received transportClose from pstream');
+      this.emit('transportClose');
+    });
 
     this.on('error', error => {
       this._publisher.error('connection', 'error', {

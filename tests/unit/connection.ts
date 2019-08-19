@@ -1086,28 +1086,16 @@ describe('Connection', function() {
     });
 
     describe('pstream.transportClose event', () => {
-      it('should call disconnect if enableIceRestart is true', () => {
+      it('should re-emit transportClose event', () => {
+        const callback = sinon.stub();
         conn = new Connection(config, Object.assign({
           callParameters: { CallSid: 'CA123' }
         }, options));
 
-        conn['_status'] = Connection.State.Open;
-        mediaStream.close = sinon.stub();
+        conn.on('transportClose', callback);
         pstream.emit('transportClose');
 
-        assert(mediaStream.close.calledOnce);
-      });
-
-      it('should not call disconnect if enableIceRestart is false', () => {
-        conn = new Connection(config, Object.assign({
-          callParameters: { CallSid: 'CA123' }
-        }, options, { enableIceRestart: false }));
-
-        conn['_status'] = Connection.State.Open;
-        mediaStream.close = sinon.stub();
-        pstream.emit('transportClose');
-
-        assert(mediaStream.close.notCalled);
+        assert(callback.calledOnce);
       });
     });
 

@@ -948,6 +948,17 @@ class Device extends EventEmitter {
       this._maybeStopIncomingSound();
     });
 
+    connection.once('transportClose', () => {
+      if (connection.status() !== Connection.State.Pending) {
+        return;
+      }
+      if (this.audio) {
+        this.audio._maybeStopPollingVolume();
+      }
+      this._removeConnection(connection);
+      this._maybeStopIncomingSound();
+    });
+
     return connection;
   }
 
