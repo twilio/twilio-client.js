@@ -886,7 +886,6 @@ class Device extends EventEmitter {
       enableRingingState: this.options.enableRingingState,
       getInputStream: (): MediaStream | null => this._connectionInputStream,
       getSinkIds: (): string[] => this._connectionSinkIds,
-      maxBitrate: this.options.maxBitrate,
       rtcConfiguration: this.options.rtcConfiguration || { iceServers: this.options.iceServers },
       rtcConstraints: this.options.rtcConstraints,
       shouldPlayDisconnect: () => this._enabledSounds.disconnect,
@@ -1439,12 +1438,6 @@ namespace Device {
      * using real DTMF tones for user interface. In 2.0, this will be enabled by default.
      */
     fakeLocalDTMF?: boolean;
-
-    /**
-     * Max bitrate, in bits per second, for the local audio stream. Only works with Opus as
-     * this parameter is not supported by PCMU, which has a fixed birtate.
-     */
-    maxBitrate?: number;
 
     /**
      * The region code of the region to connect to.
