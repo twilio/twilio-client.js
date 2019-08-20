@@ -1,6 +1,5 @@
 1.8.0 (In Progress)
 ====================
-
 New Features
 ------------
 ### Media Reconnection States and Events
@@ -16,16 +15,6 @@ This feature, when `enableIceRestart` is enabled, allows for detecting when medi
 
 #### Retries
 ICE restarts will be retried in the event that previous ICE restarts are unsuccessful. Retry attemps will happen when [ICE Connection state](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceConnectionState) or [PeerConnection state](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/connectionState) transitions to `failed`. If more than 30 seconds has elapsed during this transition, the call will disconnect and raise an error `31003`.
-
-#### Maximum Bitrate
-When using the Opus codec, it is now possible to also specify the maximum bitrate to use for the local
-audio stream (CLIENT-5589). Example usage:
-```
-const device = new Device(TOKEN, {
-  codecPreferences: ['opus', 'pcmu'],
-  maxBitrate: 44000,
-});
-```
 
 Improvements
 ------------
@@ -57,7 +46,6 @@ Bug Fixes
 
 1.7.6 (Jul 23, 2019)
 ====================
-
 New Features
 ------------
 ### Automatic Media Reconnection

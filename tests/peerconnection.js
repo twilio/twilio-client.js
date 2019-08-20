@@ -478,15 +478,14 @@ describe('PeerConnection', () => {
       };
       context = {
         _initializeMediaStream: sinon.stub(),
-        _setEncodingParameters: sinon.stub(),
+        _setNetworkPriority: sinon.stub(),
         callSid: null,
         version,
         status: 'closed',
         onerror: sinon.stub(),
         pstream: {
           publish: sinon.stub()
-        },
-        options: { dscp: true, maxBitrate: 1234 },
+        }
       };
       toTest = METHOD.bind(
         context,
@@ -529,8 +528,8 @@ describe('PeerConnection', () => {
       assert(version.processSDP.calledWithExactly(undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
       assert(version.getSDP.calledWithExactly());
       assert(version.getSDP.calledOn(version));
-      assert.equal(context._setEncodingParameters.callCount, 1);
-      sinon.assert.calledWith(context._setEncodingParameters, true, 1234);
+      assert(context._setNetworkPriority.calledOnce);
+      sinon.assert.calledWith(context._setNetworkPriority, 'high');
       assert(callback.calledWithExactly(version.pc));
       assert.equal(context.onerror.called, false);
     });
@@ -568,7 +567,7 @@ describe('PeerConnection', () => {
       assert(version.processSDP.calledWithExactly(undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(context.pstream.publish.called, false);
       assert.equal(version.getSDP.called, false);
-      sinon.assert.notCalled(context._setEncodingParameters);
+      sinon.assert.notCalled(context._setNetworkPriority);
       assert.equal(callback.called, false);
     });
 
@@ -772,7 +771,7 @@ describe('PeerConnection', () => {
       };
       context = {
         _initializeMediaStream: sinon.stub().returns(true),
-        _setEncodingParameters: sinon.stub(),
+        _setNetworkPriority: sinon.stub(),
         callSid: null,
         version,
         status: CLOSED,
@@ -919,7 +918,7 @@ describe('PeerConnection', () => {
       assert(version.processAnswer.calledWithExactly(undefined, PAYLOAD.sdp, sinon.match.func, sinon.match.func));
       assert(version.processAnswer.calledOn(version));
       assert(context.onerror.calledWithMatch(EXPECTED_PROCESSING_ERROR));
-      sinon.assert.notCalled(context._setEncodingParameters);
+      sinon.assert.notCalled(context._setNetworkPriority);
     });
 
     it('Should call onAnswerSuccess and onMediaStarted with version pc when prcoessAnswer calls success callback', () => {
@@ -1881,8 +1880,8 @@ describe('PeerConnection', () => {
     });
   });
 
-  describe('PeerConnection.prototype._setEncodingParameters', () => {
-    const METHOD = PeerConnection.prototype._setEncodingParameters;
+  describe('PeerConnection.prototype._setNetworkPriority', () => {
+    const METHOD = PeerConnection.prototype._setNetworkPriority;
     const LOG = 'log';
     const STREAM = 'stream';
     const MESSAGE = 'error message';
@@ -1923,16 +1922,22 @@ describe('PeerConnection', () => {
         _startPollingVolume: sinon.stub(),
         _getProtocol: sinon.stub().returns(version),
       };
-      toTest = METHOD.bind(context, true, 1234);
+      toTest = METHOD.bind(context, 'high');
     });
 
     it('Should set network priority to high when dscp is enabled', () => {
       context.options.dscp = true;
       toTest();
       assert.deepEqual(sender.setParameters.args[0][0], { foo: 'bar', priority: 'high', encodings: [
-        { priority: 'high', networkPriority: 'high', maxBitrate: 1234 },
-        { priority: 'high', networkPriority: 'high', maxBitrate: 1234 },
+        { priority: 'high', networkPriority: 'high' },
+        { priority: 'high', networkPriority: 'high' },
       ] });
+    });
+
+    it('Should leave network priority alone when dscp is disabled', () => {
+      context.options.dscp = false;
+      toTest();
+      sinon.assert.notCalled(sender.setParameters);
     });
   });
 
