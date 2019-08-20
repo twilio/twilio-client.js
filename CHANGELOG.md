@@ -1,5 +1,6 @@
 1.8.0 (In Progress)
 ====================
+
 New Features
 ------------
 ### Media Reconnection States and Events
@@ -43,6 +44,7 @@ Improvements
 Bug Fixes
 ---------
 * Fixed an issue causing local environment information to get bundled into the build artifact in local npm builds. (CLIENT-6392)
+* Fixed an issue where ringing will not stop when network is disconnected. (CLIENT-6336)
 
 1.7.6 (Jul 23, 2019)
 ====================
