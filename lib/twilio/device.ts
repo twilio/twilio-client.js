@@ -278,6 +278,11 @@ class Device extends EventEmitter {
   };
 
   /**
+   * Whether SDK is run as a browser extension
+   */
+  private _isBrowserExtension: boolean;
+
+  /**
    * An instance of Log to use.
    */
   private _log: Log = new Log(LogLevel.Off);
@@ -362,6 +367,12 @@ class Device extends EventEmitter {
   constructor(token: string, options?: Device.Options);
   constructor(token?: string, options?: Device.Options) {
     super();
+
+    if (window) {
+      const root: any = window as any;
+      const browser: any = root.chrome || root.browser || root.msBrowser;
+      this._isBrowserExtension = !!browser && !!browser.runtime && !!browser.runtime.id;
+    }
 
     if (token) {
       this.setup(token, options);
@@ -797,6 +808,7 @@ class Device extends EventEmitter {
    */
   private _createDefaultPayload = (connection?: Connection): Record<string, any> => {
     const payload: Record<string, any> = {
+      browser_extension: this._isBrowserExtension,
       dscp: !!this.options.dscp,
       ice_restart_enabled: this.options.enableIceRestart,
       platform: rtc.getMediaEngine(),
