@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Tools | twilio-client</title>
+	<title>RTCWarning | twilio-client</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -44,10 +44,13 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="tools.html">Tools</a>
+					<a href="../modules/_rtc_warning_.html">&quot;rtc/warning&quot;</a>
+				</li>
+				<li>
+					<a href="_rtc_warning_.rtcwarning.html">RTCWarning</a>
 				</li>
 			</ul>
-			<h1>External module Tools</h1>
+			<h1>Interface RTCWarning</h1>
 		</div>
 	</div>
 </header>
@@ -56,30 +59,111 @@
 		<div class="col-8 col-content">
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Warning data for a stat</p>
+					</div>
 				</div>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">RTCWarning</span>
+					</li>
+				</ul>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section tsd-is-external">
-							<h3>Enumerations</h3>
+							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-enum tsd-parent-kind-external-module tsd-is-external"><a href="../enums/tools.loglevel.html" class="tsd-kind-icon">Log<wbr>Level</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="_rtc_warning_.rtcwarning.html#name" class="tsd-kind-icon">name</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="_rtc_warning_.rtcwarning.html#samples" class="tsd-kind-icon">samples</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="_rtc_warning_.rtcwarning.html#threshold" class="tsd-kind-icon">threshold</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="_rtc_warning_.rtcwarning.html#value" class="tsd-kind-icon">value</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="_rtc_warning_.rtcwarning.html#values" class="tsd-kind-icon">values</a></li>
 							</ul>
 						</section>
-						<section class="tsd-index-section tsd-is-external">
-							<h3>Classes</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-class tsd-parent-kind-external-module tsd-is-external"><a href="../classes/tools.log.html" class="tsd-kind-icon">Log</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section tsd-is-external">
-							<h3>Interfaces</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-interface tsd-parent-kind-external-module tsd-is-external"><a href="../interfaces/tools.ilogoptions.html" class="tsd-kind-icon">ILog<wbr>Options</a></li>
-							</ul>
-						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group tsd-is-external">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a name="name" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> name</h3>
+					<div class="tsd-signature tsd-kind-icon">name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/406f60f/lib/twilio/rtc/warning.ts#L16">rtc/warning.ts:16</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Name of the stat for this <a href="_rtc_warning_.rtcwarning.html">RTCWarning</a>.</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a name="samples" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> samples</h3>
+					<div class="tsd-signature tsd-kind-icon">samples<span class="tsd-signature-symbol">:</span> <a href="voice.rtcsample.html" class="tsd-signature-type">RTCSample</a><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/406f60f/lib/twilio/rtc/warning.ts#L21">rtc/warning.ts:21</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>List of samples for this <a href="_rtc_warning_.rtcwarning.html">RTCWarning</a>.</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a name="threshold" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> threshold</h3>
+					<div class="tsd-signature tsd-kind-icon">threshold<span class="tsd-signature-symbol">:</span> <a href="_rtc_warning_.thresholdwarningdata.html" class="tsd-signature-type">ThresholdWarningData</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/406f60f/lib/twilio/rtc/warning.ts#L26">rtc/warning.ts:26</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Threshold data for this <a href="_rtc_warning_.rtcwarning.html">RTCWarning</a>.</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a name="value" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> value</h3>
+					<div class="tsd-signature tsd-kind-icon">value<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/406f60f/lib/twilio/rtc/warning.ts#L31">rtc/warning.ts:31</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Value for the stat in this <a href="_rtc_warning_.rtcwarning.html">RTCWarning</a>.</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a name="values" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> values</h3>
+					<div class="tsd-signature tsd-kind-icon">values<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/406f60f/lib/twilio/rtc/warning.ts#L36">rtc/warning.ts:36</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>A list of values for the stat in this <a href="_rtc_warning_.rtcwarning.html">RTCWarning</a>.</p>
+						</div>
 					</div>
 				</section>
 			</section>
@@ -94,83 +178,95 @@
 						<span>Internals</span>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_audiohelper_.html">"audiohelper"</a>
+						<a href="../modules/_audiohelper_.html">"audiohelper"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_connection_.html">"connection"</a>
+						<a href="../modules/_connection_.html">"connection"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_device_.html">"device"</a>
+						<a href="../modules/_device_.html">"device"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_dialtoneplayer_.html">"dialtone<wbr>Player"</a>
+						<a href="../modules/_dialtoneplayer_.html">"dialtone<wbr>Player"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_outputdevicecollection_.html">"outputdevicecollection"</a>
+						<a href="../modules/_outputdevicecollection_.html">"outputdevicecollection"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_regions_.html">"regions"</a>
+						<a href="../modules/_regions_.html">"regions"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_wstransport_.html">"wstransport"</a>
+						<a href="../modules/_wstransport_.html">"wstransport"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="voice.html">Voice</a>
+						<a href="../modules/voice.html">Voice</a>
 					</li>
 					<li class="label tsd-is-external">
 						<span>Externals</span>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_constants_.html">"constants"</a>
+						<a href="../modules/_constants_.html">"constants"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_errors_index_.html">"errors/index"</a>
+						<a href="../modules/_errors_index_.html">"errors/index"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_errors_twilioerror_.html">"errors/twilio<wbr>Error"</a>
+						<a href="../modules/_errors_twilioerror_.html">"errors/twilio<wbr>Error"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_log_.html">"log"</a>
+						<a href="../modules/_log_.html">"log"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_pstream_.html">"pstream"</a>
+						<a href="../modules/_pstream_.html">"pstream"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_rtc_monitor_.html">"rtc/monitor"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_rtc_warning_.html">"rtc/warning"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_shims_eventtarget_.html">"shims/eventtarget"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_shims_mediadevices_.html">"shims/mediadevices"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_util_.html">"util"</a>
+						<a href="../modules/_rtc_monitor_.html">"rtc/monitor"</a>
 					</li>
 					<li class="current tsd-kind-external-module tsd-is-external">
-						<a href="tools.html">Tools</a>
+						<a href="../modules/_rtc_warning_.html">"rtc/warning"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_shims_eventtarget_.html">"shims/eventtarget"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_shims_mediadevices_.html">"shims/mediadevices"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_util_.html">"util"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/tools.html">Tools</a>
 					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-enum tsd-parent-kind-external-module tsd-is-external">
-						<a href="../enums/tools.loglevel.html" class="tsd-kind-icon">Log<wbr>Level</a>
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-interface tsd-parent-kind-external-module tsd-is-private tsd-is-external">
+						<a href="_rtc_warning_.rtcwarning.html" class="tsd-kind-icon">RTCWarning</a>
+						<ul>
+							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+								<a href="_rtc_warning_.rtcwarning.html#name" class="tsd-kind-icon">name</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+								<a href="_rtc_warning_.rtcwarning.html#samples" class="tsd-kind-icon">samples</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+								<a href="_rtc_warning_.rtcwarning.html#threshold" class="tsd-kind-icon">threshold</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+								<a href="_rtc_warning_.rtcwarning.html#value" class="tsd-kind-icon">value</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+								<a href="_rtc_warning_.rtcwarning.html#values" class="tsd-kind-icon">values</a>
+							</li>
+						</ul>
 					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-external-module tsd-is-external">
-						<a href="../classes/tools.log.html" class="tsd-kind-icon">Log</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-is-external">
-						<a href="../interfaces/tools.ilogoptions.html" class="tsd-kind-icon">ILog<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-						<a href="tools.html#loglevelmethods" class="tsd-kind-icon">log<wbr>Level<wbr>Methods</a>
-					</li>
-					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-						<a href="tools.html#loglevelranks" class="tsd-kind-icon">log<wbr>Level<wbr>Ranks</a>
+				</ul>
+				<ul class="after-current">
+					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-is-private tsd-is-external tsd-is-not-exported">
+						<a href="_rtc_warning_.thresholdwarningdata.html" class="tsd-kind-icon">Threshold<wbr>Warning<wbr>Data</a>
 					</li>
 				</ul>
 			</nav>

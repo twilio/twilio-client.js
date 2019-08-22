@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Voice | twilio-client</title>
+	<title>Deferred | twilio-client</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -44,10 +44,13 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="voice.html">Voice</a>
+					<a href="../modules/voice.html">Voice</a>
+				</li>
+				<li>
+					<a href="voice.deferred.html">Deferred</a>
 				</li>
 			</ul>
-			<h1>External module Voice</h1>
+			<h1>Class Deferred</h1>
 		</div>
 	</div>
 </header>
@@ -56,48 +59,151 @@
 		<div class="col-8 col-content">
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Deferred Promise</p>
+					</div>
 				</div>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">Deferred</span>
+					</li>
+				</ul>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
-						<section class="tsd-index-section ">
-							<h3>Modules</h3>
+						<section class="tsd-index-section tsd-is-external">
+							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-module tsd-parent-kind-external-module"><a href="voice.authorizationerrors.html" class="tsd-kind-icon">Authorization<wbr>Errors</a></li>
-								<li class="tsd-kind-module tsd-parent-kind-external-module"><a href="voice.clienterrors.html" class="tsd-kind-icon">Client<wbr>Errors</a></li>
-								<li class="tsd-kind-module tsd-parent-kind-external-module"><a href="voice.generalerrors.html" class="tsd-kind-icon">General<wbr>Errors</a></li>
-								<li class="tsd-kind-module tsd-parent-kind-external-module"><a href="voice.mediaerrors.html" class="tsd-kind-icon">Media<wbr>Errors</a></li>
-								<li class="tsd-kind-module tsd-parent-kind-external-module"><a href="voice.signalingerrors.html" class="tsd-kind-icon">Signaling<wbr>Errors</a></li>
+								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-external"><a href="voice.deferred.html#constructor" class="tsd-kind-icon">constructor</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section tsd-is-external">
-							<h3>Classes</h3>
+							<h3>Accessors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-class tsd-parent-kind-external-module tsd-is-external"><a href="../classes/voice.deferred.html" class="tsd-kind-icon">Deferred</a></li>
+								<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-external"><a href="voice.deferred.html#promise" class="tsd-kind-icon">promise</a></li>
 							</ul>
 						</section>
-						<section class="tsd-index-section ">
-							<h3>Variables</h3>
+						<section class="tsd-index-section tsd-is-external">
+							<h3>Methods</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-variable tsd-parent-kind-external-module"><a href="voice.html#errorsbycode" class="tsd-kind-icon">errors<wbr>ByCode</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="voice.deferred.html#reject" class="tsd-kind-icon">reject</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-external"><a href="voice.deferred.html#resolve" class="tsd-kind-icon">resolve</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
-			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Variables</h2>
-				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-external-module">
-					<a name="errorsbycode" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagConst">Const</span> errors<wbr>ByCode</h3>
-					<div class="tsd-signature tsd-kind-icon">errors<wbr>ByCode<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">ReadonlyMap</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;new Map([[ 20101, AuthorizationErrors.AccessTokenInvalid ],[ 20104, AuthorizationErrors.AccessTokenExpired ],[ 20151, AuthorizationErrors.AuthenticationFailed ],[ 31400, ClientErrors.BadRequest ],[ 31000, GeneralErrors.UnknownError ],[ 31005, GeneralErrors.ConnectionError ],[ 31009, GeneralErrors.TransportError ],[ 53000, SignalingErrors.ConnectionError ],[ 53001, SignalingErrors.ConnectionDisconnected ],[ 53400, MediaErrors.ClientLocalDescFailed ],[ 53402, MediaErrors.ClientRemoteDescFailed ],[ 53405, MediaErrors.ConnectionError ],])</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/406f60f/lib/twilio/errors/generated.ts#L277">errors/generated.ts:277</a></li>
-						</ul>
-					</aside>
+			<section class="tsd-panel-group tsd-member-group tsd-is-external">
+				<h2>Constructors</h2>
+				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-external">
+					<a name="constructor" class="tsd-anchor"></a>
+					<h3>constructor</h3>
+					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-external">
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Deferred<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="voice.deferred.html" class="tsd-signature-type">Deferred</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/406f60f/lib/twilio/deferred.ts#L23">deferred.ts:23</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<dl class="tsd-comment-tags">
+									<dt>constructor</dt>
+									<dd></dd>
+								</dl>
+							</div>
+							<h4 class="tsd-returns-title">Returns <a href="voice.deferred.html" class="tsd-signature-type">Deferred</a></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group tsd-is-external">
+				<h2>Accessors</h2>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-external">
+					<a name="promise" class="tsd-anchor"></a>
+					<h3>promise</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class tsd-is-external">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> promise<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/406f60f/lib/twilio/deferred.ts#L38">deferred.ts:38</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<p>The <a href="voice.deferred.html">Deferred</a> Promise</p>
+						</li>
+					</ul>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group tsd-is-external">
+				<h2>Methods</h2>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-external">
+					<a name="reject" class="tsd-anchor"></a>
+					<h3>reject</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-external">
+						<li class="tsd-signature tsd-kind-icon">reject<span class="tsd-signature-symbol">(</span>reason<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/406f60f/lib/twilio/deferred.ts#L45">deferred.ts:45</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Rejects this promise</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> reason: <span class="tsd-signature-type">any</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-external">
+					<a name="resolve" class="tsd-anchor"></a>
+					<h3>resolve</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-external">
+						<li class="tsd-signature tsd-kind-icon">resolve<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/406f60f/lib/twilio/deferred.ts#L52">deferred.ts:52</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Resolves this promise</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> value: <span class="tsd-signature-type">any</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
 				</section>
 			</section>
 		</div>
@@ -108,22 +214,22 @@
                 <a href="../globals.html"><em>Globals</em></a>
             </li>-->
 					<li class="current tsd-kind-external-module">
-						<a href="voice.html">Voice</a>
+						<a href="../modules/voice.html">Voice</a>
 						<ul>
 							<li class=" tsd-kind-module tsd-parent-kind-external-module">
-								<a href="voice.authorizationerrors.html">Authorization<wbr>Errors</a>
+								<a href="../modules/voice.authorizationerrors.html">Authorization<wbr>Errors</a>
 							</li>
 							<li class=" tsd-kind-module tsd-parent-kind-external-module">
-								<a href="voice.clienterrors.html">Client<wbr>Errors</a>
+								<a href="../modules/voice.clienterrors.html">Client<wbr>Errors</a>
 							</li>
 							<li class=" tsd-kind-module tsd-parent-kind-external-module">
-								<a href="voice.generalerrors.html">General<wbr>Errors</a>
+								<a href="../modules/voice.generalerrors.html">General<wbr>Errors</a>
 							</li>
 							<li class=" tsd-kind-module tsd-parent-kind-external-module">
-								<a href="voice.mediaerrors.html">Media<wbr>Errors</a>
+								<a href="../modules/voice.mediaerrors.html">Media<wbr>Errors</a>
 							</li>
 							<li class=" tsd-kind-module tsd-parent-kind-external-module">
-								<a href="voice.signalingerrors.html">Signaling<wbr>Errors</a>
+								<a href="../modules/voice.signalingerrors.html">Signaling<wbr>Errors</a>
 							</li>
 						</ul>
 					</li>
@@ -131,9 +237,27 @@
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-class tsd-parent-kind-external-module tsd-is-external">
-						<a href="../classes/voice.deferred.html" class="tsd-kind-icon">Deferred</a>
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-class tsd-parent-kind-external-module tsd-is-external">
+						<a href="voice.deferred.html" class="tsd-kind-icon">Deferred</a>
+						<ul>
+							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-external">
+								<a href="voice.deferred.html#constructor" class="tsd-kind-icon">constructor</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-external">
+								<a href="voice.deferred.html#promise" class="tsd-kind-icon">promise</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-external">
+								<a href="voice.deferred.html#reject" class="tsd-kind-icon">reject</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-external">
+								<a href="voice.deferred.html#resolve" class="tsd-kind-icon">resolve</a>
+							</li>
+						</ul>
 					</li>
+				</ul>
+				<ul class="after-current">
 					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-is-private tsd-is-external">
 						<a href="../interfaces/voice.rtcsample.html" class="tsd-kind-icon">RTCSample</a>
 					</li>
@@ -141,10 +265,10 @@
 						<a href="../interfaces/voice.rtcsampletotals.html" class="tsd-kind-icon">RTCSample<wbr>Totals</a>
 					</li>
 					<li class=" tsd-kind-variable tsd-parent-kind-external-module">
-						<a href="voice.html#errorsbycode" class="tsd-kind-icon">errors<wbr>ByCode</a>
+						<a href="../modules/voice.html#errorsbycode" class="tsd-kind-icon">errors<wbr>ByCode</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
-						<a href="voice.html#construct" class="tsd-kind-icon">construct</a>
+						<a href="../modules/voice.html#construct" class="tsd-kind-icon">construct</a>
 					</li>
 				</ul>
 			</nav>

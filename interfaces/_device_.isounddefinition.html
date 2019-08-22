@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>LogLevel | twilio-client</title>
+	<title>ISoundDefinition | twilio-client</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -44,13 +44,13 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../modules/tools.html">Tools</a>
+					<a href="../modules/_device_.html">&quot;device&quot;</a>
 				</li>
 				<li>
-					<a href="tools.loglevel.html">LogLevel</a>
+					<a href="_device_.isounddefinition.html">ISoundDefinition</a>
 				</li>
 			</ul>
-			<h1>Enumeration LogLevel</h1>
+			<h1>Interface ISoundDefinition</h1>
 		</div>
 	</div>
 </header>
@@ -60,78 +60,79 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Valid LogLevels.</p>
+						<p>A sound definition used to initialize a Sound file.</p>
 					</div>
 				</div>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">ISoundDefinition</span>
+					</li>
+				</ul>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
-						<section class="tsd-index-section tsd-is-external">
-							<h3>Enumeration members</h3>
+						<section class="tsd-index-section ">
+							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external"><a href="tools.loglevel.html#debug" class="tsd-kind-icon">Debug</a></li>
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external"><a href="tools.loglevel.html#error" class="tsd-kind-icon">Error</a></li>
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external"><a href="tools.loglevel.html#info" class="tsd-kind-icon">Info</a></li>
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external"><a href="tools.loglevel.html#off" class="tsd-kind-icon">Off</a></li>
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external"><a href="tools.loglevel.html#warn" class="tsd-kind-icon">Warn</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_device_.isounddefinition.html#filename" class="tsd-kind-icon">filename</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_device_.isounddefinition.html#maxduration" class="tsd-kind-icon">max<wbr>Duration</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_device_.isounddefinition.html#shouldloop" class="tsd-kind-icon">should<wbr>Loop</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
-			<section class="tsd-panel-group tsd-member-group tsd-is-external">
-				<h2>Enumeration members</h2>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-					<a name="debug" class="tsd-anchor"></a>
-					<h3>Debug</h3>
-					<div class="tsd-signature tsd-kind-icon">Debug<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;debug&quot;</span></div>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="filename" class="tsd-anchor"></a>
+					<h3>filename</h3>
+					<div class="tsd-signature tsd-kind-icon">filename<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/406f60f/lib/twilio/tslog.ts#L11">tslog.ts:11</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/406f60f/lib/twilio/device.ts#L143">device.ts:143</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Name of the sound file.</p>
+						</div>
+					</div>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-					<a name="error" class="tsd-anchor"></a>
-					<h3>Error</h3>
-					<div class="tsd-signature tsd-kind-icon">Error<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;error&quot;</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="maxduration" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> max<wbr>Duration</h3>
+					<div class="tsd-signature tsd-kind-icon">max<wbr>Duration<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/406f60f/lib/twilio/tslog.ts#L14">tslog.ts:14</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/406f60f/lib/twilio/device.ts#L148">device.ts:148</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The amount of time this sound file should play before being stopped automatically.</p>
+						</div>
+					</div>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-					<a name="info" class="tsd-anchor"></a>
-					<h3>Info</h3>
-					<div class="tsd-signature tsd-kind-icon">Info<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;info&quot;</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="shouldloop" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> should<wbr>Loop</h3>
+					<div class="tsd-signature tsd-kind-icon">should<wbr>Loop<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/406f60f/lib/twilio/tslog.ts#L12">tslog.ts:12</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/406f60f/lib/twilio/device.ts#L153">device.ts:153</a></li>
 						</ul>
 					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-					<a name="off" class="tsd-anchor"></a>
-					<h3>Off</h3>
-					<div class="tsd-signature tsd-kind-icon">Off<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;off&quot;</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/406f60f/lib/twilio/tslog.ts#L10">tslog.ts:10</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-					<a name="warn" class="tsd-anchor"></a>
-					<h3>Warn</h3>
-					<div class="tsd-signature tsd-kind-icon">Warn<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;warn&quot;</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/406f60f/lib/twilio/tslog.ts#L13">tslog.ts:13</a></li>
-						</ul>
-					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Whether or not this sound should loop after playthrough finishes.</p>
+						</div>
+					</div>
 				</section>
 			</section>
 		</div>
@@ -150,7 +151,7 @@
 					<li class=" tsd-kind-external-module">
 						<a href="../modules/_connection_.html">"connection"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class="current tsd-kind-external-module">
 						<a href="../modules/_device_.html">"device"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
@@ -201,48 +202,84 @@
 					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="../modules/_util_.html">"util"</a>
 					</li>
-					<li class="current tsd-kind-external-module tsd-is-external">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="../modules/tools.html">Tools</a>
 					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
+					<li class=" tsd-kind-class tsd-parent-kind-external-module">
+						<a href="../classes/_device_.device.html" class="tsd-kind-icon">Device</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-is-private">
+						<a href="_device_.iextendeddeviceoptions.html" class="tsd-kind-icon">IExtended<wbr>Device<wbr>Options</a>
+					</li>
 				</ul>
 				<ul class="current">
-					<li class="current tsd-kind-enum tsd-parent-kind-external-module tsd-is-external">
-						<a href="tools.loglevel.html" class="tsd-kind-icon">Log<wbr>Level</a>
+					<li class="current tsd-kind-interface tsd-parent-kind-external-module tsd-is-private">
+						<a href="_device_.isounddefinition.html" class="tsd-kind-icon">ISound<wbr>Definition</a>
 						<ul>
-							<li class=" tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-								<a href="tools.loglevel.html#debug" class="tsd-kind-icon">Debug</a>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="_device_.isounddefinition.html#filename" class="tsd-kind-icon">filename</a>
 							</li>
-							<li class=" tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-								<a href="tools.loglevel.html#error" class="tsd-kind-icon">Error</a>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="_device_.isounddefinition.html#maxduration" class="tsd-kind-icon">max<wbr>Duration</a>
 							</li>
-							<li class=" tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-								<a href="tools.loglevel.html#info" class="tsd-kind-icon">Info</a>
-							</li>
-							<li class=" tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-								<a href="tools.loglevel.html#off" class="tsd-kind-icon">Off</a>
-							</li>
-							<li class=" tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-								<a href="tools.loglevel.html#warn" class="tsd-kind-icon">Warn</a>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="_device_.isounddefinition.html#shouldloop" class="tsd-kind-icon">should<wbr>Loop</a>
 							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
-					<li class=" tsd-kind-class tsd-parent-kind-external-module tsd-is-external">
-						<a href="../classes/tools.log.html" class="tsd-kind-icon">Log</a>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-private">
+						<a href="../modules/_device_.html#ipstream" class="tsd-kind-icon">IPStream</a>
 					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-is-external">
-						<a href="../interfaces/tools.ilogoptions.html" class="tsd-kind-icon">ILog<wbr>Options</a>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-private">
+						<a href="../modules/_device_.html#ipublisher" class="tsd-kind-icon">IPublisher</a>
 					</li>
-					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-						<a href="../modules/tools.html#loglevelmethods" class="tsd-kind-icon">log<wbr>Level<wbr>Methods</a>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-private">
+						<a href="../modules/_device_.html#isound" class="tsd-kind-icon">ISound</a>
 					</li>
-					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-						<a href="../modules/tools.html#loglevelranks" class="tsd-kind-icon">log<wbr>Level<wbr>Ranks</a>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_device_.html#c" class="tsd-kind-icon">C</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_device_.html#publisher" class="tsd-kind-icon">Publisher</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_device_.html#registration_interval" class="tsd-kind-icon">REGISTRATION_<wbr>INTERVAL</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_device_.html#ringtone_play_timeout" class="tsd-kind-icon">RINGTONE_<wbr>PLAY_<wbr>TIMEOUT</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_device_.html#rtcrtptransceiver" class="tsd-kind-icon">RTCRtp<wbr>Transceiver</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_device_.html#sound" class="tsd-kind-icon">Sound</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_device_.html#getusermedia" class="tsd-kind-icon">get<wbr>User<wbr>Media</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_device_.html#hasbeenwarnedhandlers" class="tsd-kind-icon">has<wbr>Been<wbr>Warned<wbr>Handlers</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_device_.html#hasbeenwarnedsounds" class="tsd-kind-icon">has<wbr>Been<wbr>Warned<wbr>Sounds</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_device_.html#isunifiedplandefault" class="tsd-kind-icon">is<wbr>Unified<wbr>Plan<wbr>Default</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-private tsd-is-not-exported">
+						<a href="../modules/_device_.html#networkinformation" class="tsd-kind-icon">network<wbr>Information</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_device_.html#rtc" class="tsd-kind-icon">rtc</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_device_.html#webkitaudiocontext" class="tsd-kind-icon">webkit<wbr>Audio<wbr>Context</a>
 					</li>
 				</ul>
 			</nav>
