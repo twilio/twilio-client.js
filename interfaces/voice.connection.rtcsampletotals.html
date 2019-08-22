@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>LogLevel | twilio-client</title>
+	<title>RTCSampleTotals | twilio-client</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -44,13 +44,16 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../modules/tools.html">Tools</a>
+					<a href="../modules/voice.html">Voice</a>
 				</li>
 				<li>
-					<a href="tools.loglevel.html">LogLevel</a>
+					<a href="../classes/voice.connection.html">Connection</a>
+				</li>
+				<li>
+					<a href="voice.connection.rtcsampletotals.html">RTCSampleTotals</a>
 				</li>
 			</ul>
-			<h1>Enumeration LogLevel</h1>
+			<h1>Interface RTCSampleTotals</h1>
 		</div>
 	</div>
 </header>
@@ -60,78 +63,127 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Valid LogLevels.</p>
+						<p>Totals included in RTC statistics samples</p>
 					</div>
 				</div>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">RTCSampleTotals</span>
+					</li>
+				</ul>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
-						<section class="tsd-index-section tsd-is-external">
-							<h3>Enumeration members</h3>
+						<section class="tsd-index-section ">
+							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external"><a href="tools.loglevel.html#debug" class="tsd-kind-icon">Debug</a></li>
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external"><a href="tools.loglevel.html#error" class="tsd-kind-icon">Error</a></li>
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external"><a href="tools.loglevel.html#info" class="tsd-kind-icon">Info</a></li>
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external"><a href="tools.loglevel.html#off" class="tsd-kind-icon">Off</a></li>
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external"><a href="tools.loglevel.html#warn" class="tsd-kind-icon">Warn</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.rtcsampletotals.html#bytesreceived" class="tsd-kind-icon">bytes<wbr>Received</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.rtcsampletotals.html#bytessent" class="tsd-kind-icon">bytes<wbr>Sent</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.rtcsampletotals.html#packetslost" class="tsd-kind-icon">packets<wbr>Lost</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.rtcsampletotals.html#packetslostfraction" class="tsd-kind-icon">packets<wbr>Lost<wbr>Fraction</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.rtcsampletotals.html#packetsreceived" class="tsd-kind-icon">packets<wbr>Received</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.rtcsampletotals.html#packetssent" class="tsd-kind-icon">packets<wbr>Sent</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
-			<section class="tsd-panel-group tsd-member-group tsd-is-external">
-				<h2>Enumeration members</h2>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-					<a name="debug" class="tsd-anchor"></a>
-					<h3>Debug</h3>
-					<div class="tsd-signature tsd-kind-icon">Debug<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;debug&quot;</span></div>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="bytesreceived" class="tsd-anchor"></a>
+					<h3>bytes<wbr>Received</h3>
+					<div class="tsd-signature tsd-kind-icon">bytes<wbr>Received<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/5869dd1/lib/twilio/tslog.ts#L11">tslog.ts:11</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/5869dd1/lib/twilio/connection.ts#L1574">connection.ts:1574</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Total bytes received in last second.</p>
+						</div>
+					</div>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-					<a name="error" class="tsd-anchor"></a>
-					<h3>Error</h3>
-					<div class="tsd-signature tsd-kind-icon">Error<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;error&quot;</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="bytessent" class="tsd-anchor"></a>
+					<h3>bytes<wbr>Sent</h3>
+					<div class="tsd-signature tsd-kind-icon">bytes<wbr>Sent<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/5869dd1/lib/twilio/tslog.ts#L14">tslog.ts:14</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/5869dd1/lib/twilio/connection.ts#L1579">connection.ts:1579</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Total bytes sent in last second.</p>
+						</div>
+					</div>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-					<a name="info" class="tsd-anchor"></a>
-					<h3>Info</h3>
-					<div class="tsd-signature tsd-kind-icon">Info<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;info&quot;</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="packetslost" class="tsd-anchor"></a>
+					<h3>packets<wbr>Lost</h3>
+					<div class="tsd-signature tsd-kind-icon">packets<wbr>Lost<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/5869dd1/lib/twilio/tslog.ts#L12">tslog.ts:12</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/5869dd1/lib/twilio/connection.ts#L1559">connection.ts:1559</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Total packets lost in last second.</p>
+						</div>
+					</div>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-					<a name="off" class="tsd-anchor"></a>
-					<h3>Off</h3>
-					<div class="tsd-signature tsd-kind-icon">Off<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;off&quot;</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="packetslostfraction" class="tsd-anchor"></a>
+					<h3>packets<wbr>Lost<wbr>Fraction</h3>
+					<div class="tsd-signature tsd-kind-icon">packets<wbr>Lost<wbr>Fraction<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/5869dd1/lib/twilio/tslog.ts#L10">tslog.ts:10</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/5869dd1/lib/twilio/connection.ts#L1569">connection.ts:1569</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Total packets lost to total inbound packets ratio</p>
+						</div>
+					</div>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-					<a name="warn" class="tsd-anchor"></a>
-					<h3>Warn</h3>
-					<div class="tsd-signature tsd-kind-icon">Warn<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;warn&quot;</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="packetsreceived" class="tsd-anchor"></a>
+					<h3>packets<wbr>Received</h3>
+					<div class="tsd-signature tsd-kind-icon">packets<wbr>Received<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/5869dd1/lib/twilio/tslog.ts#L13">tslog.ts:13</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/5869dd1/lib/twilio/connection.ts#L1554">connection.ts:1554</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Total packets received in last second.</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="packetssent" class="tsd-anchor"></a>
+					<h3>packets<wbr>Sent</h3>
+					<div class="tsd-signature tsd-kind-icon">packets<wbr>Sent<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/5869dd1/lib/twilio/connection.ts#L1564">connection.ts:1564</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Total packets sent in last second.</p>
+						</div>
+					</div>
 				</section>
 			</section>
 		</div>
@@ -144,7 +196,7 @@
 					<li class="label tsd-is-external">
 						<span>Internals</span>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class="current tsd-kind-external-module">
 						<a href="../modules/voice.html">Voice</a>
 					</li>
 					<li class="label tsd-is-external">
@@ -168,7 +220,7 @@
 					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="../modules/_util_.html">"util"</a>
 					</li>
-					<li class="current tsd-kind-external-module tsd-is-external">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="../modules/tools.html">Tools</a>
 					</li>
 				</ul>
@@ -177,70 +229,36 @@
 				<ul class="before-current">
 				</ul>
 				<ul class="current">
-					<li class="current tsd-kind-enum tsd-parent-kind-external-module tsd-is-external">
-						<a href="tools.loglevel.html" class="tsd-kind-icon">Log<wbr>Level</a>
+					<li class="current tsd-kind-class tsd-parent-kind-external-module">
+						<a href="../classes/voice.connection.html" class="tsd-kind-icon">Connection</a>
 						<ul>
-							<li class=" tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-								<a href="tools.loglevel.html#debug" class="tsd-kind-icon">Debug</a>
-							</li>
-							<li class=" tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-								<a href="tools.loglevel.html#error" class="tsd-kind-icon">Error</a>
-							</li>
-							<li class=" tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-								<a href="tools.loglevel.html#info" class="tsd-kind-icon">Info</a>
-							</li>
-							<li class=" tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-								<a href="tools.loglevel.html#off" class="tsd-kind-icon">Off</a>
-							</li>
-							<li class=" tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-								<a href="tools.loglevel.html#warn" class="tsd-kind-icon">Warn</a>
+							<li class="current tsd-kind-interface tsd-parent-kind-class tsd-is-private">
+								<a href="voice.connection.rtcsampletotals.html" class="tsd-kind-icon">RTCSample<wbr>Totals</a>
+								<ul>
+									<li class=" tsd-kind-property tsd-parent-kind-interface">
+										<a href="voice.connection.rtcsampletotals.html#bytesreceived" class="tsd-kind-icon">bytes<wbr>Received</a>
+									</li>
+									<li class=" tsd-kind-property tsd-parent-kind-interface">
+										<a href="voice.connection.rtcsampletotals.html#bytessent" class="tsd-kind-icon">bytes<wbr>Sent</a>
+									</li>
+									<li class=" tsd-kind-property tsd-parent-kind-interface">
+										<a href="voice.connection.rtcsampletotals.html#packetslost" class="tsd-kind-icon">packets<wbr>Lost</a>
+									</li>
+									<li class=" tsd-kind-property tsd-parent-kind-interface">
+										<a href="voice.connection.rtcsampletotals.html#packetslostfraction" class="tsd-kind-icon">packets<wbr>Lost<wbr>Fraction</a>
+									</li>
+									<li class=" tsd-kind-property tsd-parent-kind-interface">
+										<a href="voice.connection.rtcsampletotals.html#packetsreceived" class="tsd-kind-icon">packets<wbr>Received</a>
+									</li>
+									<li class=" tsd-kind-property tsd-parent-kind-interface">
+										<a href="voice.connection.rtcsampletotals.html#packetssent" class="tsd-kind-icon">packets<wbr>Sent</a>
+									</li>
+								</ul>
 							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
-					<li class=" tsd-kind-enum tsd-parent-kind-external-module">
-						<a href="tools.wstransportstate.html" class="tsd-kind-icon">WSTransport<wbr>State</a>
-					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-external-module tsd-is-external">
-						<a href="../classes/tools.dialtoneplayer.html" class="tsd-kind-icon">Dialtone<wbr>Player</a>
-					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-external-module tsd-is-external">
-						<a href="../classes/tools.log.html" class="tsd-kind-icon">Log</a>
-					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-external-module">
-						<a href="../classes/tools.wstransport.html" class="tsd-kind-icon">WSTransport</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-is-external">
-						<a href="../interfaces/tools.ilogoptions.html" class="tsd-kind-icon">ILog<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
-						<a href="../interfaces/tools.imessageevent.html" class="tsd-kind-icon">IMessage<wbr>Event</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
-						<a href="../interfaces/tools.iwstransportconstructoroptions.html" class="tsd-kind-icon">IWSTransport<wbr>Constructor<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
-						<a href="../modules/tools.html#backoff" class="tsd-kind-icon">Backoff</a>
-					</li>
-					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
-						<a href="../modules/tools.html#connect_success_timeout" class="tsd-kind-icon">CONNECT_<wbr>SUCCESS_<wbr>TIMEOUT</a>
-					</li>
-					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
-						<a href="../modules/tools.html#connect_timeout" class="tsd-kind-icon">CONNECT_<wbr>TIMEOUT</a>
-					</li>
-					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
-						<a href="../modules/tools.html#heartbeat_timeout" class="tsd-kind-icon">HEARTBEAT_<wbr>TIMEOUT</a>
-					</li>
-					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-						<a href="../modules/tools.html#bandfrequencies" class="tsd-kind-icon">band<wbr>Frequencies</a>
-					</li>
-					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-						<a href="../modules/tools.html#loglevelmethods" class="tsd-kind-icon">log<wbr>Level<wbr>Methods</a>
-					</li>
-					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-						<a href="../modules/tools.html#loglevelranks" class="tsd-kind-icon">log<wbr>Level<wbr>Ranks</a>
-					</li>
 				</ul>
 			</nav>
 		</div>

@@ -3,17 +3,17 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>twilio-client</title>
+	<title>Error | twilio-client</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="assets/css/main.css">
+	<link rel="stylesheet" href="../assets/css/main.css">
 </head>
 <body>
 <header>
 	<div class="tsd-page-toolbar">
 		<div class="container">
 			<div class="table-wrap">
-				<div class="table-cell" id="tsd-search" data-index="assets/js/search.js" data-base=".">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.js" data-base="..">
 					<div class="field">
 						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
 						<input id="tsd-search-field" type="text" />
@@ -22,7 +22,7 @@
 						<li class="state loading">Preparing search index...</li>
 						<li class="state failure">The search index is not available</li>
 					</ul>
-					<a href="index.html" class="title">twilio-client</a>
+					<a href="../index.html" class="title">twilio-client</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -41,33 +41,127 @@
 		<div class="container">
 			<ul class="tsd-breadcrumb">
 				<li>
-					<a href="globals.html">Globals</a>
+					<a href="../globals.html">Globals</a>
+				</li>
+				<li>
+					<a href="../modules/voice.html">Voice</a>
+				</li>
+				<li>
+					<a href="../classes/voice.connection.html">Connection</a>
+				</li>
+				<li>
+					<a href="voice.connection.error.html">Error</a>
 				</li>
 			</ul>
-			<h1> twilio-client</h1>
+			<h1>Interface Error</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>The error format used by errors emitted from <a href="../classes/voice.connection.html">Connection</a>.</p>
+					</div>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">Error</span>
+					</li>
+				</ul>
+			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
-							<h3>External modules</h3>
+							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-external-module tsd-is-external"><a href="modules/_constants_.html" class="tsd-kind-icon">"constants"</a></li>
-								<li class="tsd-kind-external-module tsd-is-external"><a href="modules/_log_.html" class="tsd-kind-icon">"log"</a></li>
-								<li class="tsd-kind-external-module tsd-is-external"><a href="modules/_pstream_.html" class="tsd-kind-icon">"pstream"</a></li>
-								<li class="tsd-kind-external-module tsd-is-external"><a href="modules/_shims_eventtarget_.html" class="tsd-kind-icon">"shims/eventtarget"</a></li>
-								<li class="tsd-kind-external-module tsd-is-external"><a href="modules/_shims_mediadevices_.html" class="tsd-kind-icon">"shims/mediadevices"</a></li>
-								<li class="tsd-kind-external-module tsd-is-external"><a href="modules/_util_.html" class="tsd-kind-icon">"util"</a></li>
-								<li class="tsd-kind-external-module tsd-is-external"><a href="modules/tools.html" class="tsd-kind-icon">Tools</a></li>
-								<li class="tsd-kind-external-module"><a href="modules/voice.html" class="tsd-kind-icon">Voice</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.error.html#code" class="tsd-kind-icon">code</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.error.html#connection" class="tsd-kind-icon">connection</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.error.html#info" class="tsd-kind-icon">info</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.error.html#message-1" class="tsd-kind-icon">message</a></li>
 							</ul>
 						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="code" class="tsd-anchor"></a>
+					<h3>code</h3>
+					<div class="tsd-signature tsd-kind-icon">code<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/5869dd1/lib/twilio/connection.ts#L1318">connection.ts:1318</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Error code</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="connection" class="tsd-anchor"></a>
+					<h3>connection</h3>
+					<div class="tsd-signature tsd-kind-icon">connection<span class="tsd-signature-symbol">:</span> <a href="../classes/voice.connection.html" class="tsd-signature-type">Connection</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/5869dd1/lib/twilio/connection.ts#L1323">connection.ts:1323</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Reference to the <a href="../classes/voice.connection.html">Connection</a></p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="info" class="tsd-anchor"></a>
+					<h3>info</h3>
+					<div class="tsd-signature tsd-kind-icon">info<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/5869dd1/lib/twilio/connection.ts#L1328">connection.ts:1328</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The info object from rtc/peerconnection. May contain code and message (duplicated here).</p>
+						</div>
+					</div>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter">
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> code<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
+							</li>
+							<li class="tsd-parameter">
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> message<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h5>
+							</li>
+						</ul>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="message-1" class="tsd-anchor"></a>
+					<h3>message</h3>
+					<div class="tsd-signature tsd-kind-icon">message<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/5869dd1/lib/twilio/connection.ts#L1333">connection.ts:1333</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Error message</p>
+						</div>
 					</div>
 				</section>
 			</section>
@@ -75,43 +169,69 @@
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 			<nav class="tsd-navigation primary">
 				<ul>
-					<!--<li class="globals current ">
-                <a href="globals.html"><em>Globals</em></a>
+					<!--<li class="globals  ">
+                <a href="../globals.html"><em>Globals</em></a>
             </li>-->
 					<li class="label tsd-is-external">
 						<span>Internals</span>
 					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="modules/voice.html">Voice</a>
+					<li class="current tsd-kind-external-module">
+						<a href="../modules/voice.html">Voice</a>
 					</li>
 					<li class="label tsd-is-external">
 						<span>Externals</span>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_constants_.html">"constants"</a>
+						<a href="../modules/_constants_.html">"constants"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_log_.html">"log"</a>
+						<a href="../modules/_log_.html">"log"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_pstream_.html">"pstream"</a>
+						<a href="../modules/_pstream_.html">"pstream"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_shims_eventtarget_.html">"shims/eventtarget"</a>
+						<a href="../modules/_shims_eventtarget_.html">"shims/eventtarget"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_shims_mediadevices_.html">"shims/mediadevices"</a>
+						<a href="../modules/_shims_mediadevices_.html">"shims/mediadevices"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_util_.html">"util"</a>
+						<a href="../modules/_util_.html">"util"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/tools.html">Tools</a>
+						<a href="../modules/tools.html">Tools</a>
 					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-class tsd-parent-kind-external-module">
+						<a href="../classes/voice.connection.html" class="tsd-kind-icon">Connection</a>
+						<ul>
+							<li class="current tsd-kind-interface tsd-parent-kind-class">
+								<a href="voice.connection.error.html" class="tsd-kind-icon">Error</a>
+								<ul>
+									<li class=" tsd-kind-property tsd-parent-kind-interface">
+										<a href="voice.connection.error.html#code" class="tsd-kind-icon">code</a>
+									</li>
+									<li class=" tsd-kind-property tsd-parent-kind-interface">
+										<a href="voice.connection.error.html#connection" class="tsd-kind-icon">connection</a>
+									</li>
+									<li class=" tsd-kind-property tsd-parent-kind-interface">
+										<a href="voice.connection.error.html#info" class="tsd-kind-icon">info</a>
+									</li>
+									<li class=" tsd-kind-property tsd-parent-kind-interface">
+										<a href="voice.connection.error.html#message-1" class="tsd-kind-icon">message</a>
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<ul class="after-current">
 				</ul>
 			</nav>
 		</div>
@@ -181,7 +301,7 @@
 	<p>Generated using <a href="http://typedoc.org/" target="_blank">TypeDoc</a></p>
 </div>
 <div class="overlay"></div>
-<script src="assets/js/main.js"></script>
-<script>if (location.protocol == 'file:') document.write('<script src="assets/js/search.js"><' + '/script>');</script>
+<script src="../assets/js/main.js"></script>
+<script>if (location.protocol == 'file:') document.write('<script src="../assets/js/search.js"><' + '/script>');</script>
 </body>
 </html>
