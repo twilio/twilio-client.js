@@ -542,7 +542,11 @@ describe('PeerConnection', () => {
       toTest();
       assert(context._initializeMediaStream.calledWithExactly(eConstraints, eIceServers));
       assert(version.processSDP.calledOnce);
-      assert(context.onerror.calledWithExactly(expectedError));
+      assert(context.onerror.calledWithMatch(expectedError));
+
+      const rVal = context.onerror.firstCall.args[0];
+      assert.equal(rVal.info.twilioError.code, 53402);
+
       assert(version.processSDP.calledWithExactly(undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(context.pstream.publish.called, false);
       assert.equal(version.getSDP.called, false);
@@ -555,7 +559,11 @@ describe('PeerConnection', () => {
       toTest();
       assert(context._initializeMediaStream.calledWithExactly(eConstraints, eIceServers));
       assert(version.processSDP.calledOnce);
-      assert(context.onerror.calledWithExactly(EXPECTED_ERROR));
+      assert(context.onerror.calledWithMatch(EXPECTED_ERROR));
+
+      const rVal = context.onerror.firstCall.args[0];
+      assert.equal(rVal.info.twilioError.code, 53402);
+
       assert(version.processSDP.calledWithExactly(undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(context.pstream.publish.called, false);
       assert.equal(version.getSDP.called, false);
@@ -581,7 +589,11 @@ describe('PeerConnection', () => {
       toTest();
       version.processSDP.callArg(4, new Error('error message'));
       version.processSDP.callArg(4, new Error('error message'));
-      assert(context.onerror.calledWithExactly(EXPECTED_ERROR));
+      assert(context.onerror.calledWithMatch(EXPECTED_ERROR));
+
+      const rVal = context.onerror.firstCall.args[0];
+      assert.equal(rVal.info.twilioError.code, 53402);
+
       assert(context.onerror.calledTwice);
       assert.equal(callback.called, false);
     });
@@ -628,12 +640,17 @@ describe('PeerConnection', () => {
 
     beforeEach(() => {
       version = {
-        createOffer: sinon.stub().returns({ then: (cb) => cb()}),
+        createOffer: sinon.stub().returns({then: (cb) => {
+          cb();
+          return {
+            catch: (cb) => {}
+          }
+        }}),
         getSDP: () => SDP,
         pc: {
           signalingState: 'have-local-offer'
         },
-        processAnswer: sinon.stub().callsFake((codecPreferences, sdp, onSuccess, onError) => onSuccess()),
+        processAnswer: sinon.stub().callsFake(() => {}),
       };
       options = { enableIceRestart: true };
       pstream = {
@@ -657,94 +674,68 @@ describe('PeerConnection', () => {
     it('Should not proceed iceRestart if enableIceRestart is false', () => {
       options.enableIceRestart = false;
       toTest();
-      assert(version.createOffer.notCalled);
-    });
-
-    it('Should call createOffer with iceRestart flag', (done) => {
-      toTest().catch(() => {
-        assert(version.createOffer.calledWithExactly(context.codecPreferences, {iceRestart: true}));
-        done();
+      return wait().then(() => {
+        assert(version.createOffer.notCalled);
       });
-      context._onAnswerOrRinging({});
     });
 
-    it('Should publish reinvite', (done) => {
-      toTest().then(() => {
+    it('Should call createOffer with iceRestart flag', () => {
+      toTest();
+      return wait().then(() => {
+        assert(version.createOffer.calledWithExactly(context.codecPreferences, {iceRestart: true}));
+      });
+    });
+
+    it('Should publish reinvite', () => {
+      toTest();
+      return wait().then(() => {
         assert(!context._removeReconnectionListeners.notCalled);
         assert(pstream.reinvite.calledWithExactly(SDP, CALLSID));
-        done();
-      });
-      context._onAnswerOrRinging({ sdp: SDP });
-    });
-
-    it('Should return canRetry=true on createOffer fail', (done) => {
-      version.createOffer = sinon.stub().returns(Promise.reject());
-      toTest().catch((canRetry) => {
-        assert(version.createOffer.calledWithExactly(context.codecPreferences, {iceRestart: true}));
-        assert.equal(canRetry, true);
-        done();
       });
     });
 
-    it('Should return canRetry=false if reinvite fail', (done) => {
-      toTest().catch((canRetry) => {
-        assert(pstream.reinvite.calledWithExactly(SDP, CALLSID));
-        assert(!context._removeReconnectionListeners.notCalled);
-        assert.equal(canRetry, false);
-        done();
+    it('Should call onfailed on createOffer fail', () => {
+      version.createOffer = sinon.stub().returns(Promise.reject('foo'));
+      context.onfailed = sinon.stub();
+      toTest();
+      return wait().then(() => {
+        sinon.assert.calledWithExactly(context.onfailed, 'foo');
       });
+    });
+
+    it('Should release handlers if reinvite fail', () => {
+      toTest();
       context._onHangup();
+      return wait().then(() => {
+        assert(!context._removeReconnectionListeners.notCalled);
+      });
     });
 
-    it('Should return canRetry=true if sdp is missing', (done) => {
-      toTest().catch((canRetry) => {
-        sinon.assert.notCalled(version.processAnswer);
-        assert(!context._removeReconnectionListeners.notCalled);
-        assert.equal(canRetry, true);
-        done();
-      });
+    it('Should release handlers if sdp is missing', () => {
+      toTest();
       context._onAnswerOrRinging({});
+      return wait().then(() => {
+        sinon.assert.notCalled(version.processAnswer);
+        assert(!context._removeReconnectionListeners.notCalled);
+      });
     });
 
-    it('Should return canRetry=false if there is no local offer', (done) => {
+    it('Should release handlersif there is no local offer', () => {
       version.pc.signalingState = 'stable';
-      toTest().catch((canRetry) => {
+      toTest();
+      context._onAnswerOrRinging({ sdp: SDP });
+      return wait().then(() => {
         sinon.assert.notCalled(version.processAnswer);
         assert(!context._removeReconnectionListeners.notCalled);
-        assert.equal(canRetry, false);
-        done();
       });
-      context._onAnswerOrRinging({ sdp: SDP });
     });
 
-    it('Should return canRetry=true on processAnswer fail', (done) => {
-      version.processAnswer = sinon.stub().callsFake((codecPreferences, sdp, onSuccess, onError) => onError({}));
-      toTest().catch((canRetry) => {
-        sinon.assert.calledOnce(version.processAnswer);
-        assert(!context._removeReconnectionListeners.notCalled);
-        assert.equal(canRetry, true);
-        done();
-      });
+    it('Should update _answerSdp', () => {
+      toTest();
       context._onAnswerOrRinging({ sdp: SDP });
-    });
-
-    it('Should return canRetry=true if current connection is close', (done) => {
-      context.status = 'closed';
-      toTest().catch((canRetry) => {
-        sinon.assert.notCalled(version.processAnswer);
-        assert(!context._removeReconnectionListeners.notCalled);
-        assert.equal(canRetry, true);
-        done();
-      });
-      context._onAnswerOrRinging({ sdp: SDP });
-    });
-
-    it('Should update _answerSdp', (done) => {
-      toTest().then(() => {
+      return wait().then(() => {
         assert.equal(context._answerSdp, SDP);
-        done();
       });
-      context._onAnswerOrRinging({ sdp: SDP });
     });
   });
 
@@ -879,7 +870,11 @@ describe('PeerConnection', () => {
     it('Should call onOfferError when createOffer calls error callback with error message', () => {
       version.createOffer.callsArgWith(3, ERROR_MESSAGE);
       toTest();
-      assert(context.onerror.calledWithExactly(EXPECTED_OFFER_ERROR));
+      assert(context.onerror.calledWithMatch(EXPECTED_OFFER_ERROR));
+
+      const rVal = context.onerror.firstCall.args[0];
+      assert.equal(rVal.info.twilioError.code, 53400);
+
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
     });
 
@@ -909,7 +904,7 @@ describe('PeerConnection', () => {
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
       assert(version.processAnswer.calledWithExactly(undefined, PAYLOAD.sdp, sinon.match.func, sinon.match.func));
       assert(version.processAnswer.calledOn(version));
-      assert(context.onerror.calledWithExactly(EXPECTED_PROCESSING_ERROR));
+      assert(context.onerror.calledWithMatch(EXPECTED_PROCESSING_ERROR));
     });
 
     it('Should call onerror and proxy message when processAnswer calls error callback', () => {
@@ -922,7 +917,7 @@ describe('PeerConnection', () => {
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
       assert(version.processAnswer.calledWithExactly(undefined, PAYLOAD.sdp, sinon.match.func, sinon.match.func));
       assert(version.processAnswer.calledOn(version));
-      assert(context.onerror.calledWithExactly(EXPECTED_PROCESSING_ERROR));
+      assert(context.onerror.calledWithMatch(EXPECTED_PROCESSING_ERROR));
       sinon.assert.notCalled(context._setNetworkPriority);
     });
 
@@ -948,7 +943,7 @@ describe('PeerConnection', () => {
     const STATUS_NOT_OPEN = 'not open';
     const PSTREAM_STATUS_DISCONNECTED = 'disconnected';
     const PSTREAM_STATUS_NOT_DISCONNECTED = 'not disconnected';
-    const CONNECTION_ERROR = {info: {code: 31000, message: "Cannot establish connection. Client is disconnected"}};
+    const CONNECTION_ERROR = {info: { code: 31000, message: 'Cannot establish connection. Client is disconnected'}};
 
     let context = null;
     let pstream = null;
@@ -981,9 +976,13 @@ describe('PeerConnection', () => {
     it('Should call onerror with error object and return false when pstream status is disconnected', () => {
       pstream.status = PSTREAM_STATUS_DISCONNECTED;
       assert.strictEqual(toTest(), false);
-      assert(context.onerror.calledWithExactly(CONNECTION_ERROR));
       assert(context.close.calledWithExactly());
       assert(context.onerror.calledBefore(context.close));
+      sinon.assert.calledWithMatch(context.onerror, CONNECTION_ERROR);
+
+      const rVal = context.onerror.firstCall.args[0];
+      assert.equal(rVal.info.twilioError.code, 53001);
+
       assert.equal(context._setupPeerConnection.called, false);
       assert.equal(context._setupChannel.called, false);
     });
@@ -1068,49 +1067,117 @@ describe('PeerConnection', () => {
           onicegatheringstatechange: sinon.stub(),
           onopen: sinon.stub(),
           onsignalingstatechange: sinon.stub(),
-          oniceconnectionstatechange: sinon.stub(),
         }
       };
       context = {
         version,
         options: {},
         log: sinon.stub(),
+        onfailed: sinon.stub(),
         onopen: sinon.stub(),
         onicecandidate: sinon.stub(),
         onicegatheringstatechange: sinon.stub(),
-        oniceconnectionstatechange: sinon.stub(),
       };
       toTest = METHOD.bind(context);
     });
 
-    it('Should call onerror with disconnect flag if enableIceRestart is false', () => {
-      context.onerror = sinon.stub();
-      context.options.enableIceRestart = false;
+    it('Should call _onMediaConnectionStateChange on ice failed', () => {
+      context._onMediaConnectionStateChange = sinon.stub();
       version.pc.iceConnectionState = 'failed';
       toTest();
       version.pc.oniceconnectionstatechange();
-      assert(context.onerror.calledWithExactly({
-        info: {
-          code: 31003,
-          message: 'Connection with Twilio was interrupted.'
-        },
-        disconnect: true
-      }));
+      sinon.assert.callCount(context._onMediaConnectionStateChange, 1);
     });
 
-    it('Should call onerror without disconnect flag if enableIceRestart is true', () => {
-      context.onerror = sinon.stub();
-      context.options.enableIceRestart = true;
-      version.pc.iceConnectionState = 'failed';
+    it('Should call _onMediaConnectionStateChange on pc failed', () => {
+      context._onMediaConnectionStateChange = sinon.stub();
+      version.pc.connectionState = 'failed';
       toTest();
-      version.pc.oniceconnectionstatechange();
-      assert(context.onerror.calledWithExactly({
-        info: {
-          code: 31003,
-          message: 'Connection with Twilio was interrupted.'
-        },
-        disconnect: false
-      }));
+      version.pc.onconnectionstatechange();
+      sinon.assert.callCount(context._onMediaConnectionStateChange, 1);
+    });
+  });
+
+  context('PeerConnection.prototype._onMediaConnectionStateChange', () => {
+    const METHOD = PeerConnection.prototype._onMediaConnectionStateChange;
+
+    let toTest = null;
+    let context = null;
+
+    beforeEach(() => {
+      context = {
+        _iceState: 'new',
+        log: sinon.stub(),
+        onreconnected: sinon.stub(),
+        ondisconnected: sinon.stub(),
+        onfailed: sinon.stub(),
+        onmediaconnectionstatechange: sinon.stub(),
+      };
+      toTest = METHOD.bind(context);
+    });
+
+    it('Should ignore other states', () => {
+      context._iceState = 'connected';
+      toTest('new');
+      toTest('connecting');
+      toTest('checking');
+      toTest('completed');
+      toTest('closed');
+      sinon.assert.notCalled(context.onmediaconnectionstatechange);
+    });
+
+    it('Should ignore if new state and previous states are the same', () => {
+      context._iceState = 'connected';
+      toTest('connected');
+      sinon.assert.notCalled(context.onmediaconnectionstatechange);
+    });
+
+    it('Should save current state internally', () => {
+      context._iceState = 'connected';
+      toTest('disconnected');
+      sinon.assert.calledWith(context.onmediaconnectionstatechange, 'disconnected');
+      assert.equal(context._iceState, 'disconnected');
+    });
+
+    it('Should call ondisconnected', () => {
+      context._iceState = 'connected';
+      toTest('disconnected');
+      sinon.assert.calledWith(context.ondisconnected, 'ICE liveliness check failed. May be having trouble connecting to Twilio');
+    });
+
+    it('Should call onfailed', () => {
+      context._iceState = 'connected';
+      toTest('failed');
+      sinon.assert.calledWith(context.onfailed, 'Connection with Twilio was interrupted.');
+
+      context._iceState = 'disconnected';
+      toTest('failed');
+      sinon.assert.calledWith(context.onfailed, 'Connection with Twilio was interrupted.');
+    });
+
+    it('Should call onreconnected', () => {
+      context._iceState = 'disconnected';
+      toTest('connected');
+      sinon.assert.calledWith(context.onreconnected, 'ICE liveliness check succeeded. Connection with Twilio restored');
+
+      context._iceState = 'failed';
+      toTest('connected');
+      sinon.assert.calledWith(context.onreconnected, 'ICE liveliness check succeeded. Connection with Twilio restored');
+    });
+
+    it('Should call onmediaconnectionstatechange', () => {
+      context._iceState = 'new';
+      toTest('connected');
+      sinon.assert.calledWith(context.onmediaconnectionstatechange, 'connected');
+
+      toTest('disconnected');
+      sinon.assert.calledWith(context.onmediaconnectionstatechange, 'disconnected');
+
+      toTest('failed');
+      sinon.assert.calledWith(context.onmediaconnectionstatechange, 'failed');
+
+      toTest('connected');
+      sinon.assert.calledWith(context.onmediaconnectionstatechange, 'connected');
     });
   });
 

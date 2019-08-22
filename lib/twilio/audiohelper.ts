@@ -3,6 +3,7 @@
  */
 import { EventEmitter } from 'events';
 import Device from './device';
+import { InvalidArgumentError, NotSupportedError } from './errors';
 import OutputDeviceCollection from './outputdevicecollection';
 import * as defaultMediaDevices from './shims/mediadevices';
 import Log, { LogLevel } from './tslog';
@@ -277,7 +278,7 @@ class AudioHelper extends EventEmitter {
    */
   _unbind(): void {
     if (!this._mediaDevices) {
-      throw new Error('Enumeration is not supported');
+      throw new NotSupportedError('Enumeration is not supported');
     }
 
     if (this._mediaDevices.removeEventListener) {
@@ -310,7 +311,7 @@ class AudioHelper extends EventEmitter {
   setInputDevice(deviceId: string): Promise<void> {
     return !isFirefox()
       ? this._setInputDevice(deviceId, false)
-      : Promise.reject(new Error('Firefox does not currently support opening multiple ' +
+      : Promise.reject(new NotSupportedError('Firefox does not currently support opening multiple ' +
         'audio input tracks simultaneously, even across different tabs. As a result, ' +
         'Device.audio.setInputDevice is disabled on Firefox until support is added.\n' +
         'Related BugZilla thread: https://bugzilla.mozilla.org/show_bug.cgi?id=1299324'));
@@ -386,7 +387,7 @@ class AudioHelper extends EventEmitter {
    */
   private _initializeEnumeration(): void {
     if (!this._mediaDevices) {
-      throw new Error('Enumeration is not supported');
+      throw new NotSupportedError('Enumeration is not supported');
     }
 
     if (this._mediaDevices.addEventListener) {
@@ -464,12 +465,12 @@ class AudioHelper extends EventEmitter {
    */
   private _setInputDevice(deviceId: string, forceGetUserMedia: boolean): Promise<void> {
     if (typeof deviceId !== 'string') {
-      return Promise.reject(new Error('Must specify the device to set'));
+      return Promise.reject(new InvalidArgumentError('Must specify the device to set'));
     }
 
     const device: MediaDeviceInfo | undefined = this.availableInputDevices.get(deviceId);
     if (!device) {
-      return Promise.reject(new Error(`Device not found: ${deviceId}`));
+      return Promise.reject(new InvalidArgumentError(`Device not found: ${deviceId}`));
     }
 
     if (this._inputDevice && this._inputDevice.deviceId === deviceId && this._inputStream) {

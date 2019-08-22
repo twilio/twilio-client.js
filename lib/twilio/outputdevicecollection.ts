@@ -2,6 +2,7 @@
  * @module Voice
  */
 import { SOUNDS_BASE_URL } from './constants';
+import { InvalidArgumentError, InvalidStateError, NotSupportedError } from './errors';
 const DEFAULT_TEST_SOUND_URL = `${SOUNDS_BASE_URL}/outgoing.mp3`;
 
 /**
@@ -62,13 +63,13 @@ export default class OutputDeviceCollection {
    */
   set(deviceIdOrIds: string | string[]): Promise<void> {
     if (!this._isSupported) {
-      return Promise.reject(new Error('This browser does not support audio output selection'));
+      return Promise.reject(new NotSupportedError('This browser does not support audio output selection'));
     }
 
     const deviceIds: string[] = Array.isArray(deviceIdOrIds) ? deviceIdOrIds : [deviceIdOrIds];
 
     if (!deviceIds.length) {
-      return Promise.reject(new Error('Must specify at least one device to set'));
+      return Promise.reject(new InvalidArgumentError('Must specify at least one device to set'));
     }
 
     const missingIds: string[] = [];
@@ -79,7 +80,7 @@ export default class OutputDeviceCollection {
     });
 
     if (missingIds.length) {
-      return Promise.reject(new Error(`Devices not found: ${missingIds.join(', ')}`));
+      return Promise.reject(new InvalidArgumentError(`Devices not found: ${missingIds.join(', ')}`));
     }
 
     return new Promise(resolve => {
@@ -98,11 +99,11 @@ export default class OutputDeviceCollection {
    */
   test(soundUrl: string = DEFAULT_TEST_SOUND_URL): Promise<any> {
     if (!this._isSupported) {
-      return Promise.reject(new Error('This browser does not support audio output selection'));
+      return Promise.reject(new NotSupportedError('This browser does not support audio output selection'));
     }
 
     if (!this._activeDevices.size) {
-      return Promise.reject(new Error('No active output devices to test'));
+      return Promise.reject(new InvalidStateError('No active output devices to test'));
     }
 
     return Promise.all(Array.from(this._activeDevices).map((device: MediaDeviceInfo) => {
