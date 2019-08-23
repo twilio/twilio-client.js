@@ -1380,7 +1380,7 @@ namespace Connection {
   declare function rejectEvent(connection: Connection): void;
 
   /**
-   * Emitted up to 20hz with the current input and output volumes, as a percentage of maximum
+   * Emitted every 50ms with the current input and output volumes, as a percentage of maximum
    * volume, between -100dB and -30dB. Represented by a floating point number.
    * @param inputVolume - A floating point number between 0.0 and 1.0 inclusive.
    * @param outputVolume - A floating point number between 0.0 and 1.0 inclusive.

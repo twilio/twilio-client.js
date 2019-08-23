@@ -4,7 +4,7 @@
 Bug Fixes
 ---------
 
-* Fixed an issue where audio levels reported are zero when running as an extension, or when the browser tab is inactive or minimized.
+* Fixed an issue causing audio levels to be reported as zero when running as an extension, or when the browser tab is inactive or minimized.
 
 
 1.8.0 (Aug 20, 2019)

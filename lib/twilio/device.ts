@@ -370,8 +370,14 @@ class Device extends EventEmitter {
 
     if (window) {
       const root: any = window as any;
-      const browser: any = root.chrome || root.browser || root.msBrowser;
-      this._isBrowserExtension = !!browser && !!browser.runtime && !!browser.runtime.id;
+      const browser: any = root.msBrowser || root.browser || root.chrome;
+
+      this._isBrowserExtension = (!!browser && !!browser.runtime && !!browser.runtime.id)
+        || (!!root.safari && !!root.safari.extension);
+    }
+
+    if (this._isBrowserExtension) {
+      this._log.info('Running as browser extension.');
     }
 
     if (token) {
