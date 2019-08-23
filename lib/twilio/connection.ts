@@ -1380,10 +1380,8 @@ namespace Connection {
   declare function rejectEvent(connection: Connection): void;
 
   /**
-   * Emitted on `requestAnimationFrame` (up to 60fps, depending on browser) with
-   *   the current input and output volumes, as a percentage of maximum
-   *   volume, between -100dB and -30dB. Represented by a floating point
-   *   number.
+   * Emitted every 50ms with the current input and output volumes, as a percentage of maximum
+   * volume, between -100dB and -30dB. Represented by a floating point number.
    * @param inputVolume - A floating point number between 0.0 and 1.0 inclusive.
    * @param outputVolume - A floating point number between 0.0 and 1.0 inclusive.
    * @example `connection.on('volume', (inputVolume, outputVolume) => { })`
