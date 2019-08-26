@@ -308,6 +308,7 @@ class Connection extends EventEmitter {
         dscp: this.options.dscp,
         enableIceRestart: this.options.enableIceRestart,
         isUnifiedPlan: this._isUnifiedPlanDefault,
+        maxAverageBitrate: this.options.maxAverageBitrate,
         warnings: this.options.warnings,
       });
 
@@ -1595,11 +1596,14 @@ namespace Connection {
     getSinkIds?: () => string[];
 
     /**
-     * Max bitrate, in bits per second, for the local audio stream. Only works with Opus as
-     * this parameter is not supported by PCMU, which has a fixed bitrate. The minimum
-     * bitrate supported by Opus is 6kbit/s.
+     * The maximum average audio bitrate to use, in bits per second (bps) based on
+     * [RFC-7587 7.1](https://tools.ietf.org/html/rfc7587#section-7.1). By default, the setting
+     * is not used. If you specify 0, then the setting is not used. Any positive integer is allowed,
+     * but values outside the range 6000 to 510000 are ignored and treated as 0. The recommended
+     * bitrate for speech is between 8000 and 40000 bps as noted in
+     * [RFC-7587 3.1.1](https://tools.ietf.org/html/rfc7587#section-3.1.1).
      */
-    maxBitrate?: number;
+    maxAverageBitrate?: number;
 
     /**
      * Custom MediaStream (PeerConnection) constructor. Overrides mediaStreamFactory (deprecated).
