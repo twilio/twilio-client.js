@@ -668,6 +668,11 @@ describe('Connection', function() {
         conn.reject();
         sinon.assert.calledWith(publisher.info, 'connection', 'rejected-by-local');
       });
+
+      it('should transition status to closed', () => {
+        conn.reject();
+        assert.equal(conn.status(), 'closed');
+      });
     });
 
     [
