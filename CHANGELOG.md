@@ -4,7 +4,9 @@
 Bug Fixes
 ---------
 
-* Fixed an issue causing audio levels to be reported as zero when running as an extension, or when the browser tab is inactive or minimized.
+* Fixed an issue causing audio levels to be reported as zero when running as an extension, or when the browser tab is inactive or minimized. (CLIENT-6539)
+
+* Fixed an issue where `Connection.status()` returns `pending` instead of `closed` after calling `Connection.reject()`. (CLIENT-6534)
 
 
 1.8.0 (Aug 20, 2019)

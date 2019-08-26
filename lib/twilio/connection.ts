@@ -761,6 +761,7 @@ class Connection extends EventEmitter {
 
     const payload = { callsid: this.parameters.CallSid };
     this.pstream.publish('reject', payload);
+    this._status = Connection.State.Closed;
     this.emit('reject');
     this.mediaStream.reject(this.parameters.CallSid);
     this._publisher.info('connection', 'rejected-by-local', null, this);
