@@ -1,3 +1,23 @@
+1.9.0 (In Progress)
+===================
+
+New Features
+------------
+
+* Added support for setting `maxaveragebitrate` when using the Opus codec. This can be used to
+  create a better quality audio stream (by setting higher) or a lower bandwidth audio stream for
+  networks with limited bandwidth (by setting lower). The accepted range is 6000 to 510000, any value
+  outside this range will be ignored and the default dynamic bitrate will be used. See
+  [opus options](https://tools.ietf.org/html/draft-ietf-payload-rtp-opus-11#section-6.1) for more details.
+
+  Example usage:
+```
+Device.setup(TOKEN, {
+  codecPreferences: ['opus', 'pcmu'],
+  maxAverageBitrate: 6000,
+});
+```
+
 1.8.1 (Aug 28, 2019)
 ====================
 
