@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 1.9.0 (In Progress)
 ===================
 
@@ -18,8 +19,7 @@ Device.setup(TOKEN, {
 });
 ```
 
-
-1.8.1 (In Progress)
+1.8.1 (Aug 28, 2019)
 ====================
 
 Bug Fixes
