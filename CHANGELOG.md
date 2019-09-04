@@ -3,18 +3,19 @@
 
 New Features
 ------------
+### Max Average Bandwidth API
+By default, the Opus codec is set up with a transmission rate of around 32 kbps (40-50kbps on the wire). With this release, you are able to set a custom max average bitrate to better control how much bandwidth your VoIP application should use. See [RFC-7587 section 7.1](https://tools.ietf.org/html/draft-ietf-payload-rtp-opus-11#section-7.1) for information about Max Average Bitrate.
 
-* Added support for setting `maxaveragebitrate` when using the Opus codec. This can be used to
-  create a better quality audio stream (by setting higher) or a lower bandwidth audio stream for
-  networks with limited bandwidth (by setting lower). The accepted range is 6000 to 510000, any value
-  outside this range will be ignored and the default dynamic bitrate will be used. See
-  [opus options](https://tools.ietf.org/html/draft-ietf-payload-rtp-opus-11#section-6.1) for more details.
+The main purpose of this API is to set a lower max average bitrate to minimise bandwidth usage. This is particularly useful in deployments where bandwidth is at a premium. Where bandwidth is not of concern, you do not need to use this API. Max Average Bitrate can be set to as low as 6,000bps and as high as 51,000 bps. Values outside this range are ignored and the default Opus operation mode is used. See API Docs for more information.
 
-  Example usage:
+As would be expected, lowering the max average bitrate impacts audio quality. We don’t recommend setting max average bitrate to a value below 8,000 bps. On the other hand, setting values over 32,000 bps will have negligible audio quality improvements.
+
+For example, to set a new max average bitrate to 16,000 bps:`
+
 ```
 Device.setup(TOKEN, {
   codecPreferences: ['opus', 'pcmu'],
-  maxAverageBitrate: 6000,
+  maxAverageBitrate: 16000,
 });
 ```
 
