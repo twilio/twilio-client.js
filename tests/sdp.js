@@ -2,7 +2,7 @@
 
 const assert = require('assert');
 
-const { setCodecPreferences, setMaxAverageBitrate } = require('../lib/twilio/rtc/sdp');
+const { getPreferredCodecInfo, setCodecPreferences, setMaxAverageBitrate } = require('../lib/twilio/rtc/sdp');
 
 const { makeSdpWithTracks } = require('./lib/mocksdp');
 const { combinationContext } = require('./lib/util');
@@ -51,6 +51,15 @@ describe('setMaxAverageBitrate', () => {
     const sdp = 'foo=a\na=rtpmap:0 PCMU/8000\na=rtpmap:1337 opus/48000/2\na=fmtp:1337\nbar=b';
     const newSdp = setMaxAverageBitrate(sdp, 510001);
     assert.equal(newSdp, 'foo=a\na=rtpmap:0 PCMU/8000\na=rtpmap:1337 opus/48000/2\na=fmtp:1337\nbar=b');
+  });
+});
+
+describe('getPreferredCodecInfo', () => {
+  it('should get the correct info for Opus', () => {
+    const sdp = 'foo=a\na=rtpmap:1337 opus/48000/2\na=rtpmap:0 PCMU/8000\na=fmtp:0\na=fmtp:1337 maxaveragebitrate=12000;usedtx=0\nbar=b';
+    const { codecName, codecParams } = getPreferredCodecInfo(sdp);
+    assert.equal(codecName, 'opus/48000/2');
+    assert.equal(codecParams, 'maxaveragebitrate=12000;usedtx=0');
   });
 });
 
