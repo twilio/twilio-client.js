@@ -16,7 +16,8 @@ import { average, isChrome } from './util';
 
 const Backoff = require('backoff');
 const C = require('./constants');
-const PeerConnection = require('./rtc').PeerConnection;
+const { PeerConnection } = require('./rtc');
+const { getPreferredCodecInfo } = require('./rtc/sdp');
 
 // Placeholders until we convert the respective files to TypeScript.
 /**
@@ -515,13 +516,21 @@ class Connection extends EventEmitter {
         return;
       }
 
-      const onLocalAnswer = (pc: RTCPeerConnection) => {
-        this._publisher.info('connection', 'accepted-by-local', null, this);
-        this._monitor.enable(pc);
-      };
+      const onAnswer = (pc: RTCPeerConnection) => {
+        // Report that the call was answered, and directionality
+        const eventName = this._direction === Connection.CallDirection.Incoming
+          ? 'accepted-by-local'
+          : 'accepted-by-remote';
+        this._publisher.info('connection', eventName, null, this);
 
-      const onRemoteAnswer = (pc: RTCPeerConnection) => {
-        this._publisher.info('connection', 'accepted-by-remote', null, this);
+        // Report the preferred codec and params as they appear in the SDP
+        const { codecName, codecParams } = getPreferredCodecInfo(this.mediaStream.version.getSDP());
+        this._publisher.info('settings', 'codec', {
+          codec_params: codecParams,
+          selected_codec: codecName,
+        }, this);
+
+        // Enable RTC monitoring
         this._monitor.enable(pc);
       };
 
@@ -539,13 +548,13 @@ class Connection extends EventEmitter {
       if (this._direction === Connection.CallDirection.Incoming) {
         this._isAnswered = true;
         this.mediaStream.answerIncomingCall(this.parameters.CallSid, this.options.offerSdp,
-          this.options.rtcConstraints, this.options.rtcConfiguration, onLocalAnswer);
+          this.options.rtcConstraints, this.options.rtcConfiguration, onAnswer);
       } else {
         const params = Array.from(this.customParameters.entries()).map(pair =>
          `${encodeURIComponent(pair[0])}=${encodeURIComponent(pair[1])}`).join('&');
         this.pstream.once('answer', this._onAnswer.bind(this));
         this.mediaStream.makeOutgoingCall(this.pstream.token, params, this.outboundConnectionId,
-          this.options.rtcConstraints, this.options.rtcConfiguration, onRemoteAnswer);
+          this.options.rtcConstraints, this.options.rtcConfiguration, onAnswer);
       }
     };
 
