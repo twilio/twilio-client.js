@@ -508,11 +508,11 @@ describe('PeerConnection', () => {
 
     it('Should call processSDP when succeeded to initialize streams', () => {
       context._initializeMediaStream.returns(true);
-      version.processSDP.callsArgWith(3);
+      version.processSDP.callsArgWith(4);
       toTest();
       assert(context._initializeMediaStream.calledWithExactly(eConstraints, eIceServers));
       assert(version.processSDP.calledOnce);
-      assert(version.processSDP.calledWithExactly(undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
+      assert(version.processSDP.calledWithExactly(undefined, undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(callback.called, false);
     });
 
@@ -520,14 +520,14 @@ describe('PeerConnection', () => {
       const sdp1 = 'sdp1';
       context._initializeMediaStream.returns(true);
       version.getSDP.returns(sdp1);
-      version.processSDP.callsArgWith(3);
+      version.processSDP.callsArgWith(4);
       context.status = false;
       toTest();
       assert(context._initializeMediaStream.calledWithExactly(eConstraints, eIceServers));
       assert(context.pstream.publish.calledWithExactly('answer', {callsid: eCallSid, sdp: sdp1}));
       assert(context.pstream.publish.calledOn(context.pstream));
       assert(version.processSDP.calledOnce);
-      assert(version.processSDP.calledWithExactly(undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
+      assert(version.processSDP.calledWithExactly(undefined, undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
       assert(version.getSDP.calledWithExactly());
       assert(version.getSDP.calledOn(version));
       assert.equal(context._setEncodingParameters.callCount, 1);
@@ -540,7 +540,7 @@ describe('PeerConnection', () => {
       const error = new Error('error message');
       const expectedError = {info: {code: 31000, message: 'Error creating the answer: error message'}};
       context._initializeMediaStream.returns(true);
-      version.processSDP.callsArgWith(4, error);
+      version.processSDP.callsArgWith(5, error);
       toTest();
       assert(context._initializeMediaStream.calledWithExactly(eConstraints, eIceServers));
       assert(version.processSDP.calledOnce);
@@ -549,7 +549,7 @@ describe('PeerConnection', () => {
       const rVal = context.onerror.firstCall.args[0];
       assert.equal(rVal.info.twilioError.code, 53402);
 
-      assert(version.processSDP.calledWithExactly(undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
+      assert(version.processSDP.calledWithExactly(undefined, undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(context.pstream.publish.called, false);
       assert.equal(version.getSDP.called, false);
       assert.equal(callback.called, false);
@@ -557,7 +557,7 @@ describe('PeerConnection', () => {
 
     it('Should call onerror event when processSDP error callback is called and returns error message', () => {
       context._initializeMediaStream.returns(true);
-      version.processSDP.callsArgWith(4, 'error message');
+      version.processSDP.callsArgWith(5, 'error message');
       toTest();
       assert(context._initializeMediaStream.calledWithExactly(eConstraints, eIceServers));
       assert(version.processSDP.calledOnce);
@@ -566,7 +566,7 @@ describe('PeerConnection', () => {
       const rVal = context.onerror.firstCall.args[0];
       assert.equal(rVal.info.twilioError.code, 53402);
 
-      assert(version.processSDP.calledWithExactly(undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
+      assert(version.processSDP.calledWithExactly(undefined, undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(context.pstream.publish.called, false);
       assert.equal(version.getSDP.called, false);
       sinon.assert.notCalled(context._setEncodingParameters);
@@ -578,8 +578,8 @@ describe('PeerConnection', () => {
       version.getSDP.returns('sdp');
       context.status = false;
       toTest();
-      version.processSDP.callArg(3);
-      version.processSDP.callArg(3);
+      version.processSDP.callArg(4);
+      version.processSDP.callArg(4);
       assert(callback.calledWithExactly(version.pc));
       assert(callback.calledTwice);
       assert.equal(context.onerror.called, false);
@@ -589,8 +589,8 @@ describe('PeerConnection', () => {
       context._initializeMediaStream.returns(true);
       version.getSDP.returns('sdp');
       toTest();
-      version.processSDP.callArg(4, new Error('error message'));
-      version.processSDP.callArg(4, new Error('error message'));
+      version.processSDP.callArg(5, new Error('error message'));
+      version.processSDP.callArg(5, new Error('error message'));
       assert(context.onerror.calledWithMatch(EXPECTED_ERROR));
 
       const rVal = context.onerror.firstCall.args[0];
