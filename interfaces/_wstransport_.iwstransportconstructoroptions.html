@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>&quot;shims/eventtarget&quot; | twilio-client</title>
+	<title>IWSTransportConstructorOptions | twilio-client</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -44,20 +44,95 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="_shims_eventtarget_.html">&quot;shims/eventtarget&quot;</a>
+					<a href="../modules/_wstransport_.html">&quot;wstransport&quot;</a>
+				</li>
+				<li>
+					<a href="_wstransport_.iwstransportconstructoroptions.html">IWSTransportConstructorOptions</a>
 				</li>
 			</ul>
-			<h1>External module &quot;shims/eventtarget&quot;</h1>
+			<h1>Interface IWSTransportConstructorOptions</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Options to be passed to the WSTransport constructor.</p>
+					</div>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">IWSTransportConstructorOptions</span>
+					</li>
+				</ul>
+			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
+						<section class="tsd-index-section ">
+							<h3>Properties</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_wstransport_.iwstransportconstructoroptions.html#websocket" class="tsd-kind-icon">Web<wbr>Socket</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_wstransport_.iwstransportconstructoroptions.html#backoffmaxms" class="tsd-kind-icon">backoff<wbr>Max<wbr>Ms</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="_wstransport_.iwstransportconstructoroptions.html#loglevel" class="tsd-kind-icon">log<wbr>Level</a></li>
+							</ul>
+						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="websocket" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> Web<wbr>Socket</h3>
+					<div class="tsd-signature tsd-kind-icon">Web<wbr>Socket<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/53ef9e3/lib/twilio/wstransport.ts#L62">wstransport.ts:62</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>A WebSocket factory to use instead of WebSocket.</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="backoffmaxms" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> backoff<wbr>Max<wbr>Ms</h3>
+					<div class="tsd-signature tsd-kind-icon">backoff<wbr>Max<wbr>Ms<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/53ef9e3/lib/twilio/wstransport.ts#L52">wstransport.ts:52</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Maximum time to wait before attempting to reconnect the signaling websocket.
+							Default is 20000ms. Minimum is 3000ms.</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="loglevel" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> log<wbr>Level</h3>
+					<div class="tsd-signature tsd-kind-icon">log<wbr>Level<span class="tsd-signature-symbol">:</span> <a href="../enums/tools.loglevel.html" class="tsd-signature-type">LogLevel</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/53ef9e3/lib/twilio/wstransport.ts#L57">wstransport.ts:57</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Minimum log level.</p>
+						</div>
 					</div>
 				</section>
 			</section>
@@ -72,74 +147,107 @@
 						<span>Internals</span>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_audiohelper_.html">"audiohelper"</a>
+						<a href="../modules/_audiohelper_.html">"audiohelper"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_connection_.html">"connection"</a>
+						<a href="../modules/_connection_.html">"connection"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_device_.html">"device"</a>
+						<a href="../modules/_device_.html">"device"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_dialtoneplayer_.html">"dialtone<wbr>Player"</a>
+						<a href="../modules/_dialtoneplayer_.html">"dialtone<wbr>Player"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_outputdevicecollection_.html">"outputdevicecollection"</a>
+						<a href="../modules/_outputdevicecollection_.html">"outputdevicecollection"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_regions_.html">"regions"</a>
+						<a href="../modules/_regions_.html">"regions"</a>
+					</li>
+					<li class="current tsd-kind-external-module">
+						<a href="../modules/_wstransport_.html">"wstransport"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_wstransport_.html">"wstransport"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="voice.html">Voice</a>
+						<a href="../modules/voice.html">Voice</a>
 					</li>
 					<li class="label tsd-is-external">
 						<span>Externals</span>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_constants_.html">"constants"</a>
+						<a href="../modules/_constants_.html">"constants"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_errors_index_.html">"errors/index"</a>
+						<a href="../modules/_errors_index_.html">"errors/index"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_errors_twilioerror_.html">"errors/twilio<wbr>Error"</a>
+						<a href="../modules/_errors_twilioerror_.html">"errors/twilio<wbr>Error"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_log_.html">"log"</a>
+						<a href="../modules/_log_.html">"log"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_pstream_.html">"pstream"</a>
+						<a href="../modules/_pstream_.html">"pstream"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_rtc_monitor_.html">"rtc/monitor"</a>
+						<a href="../modules/_rtc_monitor_.html">"rtc/monitor"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_rtc_warning_.html">"rtc/warning"</a>
-					</li>
-					<li class="current tsd-kind-external-module tsd-is-external">
-						<a href="_shims_eventtarget_.html">"shims/eventtarget"</a>
+						<a href="../modules/_rtc_warning_.html">"rtc/warning"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_shims_mediadevices_.html">"shims/mediadevices"</a>
+						<a href="../modules/_shims_eventtarget_.html">"shims/eventtarget"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_util_.html">"util"</a>
+						<a href="../modules/_shims_mediadevices_.html">"shims/mediadevices"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="tools.html">Tools</a>
+						<a href="../modules/_util_.html">"util"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/tools.html">Tools</a>
 					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-						<a href="_shims_eventtarget_.html#eventemitter" class="tsd-kind-icon">Event<wbr>Emitter</a>
+					<li class=" tsd-kind-enum tsd-parent-kind-external-module">
+						<a href="../enums/_wstransport_.wstransportstate.html" class="tsd-kind-icon">WSTransport<wbr>State</a>
 					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-						<a href="_shims_eventtarget_.html#eventtarget" class="tsd-kind-icon">Event<wbr>Target</a>
+					<li class=" tsd-kind-class tsd-parent-kind-external-module">
+						<a href="../classes/_wstransport_.wstransport.html" class="tsd-kind-icon">WSTransport</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-external-module">
+						<a href="_wstransport_.imessageevent.html" class="tsd-kind-icon">IMessage<wbr>Event</a>
+					</li>
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-interface tsd-parent-kind-external-module">
+						<a href="_wstransport_.iwstransportconstructoroptions.html" class="tsd-kind-icon">IWSTransport<wbr>Constructor<wbr>Options</a>
+						<ul>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="_wstransport_.iwstransportconstructoroptions.html#websocket" class="tsd-kind-icon">Web<wbr>Socket</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="_wstransport_.iwstransportconstructoroptions.html#backoffmaxms" class="tsd-kind-icon">backoff<wbr>Max<wbr>Ms</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="_wstransport_.iwstransportconstructoroptions.html#loglevel" class="tsd-kind-icon">log<wbr>Level</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<ul class="after-current">
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_wstransport_.html#backoff" class="tsd-kind-icon">Backoff</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_wstransport_.html#connect_success_timeout" class="tsd-kind-icon">CONNECT_<wbr>SUCCESS_<wbr>TIMEOUT</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_wstransport_.html#connect_timeout" class="tsd-kind-icon">CONNECT_<wbr>TIMEOUT</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_wstransport_.html#heartbeat_timeout" class="tsd-kind-icon">HEARTBEAT_<wbr>TIMEOUT</a>
 					</li>
 				</ul>
 			</nav>

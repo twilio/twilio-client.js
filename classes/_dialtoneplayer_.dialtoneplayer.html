@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Tools | twilio-client</title>
+	<title>DialtonePlayer | twilio-client</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -44,43 +44,145 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="tools.html">Tools</a>
+					<a href="../modules/_dialtoneplayer_.html">&quot;dialtonePlayer&quot;</a>
+				</li>
+				<li>
+					<a href="_dialtoneplayer_.dialtoneplayer.html">DialtonePlayer</a>
 				</li>
 			</ul>
-			<h1>External module Tools</h1>
+			<h1>Class DialtonePlayer</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
-			<section class="tsd-panel tsd-comment">
-				<div class="tsd-comment tsd-typography">
-				</div>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">DialtonePlayer</span>
+					</li>
+				</ul>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
-						<section class="tsd-index-section tsd-is-external">
-							<h3>Enumerations</h3>
+						<section class="tsd-index-section ">
+							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-enum tsd-parent-kind-external-module tsd-is-external"><a href="../enums/tools.loglevel.html" class="tsd-kind-icon">Log<wbr>Level</a></li>
+								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="_dialtoneplayer_.dialtoneplayer.html#constructor" class="tsd-kind-icon">constructor</a></li>
 							</ul>
 						</section>
-						<section class="tsd-index-section tsd-is-external">
-							<h3>Classes</h3>
+						<section class="tsd-index-section ">
+							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-class tsd-parent-kind-external-module tsd-is-external"><a href="../classes/tools.log.html" class="tsd-kind-icon">Log</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_dialtoneplayer_.dialtoneplayer.html#_gainnodes" class="tsd-kind-icon">_gain<wbr>Nodes</a></li>
 							</ul>
 						</section>
-						<section class="tsd-index-section tsd-is-external">
-							<h3>Interfaces</h3>
+						<section class="tsd-index-section ">
+							<h3>Methods</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-interface tsd-parent-kind-external-module tsd-is-external"><a href="../interfaces/tools.ilogoptions.html" class="tsd-kind-icon">ILog<wbr>Options</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_dialtoneplayer_.dialtoneplayer.html#cleanup" class="tsd-kind-icon">cleanup</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_dialtoneplayer_.dialtoneplayer.html#play" class="tsd-kind-icon">play</a></li>
 							</ul>
 						</section>
 					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Constructors</h2>
+				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class">
+					<a name="constructor" class="tsd-anchor"></a>
+					<h3>constructor</h3>
+					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Dialtone<wbr>Player<span class="tsd-signature-symbol">(</span>_context<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">AudioContext</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_dialtoneplayer_.dialtoneplayer.html" class="tsd-signature-type">DialtonePlayer</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/53ef9e3/lib/twilio/dialtonePlayer.ts#L30">dialtonePlayer.ts:30</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>_context: <span class="tsd-signature-type">AudioContext</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_dialtoneplayer_.dialtoneplayer.html" class="tsd-signature-type">DialtonePlayer</a></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="_gainnodes" class="tsd-anchor"></a>
+					<h3>_gain<wbr>Nodes</h3>
+					<div class="tsd-signature tsd-kind-icon">_gain<wbr>Nodes<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">GainNode</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/53ef9e3/lib/twilio/dialtonePlayer.ts#L30">dialtonePlayer.ts:30</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Gain nodes, reducing the frequency.</p>
+						</div>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Methods</h2>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="cleanup" class="tsd-anchor"></a>
+					<h3>cleanup</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">cleanup<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/53ef9e3/lib/twilio/dialtonePlayer.ts#L45">dialtonePlayer.ts:45</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="play" class="tsd-anchor"></a>
+					<h3>play</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">play<span class="tsd-signature-symbol">(</span>sound<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/53ef9e3/lib/twilio/dialtonePlayer.ts#L55">dialtonePlayer.ts:55</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Play the dual frequency tone for the passed DTMF name.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>sound: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
 				</section>
 			</section>
 		</div>
@@ -94,83 +196,92 @@
 						<span>Internals</span>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_audiohelper_.html">"audiohelper"</a>
+						<a href="../modules/_audiohelper_.html">"audiohelper"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_connection_.html">"connection"</a>
+						<a href="../modules/_connection_.html">"connection"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_device_.html">"device"</a>
+						<a href="../modules/_device_.html">"device"</a>
+					</li>
+					<li class="current tsd-kind-external-module">
+						<a href="../modules/_dialtoneplayer_.html">"dialtone<wbr>Player"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_dialtoneplayer_.html">"dialtone<wbr>Player"</a>
+						<a href="../modules/_outputdevicecollection_.html">"outputdevicecollection"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_outputdevicecollection_.html">"outputdevicecollection"</a>
+						<a href="../modules/_regions_.html">"regions"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_regions_.html">"regions"</a>
+						<a href="../modules/_wstransport_.html">"wstransport"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
-						<a href="_wstransport_.html">"wstransport"</a>
-					</li>
-					<li class=" tsd-kind-external-module">
-						<a href="voice.html">Voice</a>
+						<a href="../modules/voice.html">Voice</a>
 					</li>
 					<li class="label tsd-is-external">
 						<span>Externals</span>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_constants_.html">"constants"</a>
+						<a href="../modules/_constants_.html">"constants"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_errors_index_.html">"errors/index"</a>
+						<a href="../modules/_errors_index_.html">"errors/index"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_errors_twilioerror_.html">"errors/twilio<wbr>Error"</a>
+						<a href="../modules/_errors_twilioerror_.html">"errors/twilio<wbr>Error"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_log_.html">"log"</a>
+						<a href="../modules/_log_.html">"log"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_pstream_.html">"pstream"</a>
+						<a href="../modules/_pstream_.html">"pstream"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_rtc_monitor_.html">"rtc/monitor"</a>
+						<a href="../modules/_rtc_monitor_.html">"rtc/monitor"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_rtc_warning_.html">"rtc/warning"</a>
+						<a href="../modules/_rtc_warning_.html">"rtc/warning"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_shims_eventtarget_.html">"shims/eventtarget"</a>
+						<a href="../modules/_shims_eventtarget_.html">"shims/eventtarget"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_shims_mediadevices_.html">"shims/mediadevices"</a>
+						<a href="../modules/_shims_mediadevices_.html">"shims/mediadevices"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="_util_.html">"util"</a>
+						<a href="../modules/_util_.html">"util"</a>
 					</li>
-					<li class="current tsd-kind-external-module tsd-is-external">
-						<a href="tools.html">Tools</a>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/tools.html">Tools</a>
 					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-enum tsd-parent-kind-external-module tsd-is-external">
-						<a href="../enums/tools.loglevel.html" class="tsd-kind-icon">Log<wbr>Level</a>
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-class tsd-parent-kind-external-module">
+						<a href="_dialtoneplayer_.dialtoneplayer.html" class="tsd-kind-icon">Dialtone<wbr>Player</a>
+						<ul>
+							<li class=" tsd-kind-constructor tsd-parent-kind-class">
+								<a href="_dialtoneplayer_.dialtoneplayer.html#constructor" class="tsd-kind-icon">constructor</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="_dialtoneplayer_.dialtoneplayer.html#_gainnodes" class="tsd-kind-icon">_gain<wbr>Nodes</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_dialtoneplayer_.dialtoneplayer.html#cleanup" class="tsd-kind-icon">cleanup</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_dialtoneplayer_.dialtoneplayer.html#play" class="tsd-kind-icon">play</a>
+							</li>
+						</ul>
 					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-external-module tsd-is-external">
-						<a href="../classes/tools.log.html" class="tsd-kind-icon">Log</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-is-external">
-						<a href="../interfaces/tools.ilogoptions.html" class="tsd-kind-icon">ILog<wbr>Options</a>
-					</li>
-					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-						<a href="tools.html#loglevelmethods" class="tsd-kind-icon">log<wbr>Level<wbr>Methods</a>
-					</li>
-					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-						<a href="tools.html#loglevelranks" class="tsd-kind-icon">log<wbr>Level<wbr>Ranks</a>
+				</ul>
+				<ul class="after-current">
+					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_dialtoneplayer_.html#bandfrequencies" class="tsd-kind-icon">band<wbr>Frequencies</a>
 					</li>
 				</ul>
 			</nav>

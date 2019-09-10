@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>LogLevel | twilio-client</title>
+	<title>State | twilio-client</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -44,13 +44,16 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../modules/tools.html">Tools</a>
+					<a href="../modules/_connection_.html">&quot;connection&quot;</a>
 				</li>
 				<li>
-					<a href="tools.loglevel.html">LogLevel</a>
+					<a href="../classes/_connection_.connection.html">Connection</a>
+				</li>
+				<li>
+					<a href="_connection_.connection.state.html">State</a>
 				</li>
 			</ul>
-			<h1>Enumeration LogLevel</h1>
+			<h1>Enumeration State</h1>
 		</div>
 	</div>
 </header>
@@ -60,7 +63,7 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Valid LogLevels.</p>
+						<p>Possible states of the <a href="../classes/_connection_.connection.html">Connection</a>.</p>
 					</div>
 				</div>
 			</section>
@@ -68,68 +71,79 @@
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
-						<section class="tsd-index-section tsd-is-external">
+						<section class="tsd-index-section ">
 							<h3>Enumeration members</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external"><a href="tools.loglevel.html#debug" class="tsd-kind-icon">Debug</a></li>
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external"><a href="tools.loglevel.html#error" class="tsd-kind-icon">Error</a></li>
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external"><a href="tools.loglevel.html#info" class="tsd-kind-icon">Info</a></li>
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external"><a href="tools.loglevel.html#off" class="tsd-kind-icon">Off</a></li>
-								<li class="tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external"><a href="tools.loglevel.html#warn" class="tsd-kind-icon">Warn</a></li>
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_connection_.connection.state.html#closed" class="tsd-kind-icon">Closed</a></li>
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_connection_.connection.state.html#connecting" class="tsd-kind-icon">Connecting</a></li>
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_connection_.connection.state.html#open" class="tsd-kind-icon">Open</a></li>
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_connection_.connection.state.html#pending" class="tsd-kind-icon">Pending</a></li>
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_connection_.connection.state.html#reconnecting" class="tsd-kind-icon">Reconnecting</a></li>
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="_connection_.connection.state.html#ringing" class="tsd-kind-icon">Ringing</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
-			<section class="tsd-panel-group tsd-member-group tsd-is-external">
+			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Enumeration members</h2>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-					<a name="debug" class="tsd-anchor"></a>
-					<h3>Debug</h3>
-					<div class="tsd-signature tsd-kind-icon">Debug<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;debug&quot;</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="closed" class="tsd-anchor"></a>
+					<h3>Closed</h3>
+					<div class="tsd-signature tsd-kind-icon">Closed<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;closed&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/53ef9e3/lib/twilio/tslog.ts#L11">tslog.ts:11</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/53ef9e3/lib/twilio/connection.ts#L1416">connection.ts:1416</a></li>
 						</ul>
 					</aside>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-					<a name="error" class="tsd-anchor"></a>
-					<h3>Error</h3>
-					<div class="tsd-signature tsd-kind-icon">Error<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;error&quot;</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="connecting" class="tsd-anchor"></a>
+					<h3>Connecting</h3>
+					<div class="tsd-signature tsd-kind-icon">Connecting<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;connecting&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/53ef9e3/lib/twilio/tslog.ts#L14">tslog.ts:14</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/53ef9e3/lib/twilio/connection.ts#L1417">connection.ts:1417</a></li>
 						</ul>
 					</aside>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-					<a name="info" class="tsd-anchor"></a>
-					<h3>Info</h3>
-					<div class="tsd-signature tsd-kind-icon">Info<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;info&quot;</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="open" class="tsd-anchor"></a>
+					<h3>Open</h3>
+					<div class="tsd-signature tsd-kind-icon">Open<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;open&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/53ef9e3/lib/twilio/tslog.ts#L12">tslog.ts:12</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/53ef9e3/lib/twilio/connection.ts#L1418">connection.ts:1418</a></li>
 						</ul>
 					</aside>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-					<a name="off" class="tsd-anchor"></a>
-					<h3>Off</h3>
-					<div class="tsd-signature tsd-kind-icon">Off<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;off&quot;</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="pending" class="tsd-anchor"></a>
+					<h3>Pending</h3>
+					<div class="tsd-signature tsd-kind-icon">Pending<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;pending&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/53ef9e3/lib/twilio/tslog.ts#L10">tslog.ts:10</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/53ef9e3/lib/twilio/connection.ts#L1419">connection.ts:1419</a></li>
 						</ul>
 					</aside>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-					<a name="warn" class="tsd-anchor"></a>
-					<h3>Warn</h3>
-					<div class="tsd-signature tsd-kind-icon">Warn<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;warn&quot;</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="reconnecting" class="tsd-anchor"></a>
+					<h3>Reconnecting</h3>
+					<div class="tsd-signature tsd-kind-icon">Reconnecting<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;reconnecting&quot;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/53ef9e3/lib/twilio/tslog.ts#L13">tslog.ts:13</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/53ef9e3/lib/twilio/connection.ts#L1420">connection.ts:1420</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="ringing" class="tsd-anchor"></a>
+					<h3>Ringing</h3>
+					<div class="tsd-signature tsd-kind-icon">Ringing<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol"> =&nbsp;&quot;ringing&quot;</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/53ef9e3/lib/twilio/connection.ts#L1421">connection.ts:1421</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -147,7 +161,7 @@
 					<li class=" tsd-kind-external-module">
 						<a href="../modules/_audiohelper_.html">"audiohelper"</a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class="current tsd-kind-external-module">
 						<a href="../modules/_connection_.html">"connection"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
@@ -201,7 +215,7 @@
 					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="../modules/_util_.html">"util"</a>
 					</li>
-					<li class="current tsd-kind-external-module tsd-is-external">
+					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="../modules/tools.html">Tools</a>
 					</li>
 				</ul>
@@ -210,39 +224,95 @@
 				<ul class="before-current">
 				</ul>
 				<ul class="current">
-					<li class="current tsd-kind-enum tsd-parent-kind-external-module tsd-is-external">
-						<a href="tools.loglevel.html" class="tsd-kind-icon">Log<wbr>Level</a>
+					<li class="current tsd-kind-class tsd-parent-kind-external-module">
+						<a href="../classes/_connection_.connection.html" class="tsd-kind-icon">Connection</a>
 						<ul>
-							<li class=" tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-								<a href="tools.loglevel.html#debug" class="tsd-kind-icon">Debug</a>
-							</li>
-							<li class=" tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-								<a href="tools.loglevel.html#error" class="tsd-kind-icon">Error</a>
-							</li>
-							<li class=" tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-								<a href="tools.loglevel.html#info" class="tsd-kind-icon">Info</a>
-							</li>
-							<li class=" tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-								<a href="tools.loglevel.html#off" class="tsd-kind-icon">Off</a>
-							</li>
-							<li class=" tsd-kind-enum-member tsd-parent-kind-enum tsd-is-external">
-								<a href="tools.loglevel.html#warn" class="tsd-kind-icon">Warn</a>
+							<li class="current tsd-kind-enum tsd-parent-kind-class tsd-is-static">
+								<a href="_connection_.connection.state.html" class="tsd-kind-icon">State</a>
+								<ul>
+									<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+										<a href="_connection_.connection.state.html#closed" class="tsd-kind-icon">Closed</a>
+									</li>
+									<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+										<a href="_connection_.connection.state.html#connecting" class="tsd-kind-icon">Connecting</a>
+									</li>
+									<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+										<a href="_connection_.connection.state.html#open" class="tsd-kind-icon">Open</a>
+									</li>
+									<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+										<a href="_connection_.connection.state.html#pending" class="tsd-kind-icon">Pending</a>
+									</li>
+									<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+										<a href="_connection_.connection.state.html#reconnecting" class="tsd-kind-icon">Reconnecting</a>
+									</li>
+									<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+										<a href="_connection_.connection.state.html#ringing" class="tsd-kind-icon">Ringing</a>
+									</li>
+								</ul>
 							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
-					<li class=" tsd-kind-class tsd-parent-kind-external-module tsd-is-external">
-						<a href="../classes/tools.log.html" class="tsd-kind-icon">Log</a>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-private">
+						<a href="../modules/_connection_.html#iaudiohelper" class="tsd-kind-icon">IAudio<wbr>Helper</a>
 					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-external-module tsd-is-external">
-						<a href="../interfaces/tools.ilogoptions.html" class="tsd-kind-icon">ILog<wbr>Options</a>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-private">
+						<a href="../modules/_connection_.html#ipstream" class="tsd-kind-icon">IPStream</a>
 					</li>
-					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-						<a href="../modules/tools.html#loglevelmethods" class="tsd-kind-icon">log<wbr>Level<wbr>Methods</a>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-private">
+						<a href="../modules/_connection_.html#ipeerconnection" class="tsd-kind-icon">IPeer<wbr>Connection</a>
 					</li>
-					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-external tsd-is-not-exported">
-						<a href="../modules/tools.html#loglevelranks" class="tsd-kind-icon">log<wbr>Level<wbr>Ranks</a>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-private">
+						<a href="../modules/_connection_.html#ipublisher" class="tsd-kind-icon">IPublisher</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module tsd-is-private">
+						<a href="../modules/_connection_.html#isound" class="tsd-kind-icon">ISound</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_connection_.html#backoff" class="tsd-kind-icon">Backoff</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_connection_.html#c" class="tsd-kind-icon">C</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_connection_.html#dtmf_inter_tone_gap" class="tsd-kind-icon">DTMF_<wbr>INTER_<wbr>TONE_<wbr>GAP</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_connection_.html#dtmf_pause_duration" class="tsd-kind-icon">DTMF_<wbr>PAUSE_<wbr>DURATION</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_connection_.html#dtmf_tone_duration" class="tsd-kind-icon">DTMF_<wbr>TONE_<wbr>DURATION</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_connection_.html#metrics_batch_size" class="tsd-kind-icon">METRICS_<wbr>BATCH_<wbr>SIZE</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_connection_.html#metrics_delay" class="tsd-kind-icon">METRICS_<wbr>DELAY</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_connection_.html#peerconnection" class="tsd-kind-icon">Peer<wbr>Connection</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_connection_.html#getpreferredcodecinfo" class="tsd-kind-icon">get<wbr>Preferred<wbr>Codec<wbr>Info</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_connection_.html#hasbeenwarnedhandlers" class="tsd-kind-icon">has<wbr>Been<wbr>Warned<wbr>Handlers</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_connection_.html#generatetempcallsid" class="tsd-kind-icon">generate<wbr>Temp<wbr>Call<wbr>Sid</a>
+					</li>
+					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_connection_.html#backoff_config" class="tsd-kind-icon">BACKOFF_<wbr>CONFIG</a>
+					</li>
+					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_connection_.html#media_disconnect_error" class="tsd-kind-icon">MEDIA_<wbr>DISCONNECT_<wbr>ERROR</a>
+					</li>
+					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_connection_.html#warning_names" class="tsd-kind-icon">WARNING_<wbr>NAMES</a>
+					</li>
+					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_connection_.html#warning_prefixes" class="tsd-kind-icon">WARNING_<wbr>PREFIXES</a>
 					</li>
 				</ul>
 			</nav>
