@@ -1,5 +1,26 @@
+
+1.8.2 (In Progress)
+===================
+
+Bug Fixes
+---------
+
+* Fixed an issue causing multiple devices that are created in the same tab to get disconnected when one of the devices disconnects a connection. (CLIENT-6581)
+
+1.8.1 (Aug 28, 2019)
+====================
+
+Bug Fixes
+---------
+
+* Fixed an issue causing audio levels to be reported as zero when running as an extension, or when the browser tab is inactive or minimized. (CLIENT-6539)
+
+* Fixed an issue causing `Connection.status()` to return `pending` instead of `closed` after calling `Connection.reject()`. (CLIENT-6534)
+
+
 1.8.0 (Aug 20, 2019)
 ====================
+
 New Features
 ------------
 ### Media Reconnection States and Events
@@ -14,7 +35,7 @@ This feature, when `enableIceRestart` is enabled, allows for detecting when medi
 * `Connection.on('reconnected', handler())` - raised when media connection has been restored which is detected when media starts flowing. Once reconnected, `Connection.status()` will be set to `open`.
 
 #### Retries
-ICE restarts will be retried in the event that previous ICE restarts are unsuccessful. Retry attemps will happen when [ICE Connection state](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceConnectionState) or [PeerConnection state](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/connectionState) transitions to `failed`. If more than 30 seconds has elapsed during this transition, the call will disconnect and raise an error `31003`.
+ICE restarts will be retried in the event that previous ICE restarts are unsuccessful. Retry attempts will happen when [ICE Connection state](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceConnectionState) or [PeerConnection state](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/connectionState) transitions to `failed`. If more than 30 seconds has elapsed during this transition, the call will disconnect and raise an error `31003`.
 
 Improvements
 ------------

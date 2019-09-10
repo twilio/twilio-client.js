@@ -1793,11 +1793,18 @@ describe('PeerConnection', () => {
     const MESSAGE = 'error message';
     const ERROR = new Error(MESSAGE);
 
+    const rtcpcFactory = function() {
+      this.create = versionCreate;
+      this.pc = versionPc;
+    };
+
     let toTest = null;
     let context = null;
     let params = null;
     let sender = null;
-    let version = null;
+
+    let versionCreate;
+    let versionPc;
 
     beforeEach(() => {
       params = {
@@ -1811,54 +1818,58 @@ describe('PeerConnection', () => {
         getParameters: sinon.spy(() => Object.assign({ }, params)),
         setParameters: sinon.spy((p) => params = p),
       };
-      version = {
-        create: sinon.stub(),
-        pc: {
-          addStream: sinon.stub(),
-          getSenders: () => [sender],
-        }
+      versionCreate = sinon.stub();
+      versionPc = {
+        addStream: sinon.stub(),
+        getSenders: () => [sender],
       };
       context = {
         _isSinkSupported: true,
-        options: { },
+        options: {
+          rtcpcFactory
+        },
         stream: STREAM,
         log: LOG,
         _onAddTrack: sinon.stub(),
         _fallbackOnAddTrack: sinon.stub(),
         _startPollingVolume: sinon.stub(),
-        _getProtocol: sinon.stub().returns(version),
       };
       toTest = METHOD.bind(context, CONSTRAINTS, ICE_SERVERS);
     });
 
+    it('Should create new version everytime', () => {
+      // Make sure a new reference is created each time
+      assert(toTest() !== toTest());
+    });
+
     it('Should set callback on version pc onaddstream when create and addstream do not throw error', () => {
-      assert.deepStrictEqual(toTest(), version);
-      assert(version.create.calledWithExactly(LOG, CONSTRAINTS, ICE_SERVERS));
-      assert(version.pc.addStream.calledWithExactly(STREAM));
-      assert.equal(typeof version.pc.onaddstream, 'function');
+      assert.deepStrictEqual(toTest(), new rtcpcFactory());
+      assert(versionCreate.calledWithExactly(LOG, CONSTRAINTS, ICE_SERVERS));
+      assert(versionPc.addStream.calledWithExactly(STREAM));
+      assert.equal(typeof versionPc.onaddstream, 'function');
     });
 
     it('Should not create onaddstream callback function when version create throws error', () => {
-      version.create.throws(ERROR);
+      versionCreate.throws(ERROR);
       assert.throws(toTest, MESSAGE);
-      assert(version.create.calledWithExactly(LOG, CONSTRAINTS, ICE_SERVERS));
-      assert.equal(version.pc.addStream.called, false);
-      assert.equal(typeof version.pc.onaddstream, 'undefined');
+      assert(versionCreate.calledWithExactly(LOG, CONSTRAINTS, ICE_SERVERS));
+      assert.equal(versionPc.addStream.called, false);
+      assert.equal(typeof versionPc.onaddstream, 'undefined');
     });
 
     it('Should not create onaddstream callback function when pc addstream throws error', () => {
-      version.pc.addStream.throws(ERROR);
+      versionPc.addStream.throws(ERROR);
       assert.throws(toTest, MESSAGE);
-      assert(version.create.calledWithExactly(LOG, CONSTRAINTS, ICE_SERVERS));
-      assert(version.pc.addStream.calledWithExactly(STREAM));
-      assert.equal(typeof version.pc.onaddstream, 'undefined');
+      assert(versionCreate.calledWithExactly(LOG, CONSTRAINTS, ICE_SERVERS));
+      assert(versionPc.addStream.calledWithExactly(STREAM));
+      assert.equal(typeof versionPc.onaddstream, 'undefined');
     });
 
     it('Should call _onAddTrack when sink is supported', () => {
       const event = {stream: STREAM};
-      assert.deepStrictEqual(toTest(), version);
-      version.pc.onaddstream({stream: STREAM});
-      assert.equal(typeof version.pc.onaddstream, 'function');
+      assert.deepStrictEqual(toTest(), new rtcpcFactory());
+      versionPc.onaddstream({stream: STREAM});
+      assert.equal(typeof versionPc.onaddstream, 'function');
       assert.equal(context._remoteStream, STREAM);
       assert(context._onAddTrack.calledWithExactly(context, STREAM));
       assert.equal(context._fallbackOnAddTrack.called, false);
@@ -1869,9 +1880,9 @@ describe('PeerConnection', () => {
     it('Should call _onAddTrack when sink is supported', () => {
       context._isSinkSupported = false;
       const event = {stream: STREAM};
-      assert.deepStrictEqual(toTest(), version);
-      version.pc.onaddstream({stream: STREAM});
-      assert.equal(typeof version.pc.onaddstream, 'function');
+      assert.deepStrictEqual(toTest(), new rtcpcFactory());
+      versionPc.onaddstream({stream: STREAM});
+      assert.equal(typeof versionPc.onaddstream, 'function');
       assert.equal(context._remoteStream, STREAM);
       assert(context._fallbackOnAddTrack.calledWithExactly(context, STREAM));
       assert(context._fallbackOnAddTrack.calledOn(context));
@@ -1920,7 +1931,6 @@ describe('PeerConnection', () => {
         _onAddTrack: sinon.stub(),
         _fallbackOnAddTrack: sinon.stub(),
         _startPollingVolume: sinon.stub(),
-        _getProtocol: sinon.stub().returns(version),
       };
       toTest = METHOD.bind(context, 'high');
     });
