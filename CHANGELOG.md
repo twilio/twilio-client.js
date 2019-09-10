@@ -24,7 +24,6 @@ Bug Fixes
 
 * Fixed an issue causing multiple devices that are created in the same tab to get disconnected when one of the devices disconnects a connection. (CLIENT-6581)
 
-
 1.8.1 (Aug 28, 2019)
 ====================
 
