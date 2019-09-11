@@ -81,7 +81,10 @@ for (const topClass of VoiceErrors) {
   }
 }
 
-output += `export const errorsByCode: ReadonlyMap<number, any> = new Map([
+output += `/**
+ * @private
+ */
+export const errorsByCode: ReadonlyMap<number, any> = new Map([
   ${mapEntries.join(',\n  ')},
 ]);
 
