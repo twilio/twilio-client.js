@@ -16,7 +16,8 @@ import { average, isChrome } from './util';
 
 const Backoff = require('backoff');
 const C = require('./constants');
-const PeerConnection = require('./rtc').PeerConnection;
+const { PeerConnection } = require('./rtc');
+const { getPreferredCodecInfo } = require('./rtc/sdp');
 
 // Placeholders until we convert the respective files to TypeScript.
 /**
@@ -308,6 +309,7 @@ class Connection extends EventEmitter {
         dscp: this.options.dscp,
         enableIceRestart: this.options.enableIceRestart,
         isUnifiedPlan: this._isUnifiedPlanDefault,
+        maxAverageBitrate: this.options.maxAverageBitrate,
         warnings: this.options.warnings,
       });
 
@@ -514,13 +516,21 @@ class Connection extends EventEmitter {
         return;
       }
 
-      const onLocalAnswer = (pc: RTCPeerConnection) => {
-        this._publisher.info('connection', 'accepted-by-local', null, this);
-        this._monitor.enable(pc);
-      };
+      const onAnswer = (pc: RTCPeerConnection) => {
+        // Report that the call was answered, and directionality
+        const eventName = this._direction === Connection.CallDirection.Incoming
+          ? 'accepted-by-local'
+          : 'accepted-by-remote';
+        this._publisher.info('connection', eventName, null, this);
 
-      const onRemoteAnswer = (pc: RTCPeerConnection) => {
-        this._publisher.info('connection', 'accepted-by-remote', null, this);
+        // Report the preferred codec and params as they appear in the SDP
+        const { codecName, codecParams } = getPreferredCodecInfo(this.mediaStream.version.getSDP());
+        this._publisher.info('settings', 'codec', {
+          codec_params: codecParams,
+          selected_codec: codecName,
+        }, this);
+
+        // Enable RTC monitoring
         this._monitor.enable(pc);
       };
 
@@ -538,13 +548,13 @@ class Connection extends EventEmitter {
       if (this._direction === Connection.CallDirection.Incoming) {
         this._isAnswered = true;
         this.mediaStream.answerIncomingCall(this.parameters.CallSid, this.options.offerSdp,
-          this.options.rtcConstraints, this.options.rtcConfiguration, onLocalAnswer);
+          this.options.rtcConstraints, this.options.rtcConfiguration, onAnswer);
       } else {
         const params = Array.from(this.customParameters.entries()).map(pair =>
          `${encodeURIComponent(pair[0])}=${encodeURIComponent(pair[1])}`).join('&');
         this.pstream.once('answer', this._onAnswer.bind(this));
         this.mediaStream.makeOutgoingCall(this.pstream.token, params, this.outboundConnectionId,
-          this.options.rtcConstraints, this.options.rtcConfiguration, onRemoteAnswer);
+          this.options.rtcConstraints, this.options.rtcConfiguration, onAnswer);
       }
     };
 
@@ -1593,6 +1603,16 @@ namespace Connection {
      * A method that returns the current SinkIDs set on {@link Device}.
      */
     getSinkIds?: () => string[];
+
+    /**
+     * The maximum average audio bitrate to use, in bits per second (bps) based on
+     * [RFC-7587 7.1](https://tools.ietf.org/html/rfc7587#section-7.1). By default, the setting
+     * is not used. If you specify 0, then the setting is not used. Any positive integer is allowed,
+     * but values outside the range 6000 to 510000 are ignored and treated as 0. The recommended
+     * bitrate for speech is between 8000 and 40000 bps as noted in
+     * [RFC-7587 3.1.1](https://tools.ietf.org/html/rfc7587#section-3.1.1).
+     */
+    maxAverageBitrate?: number;
 
     /**
      * Custom MediaStream (PeerConnection) constructor. Overrides mediaStreamFactory (deprecated).

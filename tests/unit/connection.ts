@@ -39,7 +39,8 @@ describe('Connection', function() {
     mediaStream._remoteStream = Symbol('_remoteStream');
     mediaStream.isMuted = Symbol('isMuted');
     mediaStream.mute = sinon.spy((shouldMute: boolean) => { mediaStream.isMuted = shouldMute; });
-    mediaStream.version = {pc: {}};
+    mediaStream.version = {pc: {}, getSDP: () => 
+      'a=rtpmap:1337 opus/48000/2\na=rtpmap:0 PCMU/8000\na=fmtp:0\na=fmtp:1337 maxaveragebitrate=12000'};
     return mediaStream;
   };
 
@@ -278,6 +279,17 @@ describe('Connection', function() {
             });
           });
 
+          it('should publish a settings:codec event', () => {
+            conn.accept();
+            return wait.then(() => {
+              callback('foo');
+              sinon.assert.calledWith(publisher.info, 'settings', 'codec', {
+                codec_params: 'maxaveragebitrate=12000',
+                selected_codec: 'opus/48000/2',
+              });
+            });
+          });
+
           it('should call monitor.enable', () => {
             conn.accept();
             return wait.then(() => {
@@ -337,6 +349,17 @@ describe('Connection', function() {
             return wait.then(() => {
               callback('foo');
               sinon.assert.calledWith(publisher.info, 'connection', 'accepted-by-remote');
+            });
+          });
+
+          it('should publish a settings:codec event', () => {
+            conn.accept();
+            return wait.then(() => {
+              callback('foo');
+              sinon.assert.calledWith(publisher.info, 'settings', 'codec', {
+                codec_params: 'maxaveragebitrate=12000',
+                selected_codec: 'opus/48000/2',
+              });
             });
           });
 
