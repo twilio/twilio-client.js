@@ -1,3 +1,11 @@
+1.9.1 (In Progress)
+===================
+
+Improvements
+---------
+
+* Ringtone media files are now cached and downloaded once, on `Device.setup()`. (CLIENT-6632)
+
 1.9.0 (Sept 10, 2019)
 ===================
 
