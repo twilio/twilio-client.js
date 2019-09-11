@@ -274,6 +274,9 @@ export namespace MediaErrors {
   }
 }
 
+/**
+ * @private
+ */
 export const errorsByCode: ReadonlyMap<number, any> = new Map([
   [ 20101, AuthorizationErrors.AccessTokenInvalid ],
   [ 20104, AuthorizationErrors.AccessTokenExpired ],
