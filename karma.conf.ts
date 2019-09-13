@@ -1,5 +1,6 @@
 const fs = require('fs');
 const yaml = require('js-yaml');
+const isDocker = require('is-docker')();
 
 if (fs.existsSync(__dirname + '/config.yaml')) {
   const creds = yaml.safeLoad(fs.readFileSync(__dirname + '/config.yaml', 'utf8')).prod;
@@ -30,6 +31,23 @@ module.exports = function(config: any) {
     browsers = ['ChromeWebRTC', 'FirefoxWebRTC'];
   }
 
+  const firefoxFlags = [];
+  const chromeFlags = [
+    '--no-sandbox',
+    '--use-fake-ui-for-media-stream',
+    '--use-fake-device-for-media-stream',
+    '--autoplay-policy=no-user-gesture-required',
+  ];
+
+  if (isDocker) {
+    firefoxFlags.push('-headless');
+    chromeFlags.push(
+      '--headless',
+      '--disable-gpu',
+      '--remote-debugging-port=9222'
+    );
+  }
+
   config.set({
     basePath: '',
     browsers,
@@ -38,15 +56,11 @@ module.exports = function(config: any) {
     customLaunchers: {
       ChromeWebRTC: {
         base: 'Chrome',
-        flags: [
-          '--no-sandbox',
-          '--use-fake-ui-for-media-stream',
-          '--use-fake-device-for-media-stream',
-          '--autoplay-policy=no-user-gesture-required',
-        ],
+        flags: chromeFlags,
       },
       FirefoxWebRTC: {
         base: 'Firefox',
+        flags: firefoxFlags,
         prefs: {
           'media.autoplay.default': 0,
           'media.autoplay.enabled': true,
