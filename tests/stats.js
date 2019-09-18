@@ -38,6 +38,37 @@ describe('getStats', () => {
     });
   });
 
+  context('In browsers not supporting dtlsState', () => {
+    let stats;
+
+    before(() => {
+      const statsReport = MockRTCStatsReport.fromArray(standardPayload);
+      const peerConnection = {
+        getStats() { return Promise.resolve(statsReport); }
+      };
+
+      return getStats(peerConnection).then(_stats => {
+        stats = _stats;
+      });
+    });
+
+    it('should correctly transform a standard RTCStatsReport', () => {
+      assert.deepEqual(stats, {
+        codecName: 'PCMU',
+        timestamp: 1492027598825.6,
+        rtt: 86,
+        jitter: 3,
+        packetsLost: 41,
+        packetsReceived: 61687,
+        bytesReceived: 10610164,
+        packetsSent: 61939,
+        bytesSent: 10653508,
+        localAddress: '107.20.226.156',
+        remoteAddress: '54.172.60.184'
+      });
+    });
+  });
+
   context('In Edge', () => {
     let stats;
 

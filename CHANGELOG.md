@@ -1,3 +1,11 @@
+1.9.2 (In Progress)
+===================
+
+Bug Fixes
+---------
+
+* Fixed an issue on Safari where `sample.mos`, emitted from `Connection.on('sample', handler(sample))`, is always null. (CLIENT-6664)
+
 1.9.1 (Sept 13, 2019)
 ===================
 

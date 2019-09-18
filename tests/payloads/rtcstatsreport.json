@@ -264,7 +264,6 @@
     "type": "transport",
     "bytesSent": 10931341,
     "bytesReceived": 10858033,
-    "dtlsState": "connected",
     "selectedCandidatePairId": "RTCIceCandidatePair_BMuAX3Yg_yB1+bJsu",
     "localCertificateId": "RTCCertificate_AF:45:A0:00:47:1B:0A:13:1A:24:1F:29:5B:0A:58:30:E7:FB:82:80:05:30:BA:B1:06:C4:82:F3:AF:E5:34:E8",
     "remoteCertificateId": "RTCCertificate_30:74:CA:5E:6B:4C:DD:D0:63:4A:03:23:F3:F5:A7:3F:82:E9:13:06"
