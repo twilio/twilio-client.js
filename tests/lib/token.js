@@ -1,11 +1,11 @@
 const Twilio = require('twilio');
 const env = require('../env.js');
 
-function generateAccessToken(identity) {
+function generateAccessToken(identity, ttl) {
   const accessToken = new Twilio.jwt.AccessToken(env.accountSid,
     env.apiKeySid,
     env.apiKeySecret,
-    { ttl: 300, identity });
+    { ttl: ttl || 300, identity });
 
   accessToken.addGrant(new Twilio.jwt.AccessToken.VoiceGrant({
     incomingAllow: true,
