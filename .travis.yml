@@ -35,15 +35,4 @@ matrix:
     - env: BVER=beta
     - env: BVER=unstable
 
-before_script:
-  - |
-    set -e
-    cd node_modules/travis-multirunner
-    BROWSER=chrome ./setup.sh
-    BROWSER=firefox ./setup.sh
-    export CHROME_BIN=$(pwd)/browsers/bin/chrome-$BVER
-    export FIREFOX_BIN=$(pwd)/browsers/bin/firefox-$BVER
-    cd ../..
-    pulseaudio --start
-
 script: npm run build:release
