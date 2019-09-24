@@ -19,6 +19,7 @@
         "npm run build:release",
         "git add package.json",
         "git add -f dist es5 docs",
+        "git add lib/twilio/constants.js",
         "git commit -nm \"${RELEASE_VERSION}\"",
         "git tag ${RELEASE_VERSION}",
         "git remote set-url origin \"https://${GH_TOKEN}@${GH_REF}\"",
