@@ -1,3 +1,17 @@
+1.7.7 (Sept 25, 2019)
+====================
+
+Improvements
+------------
+* Added de1-ix to valid list of regions. (CLIENT-6455, CLIENT-6727)
+
+
+Bug Fixes
+---------
+
+* Fixed an issue causing local environment information to get bundled into the build artifact in local npm builds. (CLIENT-6392)
+
+
 1.7.6 (Jul 23, 2019)
 ====================
 New Features
