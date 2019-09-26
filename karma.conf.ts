@@ -104,5 +104,8 @@ module.exports = function(config: any) {
     },
     reporters: ['spec', 'karma-typescript'],
     singleRun: true,
+    browserDisconnectTolerance: 3,
+    browserDisconnectTimeout : 5000,
+    browserNoActivityTimeout : 120000,
   });
 };
