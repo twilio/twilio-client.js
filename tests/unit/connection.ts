@@ -1,7 +1,7 @@
 import Connection from '../../lib/twilio/connection';
 import Device from '../../lib/twilio/device';
 import * as assert from 'assert';
-import { EventEmitter } from 'events';    
+import { EventEmitter } from 'events';
 import { SinonFakeTimers, SinonSpy, SinonStubbedInstance } from 'sinon';
 import * as sinon from 'sinon';
 import { MediaErrors } from '../../lib/twilio/errors';
@@ -39,7 +39,7 @@ describe('Connection', function() {
     mediaStream._remoteStream = Symbol('_remoteStream');
     mediaStream.isMuted = Symbol('isMuted');
     mediaStream.mute = sinon.spy((shouldMute: boolean) => { mediaStream.isMuted = shouldMute; });
-    mediaStream.version = {pc: {}, getSDP: () => 
+    mediaStream.version = {pc: {}, getSDP: () =>
       'a=rtpmap:1337 opus/48000/2\na=rtpmap:0 PCMU/8000\na=fmtp:0\na=fmtp:1337 maxaveragebitrate=12000'};
     return mediaStream;
   };
@@ -200,7 +200,7 @@ describe('Connection', function() {
       conn.accept();
       assert.equal(conn.status(), Connection.State.Connecting);
     });
-    
+
     context('when getInputStream is not present', () => {
       it('should call mediaStream.openWithConstraints with audioConstraints if passed', () => {
         conn.accept({ foo: 'bar' } as MediaTrackConstraints);
@@ -213,8 +213,26 @@ describe('Connection', function() {
         conn.accept();
         sinon.assert.calledWith(mediaStream.openWithConstraints, { bar: 'baz' });
       });
+
+      it('should result in a `denied` error when `getUserMedia` does not allow the application to access the media', () => {
+        return new Promise(resolve => {
+          mediaStream.openWithConstraints = () => {
+            const p = Promise.reject({
+              code: 0,
+              name: 'NotAllowedError',
+              message: 'Permission denied',
+            });
+            p.catch(() => resolve());
+            return p;
+          }
+
+          conn.accept();
+        }).then(() => {
+          sinon.assert.calledWith(publisher.error, 'get-user-media', 'denied');
+        });
+      });
     });
-    
+
     context('when getInputStream is present and succeeds', () => {
       let getInputStream;
       let wait: Promise<any>;
@@ -399,7 +417,7 @@ describe('Connection', function() {
         });
       });
     });
-    
+
     context('when getInputStream is present and fails with 31208', () => {
       let getInputStream: () => any;
       let wait: Promise<any>;
@@ -424,7 +442,7 @@ describe('Connection', function() {
         });
       });
     });
-    
+
     context('when getInputStream is present and fails without 31208', () => {
       let getInputStream: () => any;
       let wait: Promise<any>;
@@ -1357,7 +1375,7 @@ describe('Connection', function() {
         mos: 0,
         codecName: 'opus'
       };
-  
+
       audioData = {
         audioInputLevel: 0,
         audioOutputLevel: 0,
