@@ -35,4 +35,4 @@ matrix:
     - env: BVER=beta
     - env: BVER=unstable
 
-script: npm run build:release
+script: npm test

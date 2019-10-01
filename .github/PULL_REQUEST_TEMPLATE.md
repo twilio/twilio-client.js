@@ -22,7 +22,7 @@ A description of what this PR does.
 * [ ] Updated CHANGELOG.md if necessary
 * [ ] Added unit tests if necessary
 * [ ] Updated affected documentation
-* [ ] Verified locally with `npm run build:release`
+* [ ] Verified locally with `npm test`
 * [ ] Manually sanity tested running locally
 * [ ] Ready for review
 
