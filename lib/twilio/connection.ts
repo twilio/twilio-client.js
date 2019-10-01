@@ -578,8 +578,8 @@ class Connection extends EventEmitter {
       let message;
       let code;
 
-      if (error.code && error.code === 31208
-        || error.name && error.name === 'PermissionDeniedError') {
+      if (error.code === 31208
+        || ['PermissionDeniedError', 'NotAllowedError'].indexOf(error.name) !== -1) {
         code = 31208;
         message = 'User denied access to microphone, or the web browser did not allow microphone '
           + 'access at this address.';
