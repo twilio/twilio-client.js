@@ -43,4 +43,6 @@ RUN echo "Installing Firefox: $BVER" \
 
 ENV FIREFOX_BIN=/application/firefox/firefox
 
+COPY . /app
+
 CMD ["bash"]
