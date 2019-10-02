@@ -460,8 +460,20 @@ class Device extends EventEmitter {
     }
 
     if (this.stream) {
+      this.stream.removeListener('close', this._onSignalingClose);
+      this.stream.removeListener('connected', this._onSignalingConnected);
+      this.stream.removeListener('error', this._onSignalingError);
+      this.stream.removeListener('invite', this._onSignalingInvite);
+      this.stream.removeListener('offline', this._onSignalingOffline);
+      this.stream.removeListener('ready', this._onSignalingReady);
+
       this.stream.destroy();
       this.stream = null;
+    }
+
+    const connection = this.activeConnection();
+    if (connection) {
+      connection.removeListener('error', this._onConnectionError);
     }
 
     if (networkInformation) {
@@ -914,7 +926,8 @@ class Device extends EventEmitter {
 
     const connection = new this.options.connectionFactory(config, options);
 
-    connection.once('accept', () => {
+    const onceConnectionAccept = (): void => {
+      stopListening();
       this._removeConnection(connection);
       this._activeConnection = connection;
       if (this.audio) {
@@ -926,56 +939,64 @@ class Device extends EventEmitter {
       }
 
       this.emit('connect', connection);
-    });
+    };
 
-    connection.addListener('error', (error: Connection.Error) => {
-      if (connection.status() === 'closed') {
-        this._removeConnection(connection);
-      }
-      if (this.audio) {
-        this.audio._maybeStopPollingVolume();
-      }
-      this._maybeStopIncomingSound();
-      this.emit('error', error);
-    });
-
-    connection.once('cancel', () => {
+    const onceConnectionCancel = (): void => {
       this._log.info(`Canceled: ${connection.parameters.CallSid}`);
+      stopListening();
       this._removeConnection(connection);
       if (this.audio) {
         this.audio._maybeStopPollingVolume();
       }
       this._maybeStopIncomingSound();
       this.emit('cancel', connection);
-    });
+    };
 
-    connection.once('disconnect', () => {
+    const onceConnectionDisconnect = (): void => {
+      stopListening();
       if (this.audio) {
         this.audio._maybeStopPollingVolume();
       }
       this._removeConnection(connection);
       this.emit('disconnect', connection);
-    });
+    };
 
-    connection.once('reject', () => {
+    const onceConnectionReject = (): void => {
       this._log.info(`Rejected: ${connection.parameters.CallSid}`);
+      stopListening();
       if (this.audio) {
         this.audio._maybeStopPollingVolume();
       }
       this._removeConnection(connection);
       this._maybeStopIncomingSound();
-    });
+    };
 
-    connection.once('transportClose', () => {
+    const onceTransportClose = (): void => {
       if (connection.status() !== Connection.State.Pending) {
         return;
       }
+
+      stopListening();
       if (this.audio) {
         this.audio._maybeStopPollingVolume();
       }
       this._removeConnection(connection);
       this._maybeStopIncomingSound();
-    });
+    };
+
+    function stopListening(): void {
+      connection.removeListener('accept', onceConnectionAccept);
+      connection.removeListener('cancel', onceConnectionCancel);
+      connection.removeListener('reject', onceConnectionReject);
+      connection.removeListener('transportClose', onceTransportClose);
+    }
+
+    connection.addListener('error', this._onConnectionError);
+    connection.once('accept', onceConnectionAccept);
+    connection.once('cancel', onceConnectionCancel);
+    connection.once('disconnect', onceConnectionDisconnect);
+    connection.once('reject', onceConnectionReject);
+    connection.once('transportClose', onceTransportClose);
 
     return connection;
   }
@@ -987,6 +1008,21 @@ class Device extends EventEmitter {
     if (!this.connections.length) {
       this.soundcache.get(Device.SoundName.Incoming).stop();
     }
+  }
+
+  /**
+   * Called when the active Connection emits an error event.
+   */
+  private _onConnectionError = (error: Connection.Error): void => {
+    const connection = this.activeConnection();
+    if (connection && connection.status() === 'closed') {
+      this._removeConnection(connection);
+    }
+    if (this.audio) {
+      this.audio._maybeStopPollingVolume();
+    }
+    this._maybeStopIncomingSound();
+    this.emit('error', error);
   }
 
   /**
@@ -1114,6 +1150,7 @@ class Device extends EventEmitter {
    */
   private _removeConnection(connection: Connection): void {
     if (this._activeConnection === connection) {
+      connection.removeListener('error', this._onConnectionError);
       this._activeConnection = null;
     }
 
