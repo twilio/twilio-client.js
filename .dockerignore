@@ -1,9 +1,0 @@
-.dockerignore
-Dockerfile
-node_modules
-package-lock.json
-dist
-es5
-docs
-tests/docker/proxy/node_modules
-tests/docker/proxy/package-lock.json

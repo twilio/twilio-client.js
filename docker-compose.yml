@@ -20,5 +20,4 @@ services:
     working_dir: /app
     container_name: twilio-client-integration-test
     volumes:
-      - "./:/app"
       - /var/run/docker.sock:/var/run/docker.sock
