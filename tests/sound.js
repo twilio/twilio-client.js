@@ -344,6 +344,13 @@ describe('Sound', () => {
       sinon.assert.calledOnce(scope._playAudioElement);
     });
 
+    it('should set crossorigin attribute when using html5 audio', () => {
+      AudioFactory.prototype.setAttribute = sinon.stub();
+      activeEls.clear();
+      toTest();
+      sinon.assert.calledWithExactly(audio.setAttribute, 'crossorigin', 'anonymous');
+    });
+
     it('should play audio with muted and loop parameters', () => {
       toTest(true, false);
       sinon.assert.calledOnce(scope._playAudioElement);
