@@ -22,7 +22,7 @@ const SAMPLE_COUNT_RAISE = 3;
 const SAMPLE_INTERVAL = 1000;
 const WARNING_TIMEOUT = 5 * 1000;
 
-const DEFAULT_THRESHOLDS: RTCMonitor.ThresholdOptions = {
+const DEFAULT_THRESHOLDS: StatsMonitor.ThresholdOptions = {
   bytesReceived: { clearCount: 2, min: 1, raiseCount: 3, sampleCount: 3 },
   bytesSent: { clearCount: 2, min: 1, raiseCount: 3, sampleCount: 3 },
   jitter: { max: 30 },
@@ -70,14 +70,14 @@ function countLow(min: number, values: number[]): number {
 }
 
 /**
- * {@link RTCMonitor} polls a peerConnection via PeerConnection.getStats
+ * {@link StatsMonitor} polls a peerConnection via PeerConnection.getStats
  * and emits warnings when stats cross the specified threshold values.
  */
-class RTCMonitor extends EventEmitter {
+class StatsMonitor extends EventEmitter {
   /**
    * A map of warnings with their raised time
    */
-  private _activeWarnings: Map<string, RTCMonitor.WarningTimestamp> = new Map();
+  private _activeWarnings: Map<string, StatsMonitor.WarningTimestamp> = new Map();
 
   /**
    * A map of stats with the number of exceeded thresholds
@@ -115,9 +115,9 @@ class RTCMonitor extends EventEmitter {
   private _sampleInterval: NodeJS.Timer;
 
   /**
-   * Threshold values for {@link RTCMonitor}
+   * Threshold values for {@link StatsMonitor}
    */
-  private _thresholds: RTCMonitor.ThresholdOptions;
+  private _thresholds: StatsMonitor.ThresholdOptions;
 
   /**
    * Whether warnings should be enabled
@@ -128,7 +128,7 @@ class RTCMonitor extends EventEmitter {
    * @constructor
    * @param [options] - Optional settings
    */
-  constructor(options?: RTCMonitor.Options) {
+  constructor(options?: StatsMonitor.Options) {
     super();
 
     options = options || {};
@@ -138,7 +138,7 @@ class RTCMonitor extends EventEmitter {
     this._thresholds = {...DEFAULT_THRESHOLDS, ...options.thresholds};
 
     const thresholdSampleCounts = Object.values(this._thresholds)
-      .map((threshold: RTCMonitor.ThresholdOptions) => threshold.sampleCount)
+      .map((threshold: StatsMonitor.ThresholdOptions) => threshold.sampleCount)
       .filter((sampleCount: number | undefined) => !!sampleCount);
 
     this._maxSampleCount = Math.max(SAMPLE_COUNT_METRICS, ...thresholdSampleCounts);
@@ -149,8 +149,8 @@ class RTCMonitor extends EventEmitter {
   }
 
   /**
-   * Stop sampling RTC statistics for this {@link RTCMonitor}.
-   * @returns The current {@link RTCMonitor}.
+   * Stop sampling RTC statistics for this {@link StatsMonitor}.
+   * @returns The current {@link StatsMonitor}.
    */
   disable(): this {
     clearInterval(this._sampleInterval);
@@ -160,8 +160,8 @@ class RTCMonitor extends EventEmitter {
   }
 
   /**
-   * Disable warnings for this {@link RTCMonitor}.
-   * @returns The current {@link RTCMonitor}.
+   * Disable warnings for this {@link StatsMonitor}.
+   * @returns The current {@link StatsMonitor}.
    */
   disableWarnings(): this {
     if (this._warningsEnabled) {
@@ -173,20 +173,20 @@ class RTCMonitor extends EventEmitter {
   }
 
   /**
-   * Start sampling RTC statistics for this {@link RTCMonitor}.
+   * Start sampling RTC statistics for this {@link StatsMonitor}.
    * @param peerConnection - A PeerConnection to monitor.
-   * @returns The current {@link RTCMonitor}.
+   * @returns The current {@link StatsMonitor}.
    */
   enable(peerConnection: IPeerConnection): this {
     if (peerConnection) {
       if (this._peerConnection && peerConnection !== this._peerConnection) {
-        throw new InvalidArgumentError('Attempted to replace an existing PeerConnection in RTCMonitor.enable');
+        throw new InvalidArgumentError('Attempted to replace an existing PeerConnection in StatsMonitor.enable');
       }
       this._peerConnection = peerConnection;
     }
 
     if (!this._peerConnection) {
-      throw new InvalidArgumentError('Can not enable RTCMonitor without a PeerConnection');
+      throw new InvalidArgumentError('Can not enable StatsMonitor without a PeerConnection');
     }
 
     this._sampleInterval = this._sampleInterval ||
@@ -196,8 +196,8 @@ class RTCMonitor extends EventEmitter {
   }
 
   /**
-   * Enable warnings for this {@link RTCMonitor}.
-   * @returns The current {@link RTCMonitor}.
+   * Enable warnings for this {@link StatsMonitor}.
+   * @returns The current {@link StatsMonitor}.
    */
   enableWarnings(): this {
     this._warningsEnabled = true;
@@ -428,9 +428,9 @@ class RTCMonitor extends EventEmitter {
   }
 }
 
-namespace RTCMonitor {
+namespace StatsMonitor {
   /**
-   * Config options to be passed to the {@link RTCMonitor} constructor.
+   * Config options to be passed to the {@link StatsMonitor} constructor.
    * @private
    */
   export interface Options {
@@ -496,7 +496,7 @@ namespace RTCMonitor {
   }
 
   /**
-   * Threshold values for {@link RTCMonitor}
+   * Threshold values for {@link StatsMonitor}
    * @private
    */
   export interface ThresholdOptions {
@@ -535,4 +535,4 @@ namespace RTCMonitor {
   }
 }
 
-export default RTCMonitor;
+export default StatsMonitor;

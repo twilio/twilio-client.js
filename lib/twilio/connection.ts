@@ -8,7 +8,7 @@ import Device from './device';
 import DialtonePlayer from './dialtonePlayer';
 import { GeneralErrors, InvalidArgumentError, MediaErrors, TwilioError } from './errors';
 import { Region } from './regions';
-import RTCMonitor from './rtc/monitor';
+import StatsMonitor from './rtc/monitor';
 import RTCSample from './rtc/sample';
 import RTCWarning from './rtc/warning';
 import Log, { LogLevel } from './tslog';
@@ -199,9 +199,9 @@ class Connection extends EventEmitter {
   private readonly _metricsSamples: Connection.CallMetrics[] = [];
 
   /**
-   * An instance of RTCMonitor.
+   * An instance of StatsMonitor.
    */
-  private readonly _monitor: RTCMonitor;
+  private readonly _monitor: StatsMonitor;
 
   /**
    * The number of times output volume has been the same consecutively.
@@ -285,7 +285,7 @@ class Connection extends EventEmitter {
       publisher.info('connection', 'incoming', null, this);
     }
 
-    const monitor = this._monitor = new (this.options.RTCMonitor || RTCMonitor)();
+    const monitor = this._monitor = new (this.options.StatsMonitor || StatsMonitor)();
     monitor.on('sample', this._onRTCSample);
 
     // First 20 seconds or so are choppy, so let's not bother with these warnings.
@@ -1256,7 +1256,7 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Called each time RTCMonitor emits a sample.
+   * Called each time StatsMonitor emits a sample.
    * Emits stats event and batches the call stats metrics and sends them to Insights.
    * @param sample
    */
@@ -1305,7 +1305,7 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Re-emit an RTCMonitor warning as a {@link Connection}.warning or .warning-cleared event.
+   * Re-emit an StatsMonitor warning as a {@link Connection}.warning or .warning-cleared event.
    * @param warningData
    * @param wasCleared - Whether this is a -cleared or -raised event.
    */
@@ -1321,7 +1321,7 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Re-emit an RTCMonitor warning-cleared as a .warning-cleared event.
+   * Re-emit an StatsMonitor warning-cleared as a .warning-cleared event.
    * @param warningData
    */
   private _reemitWarningCleared = (warningData: Record<string, any>): void => {
@@ -1646,11 +1646,6 @@ namespace Connection {
     rtcConstraints?: MediaStreamConstraints;
 
     /**
-     * An override for the RTCMonitor dependency.
-     */
-    RTCMonitor?: new () => RTCMonitor;
-
-    /**
      * The region passed to {@link Device} on setup.
      */
     selectedRegion?: string;
@@ -1659,6 +1654,11 @@ namespace Connection {
      * Whether the disconnect sound should be played.
      */
     shouldPlayDisconnect?: () => boolean;
+
+    /**
+     * An override for the StatsMonitor dependency.
+     */
+    StatsMonitor?: new () => StatsMonitor;
 
     /**
      * TwiML params for the call. May be set for either outgoing or incoming calls.

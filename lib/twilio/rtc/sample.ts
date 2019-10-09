@@ -4,7 +4,7 @@
  */
 
 /**
- * Sample RTC statistics coming from {@link RTCMonitor}
+ * Sample RTC statistics coming from {@link StatsMonitor}
  * @private
  */
 export default interface RTCSample {

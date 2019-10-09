@@ -44,7 +44,7 @@ describe('Connection', function() {
     return mediaStream;
   };
 
-  const RTCMonitor: any = () => monitor = createEmitterStub(require('../../lib/twilio/rtc/monitor').default);
+  const StatsMonitor: any = () => monitor = createEmitterStub(require('../../lib/twilio/rtc/monitor').default);
 
   afterEach(() => {
     clock.restore();
@@ -79,7 +79,7 @@ describe('Connection', function() {
 
     options = {
       MediaStream: MediaHandler,
-      RTCMonitor,
+      StatsMonitor,
       enableIceRestart: true,
     };
 
