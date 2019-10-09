@@ -4,12 +4,12 @@
  */
 
 import { EventEmitter } from 'events';
-import { InvalidArgumentError } from '../errors';
-import RTCSample from './sample';
-import RTCWarning from './warning';
+import { InvalidArgumentError } from './errors';
+import RTCSample from './rtc/sample';
+import RTCWarning from './rtc/warning';
 
-const getRTCStats = require('./stats');
-const Mos = require('./mos');
+const getRTCStats = require('./rtc/stats');
+const Mos = require('./rtc/mos');
 
 // How many samples we use when testing metric thresholds
 const SAMPLE_COUNT_METRICS = 5;

@@ -1,4 +1,4 @@
-import StatsMonitor from '../../../lib/twilio/rtc/monitor';
+import StatsMonitor from '../../lib/twilio/statsMonitor';
 import { SinonFakeTimers } from 'sinon';
 import * as assert from 'assert';
 import * as sinon from 'sinon';

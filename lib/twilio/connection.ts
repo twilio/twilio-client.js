@@ -8,9 +8,9 @@ import Device from './device';
 import DialtonePlayer from './dialtonePlayer';
 import { GeneralErrors, InvalidArgumentError, MediaErrors, TwilioError } from './errors';
 import { Region } from './regions';
-import StatsMonitor from './rtc/monitor';
 import RTCSample from './rtc/sample';
 import RTCWarning from './rtc/warning';
+import StatsMonitor from './statsMonitor';
 import Log, { LogLevel } from './tslog';
 import { average, isChrome } from './util';
 

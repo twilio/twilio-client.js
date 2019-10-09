@@ -44,7 +44,7 @@ describe('Connection', function() {
     return mediaStream;
   };
 
-  const StatsMonitor: any = () => monitor = createEmitterStub(require('../../lib/twilio/rtc/monitor').default);
+  const StatsMonitor: any = () => monitor = createEmitterStub(require('../../lib/twilio/statsMonitor').default);
 
   afterEach(() => {
     clock.restore();

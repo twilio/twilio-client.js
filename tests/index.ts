@@ -79,5 +79,5 @@ require('./unit/device');
 require('./unit/deferred');
 require('./unit/tslog');
 require('./unit/wstransport');
-require('./unit/rtc/monitor');
+require('./unit/statsMonitor');
 require('./unit/error');
