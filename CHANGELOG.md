@@ -4,7 +4,7 @@
 Bug Fixes
 ---------
 
-* Fixed an issue where audio files sometimes shows CORS errors on the console. (CLIENT-6786)
+* Fixed an issue where audio files sometimes shows CORS errors on the console. (CLIENT-6786, CLIENT-6805)
 
 1.9.2 (Oct 3, 2019)
 ===================
