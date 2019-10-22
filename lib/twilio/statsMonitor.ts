@@ -3,11 +3,11 @@
  * @internalapi
  */
 
-import { average } from './util';
 import { EventEmitter } from 'events';
 import { InvalidArgumentError } from './errors';
 import RTCSample from './rtc/sample';
 import RTCWarning from './rtc/warning';
+import { average } from './util';
 
 const getRTCStats = require('./rtc/stats');
 const Mos = require('./rtc/mos');

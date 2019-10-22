@@ -107,6 +107,8 @@ describe('StatsMonitor', () => {
 
   describe(`StatsMonitor on 'sample'`, () => {
     const REQUIRED_FIELDS = [
+      'audioInputLevel',
+      'audioOutputLevel',
       'bytesReceived',
       'bytesSent',
       'codecName',
@@ -156,6 +158,7 @@ describe('StatsMonitor', () => {
 
       getRTCStats = () => Promise.resolve(stats);
       monitor = new StatsMonitor({ getRTCStats, Mos });
+      monitor.onVolume(123, 123);
       monitor.on('sample', (sample: any) => {
         REQUIRED_FIELDS.forEach((field: any) => {
           if (typeof field === 'string') {
@@ -171,6 +174,51 @@ describe('StatsMonitor', () => {
       });
 
       monitor.enable({});
+      clock.tick(1050);
+    });
+
+    it('Should emit average volume in the last second', (done) => {
+      getRTCStats = () => Promise.resolve(stats);
+      monitor = new StatsMonitor({ getRTCStats, Mos });
+      monitor.onVolume(100, 150);
+      monitor.onVolume(200, 250);
+      monitor.onVolume(300, 350);
+      monitor.on('sample', (sample: any) => {
+        assert.equal(sample.audioInputLevel, 200);
+        assert.equal(sample.audioOutputLevel, 250);
+        done();
+      });
+
+      monitor.enable({});
+      clock.tick(1050);
+    });
+
+    it('Should not use previously emitted volumes when averaging', (done) => {
+      let sampleCount = 0;
+      getRTCStats = () => Promise.resolve(stats);
+      monitor = new StatsMonitor({ getRTCStats, Mos });
+      monitor.enable({});
+
+      monitor.on('sample', (sample: any) => {
+        sampleCount++;
+        if (sampleCount === 1) {
+          assert.equal(sample.audioInputLevel, 200);
+          assert.equal(sample.audioOutputLevel, 250);
+          monitor.onVolume(400, 450);
+          monitor.onVolume(500, 550);
+          monitor.onVolume(600, 650);
+
+          clock.tick(1050);
+        } else if (sampleCount === 2) {
+          assert.equal(sample.audioInputLevel, 500);
+          assert.equal(sample.audioOutputLevel, 550);
+          done();
+        }
+      });
+
+      monitor.onVolume(100, 150);
+      monitor.onVolume(200, 250);
+      monitor.onVolume(300, 350);
       clock.tick(1050);
     });
   });
