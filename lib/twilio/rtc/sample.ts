@@ -11,6 +11,16 @@ export default interface RTCSample {
   [key: string]: any;
 
   /**
+   * Audio input level in last second. Between 0 and 32767, representing -100 to -30 dB.
+   */
+  audioInputLevel: number;
+
+  /**
+   * Audio output level in last second. Between 0 and 32767, representing -100 to -30 dB.
+   */
+  audioOutputLevel: number;
+
+  /**
    * Bytes received in last second.
    */
   bytesReceived: number;

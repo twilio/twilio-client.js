@@ -3,6 +3,7 @@
  * @internalapi
  */
 
+import { average } from './util';
 import { EventEmitter } from 'events';
 import { InvalidArgumentError } from './errors';
 import RTCSample from './rtc/sample';
@@ -23,6 +24,8 @@ const SAMPLE_INTERVAL = 1000;
 const WARNING_TIMEOUT = 5 * 1000;
 
 const DEFAULT_THRESHOLDS: StatsMonitor.ThresholdOptions = {
+  audioInputLevel: { maxDuration: 10 },
+  audioOutputLevel: { maxDuration: 10 },
   bytesReceived: { clearCount: 2, min: 1, raiseCount: 3, sampleCount: 3 },
   bytesSent: { clearCount: 2, min: 1, raiseCount: 3, sampleCount: 3 },
   jitter: { max: 30 },
@@ -90,7 +93,12 @@ class StatsMonitor extends EventEmitter {
   private _getRTCStats: (peerConnection: IPeerConnection) => IRTCStats;
 
   /**
-   * // How many samples we use when testing metric thresholds.
+   * Keeps track of input volumes in the last second
+   */
+  private _inputVolumes: number[] = [];
+
+  /**
+   * How many samples we use when testing metric thresholds.
    */
   private _maxSampleCount: number;
 
@@ -98,6 +106,11 @@ class StatsMonitor extends EventEmitter {
    * For calculating Mos. Overrides Mos library
    */
   private _mos: IMos;
+
+  /**
+   * Keeps track of output volumes in the last second
+   */
+  private _outputVolumes: number[] = [];
 
   /**
    * The PeerConnection to monitor.
@@ -216,6 +229,16 @@ class StatsMonitor extends EventEmitter {
   }
 
   /**
+   * Called when a volume sample is available
+   * @param inputVolume - Input volume level from 0 to 32767
+   * @param outputVolume - Output volume level from 0 to 32767
+   */
+  onVolume(inputVolume: number, outputVolume: number): void {
+    this._inputVolumes.push(inputVolume);
+    this._outputVolumes.push(outputVolume);
+  }
+
+  /**
    * Add a sample to our sample buffer and remove the oldest if we are over the limit.
    * @param sample - Sample to add
    */
@@ -260,6 +283,11 @@ class StatsMonitor extends EventEmitter {
    * @returns A universally-formatted version of RTC stats.
    */
   private _createSample(stats: IRTCStats, previousSample: RTCSample | null): RTCSample {
+    const audioInputLevel = Math.round(average(this._inputVolumes));
+    const audioOutputLevel = Math.round(average(this._outputVolumes));
+    this._inputVolumes.splice(0);
+    this._outputVolumes.splice(0);
+
     const previousBytesSent = previousSample && previousSample.totals.bytesSent || 0;
     const previousBytesReceived = previousSample && previousSample.totals.bytesReceived || 0;
     const previousPacketsSent = previousSample && previousSample.totals.packetsSent || 0;
@@ -282,6 +310,8 @@ class StatsMonitor extends EventEmitter {
     const rttValue = (typeof stats.rtt === 'number' || !previousSample) ? stats.rtt : previousSample.rtt;
 
     return {
+      audioInputLevel,
+      audioOutputLevel,
       bytesReceived: currentBytesReceived,
       bytesSent: currentBytesSent,
       codecName: stats.codecName,
@@ -501,6 +531,16 @@ namespace StatsMonitor {
    */
   export interface ThresholdOptions {
     [key: string]: any;
+
+    /**
+     * Audio input level between 0 and 32767, representing -100 to -30 dB.
+     */
+    audioInputLevel?: ThresholdOption;
+
+    /**
+     * Audio output level between 0 and 32767, representing -100 to -30 dB.
+     */
+    audioOutputLevel?: ThresholdOption;
 
     /**
      * Rules to apply to sample.jitter

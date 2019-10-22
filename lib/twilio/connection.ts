@@ -12,7 +12,7 @@ import RTCSample from './rtc/sample';
 import RTCWarning from './rtc/warning';
 import StatsMonitor from './statsMonitor';
 import Log, { LogLevel } from './tslog';
-import { average, isChrome } from './util';
+import { isChrome } from './util';
 
 const Backoff = require('backoff');
 const C = require('./constants');
@@ -146,16 +146,6 @@ class Connection extends EventEmitter {
    * The number of times input volume has been the same consecutively.
    */
   private _inputVolumeStreak: number = 0;
-
-  /**
-   * Keeps track of internal input volumes in the last second
-   */
-  private _internalInputVolumes: number[] = [];
-
-  /**
-   * Keeps track of internal output volumes in the last second
-   */
-  private _internalOutputVolumes: number[] = [];
 
   /**
    * Whether the call has been answered.
@@ -327,9 +317,7 @@ class Connection extends EventEmitter {
       // (rrowland) These values mock the 0 -> 32767 format used by legacy getStats. We should look into
       // migrating to a newer standard, either 0.0 -> linear or -127 to 0 in dB, matching the range
       // chosen below.
-
-      this._internalInputVolumes.push((internalInputVolume / 255) * 32767);
-      this._internalOutputVolumes.push((internalOutputVolume / 255) * 32767);
+      monitor.onVolume((internalInputVolume / 255) * 32767, (internalOutputVolume / 255) * 32767);
 
       // (rrowland) 0.0 -> 1.0 linear
       this.emit('volume', inputVolume, outputVolume);
@@ -1263,14 +1251,10 @@ class Connection extends EventEmitter {
   private _onRTCSample = (sample: RTCSample): void => {
     const callMetrics: Connection.CallMetrics = {
       ...sample,
-      audioInputLevel: Math.round(average(this._internalInputVolumes)),
-      audioOutputLevel: Math.round(average(this._internalOutputVolumes)),
       inputVolume: this._latestInputVolume,
       outputVolume: this._latestOutputVolume,
     };
 
-    this._internalInputVolumes.splice(0);
-    this._internalOutputVolumes.splice(0);
     this._codec = callMetrics.codecName;
 
     this._metricsSamples.push(callMetrics);
@@ -1677,15 +1661,6 @@ namespace Connection {
    * @private
    */
   export interface CallMetrics extends RTCSample {
-    /**
-     * Audio input level between 0 and 32767, representing -100 to -30 dB.
-     */
-    audioInputLevel: number;
-
-    /**
-     * Audio output level between 0 and 32767, representing -100 to -30 dB.
-     */
-    audioOutputLevel: number;
     /**
      * Percentage of maximum volume, between 0.0 to 1.0, representing -100 to -30 dB.
      */
