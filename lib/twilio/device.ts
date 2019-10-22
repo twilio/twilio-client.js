@@ -670,7 +670,9 @@ class Device extends EventEmitter {
     for (const name of Object.keys(defaultSounds)) {
       const soundDef: ISoundDefinition = defaultSounds[name];
 
-      const defaultUrl: string = `${C.SOUNDS_BASE_URL}/${soundDef.filename}.${Device.extension}?cache=1_4_23`;
+      const defaultUrl: string = `${C.SOUNDS_BASE_URL}/${soundDef.filename}.${Device.extension}`
+        + `?cache=${C.RELEASE_VERSION}`;
+
       const soundUrl: string = this.options.sounds && this.options.sounds[name as Device.SoundName] || defaultUrl;
       const sound: any = new this.options.soundFactory(name, soundUrl, {
         audioContext: this.options.disableAudioContextSounds ? null : Device.audioContext,

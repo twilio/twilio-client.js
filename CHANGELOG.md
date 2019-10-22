@@ -1,3 +1,11 @@
+1.9.4 (In Progress)
+===================
+
+Bug Fixes
+---------
+
+* Update querystring to clear cached audio files without CORS headers. (CLIENT-6832)
+
 1.9.3 (Oct 15, 2019)
 ===================
 
