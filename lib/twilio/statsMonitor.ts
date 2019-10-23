@@ -162,6 +162,16 @@ class StatsMonitor extends EventEmitter {
   }
 
   /**
+   * Called when a volume sample is available
+   * @param inputVolume - Input volume level from 0 to 32767
+   * @param outputVolume - Output volume level from 0 to 32767
+   */
+  addVolumes(inputVolume: number, outputVolume: number): void {
+    this._inputVolumes.push(inputVolume);
+    this._outputVolumes.push(outputVolume);
+  }
+
+  /**
    * Stop sampling RTC statistics for this {@link StatsMonitor}.
    * @returns The current {@link StatsMonitor}.
    */
@@ -229,16 +239,6 @@ class StatsMonitor extends EventEmitter {
   }
 
   /**
-   * Called when a volume sample is available
-   * @param inputVolume - Input volume level from 0 to 32767
-   * @param outputVolume - Output volume level from 0 to 32767
-   */
-  onVolume(inputVolume: number, outputVolume: number): void {
-    this._inputVolumes.push(inputVolume);
-    this._outputVolumes.push(outputVolume);
-  }
-
-  /**
    * Add a sample to our sample buffer and remove the oldest if we are over the limit.
    * @param sample - Sample to add
    */
@@ -283,11 +283,6 @@ class StatsMonitor extends EventEmitter {
    * @returns A universally-formatted version of RTC stats.
    */
   private _createSample(stats: IRTCStats, previousSample: RTCSample | null): RTCSample {
-    const audioInputLevel = Math.round(average(this._inputVolumes));
-    const audioOutputLevel = Math.round(average(this._outputVolumes));
-    this._inputVolumes.splice(0);
-    this._outputVolumes.splice(0);
-
     const previousBytesSent = previousSample && previousSample.totals.bytesSent || 0;
     const previousBytesReceived = previousSample && previousSample.totals.bytesReceived || 0;
     const previousPacketsSent = previousSample && previousSample.totals.packetsSent || 0;
@@ -310,8 +305,8 @@ class StatsMonitor extends EventEmitter {
     const rttValue = (typeof stats.rtt === 'number' || !previousSample) ? stats.rtt : previousSample.rtt;
 
     return {
-      audioInputLevel,
-      audioOutputLevel,
+      audioInputLevel: Math.round(average(this._inputVolumes.splice(0))),
+      audioOutputLevel: Math.round(average(this._outputVolumes.splice(0))),
       bytesReceived: currentBytesReceived,
       bytesSent: currentBytesSent,
       codecName: stats.codecName,

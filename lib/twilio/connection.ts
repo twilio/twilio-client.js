@@ -317,7 +317,7 @@ class Connection extends EventEmitter {
       // (rrowland) These values mock the 0 -> 32767 format used by legacy getStats. We should look into
       // migrating to a newer standard, either 0.0 -> linear or -127 to 0 in dB, matching the range
       // chosen below.
-      monitor.onVolume((internalInputVolume / 255) * 32767, (internalOutputVolume / 255) * 32767);
+      monitor.addVolumes((internalInputVolume / 255) * 32767, (internalOutputVolume / 255) * 32767);
 
       // (rrowland) 0.0 -> 1.0 linear
       this.emit('volume', inputVolume, outputVolume);
