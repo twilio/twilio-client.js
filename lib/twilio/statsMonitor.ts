@@ -4,12 +4,13 @@
  */
 
 import { EventEmitter } from 'events';
-import { InvalidArgumentError } from '../errors';
-import RTCSample from './sample';
-import RTCWarning from './warning';
+import { InvalidArgumentError } from './errors';
+import RTCSample from './rtc/sample';
+import RTCWarning from './rtc/warning';
+import { average } from './util';
 
-const getRTCStats = require('./stats');
-const Mos = require('./mos');
+const getRTCStats = require('./rtc/stats');
+const Mos = require('./rtc/mos');
 
 // How many samples we use when testing metric thresholds
 const SAMPLE_COUNT_METRICS = 5;
@@ -22,7 +23,9 @@ const SAMPLE_COUNT_RAISE = 3;
 const SAMPLE_INTERVAL = 1000;
 const WARNING_TIMEOUT = 5 * 1000;
 
-const DEFAULT_THRESHOLDS: RTCMonitor.ThresholdOptions = {
+const DEFAULT_THRESHOLDS: StatsMonitor.ThresholdOptions = {
+  audioInputLevel: { maxDuration: 10 },
+  audioOutputLevel: { maxDuration: 10 },
   bytesReceived: { clearCount: 2, min: 1, raiseCount: 3, sampleCount: 3 },
   bytesSent: { clearCount: 2, min: 1, raiseCount: 3, sampleCount: 3 },
   jitter: { max: 30 },
@@ -70,14 +73,14 @@ function countLow(min: number, values: number[]): number {
 }
 
 /**
- * {@link RTCMonitor} polls a peerConnection via PeerConnection.getStats
+ * {@link StatsMonitor} polls a peerConnection via PeerConnection.getStats
  * and emits warnings when stats cross the specified threshold values.
  */
-class RTCMonitor extends EventEmitter {
+class StatsMonitor extends EventEmitter {
   /**
    * A map of warnings with their raised time
    */
-  private _activeWarnings: Map<string, RTCMonitor.WarningTimestamp> = new Map();
+  private _activeWarnings: Map<string, StatsMonitor.WarningTimestamp> = new Map();
 
   /**
    * A map of stats with the number of exceeded thresholds
@@ -90,7 +93,12 @@ class RTCMonitor extends EventEmitter {
   private _getRTCStats: (peerConnection: IPeerConnection) => IRTCStats;
 
   /**
-   * // How many samples we use when testing metric thresholds.
+   * Keeps track of input volumes in the last second
+   */
+  private _inputVolumes: number[] = [];
+
+  /**
+   * How many samples we use when testing metric thresholds.
    */
   private _maxSampleCount: number;
 
@@ -98,6 +106,11 @@ class RTCMonitor extends EventEmitter {
    * For calculating Mos. Overrides Mos library
    */
   private _mos: IMos;
+
+  /**
+   * Keeps track of output volumes in the last second
+   */
+  private _outputVolumes: number[] = [];
 
   /**
    * The PeerConnection to monitor.
@@ -115,9 +128,9 @@ class RTCMonitor extends EventEmitter {
   private _sampleInterval: NodeJS.Timer;
 
   /**
-   * Threshold values for {@link RTCMonitor}
+   * Threshold values for {@link StatsMonitor}
    */
-  private _thresholds: RTCMonitor.ThresholdOptions;
+  private _thresholds: StatsMonitor.ThresholdOptions;
 
   /**
    * Whether warnings should be enabled
@@ -128,7 +141,7 @@ class RTCMonitor extends EventEmitter {
    * @constructor
    * @param [options] - Optional settings
    */
-  constructor(options?: RTCMonitor.Options) {
+  constructor(options?: StatsMonitor.Options) {
     super();
 
     options = options || {};
@@ -138,7 +151,7 @@ class RTCMonitor extends EventEmitter {
     this._thresholds = {...DEFAULT_THRESHOLDS, ...options.thresholds};
 
     const thresholdSampleCounts = Object.values(this._thresholds)
-      .map((threshold: RTCMonitor.ThresholdOptions) => threshold.sampleCount)
+      .map((threshold: StatsMonitor.ThresholdOptions) => threshold.sampleCount)
       .filter((sampleCount: number | undefined) => !!sampleCount);
 
     this._maxSampleCount = Math.max(SAMPLE_COUNT_METRICS, ...thresholdSampleCounts);
@@ -149,8 +162,18 @@ class RTCMonitor extends EventEmitter {
   }
 
   /**
-   * Stop sampling RTC statistics for this {@link RTCMonitor}.
-   * @returns The current {@link RTCMonitor}.
+   * Called when a volume sample is available
+   * @param inputVolume - Input volume level from 0 to 32767
+   * @param outputVolume - Output volume level from 0 to 32767
+   */
+  addVolumes(inputVolume: number, outputVolume: number): void {
+    this._inputVolumes.push(inputVolume);
+    this._outputVolumes.push(outputVolume);
+  }
+
+  /**
+   * Stop sampling RTC statistics for this {@link StatsMonitor}.
+   * @returns The current {@link StatsMonitor}.
    */
   disable(): this {
     clearInterval(this._sampleInterval);
@@ -160,8 +183,8 @@ class RTCMonitor extends EventEmitter {
   }
 
   /**
-   * Disable warnings for this {@link RTCMonitor}.
-   * @returns The current {@link RTCMonitor}.
+   * Disable warnings for this {@link StatsMonitor}.
+   * @returns The current {@link StatsMonitor}.
    */
   disableWarnings(): this {
     if (this._warningsEnabled) {
@@ -173,20 +196,20 @@ class RTCMonitor extends EventEmitter {
   }
 
   /**
-   * Start sampling RTC statistics for this {@link RTCMonitor}.
+   * Start sampling RTC statistics for this {@link StatsMonitor}.
    * @param peerConnection - A PeerConnection to monitor.
-   * @returns The current {@link RTCMonitor}.
+   * @returns The current {@link StatsMonitor}.
    */
   enable(peerConnection: IPeerConnection): this {
     if (peerConnection) {
       if (this._peerConnection && peerConnection !== this._peerConnection) {
-        throw new InvalidArgumentError('Attempted to replace an existing PeerConnection in RTCMonitor.enable');
+        throw new InvalidArgumentError('Attempted to replace an existing PeerConnection in StatsMonitor.enable');
       }
       this._peerConnection = peerConnection;
     }
 
     if (!this._peerConnection) {
-      throw new InvalidArgumentError('Can not enable RTCMonitor without a PeerConnection');
+      throw new InvalidArgumentError('Can not enable StatsMonitor without a PeerConnection');
     }
 
     this._sampleInterval = this._sampleInterval ||
@@ -196,8 +219,8 @@ class RTCMonitor extends EventEmitter {
   }
 
   /**
-   * Enable warnings for this {@link RTCMonitor}.
-   * @returns The current {@link RTCMonitor}.
+   * Enable warnings for this {@link StatsMonitor}.
+   * @returns The current {@link StatsMonitor}.
    */
   enableWarnings(): this {
     this._warningsEnabled = true;
@@ -282,6 +305,8 @@ class RTCMonitor extends EventEmitter {
     const rttValue = (typeof stats.rtt === 'number' || !previousSample) ? stats.rtt : previousSample.rtt;
 
     return {
+      audioInputLevel: Math.round(average(this._inputVolumes.splice(0))),
+      audioOutputLevel: Math.round(average(this._outputVolumes.splice(0))),
       bytesReceived: currentBytesReceived,
       bytesSent: currentBytesSent,
       codecName: stats.codecName,
@@ -428,9 +453,9 @@ class RTCMonitor extends EventEmitter {
   }
 }
 
-namespace RTCMonitor {
+namespace StatsMonitor {
   /**
-   * Config options to be passed to the {@link RTCMonitor} constructor.
+   * Config options to be passed to the {@link StatsMonitor} constructor.
    * @private
    */
   export interface Options {
@@ -496,11 +521,21 @@ namespace RTCMonitor {
   }
 
   /**
-   * Threshold values for {@link RTCMonitor}
+   * Threshold values for {@link StatsMonitor}
    * @private
    */
   export interface ThresholdOptions {
     [key: string]: any;
+
+    /**
+     * Audio input level between 0 and 32767, representing -100 to -30 dB.
+     */
+    audioInputLevel?: ThresholdOption;
+
+    /**
+     * Audio output level between 0 and 32767, representing -100 to -30 dB.
+     */
+    audioOutputLevel?: ThresholdOption;
 
     /**
      * Rules to apply to sample.jitter
@@ -535,4 +570,4 @@ namespace RTCMonitor {
   }
 }
 
-export default RTCMonitor;
+export default StatsMonitor;

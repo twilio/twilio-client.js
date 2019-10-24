@@ -1,15 +1,15 @@
-import RTCMonitor from '../../../lib/twilio/rtc/monitor';
+import StatsMonitor from '../../lib/twilio/statsMonitor';
 import { SinonFakeTimers } from 'sinon';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 
-describe('RTCMonitor', () => {
+describe('StatsMonitor', () => {
   const SAMPLE_COUNT_RAISE = 3;
   const STAT_NAME = 'jitter';
 
   let clock: SinonFakeTimers;
   let getRTCStats: () => any;
-  let monitor: RTCMonitor;
+  let monitor: StatsMonitor;
   let Mos: any;
   let stats: any;
   let thresholds: any;
@@ -28,21 +28,21 @@ describe('RTCMonitor', () => {
     clock.restore();
   });
 
-  describe('RTCMonitor.enable', () => {
+  describe('StatsMonitor.enable', () => {
     it(`Should throw an error without a PeerConnection in both 'constructor' and 'enable'`, () => {
-      monitor = new RTCMonitor();
+      monitor = new StatsMonitor();
       assert.throws(() => monitor.enable(null));
     });
 
     it(`Should throw an error when trying to replace the existing PeerConnection`, () => {
-      monitor = new RTCMonitor({ peerConnection: {} });
+      monitor = new StatsMonitor({ peerConnection: {} });
       assert.throws(() => monitor.enable({}));
     });
 
     it(`Should start fetching samples if PeerConnection is passed in`, () => {
       const onSample = sinon.stub();
 
-      monitor = new RTCMonitor({ getRTCStats });
+      monitor = new StatsMonitor({ getRTCStats });
       monitor.on('sample', onSample);
       monitor.enable({});
 
@@ -53,11 +53,11 @@ describe('RTCMonitor', () => {
     });
   });
 
-  describe('RTCMonitor.disable', () => {
+  describe('StatsMonitor.disable', () => {
     it(`Should stop fetching samples`, () => {
       const onSample = sinon.stub();
 
-      monitor = new RTCMonitor({ getRTCStats });
+      monitor = new StatsMonitor({ getRTCStats });
       monitor.on('sample', onSample);
       monitor.enable({});
 
@@ -70,11 +70,11 @@ describe('RTCMonitor', () => {
     });
   });
 
-  describe('RTCMonitor.disableWarnings', () => {
+  describe('StatsMonitor.disableWarnings', () => {
     it(`Should NOT raise warnings when thresholds reached and warnings are disabled`, () => {
       const onWarning = sinon.stub();
       thresholds[STAT_NAME].maxDuration = 2;
-      monitor = new RTCMonitor({ getRTCStats, thresholds });
+      monitor = new StatsMonitor({ getRTCStats, thresholds });
       monitor.enable({});
 
       monitor.on('warning', onWarning);
@@ -87,11 +87,11 @@ describe('RTCMonitor', () => {
     });
   });
 
-  describe('RTCMonitor.enableWarnings', () => {
+  describe('StatsMonitor.enableWarnings', () => {
     it(`Should raise warning after re-enabling warnings`, () => {
       const onWarning = sinon.stub();
       thresholds[STAT_NAME].maxDuration = 2;
-      monitor = new RTCMonitor({ getRTCStats, thresholds });
+      monitor = new StatsMonitor({ getRTCStats, thresholds });
       monitor.enable({});
 
       monitor.on('warning', onWarning);
@@ -105,8 +105,10 @@ describe('RTCMonitor', () => {
     });
   });
 
-  describe(`RTCMonitor on 'sample'`, () => {
+  describe(`StatsMonitor on 'sample'`, () => {
     const REQUIRED_FIELDS = [
+      'audioInputLevel',
+      'audioOutputLevel',
       'bytesReceived',
       'bytesSent',
       'codecName',
@@ -155,7 +157,8 @@ describe('RTCMonitor', () => {
       };
 
       getRTCStats = () => Promise.resolve(stats);
-      monitor = new RTCMonitor({ getRTCStats, Mos });
+      monitor = new StatsMonitor({ getRTCStats, Mos });
+      monitor.addVolumes(123, 123);
       monitor.on('sample', (sample: any) => {
         REQUIRED_FIELDS.forEach((field: any) => {
           if (typeof field === 'string') {
@@ -173,13 +176,58 @@ describe('RTCMonitor', () => {
       monitor.enable({});
       clock.tick(1050);
     });
+
+    it('Should emit average volume in the last second', (done) => {
+      getRTCStats = () => Promise.resolve(stats);
+      monitor = new StatsMonitor({ getRTCStats, Mos });
+      monitor.addVolumes(100, 150);
+      monitor.addVolumes(200, 250);
+      monitor.addVolumes(300, 350);
+      monitor.on('sample', (sample: any) => {
+        assert.equal(sample.audioInputLevel, 200);
+        assert.equal(sample.audioOutputLevel, 250);
+        done();
+      });
+
+      monitor.enable({});
+      clock.tick(1050);
+    });
+
+    it('Should not use previously emitted volumes when averaging', (done) => {
+      let sampleCount = 0;
+      getRTCStats = () => Promise.resolve(stats);
+      monitor = new StatsMonitor({ getRTCStats, Mos });
+      monitor.enable({});
+
+      monitor.on('sample', (sample: any) => {
+        sampleCount++;
+        if (sampleCount === 1) {
+          assert.equal(sample.audioInputLevel, 200);
+          assert.equal(sample.audioOutputLevel, 250);
+          monitor.addVolumes(400, 450);
+          monitor.addVolumes(500, 550);
+          monitor.addVolumes(600, 650);
+
+          clock.tick(1050);
+        } else if (sampleCount === 2) {
+          assert.equal(sample.audioInputLevel, 500);
+          assert.equal(sample.audioOutputLevel, 550);
+          done();
+        }
+      });
+
+      monitor.addVolumes(100, 150);
+      monitor.addVolumes(200, 250);
+      monitor.addVolumes(300, 350);
+      clock.tick(1050);
+    });
   });
 
-  describe(`RTCMonitor on 'warning'`, () => {
+  describe(`StatsMonitor on 'warning'`, () => {
     context(`'maxDuration' threshold`, () => {
       it(`Should raise warning when 'maxDuration' threshold is reached`, (done) => {
         thresholds[STAT_NAME].maxDuration = 2;
-        monitor = new RTCMonitor({ getRTCStats, thresholds });
+        monitor = new StatsMonitor({ getRTCStats, thresholds });
         monitor.enable({});
   
         monitor.on('warning', warning => {
@@ -194,7 +242,7 @@ describe('RTCMonitor', () => {
       it(`Should NOT raise warning when 'maxDuration' threshold is reached but with different stat values`, () => {
         const onWarning = sinon.stub();
         thresholds[STAT_NAME].maxDuration = 2;
-        monitor = new RTCMonitor({ getRTCStats, thresholds });
+        monitor = new StatsMonitor({ getRTCStats, thresholds });
         monitor.enable({});
   
         monitor.on('warning', (warning) => {
@@ -229,7 +277,7 @@ describe('RTCMonitor', () => {
       }].forEach((item: any) => {
         it(`Should raise warning when '${item.thresholdName}' threshold is reached`, (done) => {
           stats[STAT_NAME] = thresholds[STAT_NAME][item.thresholdName] + item.outOfBoundModifier;
-          monitor = new RTCMonitor({ getRTCStats, thresholds });
+          monitor = new StatsMonitor({ getRTCStats, thresholds });
           monitor.enable({});
     
           monitor.on('warning', warning => {
@@ -245,7 +293,7 @@ describe('RTCMonitor', () => {
         it(`Should NOT raise warning when '${item.thresholdName}' threshold is NOT reached`, () => {
           const onWarning = sinon.stub();
           stats[STAT_NAME] = thresholds[STAT_NAME][item.thresholdName];
-          monitor = new RTCMonitor({ getRTCStats, thresholds });
+          monitor = new StatsMonitor({ getRTCStats, thresholds });
           monitor.enable({});
     
           monitor.on('warning', onWarning);
@@ -259,7 +307,7 @@ describe('RTCMonitor', () => {
         it(`Should NOT raise warning when '${item.thresholdName}' raise count is NOT reached`, () => {
           const onWarning = sinon.stub();
           stats[STAT_NAME] = thresholds[STAT_NAME][item.thresholdName] + item.outOfBoundModifier;
-          monitor = new RTCMonitor({ getRTCStats, thresholds });
+          monitor = new StatsMonitor({ getRTCStats, thresholds });
           monitor.enable({});
     
           monitor.on('warning', onWarning);
@@ -274,7 +322,7 @@ describe('RTCMonitor', () => {
           const onWarning = sinon.stub();
           thresholds[STAT_NAME].raiseCount = SAMPLE_COUNT_RAISE - 1;
           stats[STAT_NAME] = thresholds[STAT_NAME][item.thresholdName] + item.outOfBoundModifier;
-          monitor = new RTCMonitor({ getRTCStats, thresholds });
+          monitor = new StatsMonitor({ getRTCStats, thresholds });
           monitor.enable({});
     
           monitor.on('warning', onWarning);
@@ -290,7 +338,7 @@ describe('RTCMonitor', () => {
           thresholds[STAT_NAME].sampleCount = 3;
           thresholds[STAT_NAME].raiseCount = 4;
           stats[STAT_NAME] = thresholds[STAT_NAME][item.thresholdName] + item.outOfBoundModifier;
-          monitor = new RTCMonitor({ getRTCStats, thresholds });
+          monitor = new StatsMonitor({ getRTCStats, thresholds });
           monitor.enable({});
     
           monitor.on('warning', onWarning);
@@ -304,13 +352,13 @@ describe('RTCMonitor', () => {
     });
   });
 
-  describe(`RTCMonitor on 'error'`, () => {
+  describe(`StatsMonitor on 'error'`, () => {
     it(`Should emit 'error'`, () => {
       const onSample = sinon.stub();
       const onError = sinon.stub();
       
       getRTCStats = () => Promise.reject({});
-      monitor = new RTCMonitor({ getRTCStats });
+      monitor = new StatsMonitor({ getRTCStats });
       monitor.on('sample', onSample);
       monitor.on('error', onError);
       monitor.enable({});

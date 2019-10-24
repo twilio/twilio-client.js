@@ -8,11 +8,11 @@ import Device from './device';
 import DialtonePlayer from './dialtonePlayer';
 import { GeneralErrors, InvalidArgumentError, MediaErrors, TwilioError } from './errors';
 import { Region } from './regions';
-import RTCMonitor from './rtc/monitor';
 import RTCSample from './rtc/sample';
 import RTCWarning from './rtc/warning';
+import StatsMonitor from './statsMonitor';
 import Log, { LogLevel } from './tslog';
-import { average, isChrome } from './util';
+import { isChrome } from './util';
 
 const Backoff = require('backoff');
 const C = require('./constants');
@@ -148,16 +148,6 @@ class Connection extends EventEmitter {
   private _inputVolumeStreak: number = 0;
 
   /**
-   * Keeps track of internal input volumes in the last second
-   */
-  private _internalInputVolumes: number[] = [];
-
-  /**
-   * Keeps track of internal output volumes in the last second
-   */
-  private _internalOutputVolumes: number[] = [];
-
-  /**
    * Whether the call has been answered.
    */
   private _isAnswered: boolean = false;
@@ -199,9 +189,9 @@ class Connection extends EventEmitter {
   private readonly _metricsSamples: Connection.CallMetrics[] = [];
 
   /**
-   * An instance of RTCMonitor.
+   * An instance of StatsMonitor.
    */
-  private readonly _monitor: RTCMonitor;
+  private readonly _monitor: StatsMonitor;
 
   /**
    * The number of times output volume has been the same consecutively.
@@ -285,7 +275,7 @@ class Connection extends EventEmitter {
       publisher.info('connection', 'incoming', null, this);
     }
 
-    const monitor = this._monitor = new (this.options.RTCMonitor || RTCMonitor)();
+    const monitor = this._monitor = new (this.options.StatsMonitor || StatsMonitor)();
     monitor.on('sample', this._onRTCSample);
 
     // First 20 seconds or so are choppy, so let's not bother with these warnings.
@@ -327,9 +317,7 @@ class Connection extends EventEmitter {
       // (rrowland) These values mock the 0 -> 32767 format used by legacy getStats. We should look into
       // migrating to a newer standard, either 0.0 -> linear or -127 to 0 in dB, matching the range
       // chosen below.
-
-      this._internalInputVolumes.push((internalInputVolume / 255) * 32767);
-      this._internalOutputVolumes.push((internalOutputVolume / 255) * 32767);
+      monitor.addVolumes((internalInputVolume / 255) * 32767, (internalOutputVolume / 255) * 32767);
 
       // (rrowland) 0.0 -> 1.0 linear
       this.emit('volume', inputVolume, outputVolume);
@@ -1256,21 +1244,17 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Called each time RTCMonitor emits a sample.
+   * Called each time StatsMonitor emits a sample.
    * Emits stats event and batches the call stats metrics and sends them to Insights.
    * @param sample
    */
   private _onRTCSample = (sample: RTCSample): void => {
     const callMetrics: Connection.CallMetrics = {
       ...sample,
-      audioInputLevel: Math.round(average(this._internalInputVolumes)),
-      audioOutputLevel: Math.round(average(this._internalOutputVolumes)),
       inputVolume: this._latestInputVolume,
       outputVolume: this._latestOutputVolume,
     };
 
-    this._internalInputVolumes.splice(0);
-    this._internalOutputVolumes.splice(0);
     this._codec = callMetrics.codecName;
 
     this._metricsSamples.push(callMetrics);
@@ -1305,7 +1289,7 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Re-emit an RTCMonitor warning as a {@link Connection}.warning or .warning-cleared event.
+   * Re-emit an StatsMonitor warning as a {@link Connection}.warning or .warning-cleared event.
    * @param warningData
    * @param wasCleared - Whether this is a -cleared or -raised event.
    */
@@ -1321,7 +1305,7 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Re-emit an RTCMonitor warning-cleared as a .warning-cleared event.
+   * Re-emit an StatsMonitor warning-cleared as a .warning-cleared event.
    * @param warningData
    */
   private _reemitWarningCleared = (warningData: Record<string, any>): void => {
@@ -1646,11 +1630,6 @@ namespace Connection {
     rtcConstraints?: MediaStreamConstraints;
 
     /**
-     * An override for the RTCMonitor dependency.
-     */
-    RTCMonitor?: new () => RTCMonitor;
-
-    /**
      * The region passed to {@link Device} on setup.
      */
     selectedRegion?: string;
@@ -1659,6 +1638,11 @@ namespace Connection {
      * Whether the disconnect sound should be played.
      */
     shouldPlayDisconnect?: () => boolean;
+
+    /**
+     * An override for the StatsMonitor dependency.
+     */
+    StatsMonitor?: new () => StatsMonitor;
 
     /**
      * TwiML params for the call. May be set for either outgoing or incoming calls.
@@ -1677,15 +1661,6 @@ namespace Connection {
    * @private
    */
   export interface CallMetrics extends RTCSample {
-    /**
-     * Audio input level between 0 and 32767, representing -100 to -30 dB.
-     */
-    audioInputLevel: number;
-
-    /**
-     * Audio output level between 0 and 32767, representing -100 to -30 dB.
-     */
-    audioOutputLevel: number;
     /**
      * Percentage of maximum volume, between 0.0 to 1.0, representing -100 to -30 dB.
      */
