@@ -81,3 +81,4 @@ require('./unit/tslog');
 require('./unit/wstransport');
 require('./unit/statsMonitor');
 require('./unit/error');
+require('./unit/regions');

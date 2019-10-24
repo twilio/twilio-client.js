@@ -1,3 +1,12 @@
+1.9.5 (In Progress)
+===================
+
+Improvements
+---------
+
+* In order to support new regions without requiring SDK updates in the future, the SDK no longer locally verifies the region option passed to `Device.setup` options. As a result, if an invalid region is passed, a connection error will be emitted after the connection is attempted. We recommend always testing to make sure your specified region (if any) works before pushing any change to production. For a list of supported regions refer to "https://www.twilio.com/docs/voice/client/regions". (CLIENT-6831)
+
+
 1.9.4 (Oct 28, 2019)
 ===================
 
@@ -299,8 +308,8 @@ Browser Support
 * We are now using RTCP values for RTT where available. Initially, this will not affect Chrome
   because Chrome has [not yet implemented support](https://bugs.chromium.org/p/webrtc/issues/detail?id=9545).
   Additionally, having access to RTT will allow FireFox to calculate and report MOS, however FireFox is
-  currently affected by [a regression](https://bugzilla.mozilla.org/show_bug.cgi?id=1525341) causing 
-  jitter to be reported as 0, which will make MOS scores appear slightly better than they actually 
+  currently affected by [a regression](https://bugzilla.mozilla.org/show_bug.cgi?id=1525341) causing
+  jitter to be reported as 0, which will make MOS scores appear slightly better than they actually
   are until it's fixed.
 
 1.6.7 (Feb 12, 2019)

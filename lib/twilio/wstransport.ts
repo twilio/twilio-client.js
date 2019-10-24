@@ -289,7 +289,19 @@ export default class WSTransport extends EventEmitter {
   /**
    * Called in response to WebSocket#close event.
    */
-  private _onSocketClose = (): void => {
+  private _onSocketClose = (event: CloseEvent): void => {
+    this._log.info(`Received websocket close event code: ${event.code}`);
+    if (event.code === 1006) {
+      this.emit('error', {
+        code: 31005,
+        message: event.reason ||
+          'Websocket connection to Twilio\'s signaling servers were ' +
+          'unexpectedly ended. If this is happening consistently, there may ' +
+          'be an issue resolving the hostname provided. If a region is being ' +
+          'specified in Device setup, ensure it\'s a valid region.',
+        twilioError: new SignalingErrors.ConnectionError(),
+      });
+    }
     this._closeSocket();
   }
 

@@ -217,14 +217,14 @@ describe('WSTransport', () => {
     context('when receiving a heartbeat', () => {
       it('should respond', () => {
         socket._readyState = WebSocket.OPEN;
-        socket.dispatchEvent({ type: 'message', data: '\n' }); 
+        socket.dispatchEvent({ type: 'message', data: '\n' });
         assert.equal(socket.send.args[0][0], '\n');
       });
 
       it('should not emit', () => {
         transport.emit = sinon.spy();
         socket._readyState = WebSocket.OPEN;
-        socket.dispatchEvent({ type: 'message', data: '\n' }); 
+        socket.dispatchEvent({ type: 'message', data: '\n' });
         assert.equal((transport as any).emit.callCount, 0);
       });
     });
@@ -232,14 +232,14 @@ describe('WSTransport', () => {
     context('when receiving a message', () => {
       it('should not respond with a heartbeat', () => {
         socket._readyState = WebSocket.OPEN;
-        socket.dispatchEvent({ type: 'message', data: 'foo' }); 
+        socket.dispatchEvent({ type: 'message', data: 'foo' });
         assert.equal((socket as any).send.callCount, 0);
       });
 
       it('should emit the message', () => {
         transport.emit = sinon.spy();
         socket._readyState = WebSocket.OPEN;
-        socket.dispatchEvent({ type: 'message', data: 'foo' }); 
+        socket.dispatchEvent({ type: 'message', data: 'foo' });
         assert.equal((transport as any).emit.callCount, 1);
         assert.equal((transport as any).emit.args[0][1].data, 'foo');
       });
@@ -323,6 +323,15 @@ describe('WSTransport', () => {
       assert.equal(ee.listenerCount('error'), 0);
       assert.equal(ee.listenerCount('message'), 0);
       assert.equal(ee.listenerCount('open'), 0);
+    });
+
+    it('should emit an error if the socket was closed abnormally (with code 1006)', async () => {
+      transport.emit = sinon.spy();
+      socket.dispatchEvent({ type: 'close', code: 1006 });
+      assert.equal((transport as any).emit.callCount, 2);
+      assert.equal((transport as any).emit.args[0][0], 'error');
+      assert.equal((transport as any).emit.args[0][1].code, 31005);
+      assert.equal((transport as any).emit.args[1][0], 'close');
     });
   });
 
