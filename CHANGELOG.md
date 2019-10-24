@@ -1,10 +1,16 @@
 1.9.4 (In Progress)
 ===================
 
+Improvements
+---------
+
+* We now report `audioInputLevel` and `audioOutputLevel` within the last second in the connection sample object `Connection.on('sample', handler(sample))`. (CLIENT-6779)
+
 Bug Fixes
 ---------
 
 * Update querystring to clear cached audio files without CORS headers. (CLIENT-6832)
+* Fixed an issue where `constant-audio-input-level` warning is not being emitted. (CLIENT-6779)
 
 1.9.3 (Oct 15, 2019)
 ===================
