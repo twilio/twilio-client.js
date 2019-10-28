@@ -1,4 +1,4 @@
-1.9.4 (In Progress)
+1.9.4 (Oct 28, 2019)
 ===================
 
 Improvements
