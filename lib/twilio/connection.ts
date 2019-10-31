@@ -322,7 +322,17 @@ class Connection extends EventEmitter {
       this.emit('volume', inputVolume, outputVolume);
     };
 
-    this.mediaStream.onmediaconnectionstatechange = (state: string): void => {
+    this.mediaStream.onpcconnectionstatechange = (state: string): void => {
+      let level = 'debug';
+      const dtlsTransport = this.mediaStream.getRTCDtlsTransport();
+
+      if (state === 'failed') {
+        level = dtlsTransport && dtlsTransport.state === 'failed' ? 'error' : 'warning';
+      }
+      this._publisher.post(level, 'pc-connection-state', state, null, this);
+    };
+
+    this.mediaStream.oniceconnectionstatechange = (state: string): void => {
       const level = state === 'failed' ? 'error' : 'debug';
       this._publisher.post(level, 'ice-connection-state', state, null, this);
     };

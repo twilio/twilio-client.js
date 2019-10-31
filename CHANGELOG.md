@@ -6,6 +6,7 @@ Improvements
 
 * In order to support new regions without requiring SDK updates in the future, the SDK no longer locally verifies the region option passed to `Device.setup` options. As a result, if an invalid region is passed, a connection error will be emitted after the connection is attempted. We recommend always testing to make sure your specified region (if any) works before pushing any change to production. For a list of supported regions refer to "https://www.twilio.com/docs/voice/client/regions". (CLIENT-6831)
 
+* We are now sending PeerConnection connection state change events to Insights as `pc-connection-state`. (CLIENT-6869)
 
 1.9.4 (Oct 28, 2019)
 ===================

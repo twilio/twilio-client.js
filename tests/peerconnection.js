@@ -1080,24 +1080,45 @@ describe('PeerConnection', () => {
         onopen: sinon.stub(),
         onicecandidate: sinon.stub(),
         onicegatheringstatechange: sinon.stub(),
+        oniceconnectionstatechange: sinon.stub(),
+        onpcconnectionstatechange: sinon.stub(),
+        _onMediaConnectionStateChange: sinon.stub(),
       };
       toTest = METHOD.bind(context);
     });
 
-    it('Should call _onMediaConnectionStateChange on ice failed', () => {
-      context._onMediaConnectionStateChange = sinon.stub();
-      version.pc.iceConnectionState = 'failed';
-      toTest();
-      version.pc.oniceconnectionstatechange();
-      sinon.assert.callCount(context._onMediaConnectionStateChange, 1);
-    });
+    ['new', 'checking', 'connected', 'completed', 'failed', 'disconnected', 'closed'].forEach((currentState) => {
+      it(`Should call _onMediaConnectionStateChange when pc.iceConnectionState transitions to "${currentState}" state`, () => {
+        version.pc.iceConnectionState = currentState;
+        toTest();
+        version.pc.oniceconnectionstatechange();
+        sinon.assert.callCount(context._onMediaConnectionStateChange, 1);
+        sinon.assert.calledWith(context._onMediaConnectionStateChange, currentState);
+      });
+  
+      it(`Should call _onMediaConnectionStateChange when pc.connectionState transitions to "${currentState}" state`, () => {
+        version.pc.connectionState = currentState;
+        toTest();
+        version.pc.onconnectionstatechange();
+        sinon.assert.callCount(context._onMediaConnectionStateChange, 1);
+        sinon.assert.calledWith(context._onMediaConnectionStateChange, currentState);
+      });
 
-    it('Should call _onMediaConnectionStateChange on pc failed', () => {
-      context._onMediaConnectionStateChange = sinon.stub();
-      version.pc.connectionState = 'failed';
-      toTest();
-      version.pc.onconnectionstatechange();
-      sinon.assert.callCount(context._onMediaConnectionStateChange, 1);
+      it(`Should call mediaStream.oniceconnectionstatechange when pc.iceConnectionState transitions to "${currentState}" state`, () => {
+        version.pc.iceConnectionState = currentState;
+        toTest();
+        version.pc.oniceconnectionstatechange();
+        sinon.assert.callCount(context.oniceconnectionstatechange, 1);
+        sinon.assert.calledWith(context.oniceconnectionstatechange, currentState);
+      });
+
+      it(`Should call mediaStream.onpcconnectionstatechange when pc.connectionState transitions to "${currentState}" state`, () => {
+        version.pc.connectionState = currentState;
+        toTest();
+        version.pc.onconnectionstatechange();
+        sinon.assert.callCount(context.onpcconnectionstatechange, 1);
+        sinon.assert.calledWith(context.onpcconnectionstatechange, currentState);
+      });
     });
   });
 
@@ -1114,31 +1135,13 @@ describe('PeerConnection', () => {
         onreconnected: sinon.stub(),
         ondisconnected: sinon.stub(),
         onfailed: sinon.stub(),
-        onmediaconnectionstatechange: sinon.stub(),
       };
       toTest = METHOD.bind(context);
-    });
-
-    it('Should ignore other states', () => {
-      context._iceState = 'connected';
-      toTest('new');
-      toTest('connecting');
-      toTest('checking');
-      toTest('completed');
-      toTest('closed');
-      sinon.assert.notCalled(context.onmediaconnectionstatechange);
-    });
-
-    it('Should ignore if new state and previous states are the same', () => {
-      context._iceState = 'connected';
-      toTest('connected');
-      sinon.assert.notCalled(context.onmediaconnectionstatechange);
     });
 
     it('Should save current state internally', () => {
       context._iceState = 'connected';
       toTest('disconnected');
-      sinon.assert.calledWith(context.onmediaconnectionstatechange, 'disconnected');
       assert.equal(context._iceState, 'disconnected');
     });
 
@@ -1166,21 +1169,6 @@ describe('PeerConnection', () => {
       context._iceState = 'failed';
       toTest('connected');
       sinon.assert.calledWith(context.onreconnected, 'ICE liveliness check succeeded. Connection with Twilio restored');
-    });
-
-    it('Should call onmediaconnectionstatechange', () => {
-      context._iceState = 'new';
-      toTest('connected');
-      sinon.assert.calledWith(context.onmediaconnectionstatechange, 'connected');
-
-      toTest('disconnected');
-      sinon.assert.calledWith(context.onmediaconnectionstatechange, 'disconnected');
-
-      toTest('failed');
-      sinon.assert.calledWith(context.onmediaconnectionstatechange, 'failed');
-
-      toTest('connected');
-      sinon.assert.calledWith(context.onmediaconnectionstatechange, 'connected');
     });
   });
 
@@ -1653,6 +1641,48 @@ describe('PeerConnection', () => {
         assert.deepStrictEqual(pc.outputs.get('a'), 'a1');
         assert.deepStrictEqual(pc._masterAudioDeviceId, 'before');
       });
+    });
+  });
+
+  context('PeerConnection.prototype.getRTCDtlsTransport', () => {
+    const METHOD = PeerConnection.prototype.getRTCDtlsTransport;
+
+    let toTest = null;
+    let context = null;
+    let pc = null;
+
+    beforeEach(() => {
+      pc = {};
+      context = {
+        version: {
+          pc
+        }
+      };
+      toTest = METHOD.bind(context);
+    });
+
+    it('Should return null if getSenders is not supported', () => {
+      const transport = toTest();
+      assert.equal(transport, null);
+    });
+
+    it('Should return null if getSenders is supported but there is no RTPSender available', () => {
+      pc.getSenders = () => [];
+      const transport = toTest();
+      assert.equal(transport, null);
+    });
+
+    it('Should return null if there is RTPSender available but RTCDtlsTransport is not supported', () => {
+      pc.getSenders = () => [{}];
+      const transport = toTest();
+      assert.equal(transport, null);
+    });
+
+    it('Should return RTCDtlsTransport if it is available', () => {
+      const sender = { transport: { foo: 'bar' } };
+      pc.getSenders = () => [sender];
+      const transport = toTest();
+      assert.deepEqual(transport, sender.transport);
     });
   });
 

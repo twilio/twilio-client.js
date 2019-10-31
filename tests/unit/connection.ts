@@ -870,14 +870,26 @@ describe('Connection', function() {
       });
     });
 
-    describe('mediaStream.onmediaconnectionstatechange', () => {
+    describe('mediaStream.onpcconnectionstatechange', () => {
+      it('should publish an warning event if state is failed', () => {
+        mediaStream.onpcconnectionstatechange('failed');
+        sinon.assert.calledWith(publisher.post, 'warning', 'pc-connection-state', 'failed');
+      });
+
+      it('should publish a debug event if state is not failed', () => {
+        mediaStream.onpcconnectionstatechange('foo');
+        sinon.assert.calledWith(publisher.post, 'debug', 'pc-connection-state', 'foo');
+      });
+    });
+
+    describe('mediaStream.oniceconnectionstatechange', () => {
       it('should publish an error event if state is failed', () => {
-        mediaStream.onmediaconnectionstatechange('failed');
+        mediaStream.oniceconnectionstatechange('failed');
         sinon.assert.calledWith(publisher.post, 'error', 'ice-connection-state', 'failed');
       });
 
       it('should publish a debug event if state is not failed', () => {
-        mediaStream.onmediaconnectionstatechange('foo');
+        mediaStream.oniceconnectionstatechange('foo');
         sinon.assert.calledWith(publisher.post, 'debug', 'ice-connection-state', 'foo');
       });
     });
