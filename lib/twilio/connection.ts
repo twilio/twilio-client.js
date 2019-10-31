@@ -326,10 +326,8 @@ class Connection extends EventEmitter {
       let level = 'debug';
       const dtlsTransport = this.mediaStream.getRTCDtlsTransport();
 
-      if (state === 'failed' && dtlsTransport && dtlsTransport.state === 'failed') {
-        level = 'error';
-      } else if (state === 'failed') {
-        level = 'warning';
+      if (state === 'failed') {
+        level = dtlsTransport && dtlsTransport.state === 'failed' ? 'error' : 'warning';
       }
       this._publisher.post(level, 'pc-connection-state', state, null, this);
     };
