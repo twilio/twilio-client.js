@@ -17,7 +17,11 @@ import {
   SignalingErrors,
 } from './errors';
 import { PStream } from './pstream';
-import { getRegionShortcode, getRegionURI, Region } from './regions';
+import {
+  defaultRegion,
+  getRegionShortcode,
+  getRegionURI,
+} from './regions';
 import Log, { LogLevel } from './tslog';
 import { Exception, queryToJson } from './util';
 
@@ -300,7 +304,7 @@ class Device extends EventEmitter {
   /**
    * The region the {@link Device} is connected to.
    */
-  private _region: Region | string | null = null;
+  private _region: string | null = null;
 
   /**
    * The current status of the {@link Device}.
@@ -328,7 +332,7 @@ class Device extends EventEmitter {
     iceServers: [],
     noRegister: false,
     pStreamFactory: PStream,
-    region: Region.Gll,
+    region: defaultRegion,
     rtcConstraints: { },
     soundFactory: Sound,
     sounds: { },
@@ -643,9 +647,9 @@ class Device extends EventEmitter {
       this.sounds[eventName] = getOrSetSound.bind(null, eventName);
     });
 
-    const regionURI = getRegionURI(this.options.region, (newRegion: string) => {
-      this._log.warn(`Region ${this.options.region} is deprecated, please use ${newRegion}.`);
-    });
+    const regionURI = getRegionURI(this.options.region, newRegion => this._log.warn(
+      `Region ${this.options.region} is deprecated, please use ${newRegion}.`,
+    ));
 
     this.options.chunderw = `wss://${this.options.chunderw || regionURI}/signal`;
 
@@ -1473,7 +1477,7 @@ namespace Device {
     /**
      * The region code of the region to connect to.
      */
-    region?: Region;
+    region?: string;
 
     /**
      * An RTCConfiguration to pass to the RTCPeerConnection constructor.
