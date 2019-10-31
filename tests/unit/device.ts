@@ -1,10 +1,10 @@
 import Connection from '../../lib/twilio/connection';
 import Device from '../../lib/twilio/device';
-import { DeprecatedRegion, Region, regionShortcodes } from '../../lib/twilio/regions';
+import { regionShortcodes } from '../../lib/twilio/regions';
 import { GeneralErrors } from '../../lib/twilio/errors';
 
 import * as assert from 'assert';
-import { EventEmitter } from 'events';    
+import { EventEmitter } from 'events';
 import { SinonFakeTimers, SinonSpy, SinonStubbedInstance } from 'sinon';
 import * as sinon from 'sinon';
 
@@ -231,7 +231,7 @@ describe('Device', function() {
       });
     });
   });
-  
+
   context('after Device is initialized', () => {
     const rtcConfiguration = { foo: 'bar', abc: 123 };
 
@@ -278,7 +278,7 @@ describe('Device', function() {
       it('should call ignore on all existing connections', () => {
         const connections: any[] = [];
         for (let i = 0; i < 10; i++) {
-          connections.push({ ignore: sinon.spy() }); 
+          connections.push({ ignore: sinon.spy() });
         }
         device['connections'] = connections;
         device.connect();
@@ -595,6 +595,15 @@ describe('Device', function() {
         pstream.register.reset();
         clock.tick(30000 + 1);
         sinon.assert.notCalled(pstream.register);
+      });
+
+      it('should emit Device.error if code is 31005', () => {
+        device.emit = sinon.spy();
+        pstream.emit('error', { error: { code: 31005 } });
+        sinon.assert.calledOnce(device.emit as any);
+        sinon.assert.calledWith(device.emit as any, 'error');
+        const errorObject = (device.emit as sinon.SinonSpy).getCall(0).args[1];
+        assert.equal(31005, errorObject.code);
       });
     });
 

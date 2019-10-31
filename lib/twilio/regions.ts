@@ -6,7 +6,8 @@ import { InvalidArgumentError } from './errors';
 import { Exception } from './util';
 
 /**
- * Valid deprecated regions
+ * Valid deprecated regions.
+ *
  * @private
  */
 export enum DeprecatedRegion {
@@ -20,7 +21,12 @@ export enum DeprecatedRegion {
 }
 
 /**
- * Valid current regions
+ * Valid current regions.
+ *
+ * @deprecated CLIENT-6831
+ * This is no longer used or updated for checking validity of regions in the
+ * SDK. We now allow any string to be passed for region. Invalid regions won't
+ * be able to connect, and won't throw an exception.
  */
 export enum Region {
   Au1 = 'au1',
@@ -50,7 +56,7 @@ export type ValidRegion = Region | DeprecatedRegion;
 /**
  * Deprecated regions. Maps the deprecated region to its equivalent up-to-date region.
  */
-const deprecatedRegions: Record<DeprecatedRegion, Region> = {
+export const deprecatedRegions: Record<DeprecatedRegion, Region> = {
   [DeprecatedRegion.Au]: Region.Au1,
   [DeprecatedRegion.Br]: Region.Br1,
   [DeprecatedRegion.Ie]: Region.Ie1,
@@ -99,30 +105,40 @@ const regionURIs: Record<Region, string> = {
 };
 
 /**
+ * The default region to connect to and create a chunder uri from if region is
+ * not defined.
+ * @constant
+ */
+export const defaultRegion: string = 'gll';
+
+/**
  * Get the URI associated with the passed shortcode.
+ *
  * @private
  * @param region - The region shortcode. Defaults to gll.
  * @param [onDeprecated] - A callback containing the new region to be called when the passed region
  *   is deprecated.
  */
-export function getRegionURI(region: ValidRegion = Region.Gll, onDeprecated?: (newRegion: Region) => void): string {
-  if ((Object as any).values(DeprecatedRegion).includes(region)) {
-    region = deprecatedRegions[region as DeprecatedRegion];
-
-    // Don't let this callback affect script execution.
-    if (onDeprecated) {
-      setTimeout(() => onDeprecated(region as Region));
-    }
-  } else if (!(Object as any).values(Region).includes(region)) {
-    const msg = `Region ${region} is invalid. Valid values are: ${Object.keys(regionURIs).join(', ')}`;
-    throw new InvalidArgumentError(msg);
+export function getRegionURI(region?: string, onDeprecated?: (newRegion: string) => void): string {
+  if (region === undefined || region === defaultRegion) {
+    return `chunderw-vpc-gll.twilio.com`;
   }
 
-  return regionURIs[region as Region];
+  const newRegion = deprecatedRegions[region as DeprecatedRegion];
+  if (newRegion) {
+    region = newRegion;
+    if (onDeprecated) {
+      // Don't let this callback affect script execution.
+      setTimeout(() => onDeprecated(newRegion));
+    }
+  }
+
+  return `chunderw-vpc-gll-${region}.twilio.com`;
 }
 
 /**
  * Get the region shortcode by its full AWS region string.
+ *
  * @private
  * @param region - The region's full AWS string.
  */

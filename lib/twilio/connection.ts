@@ -7,7 +7,6 @@ import { EventEmitter } from 'events';
 import Device from './device';
 import DialtonePlayer from './dialtonePlayer';
 import { GeneralErrors, InvalidArgumentError, MediaErrors, TwilioError } from './errors';
-import { Region } from './regions';
 import RTCSample from './rtc/sample';
 import RTCWarning from './rtc/warning';
 import StatsMonitor from './statsMonitor';
@@ -1628,7 +1627,7 @@ namespace Connection {
     /**
      * The Region currently connected to.
      */
-    region?: Region;
+    region?: string;
 
     /**
      * An RTCConfiguration to pass to the RTCPeerConnection constructor.
