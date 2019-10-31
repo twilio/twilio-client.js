@@ -1644,6 +1644,48 @@ describe('PeerConnection', () => {
     });
   });
 
+  context('PeerConnection.prototype.getRTCDtlsTransport', () => {
+    const METHOD = PeerConnection.prototype.getRTCDtlsTransport;
+
+    let toTest = null;
+    let context = null;
+    let pc = null;
+
+    beforeEach(() => {
+      pc = {};
+      context = {
+        version: {
+          pc
+        }
+      };
+      toTest = METHOD.bind(context);
+    });
+
+    it('Should return null if getSenders is not supported', () => {
+      const transport = toTest();
+      assert.equal(transport, null);
+    });
+
+    it('Should return null if getSenders is supported but there is no RTPSender available', () => {
+      pc.getSenders = () => [];
+      const transport = toTest();
+      assert.equal(transport, null);
+    });
+
+    it('Should return null if there is RTPSender available but RTCDtlsTransport is not supported', () => {
+      pc.getSenders = () => [{}];
+      const transport = toTest();
+      assert.equal(transport, null);
+    });
+
+    it('Should return RTCDtlsTransport if it is available', () => {
+      const sender = { transport: { foo: 'bar' } };
+      pc.getSenders = () => [sender];
+      const transport = toTest();
+      assert.deepEqual(transport, sender.transport);
+    });
+  });
+
   context('PeerConnection.prototype.getOrCreateDTMFSender', () => {
     const METHOD = PeerConnection.prototype.getOrCreateDTMFSender;
     const DTMF_SENDER = 'dtmf sender';
