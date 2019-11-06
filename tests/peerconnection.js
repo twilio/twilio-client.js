@@ -266,6 +266,7 @@ describe('PeerConnection', () => {
         _onAnswer: 'this is on answer',
         _removeAudioOutputs: sinon.stub(),
         _shouldManaageStream: true,
+        _stopIceGatheringTimeout: sinon.stub(),
         _stopStream: sinon.stub(),
         _mediaStreamSource: {
           disconnect: sinon.stub()
@@ -1082,9 +1083,89 @@ describe('PeerConnection', () => {
         onicegatheringstatechange: sinon.stub(),
         oniceconnectionstatechange: sinon.stub(),
         onpcconnectionstatechange: sinon.stub(),
+        _hasIceCandidates: false,
         _onMediaConnectionStateChange: sinon.stub(),
+        _onIceGatheringFailure: sinon.stub(),
+        _startIceGatheringTimeout: sinon.stub(),
+        _stopIceGatheringTimeout: sinon.stub(),
       };
       toTest = METHOD.bind(context);
+    });
+
+    describe('pc.onicecandidate', () => {
+      it('Should call onicecandidate callback', () => {
+        toTest();
+        version.pc.onicecandidate({ candidate: 'foo' });
+        sinon.assert.calledWith(context.onicecandidate, 'foo');
+      });
+
+      it('Should not set hasIceCandidates flag if candidate is null', () => {
+        toTest();
+        version.pc.onicecandidate({ candidate: null });
+        assert(!context._hasIceCandidates);
+      });
+
+      it('Should set hasIceCandidates flag if candidate is not null', () => {
+        toTest();
+        version.pc.onicecandidate({ candidate: 'foo' });
+        assert(context._hasIceCandidates);
+      });
+    });
+
+    describe('pc.onicegatheringstatechange', () => {
+      it('Should call onicegatheringstatechange callback', () => {
+        toTest();
+        version.pc.iceGatheringState = 'gathering';
+        version.pc.onicegatheringstatechange();
+        sinon.assert.calledWith(context.onicegatheringstatechange, 'gathering');
+      });
+
+      it('Should start ICE Gathering timeout', () => {
+        toTest();
+        version.pc.iceGatheringState = 'gathering';
+        version.pc.onicegatheringstatechange();
+        sinon.assert.calledOnce(context._startIceGatheringTimeout);
+      });
+
+      it('Should reset _hasIceCandidates flag', () => {
+        toTest();
+        version.pc.iceGatheringState = 'gathering';
+        version.pc.onicegatheringstatechange();
+        assert(!version.pc._hasIceCandidates);
+      });
+
+      it('Should stop ICE Gathering timeout on complete', () => {
+        toTest();
+        version.pc.iceGatheringState = 'complete';
+        version.pc.onicegatheringstatechange();
+        sinon.assert.calledOnce(context._stopIceGatheringTimeout);
+      });
+
+      it('Should not raise ICE Gathering failure if ICE Candidates are found', () => {
+        toTest();
+        context._hasIceCandidates = true;
+        version.pc.iceGatheringState = 'complete';
+        version.pc.onicegatheringstatechange();
+        sinon.assert.notCalled(context._onIceGatheringFailure);
+        sinon.assert.notCalled(context._startIceGatheringTimeout);
+      });
+
+      it('Should raise ICE Gathering failure if ICE Candidates are not found', () => {
+        toTest();
+        context._hasIceCandidates = false;
+        version.pc.iceGatheringState = 'complete';
+        version.pc.onicegatheringstatechange();
+        sinon.assert.calledWith(context._onIceGatheringFailure, 'none');
+      });
+
+      it('Should start ICE Gathering timeout if ICE Gathering failed mid process', () => {
+        toTest();
+        context._hasIceCandidates = true;
+        context._hasIceGatheringFailures = true;
+        version.pc.iceGatheringState = 'complete';
+        version.pc.onicegatheringstatechange();
+        sinon.assert.calledOnce(context._startIceGatheringTimeout);
+      });
     });
 
     ['new', 'checking', 'connected', 'completed', 'failed', 'disconnected', 'closed'].forEach((currentState) => {
@@ -1122,6 +1203,68 @@ describe('PeerConnection', () => {
     });
   });
 
+  context('PeerConnection.prototype._startIceGatheringTimeout', () => {
+    const METHOD = PeerConnection.prototype._startIceGatheringTimeout;
+
+    let toTest = null;
+    let clock = null;
+    let context = null;
+
+    beforeEach(() => {
+      clock = sinon.useFakeTimers(Date.now());
+      context = {
+        _stopIceGatheringTimeout: sinon.stub(),
+        _onIceGatheringFailure: sinon.stub(),
+      };
+      toTest = METHOD.bind(context);
+    });
+
+    afterEach(() => {
+      clock.restore();
+    });
+
+    it('Should stop existing timeout', () => {
+      toTest();
+      sinon.assert.called(context._stopIceGatheringTimeout);
+    });
+
+    it('Should raise ICE Gathering timeout', () => {
+      toTest();
+      clock.tick(15001);
+      sinon.assert.calledWithExactly(context._onIceGatheringFailure, 'timeout');
+    });
+
+    it('Should not raise ICE Gathering timeout in less than 15s', () => {
+      toTest();
+      clock.tick(14999);
+      sinon.assert.notCalled(context._onIceGatheringFailure);
+    });
+  });
+
+  context('PeerConnection.prototype._onIceGatheringFailure', () => {
+    const METHOD = PeerConnection.prototype._onIceGatheringFailure;
+
+    let toTest = null;
+    let context = null;
+
+    beforeEach(() => {
+      context = {
+        _hasIceGatheringFailures: false,
+        onicegatheringfailure: sinon.stub(),
+      };
+      toTest = METHOD.bind(context);
+    });
+    it('Should set _hasIceGatheringFailures to true', () => {
+      toTest();
+      assert(context._hasIceGatheringFailures);
+    });
+
+    it('Should call onicegatheringfailure callback', () => {
+      toTest();
+      sinon.assert.calledOnce(context.onicegatheringfailure);
+    });
+  });
+
   context('PeerConnection.prototype._onMediaConnectionStateChange', () => {
     const METHOD = PeerConnection.prototype._onMediaConnectionStateChange;
 
@@ -1131,7 +1274,9 @@ describe('PeerConnection', () => {
     beforeEach(() => {
       context = {
         _iceState: 'new',
+        _stopIceGatheringTimeout: sinon.stub(),
         log: sinon.stub(),
+        onconnected: sinon.stub(),
         onreconnected: sinon.stub(),
         ondisconnected: sinon.stub(),
         onfailed: sinon.stub(),
@@ -1143,6 +1288,15 @@ describe('PeerConnection', () => {
       context._iceState = 'connected';
       toTest('disconnected');
       assert.equal(context._iceState, 'disconnected');
+    });
+
+    it('Should call onconnected', () => {
+      context._iceState = 'new';
+      context._hasIceGatheringFailures = true;
+      toTest('connected');
+      assert(!context._hasIceGatheringFailures);
+      sinon.assert.calledWith(context.onconnected, 'Media connection established.');
+      sinon.assert.calledOnce(context._stopIceGatheringTimeout);
     });
 
     it('Should call ondisconnected', () => {

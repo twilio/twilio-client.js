@@ -1516,6 +1516,36 @@ describe('Connection', function() {
       Util.isChrome = sinon.stub().returns(true);
     });
 
+    context('on ICE Gathering failures', () => {
+      it('should emit reconnecting', () => {
+        const callback = sinon.stub();
+
+        conn.on('reconnecting', callback);
+        mediaStream.onicegatheringfailure();
+
+        sinon.assert.callCount(callback, 1);
+        sinon.assert.calledWithMatch(callback, {
+          code: 53405,
+          message: 'Media connection failed.',
+        });
+
+        const rVal = callback.firstCall.args[0];
+        assert.equal(rVal.twilioError.code, 53405);
+      });
+
+      it('should publish warning on ICE Gathering timeout', () => {
+        mediaStream.onicegatheringfailure(Connection.IceGatheringFailure.Timeout);
+        sinon.assert.calledWith(publisher.warn, 'ice-gathering-state',
+          Connection.IceGatheringFailure.Timeout, null);
+      });
+
+      it('should publish warning on ICE Gathering none', () => {
+        mediaStream.onicegatheringfailure(Connection.IceGatheringFailure.None);
+        sinon.assert.calledWith(publisher.warn, 'ice-gathering-state',
+          Connection.IceGatheringFailure.None, null);
+      });
+    });
+
     context('on low bytes', () => {
       it('should restart ice if ice connection state is disconnected and bytes received is low', () => {
         mediaStream.version.pc.iceConnectionState = 'disconnected';
@@ -1590,6 +1620,15 @@ describe('Connection', function() {
       mediaStream.onfailed();
       conn.on('reconnected', callback);
       mediaStream.onreconnected();
+
+      sinon.assert.callCount(callback, 1);
+    });
+
+    it('should emit reconnected on initial ice connected after ice gathering failure', () => {
+      const callback = sinon.stub();
+      mediaStream.onicegatheringfailure();
+      conn.on('reconnected', callback);
+      mediaStream.onconnected();
 
       sinon.assert.callCount(callback, 1);
     });
