@@ -4,9 +4,9 @@
 Improvements
 ---------
 
-* In order to support new regions without requiring SDK updates in the future, the SDK no longer locally verifies the region option passed to `Device.setup` options. As a result, if an invalid region is passed, a connection error will be emitted after the connection is attempted. We recommend always testing to make sure your specified region (if any) works before pushing any change to production. For a list of supported regions refer to "https://www.twilio.com/docs/voice/client/regions". (CLIENT-6831)
+* You can now connect to our interconnect region in Singapore by setting the region option to `sg1-ix`. See [Twilio Client Regions](https://www.twilio.com/docs/voice/client/regions) for the list of supported regions. Note that with this release, to support new regions without requiring an SDK update, we have removed the check for the region name passed to `Device.setup`. If an unsupported region is supplied, `Device.on('error')` will be called. (CLIENT-6831)
 
-* We are now sending PeerConnection connection state change events to Insights as `pc-connection-state`. (CLIENT-6869)
+* We now log PeerConnection state changes to Insights. This will help with isolating issues should they arise. (CLIENT-6869)
 
 1.9.4 (Oct 28, 2019)
 ===================
