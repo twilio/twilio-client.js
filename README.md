@@ -3,7 +3,7 @@ twilio-client.js
 
 [![Travis Build Status](https://travis-ci.org/twilio/twilio-client.js.svg?branch=master)](https://travis-ci.org/twilio/twilio-client.js) [![NPM](https://img.shields.io/npm/v/twilio-client.svg)](https://www.npmjs.com/package/twilio-client)
 
-twilio-client.js allows you to add real-time voice and PSTN calling to your web apps.
+twilio-client.js allows you to add real-time voice and PSTN calling to your web apps. 
 
 * [API Docs](https://twilio.github.io/twilio-client.js/index.html)
 * [More Docs](https://www.twilio.com/docs/voice/client/javascript/overview)
