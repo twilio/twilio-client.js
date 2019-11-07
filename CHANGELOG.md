@@ -1,3 +1,32 @@
+1.10.0 (In Progress)
+===================
+
+Improvements
+---------
+
+* You can now retry an outgoing or incoming connection using `connection.accept()` if getUserMedia fails, instead of getting disconnected automatically. If you decide to not retry and ignore the connection, you should call `connection.reject()` or `connection.ignore()` to allow future outgoung or incoming connections. Please keep in mind that you still need to address possible causes of getUserMedia failures before retrying. For example, make sure there are available audio devices or make sure the browser has permission to access the devices. Please refer to [getUserMedia documentation](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia) for a list of possible types of failures. (CLIENT-6897)
+
+### Example
+```
+// Listen for getUserMedia failures
+connection.on('error', (error) => {
+  if (error.code === 31208 || error.code === 31201) {
+    // You can display a message to the user asking to make sure the browser allows for mic/speaker access
+    // or show a list of new devices and allow the user to select a new device
+    
+    // Accept to retry the connection
+    connection.accept();
+    
+    // Or ignore the connection
+    connection.ignore();
+    
+    // Or reject the connection
+    connection.reject();
+  }
+});
+```
+
+
 1.9.5 (Nov 5, 2019)
 ===================
 
