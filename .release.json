@@ -27,6 +27,8 @@
         "git push origin ${BRANCH} --tags",
         "git fetch --all",
         "git checkout ${RELEASE_VERSION}",
+        "git rm -rf docs",
+        "git commit -nm \"Preparing gh-pages\"",
         "git subtree add --prefix docs origin gh-pages",
         "npm run docs:ts",
         "git stage docs -f",
@@ -39,10 +41,12 @@
     "development": {
       "commands": [
         "node ./node_modules/.bin/release --bump ${RELEASE_VERSION} ${DEVELOPMENT_VERSION}",
+        "npm run build:version",
         "git rm -rf dist es5 docs",
         "npm run clean",
         "npm run docs:clean",
         "git add package.json",
+        "git add lib/twilio/constants.js",
         "git commit -nm \"${DEVELOPMENT_VERSION}\"",
         "git push origin ${BRANCH}"
       ]

@@ -95,7 +95,7 @@
     "nyc": "10.1.2",
     "pre-commit": "1.2.2",
     "querystring": "0.2.0",
-    "release-tool": "0.2.2",
+    "release-tool": "git://github.com/twilio/release-tool#8860ca9",
     "selenium-webdriver": "3.5.0",
     "sinon": "4.0.0",
     "travis-multirunner": "4.5.0",
