@@ -98,8 +98,8 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.callmetrics.html#audioinputlevel" class="tsd-kind-icon">audio<wbr>Input<wbr>Level</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.callmetrics.html#audiooutputlevel" class="tsd-kind-icon">audio<wbr>Output<wbr>Level</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="voice.connection.callmetrics.html#audioinputlevel" class="tsd-kind-icon">audio<wbr>Input<wbr>Level</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="voice.connection.callmetrics.html#audiooutputlevel" class="tsd-kind-icon">audio<wbr>Output<wbr>Level</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="voice.connection.callmetrics.html#bytesreceived" class="tsd-kind-icon">bytes<wbr>Received</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="voice.connection.callmetrics.html#bytessent" class="tsd-kind-icon">bytes<wbr>Sent</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="voice.connection.callmetrics.html#codecname" class="tsd-kind-icon">codec<wbr>Name</a></li>
@@ -121,33 +121,35 @@
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 					<a name="audioinputlevel" class="tsd-anchor"></a>
 					<h3>audio<wbr>Input<wbr>Level</h3>
 					<div class="tsd-signature tsd-kind-icon">audio<wbr>Input<wbr>Level<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
+						<p>Inherited from <a href="voice.rtcsample.html">RTCSample</a>.<a href="voice.rtcsample.html#audioinputlevel">audioInputLevel</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/681e4f2/lib/twilio/connection.ts#L1683">connection.ts:1683</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/30e66f8/lib/twilio/rtc/sample.ts#L16">rtc/sample.ts:16</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>Audio input level between 0 and 32767, representing -100 to -30 dB.</p>
+							<p>Audio input level in last second. Between 0 and 32767, representing -100 to -30 dB.</p>
 						</div>
 					</div>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 					<a name="audiooutputlevel" class="tsd-anchor"></a>
 					<h3>audio<wbr>Output<wbr>Level</h3>
 					<div class="tsd-signature tsd-kind-icon">audio<wbr>Output<wbr>Level<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
+						<p>Inherited from <a href="voice.rtcsample.html">RTCSample</a>.<a href="voice.rtcsample.html#audiooutputlevel">audioOutputLevel</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/681e4f2/lib/twilio/connection.ts#L1688">connection.ts:1688</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/30e66f8/lib/twilio/rtc/sample.ts#L21">rtc/sample.ts:21</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>Audio output level between 0 and 32767, representing -100 to -30 dB.</p>
+							<p>Audio output level in last second. Between 0 and 32767, representing -100 to -30 dB.</p>
 						</div>
 					</div>
 				</section>
@@ -158,7 +160,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="voice.rtcsample.html">RTCSample</a>.<a href="voice.rtcsample.html#bytesreceived">bytesReceived</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/681e4f2/lib/twilio/rtc/sample.ts#L16">rtc/sample.ts:16</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/30e66f8/lib/twilio/rtc/sample.ts#L26">rtc/sample.ts:26</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -174,7 +176,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="voice.rtcsample.html">RTCSample</a>.<a href="voice.rtcsample.html#bytessent">bytesSent</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/681e4f2/lib/twilio/rtc/sample.ts#L21">rtc/sample.ts:21</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/30e66f8/lib/twilio/rtc/sample.ts#L31">rtc/sample.ts:31</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -190,7 +192,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="voice.rtcsample.html">RTCSample</a>.<a href="voice.rtcsample.html#codecname">codecName</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/681e4f2/lib/twilio/rtc/sample.ts#L26">rtc/sample.ts:26</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/30e66f8/lib/twilio/rtc/sample.ts#L36">rtc/sample.ts:36</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -205,7 +207,7 @@
 					<div class="tsd-signature tsd-kind-icon">input<wbr>Volume<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/681e4f2/lib/twilio/connection.ts#L1692">connection.ts:1692</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/30e66f8/lib/twilio/connection.ts#L1676">connection.ts:1676</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -221,7 +223,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="voice.rtcsample.html">RTCSample</a>.<a href="voice.rtcsample.html#jitter">jitter</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/681e4f2/lib/twilio/rtc/sample.ts#L31">rtc/sample.ts:31</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/30e66f8/lib/twilio/rtc/sample.ts#L41">rtc/sample.ts:41</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -237,7 +239,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="voice.rtcsample.html">RTCSample</a>.<a href="voice.rtcsample.html#mos">mos</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/681e4f2/lib/twilio/rtc/sample.ts#L36">rtc/sample.ts:36</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/30e66f8/lib/twilio/rtc/sample.ts#L46">rtc/sample.ts:46</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -252,7 +254,7 @@
 					<div class="tsd-signature tsd-kind-icon">output<wbr>Volume<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/681e4f2/lib/twilio/connection.ts#L1697">connection.ts:1697</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/30e66f8/lib/twilio/connection.ts#L1681">connection.ts:1681</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -268,7 +270,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="voice.rtcsample.html">RTCSample</a>.<a href="voice.rtcsample.html#packetslost">packetsLost</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/681e4f2/lib/twilio/rtc/sample.ts#L41">rtc/sample.ts:41</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/30e66f8/lib/twilio/rtc/sample.ts#L51">rtc/sample.ts:51</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -284,7 +286,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="voice.rtcsample.html">RTCSample</a>.<a href="voice.rtcsample.html#packetslostfraction">packetsLostFraction</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/681e4f2/lib/twilio/rtc/sample.ts#L46">rtc/sample.ts:46</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/30e66f8/lib/twilio/rtc/sample.ts#L56">rtc/sample.ts:56</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -300,7 +302,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="voice.rtcsample.html">RTCSample</a>.<a href="voice.rtcsample.html#packetsreceived">packetsReceived</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/681e4f2/lib/twilio/rtc/sample.ts#L51">rtc/sample.ts:51</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/30e66f8/lib/twilio/rtc/sample.ts#L61">rtc/sample.ts:61</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -316,7 +318,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="voice.rtcsample.html">RTCSample</a>.<a href="voice.rtcsample.html#packetssent">packetsSent</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/681e4f2/lib/twilio/rtc/sample.ts#L56">rtc/sample.ts:56</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/30e66f8/lib/twilio/rtc/sample.ts#L66">rtc/sample.ts:66</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -332,7 +334,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="voice.rtcsample.html">RTCSample</a>.<a href="voice.rtcsample.html#rtt">rtt</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/681e4f2/lib/twilio/rtc/sample.ts#L61">rtc/sample.ts:61</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/30e66f8/lib/twilio/rtc/sample.ts#L71">rtc/sample.ts:71</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -348,7 +350,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="voice.rtcsample.html">RTCSample</a>.<a href="voice.rtcsample.html#timestamp">timestamp</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/681e4f2/lib/twilio/rtc/sample.ts#L66">rtc/sample.ts:66</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/30e66f8/lib/twilio/rtc/sample.ts#L76">rtc/sample.ts:76</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -364,7 +366,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="voice.rtcsample.html">RTCSample</a>.<a href="voice.rtcsample.html#totals">totals</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/681e4f2/lib/twilio/rtc/sample.ts#L71">rtc/sample.ts:71</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/30e66f8/lib/twilio/rtc/sample.ts#L81">rtc/sample.ts:81</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -426,10 +428,10 @@
 							<li class="current tsd-kind-interface tsd-parent-kind-class tsd-is-private">
 								<a href="voice.connection.callmetrics.html" class="tsd-kind-icon">Call<wbr>Metrics</a>
 								<ul>
-									<li class=" tsd-kind-property tsd-parent-kind-interface">
+									<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 										<a href="voice.connection.callmetrics.html#audioinputlevel" class="tsd-kind-icon">audio<wbr>Input<wbr>Level</a>
 									</li>
-									<li class=" tsd-kind-property tsd-parent-kind-interface">
+									<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 										<a href="voice.connection.callmetrics.html#audiooutputlevel" class="tsd-kind-icon">audio<wbr>Output<wbr>Level</a>
 									</li>
 									<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
