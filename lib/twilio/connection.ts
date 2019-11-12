@@ -337,6 +337,11 @@ class Connection extends EventEmitter {
       this._publisher.post(level, 'ice-connection-state', state, null, this);
     };
 
+    this.mediaStream.onicegatheringfailure = (type: Connection.IceGatheringFailureReason): void => {
+      this._publisher.warn('ice-gathering-state', type, null, this);
+      this._onMediaFailure(Connection.MediaFailure.IceGatheringFailed);
+    };
+
     this.mediaStream.onicegatheringstatechange = (state: string): void => {
       this._publisher.debug('ice-gathering-state', state, null, this);
     };
@@ -357,6 +362,13 @@ class Connection extends EventEmitter {
 
     this.mediaStream.onfailed = (msg: string): void => {
       this._onMediaFailure(Connection.MediaFailure.ConnectionFailed);
+    };
+
+    this.mediaStream.onconnected = (): void => {
+      // First time mediaStream is connected, but ICE Gathering issued an ICE restart and succeeded.
+      if (this._status === Connection.State.Reconnecting) {
+        this._onMediaReconnected();
+      }
     };
 
     this.mediaStream.onreconnected = (msg: string): void => {
@@ -1151,8 +1163,11 @@ class Connection extends EventEmitter {
       ConnectionDisconnected, ConnectionFailed, IceGatheringFailed, LowBytes,
     } = Connection.MediaFailure;
 
+    // These types signifies the end of a single ICE cycle
+    const isEndOfIceCycle = type === ConnectionFailed || type === IceGatheringFailed;
+
     // Default behavior on ice failures with disabled ice restart.
-    if ((!this.options.enableIceRestart && type === ConnectionFailed)
+    if ((!this.options.enableIceRestart && isEndOfIceCycle)
 
       // All browsers except chrome doesn't update pc.iceConnectionState and pc.connectionState
       // after issuing an ICE Restart, which we use to determine if ICE Restart is complete.
@@ -1171,7 +1186,7 @@ class Connection extends EventEmitter {
     if (this._status === Connection.State.Reconnecting) {
 
       // This is a retry. Previous ICE Restart failed
-      if (type === ConnectionFailed) {
+      if (isEndOfIceCycle) {
 
         // We already exceeded max retry time.
         if (Date.now() - this._mediaReconnectStartTime > BACKOFF_CONFIG.maxDelay) {
@@ -1186,15 +1201,15 @@ class Connection extends EventEmitter {
       return;
     }
 
-    const isIceDisconnected = this.mediaStream.version.pc.iceConnectionState === 'disconnected';
+    const pc = this.mediaStream.version.pc;
+    const isIceDisconnected = pc && pc.iceConnectionState === 'disconnected';
     const hasLowBytesWarning = this._monitor.hasActiveWarning('bytesSent', 'min')
       || this._monitor.hasActiveWarning('bytesReceived', 'min');
 
     // Only certain conditions can trigger media reconnection
     if ((type === LowBytes && isIceDisconnected)
       || (type === ConnectionDisconnected && hasLowBytesWarning)
-      || type === ConnectionFailed
-      || type === IceGatheringFailed) {
+      || isEndOfIceCycle) {
 
       const mediaReconnectionError = {
         code: 53405,
@@ -1455,6 +1470,14 @@ namespace Connection {
   export enum Codec {
     Opus = 'opus',
     PCMU = 'pcmu',
+  }
+
+  /**
+   * Possible ICE Gathering failures
+   */
+  export enum IceGatheringFailureReason {
+    None = 'none',
+    Timeout = 'timeout',
   }
 
   /**
