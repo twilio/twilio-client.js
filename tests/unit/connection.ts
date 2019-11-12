@@ -1534,15 +1534,15 @@ describe('Connection', function() {
       });
 
       it('should publish warning on ICE Gathering timeout', () => {
-        mediaStream.onicegatheringfailure(Connection.IceGatheringFailure.Timeout);
+        mediaStream.onicegatheringfailure(Connection.IceGatheringFailureReason.Timeout);
         sinon.assert.calledWith(publisher.warn, 'ice-gathering-state',
-          Connection.IceGatheringFailure.Timeout, null);
+          Connection.IceGatheringFailureReason.Timeout, null);
       });
 
       it('should publish warning on ICE Gathering none', () => {
-        mediaStream.onicegatheringfailure(Connection.IceGatheringFailure.None);
+        mediaStream.onicegatheringfailure(Connection.IceGatheringFailureReason.None);
         sinon.assert.calledWith(publisher.warn, 'ice-gathering-state',
-          Connection.IceGatheringFailure.None, null);
+          Connection.IceGatheringFailureReason.None, null);
       });
     });
 

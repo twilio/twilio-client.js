@@ -337,7 +337,7 @@ class Connection extends EventEmitter {
       this._publisher.post(level, 'ice-connection-state', state, null, this);
     };
 
-    this.mediaStream.onicegatheringfailure = (type: Connection.IceGatheringFailure): void => {
+    this.mediaStream.onicegatheringfailure = (type: Connection.IceGatheringFailureReason): void => {
       this._publisher.warn('ice-gathering-state', type, null, this);
       this._onMediaFailure(Connection.MediaFailure.IceGatheringFailed);
     };
@@ -1473,7 +1473,7 @@ namespace Connection {
   /**
    * Possible ICE Gathering failures
    */
-  export enum IceGatheringFailure {
+  export enum IceGatheringFailureReason {
     None = 'none',
     Timeout = 'timeout',
   }
