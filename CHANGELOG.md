@@ -4,7 +4,7 @@
 Improvements
 ---------
 
-* Added additional triggers for [media reconnection](https://www.twilio.com/docs/voice/client/javascript/connection#onreconnecting-handlererror). ICE Restarts will be issued and will follow retry policy as defined in [media reconnection](https://www.twilio.com/docs/voice/client/javascript/connection#onreconnecting-handlererror) API.
+* Added additional triggers for media reconnection. ICE Restarts will be issued and will follow retry policy as defined in [media reconnection](https://www.twilio.com/docs/voice/client/javascript/connection#onreconnecting-handlererror) API.
   * ICE Gathering Failure - happens when ICE Gathering state transitions to `complete` and no ICE Candidates were successfully gathered.
   * ICE Gathering Timeout - happens when ICE Gathering exceeded 15 seconds and no ICE candidates were successfully gathered.
 
