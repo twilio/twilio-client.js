@@ -107,7 +107,7 @@
     "typedoc-plugin-external-module-name": "2.1.0",
     "typedoc-plugin-internal-external": "2.0.2",
     "typedoc-twilio-theme": "1.0.0",
-    "typescript": "3.5.3",
+    "typescript": "3.7.2",
     "uglify-js": "3.3.11",
     "vinyl-fs": "3.0.2",
     "vinyl-source-stream": "2.0.0"

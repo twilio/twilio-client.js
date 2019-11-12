@@ -12,7 +12,8 @@
     "outDir": "es5",
     "sourceMap": true,
     "inlineSources": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "declaration": true
   },
   "include": [
     "lib/twilio/**.ts"
