@@ -214,16 +214,6 @@ describe('Connection', function() {
         sinon.assert.calledWith(mediaStream.openWithConstraints, { bar: 'baz' });
       });
 
-      it('should transition state to Connecting', () => {
-        mediaStream.openWithConstraints = () => Promise.resolve();
-        Object.assign(options, { audioConstraints: { bar: 'baz' } });
-        conn = new Connection(config, options);
-        conn.accept();
-        return (() => Promise.resolve())().then(() => {
-          assert.equal(conn.status(), Connection.State.Connecting);
-        });
-      });
-
       it('should result in a `denied` error when `getUserMedia` does not allow the application to access the media', () => {
         return new Promise(resolve => {
           mediaStream.openWithConstraints = () => {
@@ -256,14 +246,6 @@ describe('Connection', function() {
           const p = Promise.resolve();
           wait = p.then(() => Promise.resolve());
           return p;
-        });
-      });
-
-      it('should transition state to Connecting', () => {
-        mediaStream.setInputTracksFromStream = () => Promise.resolve();
-        conn.accept();
-        return (() => Promise.resolve())().then(() => {
-          assert.equal(conn.status(), Connection.State.Connecting);
         });
       });
 
@@ -459,13 +441,6 @@ describe('Connection', function() {
           sinon.assert.calledWith(publisher.error, 'get-user-media', 'denied');
         });
       });
-
-      it('should transition status back to pending', () => {
-        conn.accept({ foo: 'bar' } as MediaTrackConstraints);
-        return wait.then(() => {
-          assert.equal(conn.status(), Connection.State.Pending);
-        });
-      });
     });
 
     context('when getInputStream is present and fails without 31208', () => {
@@ -489,13 +464,6 @@ describe('Connection', function() {
         conn.accept({ foo: 'bar' } as MediaTrackConstraints);
         return wait.then(() => {
           sinon.assert.calledWith(publisher.error, 'get-user-media', 'failed');
-        });
-      });
-
-      it('should transition status back to pending', () => {
-        conn.accept({ foo: 'bar' } as MediaTrackConstraints);
-        return wait.then(() => {
-          assert.equal(conn.status(), Connection.State.Pending);
         });
       });
     });

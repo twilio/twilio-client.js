@@ -612,9 +612,7 @@ class Connection extends EventEmitter {
         }, this);
       }
 
-      // Reset the status back to pending
-      this._status = Connection.State.Pending;
-
+      this._disconnect();
       this.emit('error', { message, code });
     });
   }
