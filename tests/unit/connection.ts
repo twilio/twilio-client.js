@@ -15,6 +15,7 @@ describe('Connection', function() {
   let clock: SinonFakeTimers;
   let config: Connection.Config;
   let conn: Connection;
+  let getRTCIceCandidate: any;
   let getUserMedia: (constraints: MediaStreamConstraints) => Promise<MediaStream>;
   let mediaStream: any;
   let monitor: any;
@@ -54,6 +55,7 @@ describe('Connection', function() {
     clock = sinon.useFakeTimers(Date.now());
 
     audioHelper = createEmitterStub(require('../../lib/twilio/audiohelper').default);
+    getRTCIceCandidate = sinon.stub().returns('foo');
     getUserMedia = sinon.spy(() => Promise.resolve(new MediaStream()));
     pstream = createEmitterStub(require('../../lib/twilio/pstream').PStream);
     publisher = createEmitterStub(require('../../lib/twilio/eventpublisher'));
@@ -81,6 +83,7 @@ describe('Connection', function() {
       MediaStream: MediaHandler,
       StatsMonitor,
       enableIceRestart: true,
+      getRTCIceCandidate,
     };
 
     conn = new Connection(config, options);
@@ -899,6 +902,14 @@ describe('Connection', function() {
         });
 
         mediaStream.onvolume(123, 456);
+      });
+    });
+
+    describe('mediaStream.onicecandidate', () => {
+      it('should publish a debug event', () => {
+        mediaStream.onicecandidate('foo');
+        sinon.assert.calledWith(getRTCIceCandidate, 'foo');
+        sinon.assert.calledWith(publisher.debug, 'ice-candidate', 'ice-candidate', 'foo');
       });
     });
 
