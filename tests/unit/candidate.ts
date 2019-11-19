@@ -1,4 +1,4 @@
-import { getRTCIceCandidate } from '../../lib/twilio/rtc/candidate';
+import { RTCLocalIceCandidate } from '../../lib/twilio/rtc/candidate';
 import * as assert from 'assert';
 
 describe('Candidate', () => {
@@ -30,26 +30,26 @@ describe('Candidate', () => {
   });
 
   it('Should return valid RTCIceCandidate', () => {
-    assert.deepEqual(getRTCIceCandidate(data), output);
+    assert.deepEqual(new RTCLocalIceCandidate(data).payload(), output);
   });
 
   it('Should return undefined when a property is not supported', () => {
     delete data.address;
-    assert.equal(getRTCIceCandidate(data).ip, undefined);
+    assert.equal(new RTCLocalIceCandidate(data).payload().ip, undefined);
   });
 
   it('Should use ip if exists', () => {
     data.ip = 'foo';
-    assert.equal(getRTCIceCandidate(data).ip, 'foo');
+    assert.equal(new RTCLocalIceCandidate(data).payload().ip, 'foo');
   });
 
   it('Should return empty cost if it does not exists', () => {
     data.candidate = 'foo';
-    assert.equal(getRTCIceCandidate(data)['network-cost'], undefined);
+    assert.equal(new RTCLocalIceCandidate(data).payload()['network-cost'], undefined);
   });
 
   it('Should return default values for deleted and remote', () => {
-    const result = getRTCIceCandidate(data);
+    const result = new RTCLocalIceCandidate(data).payload();
     assert(!result.deleted);
     assert(!result.is_remote);
   });

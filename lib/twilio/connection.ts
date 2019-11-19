@@ -7,7 +7,7 @@ import { EventEmitter } from 'events';
 import Device from './device';
 import DialtonePlayer from './dialtonePlayer';
 import { GeneralErrors, InvalidArgumentError, MediaErrors, TwilioError } from './errors';
-import { BrowserIceCandidate, getRTCIceCandidate, RTCIceCandidate } from './rtc/candidate';
+import { IRTCIceCandidate, RTCLocalIceCandidate } from './rtc/candidate';
 import RTCSample from './rtc/sample';
 import RTCWarning from './rtc/warning';
 import StatsMonitor from './statsMonitor';
@@ -143,11 +143,6 @@ class Connection extends EventEmitter {
   private readonly _direction: Connection.CallDirection;
 
   /**
-   * The getRTCIceCandidate method to use for this {@link Connection}
-   */
-  private _getRTCIceCandidate: (candidate: BrowserIceCandidate) => RTCIceCandidate;
-
-  /**
    * The number of times input volume has been the same consecutively.
    */
   private _inputVolumeStreak: number = 0;
@@ -271,8 +266,6 @@ class Connection extends EventEmitter {
       : this.options.warnings ? LogLevel.Warn
       : LogLevel.Off);
 
-    this._getRTCIceCandidate = this.options.getRTCIceCandidate || getRTCIceCandidate;
-
     this._mediaReconnectBackoff = Backoff.exponential(BACKOFF_CONFIG);
     this._mediaReconnectBackoff.on('ready', () => this.mediaStream.iceRestart());
 
@@ -340,8 +333,9 @@ class Connection extends EventEmitter {
       this._publisher.post(level, 'pc-connection-state', state, null, this);
     };
 
-    this.mediaStream.onicecandidate = (candidate: BrowserIceCandidate): void => {
-      this._publisher.debug('ice-candidate', 'ice-candidate', this._getRTCIceCandidate(candidate), this);
+    this.mediaStream.onicecandidate = (candidate: IRTCIceCandidate): void => {
+      const payload = new RTCLocalIceCandidate(candidate).payload();
+      this._publisher.debug('ice-candidate', 'ice-candidate', payload, this);
     };
 
     this.mediaStream.oniceconnectionstatechange = (state: string): void => {
@@ -1628,11 +1622,6 @@ namespace Connection {
      * A method that returns the current input MediaStream set on {@link Device}.
      */
     getInputStream?: () => MediaStream;
-
-    /**
-     * A method to parse an ICE Candidate gathered by the browser and returns a RTCIceCandidate object
-     */
-    getRTCIceCandidate?: (candidate: BrowserIceCandidate) => RTCIceCandidate;
 
     /**
      * A method that returns the current SinkIDs set on {@link Device}.
