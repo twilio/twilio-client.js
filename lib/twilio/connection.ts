@@ -334,7 +334,7 @@ class Connection extends EventEmitter {
     };
 
     this.mediaStream.onicecandidate = (candidate: IRTCIceCandidate): void => {
-      const payload = new RTCLocalIceCandidate(candidate).payload();
+      const payload = new RTCLocalIceCandidate(candidate).toPayload();
       this._publisher.debug('ice-candidate', 'ice-candidate', payload, this);
     };
 

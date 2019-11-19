@@ -7,7 +7,7 @@
  * Payload bject we send to insights
  * @private
  */
-type IRTCIceCandidateInsights = any;
+type RTCIceCandidatePayload = any;
 
 /**
  * Represents an ICE candidate coming from the browser
@@ -93,7 +93,7 @@ export class RTCLocalIceCandidate {
   /**
    * Get the payload object for insights
    */
-  payload(): IRTCIceCandidateInsights {
+  toPayload(): RTCIceCandidatePayload {
     return {
       'candidate_type': this.candidateType,
       'deleted': this.deleted,

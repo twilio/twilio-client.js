@@ -30,26 +30,26 @@ describe('Candidate', () => {
   });
 
   it('Should return valid RTCIceCandidate', () => {
-    assert.deepEqual(new RTCLocalIceCandidate(data).payload(), output);
+    assert.deepEqual(new RTCLocalIceCandidate(data).toPayload(), output);
   });
 
   it('Should return undefined when a property is not supported', () => {
     delete data.address;
-    assert.equal(new RTCLocalIceCandidate(data).payload().ip, undefined);
+    assert.equal(new RTCLocalIceCandidate(data).toPayload().ip, undefined);
   });
 
   it('Should use ip if exists', () => {
     data.ip = 'foo';
-    assert.equal(new RTCLocalIceCandidate(data).payload().ip, 'foo');
+    assert.equal(new RTCLocalIceCandidate(data).toPayload().ip, 'foo');
   });
 
   it('Should return empty cost if it does not exists', () => {
     data.candidate = 'foo';
-    assert.equal(new RTCLocalIceCandidate(data).payload()['network-cost'], undefined);
+    assert.equal(new RTCLocalIceCandidate(data).toPayload()['network-cost'], undefined);
   });
 
   it('Should return default values for deleted and remote', () => {
-    const result = new RTCLocalIceCandidate(data).payload();
+    const result = new RTCLocalIceCandidate(data).toPayload();
     assert(!result.deleted);
     assert(!result.is_remote);
   });
