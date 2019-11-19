@@ -4,10 +4,20 @@
  */
 
 /**
- * Payload bject we send to insights
+ * Payload object we send to insights
  * @private
  */
-type RTCIceCandidatePayload = any;
+interface RTCIceCandidatePayload {
+  candidate_type: string,
+  deleted: boolean,
+  ip: string,
+  is_remote: boolean,
+  'network-cost': number | undefined,
+  port: number,
+  priority: number,
+  protocol: string,
+  transport_id: string,
+};
 
 /**
  * Represents an ICE candidate coming from the browser
