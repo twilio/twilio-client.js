@@ -7,7 +7,7 @@ import { EventEmitter } from 'events';
 import Device from './device';
 import DialtonePlayer from './dialtonePlayer';
 import { GeneralErrors, InvalidArgumentError, MediaErrors, TwilioError } from './errors';
-import { IRTCIceCandidate, RTCLocalIceCandidate } from './rtc/candidate';
+import { RTCIceCandidate, RTCLocalIceCandidate } from './rtc/candidate';
 import RTCSample from './rtc/sample';
 import RTCWarning from './rtc/warning';
 import StatsMonitor from './statsMonitor';
@@ -333,7 +333,7 @@ class Connection extends EventEmitter {
       this._publisher.post(level, 'pc-connection-state', state, null, this);
     };
 
-    this.mediaStream.onicecandidate = (candidate: IRTCIceCandidate): void => {
+    this.mediaStream.onicecandidate = (candidate: RTCIceCandidate): void => {
       const payload = new RTCLocalIceCandidate(candidate).toPayload();
       this._publisher.debug('ice-candidate', 'ice-candidate', payload, this);
     };

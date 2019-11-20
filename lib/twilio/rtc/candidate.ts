@@ -24,7 +24,7 @@ interface RTCIceCandidatePayload {
  * https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidate
  * @private
  */
-export type IRTCIceCandidate = any;
+export type RTCIceCandidate = any;
 
 /**
  * {@link RTCIceCandidate} parses an ICE candidate gathered by the browser
@@ -83,7 +83,7 @@ export class RTCLocalIceCandidate {
    * @constructor
    * @param iceCandidate RTCIceCandidate coming from the browser
    */
-  constructor(iceCandidate: IRTCIceCandidate) {
+  constructor(iceCandidate: RTCIceCandidate) {
     let cost;
     const parts = iceCandidate.candidate.split('network-cost ');
 
