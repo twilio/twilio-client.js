@@ -870,6 +870,13 @@ describe('Connection', function() {
       });
     });
 
+    describe('mediaStream.onicecandidate', () => {
+      it('should publish a debug event', () => {
+        mediaStream.onicecandidate({ candidate: 'foo' });
+        sinon.assert.calledWith(publisher.debug, 'ice-candidate', 'ice-candidate');
+      });
+    });
+
     describe('mediaStream.onpcconnectionstatechange', () => {
       it('should publish an warning event if state is failed', () => {
         mediaStream.onpcconnectionstatechange('failed');

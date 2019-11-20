@@ -74,6 +74,7 @@ require('./pstream');
 require('./sound');
 require('./sdp');
 
+require('./unit/candidate');
 require('./unit/connection');
 require('./unit/device');
 require('./unit/deferred');
