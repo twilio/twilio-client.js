@@ -287,6 +287,10 @@ class Connection extends EventEmitter {
         this._onMediaFailure(Connection.MediaFailure.LowBytes);
       }
       this._reemitWarning(data, wasCleared);
+
+      // TODO: Re-think this
+      // For getting RTCWarning directly
+      this.emit('warning', data);
     });
     monitor.on('warning-cleared', (data: RTCWarning) => {
       this._reemitWarningCleared(data);

@@ -24,6 +24,7 @@ import {
 } from './regions';
 import Log, { LogLevel } from './tslog';
 import { Exception, queryToJson } from './util';
+import Voice from './voice';
 
 const C = require('./constants');
 const Publisher = require('./eventpublisher');
@@ -200,6 +201,10 @@ class Device extends EventEmitter {
    * Whether or not this SDK is supported by the current browser.
    */
   static get isSupported(): boolean { return rtc.enabled(); }
+
+  static testPreflight(token: string, options: Voice.PreflightOptions): Voice.PreflightTest {
+    return new Voice.PreflightTest(token, options);
+  }
 
   /**
    * String representation of {@link Device} class.
