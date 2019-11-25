@@ -1614,7 +1614,7 @@ namespace Connection {
 
     /**
      * Experimental feature.
-     * Whether to use ICE Aggressive nomination.
+     * Force Chrome's ICE agent to use aggressive nomination when selecting a candidate pair.
      */
     forceAggressiveIceNomination?: boolean;
 

@@ -960,7 +960,7 @@ describe('PeerConnection', () => {
   context('PeerConnection.prototype._maybeSetIceAggressiveNomination', () => {
     const METHOD = PeerConnection.prototype._maybeSetIceAggressiveNomination;
     const USER_AGENT = root.window.navigator.userAgent;
-    const SDP = 'a=ice-lite\nfoo';
+    const SDP = 'bar\na=ice-lite\nfoo';
     let context;
 
     beforeEach(() => {
@@ -976,7 +976,7 @@ describe('PeerConnection', () => {
     it('Should call setIceAggressiveNomination if forceAggressiveIceNomination is true', () => {
       context.options.forceAggressiveIceNomination = true;
       const result = toTest(SDP);
-      assert(result, 'foo');
+      assert(result, 'bar\nfoo');
     });
 
     it('Should not call setIceAggressiveNomination if forceAggressiveIceNomination is false', () => {

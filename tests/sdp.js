@@ -13,8 +13,8 @@ const { makeSdpWithTracks } = require('./lib/mocksdp');
 const { combinationContext } = require('./lib/util');
 
 describe('setIceAggressiveNomination', () => {
-  const SDP_ICE_LITE = 'a=ice-lite\nfoo';
-  const SDP_FULL_ICE = 'a=group\nfoo';
+  const SDP_ICE_LITE = 'bar\na=ice-lite\nfoo';
+  const SDP_FULL_ICE = 'a=group\nfoo\na=ice-options:trickle-ice\n';
   const USER_AGENT = root.window.navigator.userAgent;
 
   beforeEach(() => {
@@ -26,7 +26,7 @@ describe('setIceAggressiveNomination', () => {
   });
 
   it('should remove ice-lite on chrome', () => {
-    assert.equal(setIceAggressiveNomination(SDP_ICE_LITE), 'foo');
+    assert.equal(setIceAggressiveNomination(SDP_ICE_LITE), 'bar\nfoo');
   });
 
   it('should not run on other browsers', () => {
