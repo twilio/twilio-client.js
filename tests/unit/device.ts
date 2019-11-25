@@ -103,6 +103,21 @@ describe('Device', function() {
       const conn = device.setup(token, Object.assign({ enableIceRestart: true}, setupOptions));
       assert.equal(conn['options'].enableIceRestart, true);
     });
+
+    it('should set enableIceAggressiveNomination to false by default', () => {
+      const conn = device.setup(token, setupOptions);
+      assert.equal(conn['options'].enableIceAggressiveNomination, false);
+    });
+
+    it('should set enableIceAggressiveNomination to false if passed in as false', () => {
+      const conn = device.setup(token, Object.assign({ enableIceAggressiveNomination: false}, setupOptions));
+      assert.equal(conn['options'].enableIceAggressiveNomination, false);
+    });
+
+    it('should set enableIceAggressiveNomination to false if passed in as true', () => {
+      const conn = device.setup(token, Object.assign({ enableIceAggressiveNomination: true}, setupOptions));
+      assert.equal(conn['options'].enableIceAggressiveNomination, true);
+    });
   });
 
   context('before Device is initialized', () => {

@@ -480,6 +480,7 @@ describe('PeerConnection', () => {
       };
       context = {
         _initializeMediaStream: sinon.stub(),
+        _maybeSetIceAggressiveNomination: (sdp) => sdp,
         _setEncodingParameters: sinon.stub(),
         callSid: null,
         options: { dscp: true },
@@ -505,6 +506,14 @@ describe('PeerConnection', () => {
       toTest();
       assert(context._initializeMediaStream.calledWithExactly(eConstraints, eIceServers));
       assert.equal(version.processSDP.called, false);
+    });
+
+    it('Should call enable aggressive nomination when succeeded to initialize streams', () => {
+      context._initializeMediaStream.returns(true);
+      context._maybeSetIceAggressiveNomination = sinon.stub();
+      version.processSDP.callsArgWith(4);
+      toTest();
+      sinon.assert.calledWithExactly(context._maybeSetIceAggressiveNomination, eSDP);
     });
 
     it('Should call processSDP when succeeded to initialize streams', () => {
@@ -774,6 +783,7 @@ describe('PeerConnection', () => {
       };
       context = {
         _initializeMediaStream: sinon.stub().returns(true),
+        _maybeSetIceAggressiveNomination: (sdp) => sdp,
         _setEncodingParameters: sinon.stub(),
         callSid: null,
         version,
@@ -889,6 +899,14 @@ describe('PeerConnection', () => {
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
     });
 
+    it('Should enable ice aggressive nomination when status not closed and answer is emitted', () => {
+      context.status = NOT_CLOSED;
+      context.pstream.on.callsArgWith(1, PAYLOAD);
+      context._maybeSetIceAggressiveNomination = sinon.stub();
+      toTest();
+      sinon.assert.calledWithExactly(context._maybeSetIceAggressiveNomination, PAYLOAD.sdp);
+    });
+
     it('Should call processAnswer when when status not closed and answer is emitted', () => {
       context.status = NOT_CLOSED;
       context.pstream.on.callsArgWith(1, PAYLOAD);
@@ -936,6 +954,35 @@ describe('PeerConnection', () => {
       assert(version.processAnswer.calledWithExactly(undefined, PAYLOAD.sdp, sinon.match.func, sinon.match.func));
       assert(version.processAnswer.calledOn(version));
       assert(callback.calledWithExactly(version.pc));
+    });
+  });
+
+  context('PeerConnection.prototype._maybeSetIceAggressiveNomination', () => {
+    const METHOD = PeerConnection.prototype._maybeSetIceAggressiveNomination;
+    const USER_AGENT = root.window.navigator.userAgent;
+    const SDP = 'a=ice-lite\nfoo';
+    let context;
+
+    beforeEach(() => {
+      root.window.navigator.userAgent = 'CriOS';
+      context = { options: {} };
+      toTest = METHOD.bind(context);
+    });
+
+    afterEach(() => {
+      root.window.navigator.userAgent = USER_AGENT;
+    });
+
+    it('Should call setIceAggressiveNomination if enableIceAggressiveNomination is true', () => {
+      context.options.enableIceAggressiveNomination = true;
+      const result = toTest(SDP);
+      assert(result, 'foo');
+    });
+
+    it('Should not call setIceAggressiveNomination if enableIceAggressiveNomination is false', () => {
+      context.options.enableIceAggressiveNomination = false;
+      const result = toTest(SDP);
+      assert(result, SDP);
     });
   });
 
