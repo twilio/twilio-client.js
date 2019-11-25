@@ -973,14 +973,14 @@ describe('PeerConnection', () => {
       root.window.navigator.userAgent = USER_AGENT;
     });
 
-    it('Should call setIceAggressiveNomination if enableIceAggressiveNomination is true', () => {
-      context.options.enableIceAggressiveNomination = true;
+    it('Should call setIceAggressiveNomination if forceAggressiveIceNomination is true', () => {
+      context.options.forceAggressiveIceNomination = true;
       const result = toTest(SDP);
       assert(result, 'foo');
     });
 
-    it('Should not call setIceAggressiveNomination if enableIceAggressiveNomination is false', () => {
-      context.options.enableIceAggressiveNomination = false;
+    it('Should not call setIceAggressiveNomination if forceAggressiveIceNomination is false', () => {
+      context.options.forceAggressiveIceNomination = false;
       const result = toTest(SDP);
       assert(result, SDP);
     });

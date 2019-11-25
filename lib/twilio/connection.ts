@@ -297,8 +297,8 @@ class Connection extends EventEmitter {
         codecPreferences: this.options.codecPreferences,
         debug: this.options.debug,
         dscp: this.options.dscp,
-        enableIceAggressiveNomination: this.options.enableIceAggressiveNomination,
         enableIceRestart: this.options.enableIceRestart,
+        forceAggressiveIceNomination: this.options.forceAggressiveIceNomination,
         isUnifiedPlan: this._isUnifiedPlanDefault,
         maxAverageBitrate: this.options.maxAverageBitrate,
         warnings: this.options.warnings,
@@ -1603,12 +1603,6 @@ namespace Connection {
     dscp?: boolean;
 
     /**
-     * Experimental feature.
-     * Whether to use ICE Aggressive nomination.
-     */
-    enableIceAggressiveNomination?: boolean;
-
-    /**
      * Whether to automatically restart ICE when media connection fails
      */
     enableIceRestart?: boolean;
@@ -1617,6 +1611,12 @@ namespace Connection {
      * Whether the ringing state should be enabled.
      */
     enableRingingState?: boolean;
+
+    /**
+     * Experimental feature.
+     * Whether to use ICE Aggressive nomination.
+     */
+    forceAggressiveIceNomination?: boolean;
 
     /**
      * The gateway currently connected to.

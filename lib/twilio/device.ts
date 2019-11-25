@@ -327,9 +327,9 @@ class Device extends EventEmitter {
     connectionFactory: Connection,
     debug: false,
     dscp: true,
-    enableIceAggressiveNomination: false,
     enableIceRestart: false,
     eventgw: 'eventgw.twilio.com',
+    forceAggressiveIceNomination: false,
     iceServers: [],
     noRegister: false,
     pStreamFactory: PStream,
@@ -821,7 +821,7 @@ class Device extends EventEmitter {
    */
   private _createDefaultPayload = (connection?: Connection): Record<string, any> => {
     const payload: Record<string, any> = {
-      aggressive_nomination: this.options.enableIceAggressiveNomination,
+      aggressive_nomination: this.options.forceAggressiveIceNomination,
       browser_extension: this._isBrowserExtension,
       dscp: !!this.options.dscp,
       ice_restart_enabled: this.options.enableIceRestart,
@@ -908,9 +908,9 @@ class Device extends EventEmitter {
       debug: this.options.debug,
       dialtonePlayer: Device._dialtonePlayer,
       dscp: this.options.dscp,
-      enableIceAggressiveNomination: this.options.enableIceAggressiveNomination,
       enableIceRestart: this.options.enableIceRestart,
       enableRingingState: this.options.enableRingingState,
+      forceAggressiveIceNomination: this.options.forceAggressiveIceNomination,
       getInputStream: (): MediaStream | null => this._connectionInputStream,
       getSinkIds: (): string[] => this._connectionSinkIds,
       maxAverageBitrate: this.options.maxAverageBitrate,
@@ -1450,12 +1450,6 @@ namespace Device {
     dscp?: boolean;
 
     /**
-     * Experimental feature.
-     * Whether to use ICE Aggressive nomination.
-     */
-    enableIceAggressiveNomination?: boolean;
-
-    /**
      * Whether to automatically restart ICE when media connection fails
      */
     enableIceRestart?: boolean;
@@ -1472,6 +1466,12 @@ namespace Device {
      * using real DTMF tones for user interface. In 2.0, this will be enabled by default.
      */
     fakeLocalDTMF?: boolean;
+
+    /**
+     * Experimental feature.
+     * Whether to use ICE Aggressive nomination.
+     */
+    forceAggressiveIceNomination?: boolean;
 
     /**
      * The maximum average audio bitrate to use, in bits per second (bps) based on

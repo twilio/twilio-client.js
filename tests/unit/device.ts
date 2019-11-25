@@ -104,19 +104,19 @@ describe('Device', function() {
       assert.equal(conn['options'].enableIceRestart, true);
     });
 
-    it('should set enableIceAggressiveNomination to false by default', () => {
+    it('should set forceAggressiveIceNomination to false by default', () => {
       const conn = device.setup(token, setupOptions);
-      assert.equal(conn['options'].enableIceAggressiveNomination, false);
+      assert.equal(conn['options'].forceAggressiveIceNomination, false);
     });
 
-    it('should set enableIceAggressiveNomination to false if passed in as false', () => {
-      const conn = device.setup(token, Object.assign({ enableIceAggressiveNomination: false}, setupOptions));
-      assert.equal(conn['options'].enableIceAggressiveNomination, false);
+    it('should set forceAggressiveIceNomination to false if passed in as false', () => {
+      const conn = device.setup(token, Object.assign({ forceAggressiveIceNomination: false}, setupOptions));
+      assert.equal(conn['options'].forceAggressiveIceNomination, false);
     });
 
-    it('should set enableIceAggressiveNomination to false if passed in as true', () => {
-      const conn = device.setup(token, Object.assign({ enableIceAggressiveNomination: true}, setupOptions));
-      assert.equal(conn['options'].enableIceAggressiveNomination, true);
+    it('should set forceAggressiveIceNomination to false if passed in as true', () => {
+      const conn = device.setup(token, Object.assign({ forceAggressiveIceNomination: true}, setupOptions));
+      assert.equal(conn['options'].forceAggressiveIceNomination, true);
     });
   });
 
