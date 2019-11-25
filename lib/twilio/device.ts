@@ -327,6 +327,7 @@ class Device extends EventEmitter {
     connectionFactory: Connection,
     debug: false,
     dscp: true,
+    enableIceAggressiveNomination: false,
     enableIceRestart: false,
     eventgw: 'eventgw.twilio.com',
     iceServers: [],
@@ -820,6 +821,7 @@ class Device extends EventEmitter {
    */
   private _createDefaultPayload = (connection?: Connection): Record<string, any> => {
     const payload: Record<string, any> = {
+      aggressive_nomination: this.options.enableIceAggressiveNomination,
       browser_extension: this._isBrowserExtension,
       dscp: !!this.options.dscp,
       ice_restart_enabled: this.options.enableIceRestart,
@@ -906,6 +908,7 @@ class Device extends EventEmitter {
       debug: this.options.debug,
       dialtonePlayer: Device._dialtonePlayer,
       dscp: this.options.dscp,
+      enableIceAggressiveNomination: this.options.enableIceAggressiveNomination,
       enableIceRestart: this.options.enableIceRestart,
       enableRingingState: this.options.enableRingingState,
       getInputStream: (): MediaStream | null => this._connectionInputStream,
@@ -1445,6 +1448,12 @@ namespace Device {
      * Whether to use googDscp in RTC constraints.
      */
     dscp?: boolean;
+
+    /**
+     * Experimental feature.
+     * Whether to use ICE Aggressive nomination.
+     */
+    enableIceAggressiveNomination?: boolean;
 
     /**
      * Whether to automatically restart ICE when media connection fails

@@ -297,6 +297,7 @@ class Connection extends EventEmitter {
         codecPreferences: this.options.codecPreferences,
         debug: this.options.debug,
         dscp: this.options.dscp,
+        enableIceAggressiveNomination: this.options.enableIceAggressiveNomination,
         enableIceRestart: this.options.enableIceRestart,
         isUnifiedPlan: this._isUnifiedPlanDefault,
         maxAverageBitrate: this.options.maxAverageBitrate,
@@ -1600,6 +1601,12 @@ namespace Connection {
      * Whether or not to enable DSCP.
      */
     dscp?: boolean;
+
+    /**
+     * Experimental feature.
+     * Whether to use ICE Aggressive nomination.
+     */
+    enableIceAggressiveNomination?: boolean;
 
     /**
      * Whether to automatically restart ICE when media connection fails
