@@ -1,6 +1,7 @@
 import Connection from '../../lib/twilio/connection';
 import Device from '../../lib/twilio/device';
 import { generateAccessToken } from '../lib/token';
+import { expectEvent, isFirefox, runDockerCommand, waitFor } from '../lib/util';
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
 
@@ -10,7 +11,6 @@ const DEBUG = false;
 const EVENT_TIMEOUT = 20000;
 const SUITE_TIMEOUT = 300000;
 const USE_CASE_TIMEOUT = 180000;
-const DOCKER_PROXY_SERVER_URL = 'http://localhost:3032';
 
 describe('Reconnection', function() {
   this.timeout(SUITE_TIMEOUT);
@@ -28,39 +28,6 @@ describe('Reconnection', function() {
     warnings: false,
     debug: DEBUG,
     enableIceRestart: false,
-  };
-
-  const waitFor = (promiseOrArray: Promise<any> | Promise<any>[], timeoutMS: number) => {
-    let timer: NodeJS.Timer;
-    const promise = Array.isArray(promiseOrArray) ? Promise.all(promiseOrArray) : promiseOrArray;
-    const timeoutPromise = new Promise((resolve, reject) => {
-      timer = setTimeout(() => reject(new Error(`Timed out`)), timeoutMS);
-    });
-
-    return Promise.race([promise, timeoutPromise]).then(() => clearTimeout(timer));
-  };
-
-  const expectEvent = (eventName: string, emitter: EventEmitter) => {
-    return new Promise((resolve) => emitter.once(eventName, () => resolve()));
-  };
-
-  const runDockerCommand = (cmd: string): Promise<any> => {
-    DEBUG && console.log(`Running docker command: ${cmd}`);
-    return new Promise((resolve) => {
-      const xmlhttp = new XMLHttpRequest();
-      xmlhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-          resolve();
-        }
-      };
-      xmlhttp.open('GET', `${DOCKER_PROXY_SERVER_URL}/${cmd}`, true);
-      xmlhttp.send();
-    });
-  };
-
-  // Move this out if it will be reused
-  const isFirefox = () => {
-    return /firefox|fxios/i.test(window.navigator.userAgent);
   };
 
   // Since both devices lives in the same machine, one device may receive

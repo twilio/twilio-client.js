@@ -509,10 +509,12 @@ describe('PeerConnection', () => {
     });
 
     it('Should call enable aggressive nomination when succeeded to initialize streams', () => {
+      const sdp = 'foo';
       context._initializeMediaStream.returns(true);
-      context._maybeSetIceAggressiveNomination = sinon.stub();
+      context._maybeSetIceAggressiveNomination = sinon.stub().returns(sdp);
       version.processSDP.callsArgWith(4);
       toTest();
+      assert.equal(context._answerSdp, sdp);
       sinon.assert.calledWithExactly(context._maybeSetIceAggressiveNomination, eSDP);
     });
 
@@ -732,7 +734,7 @@ describe('PeerConnection', () => {
       });
     });
 
-    it('Should release handlersif there is no local offer', () => {
+    it('Should release handlers if there is no local offer', () => {
       version.pc.signalingState = 'stable';
       toTest();
       context._onAnswerOrRinging({ sdp: SDP });
@@ -742,11 +744,15 @@ describe('PeerConnection', () => {
       });
     });
 
-    it('Should update _answerSdp', () => {
+    it('Should set aggressive nomination before ICE restart', () => {
+      const sdp = 'foo';
+      context._maybeSetIceAggressiveNomination = sinon.stub().returns(sdp);
       toTest();
-      context._onAnswerOrRinging({ sdp: SDP });
+      context._onAnswerOrRinging({ sdp: 'bar' });
       return wait().then(() => {
-        assert.equal(context._answerSdp, SDP);
+        sinon.assert.calledWith(context.version.processAnswer, context.codecPreferences, sdp);
+        sinon.assert.calledWith(context._maybeSetIceAggressiveNomination, 'bar');
+        assert.equal(context._answerSdp, sdp);
       });
     });
   });
