@@ -9,6 +9,7 @@ type CB = any;
 
 const DEBUG = false;
 const EVENT_TIMEOUT = 20000;
+const RTP_TIMEOUT = 60000;
 const SUITE_TIMEOUT = 300000;
 const USE_CASE_TIMEOUT = 180000;
 
@@ -109,7 +110,7 @@ describe('Reconnection', function() {
         return waitFor(bindTestPerConnection((conn: Connection) => Promise.all([
           expectEvent('disconnect', conn),
           new Promise((resolve) => conn.once('error', (error) => error.code === 31003 && resolve()))
-        ]).then(() =>  assert(conn.status() === Connection.State.Closed))), EVENT_TIMEOUT);
+        ]).then(() =>  assert(conn.status() === Connection.State.Closed))), RTP_TIMEOUT);
       });
     });
   });
@@ -119,6 +120,10 @@ describe('Reconnection', function() {
 
     before(() => {
       options.enableIceRestart = true;
+    });
+
+    after(() => {
+      options.enableIceRestart = false;
     });
 
     describe('and ICE connection fails', function() {
@@ -160,7 +165,7 @@ describe('Reconnection', function() {
         await waitFor(bindTestPerConnection((conn: Connection) => Promise.all([
           expectEvent('disconnect', conn),
           new Promise((resolve) => conn.once('error', (error) => error.code === 31003 && resolve()))
-        ]).then(() =>  assert(conn.status() === Connection.State.Closed))), EVENT_TIMEOUT);
+        ]).then(() =>  assert(conn.status() === Connection.State.Closed))), RTP_TIMEOUT);
       });
     });
   });
@@ -183,7 +188,7 @@ describe('Reconnection', function() {
       return waitFor(bindTestPerConnection((conn: Connection) => Promise.all([
         expectEvent('disconnect', conn),
         new Promise((resolve) => conn.once('error', (error) => error.code === 31003 && resolve()))
-      ]).then(() =>  assert(conn.status() === Connection.State.Closed))), EVENT_TIMEOUT);
+      ]).then(() =>  assert(conn.status() === Connection.State.Closed))), RTP_TIMEOUT);
     });
 
     it('should trigger device.ready after network resumes', async () => {
