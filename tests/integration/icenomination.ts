@@ -59,13 +59,13 @@ maybeSkip('ICE Nomination', function() {
       device = device2;
     }
     
-    // We don't currently expose icegathering state changes.
+    // We don't currently expose ice connection state changes.
     // Let's hook to makeConnection and subscribe to events
     const makeConnection = device['_makeConnection'].bind(device);
     (device['_makeConnection'] as any) = (...params: any) => {
       const conn = makeConnection(...params);
-      conn.mediaStream.onicegatheringstatechange = (state: string) => {
-        if (state === 'gathering') {
+      conn.mediaStream.oniceconnectionstatechange = (state: string) => {
+        if (state === 'checking') {
           start = Date.now();
         }
       };
