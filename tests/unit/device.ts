@@ -114,7 +114,7 @@ describe('Device', function() {
       assert.equal(conn['options'].forceAggressiveIceNomination, false);
     });
 
-    it('should set forceAggressiveIceNomination to false if passed in as true', () => {
+    it('should set forceAggressiveIceNomination to true if passed in as true', () => {
       const conn = device.setup(token, Object.assign({ forceAggressiveIceNomination: true}, setupOptions));
       assert.equal(conn['options'].forceAggressiveIceNomination, true);
     });
