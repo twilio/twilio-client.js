@@ -20,6 +20,9 @@ maybeSkip('ICE Nomination', function() {
   let device1Options: Device.Options = {};
   let device2Options: Device.Options = {};
 
+  let highDelayRegion: string;
+  let lowDelayRegion: string;
+
   const defaultOptions: Device.Options = {
     warnings: false,
     debug: false,
@@ -84,6 +87,30 @@ maybeSkip('ICE Nomination', function() {
     conn2.accept();
   });
 
+  before(async () => {
+    console.log('Measuring delays for each region...');
+    const durations: number[] = [];
+    const regions = ['au1', 'br1', 'ie1', 'de1', 'jp1', 'sg1', 'us1'];
+
+    for (let i = 0; i < regions.length; i++) {
+      const region = regions[i];
+      device2Options.region = region;
+      await setupDevices();
+
+      const duration = await getConnectionDuration(Connection.CallDirection.Incoming);
+      durations.push(duration);
+      destroyDevices();
+
+      console.log(`${region}: ${duration}`);
+    }
+    delete device2Options.region;
+
+    lowDelayRegion = regions[durations.indexOf(Math.min(...durations))];
+    highDelayRegion = regions[durations.indexOf(Math.max(...durations))];
+
+    console.log(JSON.stringify({ lowDelayRegion, highDelayRegion }, null, 2));
+  });
+
   [Connection.CallDirection.Incoming, Connection.CallDirection.Outgoing].forEach(direction => {
     describe(`for ${direction} calls`, function() {
       this.timeout(SUITE_TIMEOUT);
@@ -100,16 +127,16 @@ maybeSkip('ICE Nomination', function() {
         destroyDevices();
       });
   
-      it('should not have dtls handshake delay if region is us1 and aggressive nomination is false', async () => {
-        deviceOptions.region = 'us1';
+      it('should not have a significant dtls handshake delay when using low-delay region and aggressive nomination is false', async () => {
+        deviceOptions.region = lowDelayRegion;
         await setupDevices();
         await getConnectionDuration(direction).then(duration => {
           assert(duration < CONNECTION_DELAY_THRESHOLD);
         });
       });
   
-      it('should not have dtls handshake delay if region is us1 and aggressive nomination is true', async () => {
-        deviceOptions.region = 'us1';
+      it('should not have a significant dtls handshake delay when using low-delay region and aggressive nomination is true', async () => {
+        deviceOptions.region = lowDelayRegion;
         deviceOptions.forceAggressiveIceNomination = true;
         await setupDevices();
         await getConnectionDuration(direction).then(duration => {
@@ -117,16 +144,16 @@ maybeSkip('ICE Nomination', function() {
         });
       });
   
-      it('should have dtls handshake delay if region is sg1 and aggressive nomination is false', async () => {
-        deviceOptions.region = 'sg1';
+      it('should have a significant dtls handshake delay when using high-delay region and aggressive nomination is false', async () => {
+        deviceOptions.region = highDelayRegion;
         await setupDevices();
         await getConnectionDuration(direction).then(duration => {
           assert(duration > CONNECTION_DELAY_THRESHOLD);
         });
       });
   
-      it('should not have dtls handshake delay if region is sg1 and aggressive nomination is true', async () => {
-        deviceOptions.region = 'sg1';
+      it('should not have a significant dtls handshake delay when using high-delay region and aggressive nomination is true', async () => {
+        deviceOptions.region = highDelayRegion;
         deviceOptions.forceAggressiveIceNomination = true;
         await setupDevices();
         await getConnectionDuration(direction).then(duration => {
