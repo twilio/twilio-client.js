@@ -3,6 +3,8 @@
 const sinon = require('sinon');
 const { EventEmitter } = require('events');
 
+const DOCKER_PROXY_SERVER_URL = 'http://localhost:3032';
+
 /**
  * A {@link Tree<X, Y>} is a Rose Tree whose edges are labeled with values of
  * type `X`, and whose nodes are labeled with values of type `Y`.
@@ -152,6 +154,24 @@ function combinations(xss) {
 }
 
 /**
+ * Promisify an event
+ * @param {string} eventName
+ * @param {EventEmitter} emitter
+ * @returns {Promise<*>}
+ */
+function expectEvent(eventName, emitter) {
+  return new Promise((resolve) => emitter.once(eventName, (res) => resolve(res)));
+};
+
+/**
+ * Check if current browser is firefox
+ * @returns {boolean} isFirefox
+ */
+function isFirefox() {
+  return /firefox|fxios/i.test(window.navigator.userAgent);
+};
+
+/**
  * Combine every element of an Array with the remaining elements of the Array.
  * The combine function defaults to pairing the element with the remaining
  * elements of the Array.
@@ -183,6 +203,44 @@ function product(xs, ys, combine) {
   }, []);
 }
 
+/**
+ * Run a docker command using docker proxy
+ * @param {string} cmd
+ * @returns {Promise<*>}
+ */
+function runDockerCommand(cmd) {
+  return new Promise((resolve) => {
+    const xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        resolve();
+      }
+    };
+    xmlhttp.open('GET', `${DOCKER_PROXY_SERVER_URL}/${cmd}`, true);
+    xmlhttp.send();
+  });
+};
+
+/**
+ * Reject a promise after a specified timeout
+ * @param {Promise<*> | Promise<*>[]} promiseOrArray
+ * @param {number} timeoutMS
+ * @returns {Promise<*>}
+ */
+function waitFor(promiseOrArray, timeoutMS) {
+  let timer;
+  const promise = Array.isArray(promiseOrArray) ? Promise.all(promiseOrArray) : promiseOrArray;
+  const timeoutPromise = new Promise((resolve, reject) => {
+    timer = setTimeout(() => reject(new Error(`Timed out`)), timeoutMS);
+  });
+
+  return Promise.race([promise, timeoutPromise]).then(() => clearTimeout(timer));
+};
+
 exports.combinationContext = combinationContext;
 exports.combinations = combinations;
+exports.expectEvent = expectEvent;
+exports.isFirefox = isFirefox;
 exports.pairs = pairs;
+exports.runDockerCommand = runDockerCommand;
+exports.waitFor = waitFor;

@@ -2,10 +2,42 @@
 
 const assert = require('assert');
 
-const { getPreferredCodecInfo, setCodecPreferences, setMaxAverageBitrate } = require('../lib/twilio/rtc/sdp');
+const {
+  getPreferredCodecInfo,
+  setCodecPreferences,
+  setIceAggressiveNomination,
+  setMaxAverageBitrate
+} = require('../lib/twilio/rtc/sdp');
 
 const { makeSdpWithTracks } = require('./lib/mocksdp');
 const { combinationContext } = require('./lib/util');
+
+describe('setIceAggressiveNomination', () => {
+  const SDP_ICE_LITE = 'bar\na=ice-lite\nfoo';
+  const SDP_FULL_ICE = 'a=group\nfoo\na=ice-options:trickle-ice\n';
+  const USER_AGENT = root.window.navigator.userAgent;
+
+  beforeEach(() => {
+    root.window.navigator.userAgent = 'CriOS';
+  });
+
+  afterEach(() => {
+    root.window.navigator.userAgent = USER_AGENT;
+  });
+
+  it('should remove ice-lite on chrome', () => {
+    assert.equal(setIceAggressiveNomination(SDP_ICE_LITE), 'bar\nfoo');
+  });
+
+  it('should not run on other browsers', () => {
+    root.window.navigator.userAgent = '';
+    assert.equal(setIceAggressiveNomination(SDP_ICE_LITE), SDP_ICE_LITE);
+  });
+
+  it('should not modify sdp if ice-lite is not enabled', () => {
+    assert.equal(setIceAggressiveNomination(SDP_FULL_ICE), SDP_FULL_ICE);
+  });
+});
 
 describe('setCodecPreferences', () => {
   combinationContext([

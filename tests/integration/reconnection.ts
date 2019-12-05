@@ -1,6 +1,7 @@
 import Connection from '../../lib/twilio/connection';
 import Device from '../../lib/twilio/device';
 import { generateAccessToken } from '../lib/token';
+import { expectEvent, isFirefox, runDockerCommand, waitFor } from '../lib/util';
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
 
@@ -8,9 +9,9 @@ type CB = any;
 
 const DEBUG = false;
 const EVENT_TIMEOUT = 20000;
+const RTP_TIMEOUT = 60000;
 const SUITE_TIMEOUT = 300000;
 const USE_CASE_TIMEOUT = 180000;
-const DOCKER_PROXY_SERVER_URL = 'http://localhost:3032';
 
 describe('Reconnection', function() {
   this.timeout(SUITE_TIMEOUT);
@@ -28,39 +29,6 @@ describe('Reconnection', function() {
     warnings: false,
     debug: DEBUG,
     enableIceRestart: false,
-  };
-
-  const waitFor = (promiseOrArray: Promise<any> | Promise<any>[], timeoutMS: number) => {
-    let timer: NodeJS.Timer;
-    const promise = Array.isArray(promiseOrArray) ? Promise.all(promiseOrArray) : promiseOrArray;
-    const timeoutPromise = new Promise((resolve, reject) => {
-      timer = setTimeout(() => reject(new Error(`Timed out`)), timeoutMS);
-    });
-
-    return Promise.race([promise, timeoutPromise]).then(() => clearTimeout(timer));
-  };
-
-  const expectEvent = (eventName: string, emitter: EventEmitter) => {
-    return new Promise((resolve) => emitter.once(eventName, () => resolve()));
-  };
-
-  const runDockerCommand = (cmd: string): Promise<any> => {
-    DEBUG && console.log(`Running docker command: ${cmd}`);
-    return new Promise((resolve) => {
-      const xmlhttp = new XMLHttpRequest();
-      xmlhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-          resolve();
-        }
-      };
-      xmlhttp.open('GET', `${DOCKER_PROXY_SERVER_URL}/${cmd}`, true);
-      xmlhttp.send();
-    });
-  };
-
-  // Move this out if it will be reused
-  const isFirefox = () => {
-    return /firefox|fxios/i.test(window.navigator.userAgent);
   };
 
   // Since both devices lives in the same machine, one device may receive
@@ -142,7 +110,7 @@ describe('Reconnection', function() {
         return waitFor(bindTestPerConnection((conn: Connection) => Promise.all([
           expectEvent('disconnect', conn),
           new Promise((resolve) => conn.once('error', (error) => error.code === 31003 && resolve()))
-        ]).then(() =>  assert(conn.status() === Connection.State.Closed))), EVENT_TIMEOUT);
+        ]).then(() =>  assert(conn.status() === Connection.State.Closed))), RTP_TIMEOUT);
       });
     });
   });
@@ -152,6 +120,10 @@ describe('Reconnection', function() {
 
     before(() => {
       options.enableIceRestart = true;
+    });
+
+    after(() => {
+      options.enableIceRestart = false;
     });
 
     describe('and ICE connection fails', function() {
@@ -193,7 +165,7 @@ describe('Reconnection', function() {
         await waitFor(bindTestPerConnection((conn: Connection) => Promise.all([
           expectEvent('disconnect', conn),
           new Promise((resolve) => conn.once('error', (error) => error.code === 31003 && resolve()))
-        ]).then(() =>  assert(conn.status() === Connection.State.Closed))), EVENT_TIMEOUT);
+        ]).then(() =>  assert(conn.status() === Connection.State.Closed))), RTP_TIMEOUT);
       });
     });
   });
@@ -216,7 +188,7 @@ describe('Reconnection', function() {
       return waitFor(bindTestPerConnection((conn: Connection) => Promise.all([
         expectEvent('disconnect', conn),
         new Promise((resolve) => conn.once('error', (error) => error.code === 31003 && resolve()))
-      ]).then(() =>  assert(conn.status() === Connection.State.Closed))), EVENT_TIMEOUT);
+      ]).then(() =>  assert(conn.status() === Connection.State.Closed))), RTP_TIMEOUT);
     });
 
     it('should trigger device.ready after network resumes', async () => {
