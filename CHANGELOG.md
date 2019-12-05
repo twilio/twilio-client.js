@@ -1,3 +1,9 @@
+1.9.7 (In Progress)
+===================
+
+Added an experimental feature to enable 
+[Aggressive ICE Candidate Nomination](https://tools.ietf.org/html/rfc5245#section-8.1.1.2). This feature can be enabled by setting `forceAggressiveIceNomination` to true. If your deployment is on hosts with one interface and your RTT is greater than 1 second, this feature may help reduce call connect time. As this is an experimental feature, we dont recommend enabling this until after testing it thoroughly in your deployment.
+
 1.9.6 (Nov 22, 2019)
 ===================
 
