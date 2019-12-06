@@ -305,11 +305,9 @@ class StatsMonitor extends EventEmitter {
     const rttValue = (typeof stats.rtt === 'number' || !previousSample) ? stats.rtt : previousSample.rtt;
 
     return {
-      // TODO: Undo this. For testing only
-      audioInputLevel: 0,
+      audioInputLevel: Math.round(average(this._inputVolumes.splice(0))),
       audioOutputLevel: Math.round(average(this._outputVolumes.splice(0))),
-      // TODO: Undo this. For testing only
-      bytesReceived: 0,
+      bytesReceived: currentBytesReceived,
       bytesSent: currentBytesSent,
       codecName: stats.codecName,
       jitter: stats.jitter,
