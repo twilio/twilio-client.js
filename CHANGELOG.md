@@ -1,4 +1,4 @@
-1.9.7 (In Progress)
+1.9.7 (Dec 6, 2019)
 ===================
 
 Added an experimental feature to enable 
