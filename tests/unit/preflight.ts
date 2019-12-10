@@ -1,0 +1,353 @@
+import Connection from '../../lib/twilio/connection';
+import PreflightTest from '../../lib/twilio/preflight';
+import { EventEmitter } from 'events';
+import { SinonFakeTimers } from 'sinon';
+import * as assert from 'assert';
+import * as sinon from 'sinon';
+import { inherits } from 'util';
+
+describe('PreflightTest', () => {
+  const wait = () => Promise.resolve();
+  const FATAL_ERRORS = [{
+    code: 31000,
+    name: PreflightTest.FatalError.SignalingConnectionFailed
+  },{
+    code: 31003,
+    name: PreflightTest.FatalError.IceConnectionFailed
+  },{
+    code: 20101,
+    name: PreflightTest.FatalError.InvalidToken
+  },{
+    code: 31208,
+    name: PreflightTest.FatalError.MediaPermissionsFailed
+  },{
+    code: 31201,
+    name: PreflightTest.FatalError.NoDevicesFound
+  }]
+
+  let clock: SinonFakeTimers;
+  let connection: any;
+  let connectionContext: any;
+  let device: any;
+  let deviceFactory: any;
+  let deviceContext: any;
+  let options: any;
+  let testSamples: any;
+
+  const getDeviceFactory = (context: any) => {
+    const factory = function(this: any, token: string, options: PreflightTest.PreflightOptions) {
+      Object.assign(this, context);
+      if (token) {
+        this.setup(token, options);
+      }
+      device = this;
+    };
+    inherits(factory, EventEmitter);
+    return factory;
+  };
+
+  const getTestSamples = () => {
+    const totalSampleCount = 15;
+    const samples = [];
+    let total = 0;
+
+    for (let i = 0; i < totalSampleCount; i++) {
+      const val = i+1;
+      total += val;
+      samples.push({
+        foo: val,
+        totals: {
+          foo: total
+        }
+      });
+    }
+
+    const average = {...samples[samples.length - 1]};
+    average.foo = average.totals.foo/totalSampleCount;
+    return {
+      average,
+      samples
+    };
+  };
+
+  beforeEach(() => {
+    clock = sinon.useFakeTimers(Date.now());
+
+    connectionContext = {};
+    connection = new EventEmitter();
+    Object.assign(connection, connectionContext);
+
+    deviceContext = {
+      setup: sinon.stub(),
+      connect: sinon.stub().returns(connection),
+      destroy: sinon.stub(),
+    };
+    deviceFactory = getDeviceFactory(deviceContext)
+
+    options = {
+      connectParams: {},
+      deviceFactory
+    };
+
+    testSamples = getTestSamples();
+  });
+
+  afterEach(() => {
+    clock.restore();
+  });
+
+  describe('constructor', () => {
+    it('should pass codecPreferences to device', () => {
+      options.codecPreferences = [Connection.Codec.PCMU, Connection.Codec.Opus];
+      const preflight = new PreflightTest('foo', options);
+      sinon.assert.calledWith(deviceContext.setup, 'foo', {
+        codecPreferences: options.codecPreferences,
+        debug: true
+      });
+    });
+
+    it('should pass connectParams on connect', () => {
+      options.connectParams = 'foo';
+      const preflight = new PreflightTest('foo', options);
+      device.emit('ready');
+      return wait().then(() => {
+        sinon.assert.calledWith(deviceContext.connect, 'foo');
+      });
+    });
+  });
+
+  describe('on sample', () => {
+    it('should emit samples', () => {
+      const onSample = sinon.stub();
+      const preflight = new PreflightTest('foo', options);
+      preflight.on('sample', onSample);
+      device.emit('ready');
+
+      const count = 10;
+      const sample = {foo: 'foo', bar: 'bar'};
+      for (let i = 1; i <= count; i++) {
+        const data = {...sample, count: i};
+        connection.emit('sample', data);
+        sinon.assert.callCount(onSample, i);
+        sinon.assert.calledWithExactly(onSample, data);
+        assert.deepEqual(preflight.latestSample, data)
+      }
+    });
+  });
+
+  describe('on warning', () => {
+    it('should emit warning', () => {
+      const onWarning = sinon.stub();
+      const preflight = new PreflightTest('foo', options);
+      preflight.on('warning', onWarning);
+      device.emit('ready');
+
+      const data = {foo: 'foo', bar: 'bar'};
+
+      connection.emit('warning', 'foo', data);
+
+      sinon.assert.calledOnce(onWarning);
+      sinon.assert.calledWithExactly(onWarning, 'foo', data);
+    });
+  });
+
+  describe('on error', () => {
+    it('should emit error for non fatal error', () => {
+      const onError = sinon.stub();
+      const preflight = new PreflightTest('foo', options);
+      preflight.on('error', onError);
+      device.emit('ready');
+
+      device.emit('error', { code: 31400 });
+
+      sinon.assert.calledOnce(onError);
+      sinon.assert.calledWithExactly(onError, PreflightTest.NonFatalError.InsightsConnectionFailed);
+    });
+
+    it('should not emit error for unknown code', () => {
+      const onError = sinon.stub();
+      const preflight = new PreflightTest('foo', options);
+      preflight.on('error', onError);
+      device.emit('ready');
+
+      device.emit('error', { code: 123 });
+
+      sinon.assert.notCalled(onError);
+    });
+
+    FATAL_ERRORS.forEach((error: any) => {
+      it(`should not emit error for code ${error.code}`, () => {
+        const onError = sinon.stub();
+        const preflight = new PreflightTest('foo', options);
+        preflight.on('error', onError);
+        device.emit('ready');
+
+        device.emit('error', { code: error.code });
+
+        sinon.assert.notCalled(onError);
+      });
+    });
+  });
+
+  describe('on connected', () => {
+    it('should emit connected', () => {
+      const onConnected = sinon.stub();
+      const preflight = new PreflightTest('foo', options);
+      
+      preflight.on('connected', onConnected);
+      device.emit('ready');
+
+      connection.emit('accept');
+      assert.equal(preflight.status, PreflightTest.TestStatus.Connected);
+      sinon.assert.calledOnce(onConnected);
+    });
+  });
+
+  describe('on completed and destroy device', () => {
+    it('should end call after 15s by default', () => {
+      const onCompleted = sinon.stub();
+      const preflight = new PreflightTest('foo', options);
+      preflight.on('completed', onCompleted);
+      device.emit('ready');
+      clock.tick(15000);
+      device.emit('offline');
+      assert(preflight.endTime! - preflight.startTime === 15000);
+      sinon.assert.calledOnce(deviceContext.destroy);
+      sinon.assert.called(onCompleted);
+    });
+
+    it('should end call after 10s and destroy device', () => {
+      options.callSeconds = 10;
+      const onCompleted = sinon.stub();
+      const preflight = new PreflightTest('foo', options);
+      preflight.on('completed', onCompleted);
+      device.emit('ready');
+      clock.tick(10000);
+      device.emit('offline');
+      sinon.assert.calledOnce(deviceContext.destroy);
+      sinon.assert.called(onCompleted);
+    });
+
+    it('should release all handlers', () => {
+      const onCompleted = sinon.stub();
+      const preflight = new PreflightTest('foo', options);
+      preflight.on('completed', onCompleted);
+      device.emit('ready');
+      clock.tick(15000);
+      device.emit('offline');
+
+      assert.equal(device.eventNames().length, 0);
+      assert.equal(connection.eventNames().length, 0);
+    });
+
+    it('should provide results', (done) => {
+      const warningData = {foo: 'foo', bar: 'bar'};
+      const preflight = new PreflightTest('foo', options);
+
+      assert.equal(preflight.status, PreflightTest.TestStatus.Connecting);
+
+      const onCompleted = (results: PreflightTest.TestResults) => {
+        const expected = {
+          averageSample: testSamples.average,
+          errors: ['InsightsConnectionFailed'],
+          samples: testSamples.samples,
+          warnings: [{name: 'foo', data: warningData}],
+        };
+        assert.equal(preflight.status, PreflightTest.TestStatus.Completed);
+        assert.deepEqual(results, expected);
+        assert.deepEqual(preflight.results, expected);
+        done();
+      };
+
+      preflight.on('completed', onCompleted);
+      preflight.on('error', sinon.stub());
+      device.emit('ready');
+
+      // Populate data
+      device.emit('error', { code: 31400 });
+      for (let i = 0; i < testSamples.samples.length; i++) {
+        const sample = testSamples.samples[i];
+        const data = {...sample};
+        connection.emit('sample', data);
+      }
+      connection.emit('warning', 'foo', warningData);
+
+      clock.tick(15000);
+      device.emit('offline');
+    });
+  });
+
+  describe('on failed', () => {
+    it('should emit failed on UnsupportedBrowser', () => {
+      deviceContext.setup = () => {
+        throw new Error();
+      };
+
+      const onFailed = sinon.stub();
+      const preflight = new PreflightTest('foo', options);
+      preflight.on('failed', onFailed);
+      clock.tick(1);
+      assert.equal(preflight.status, PreflightTest.TestStatus.Failed);
+      sinon.assert.calledOnce(onFailed);
+      sinon.assert.calledWithExactly(onFailed, PreflightTest.FatalError.UnsupportedBrowser);
+    });
+
+    it('should emit failed on CallCancelled and destroy device', () => {
+      const onFailed = sinon.stub();
+      const preflight = new PreflightTest('foo', options);
+      preflight.on('failed', onFailed);
+      device.emit('ready');
+
+      preflight.cancel();
+      device.emit('offline');
+
+      assert.equal(preflight.status, PreflightTest.TestStatus.Failed);
+      sinon.assert.calledOnce(deviceContext.destroy);
+      sinon.assert.calledOnce(onFailed);
+      sinon.assert.calledWithExactly(onFailed, PreflightTest.FatalError.CallCancelled);
+    });
+
+    FATAL_ERRORS.forEach((error: any) => {
+      it(`should emit failed on ${error.name} and destroy device`, () => {
+        const onFailed = sinon.stub();
+        const preflight = new PreflightTest('foo', options);
+        preflight.on('failed', onFailed);
+        device.emit('ready');
+
+        device.emit('error', { code: error.code });
+
+        assert.equal(preflight.status, PreflightTest.TestStatus.Failed);
+        sinon.assert.calledOnce(deviceContext.destroy);
+        sinon.assert.calledOnce(onFailed);
+        sinon.assert.calledWithExactly(onFailed, PreflightTest.FatalError[error.name]);
+      });
+    });
+
+    it('should stop test', () => {
+      const onCompleted = sinon.stub();
+      const preflight = new PreflightTest('foo', options);
+      preflight.on('completed', onCompleted);
+      device.emit('ready');
+
+      clock.tick(5000);
+      preflight.cancel();
+      device.emit('offline');
+
+      clock.tick(15000);
+      device.emit('offline');
+      assert.equal(preflight.status, PreflightTest.TestStatus.Failed);
+      sinon.assert.notCalled(onCompleted);
+    });
+
+    it('should release all handlers', () => {
+      const preflight = new PreflightTest('foo', options);
+      device.emit('ready');
+
+      preflight.cancel();
+      device.emit('offline');
+
+      assert.equal(device.eventNames().length, 0);
+      assert.equal(connection.eventNames().length, 0);
+    });
+  });
+});

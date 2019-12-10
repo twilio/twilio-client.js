@@ -100,7 +100,11 @@ class PreflightTest extends EventEmitter {
         debug: true,
       });
     } catch {
-      this._onFailed(PreflightTest.FatalError.UnsupportedBrowser);
+      // We want to return before failing so the consumer can capture the event
+      setTimeout(() => {
+        this._onFailed(PreflightTest.FatalError.UnsupportedBrowser);
+      });
+      return;
     }
 
     this._device.on('ready', () => {
@@ -226,7 +230,7 @@ class PreflightTest extends EventEmitter {
    * @param error
    */
   private _onFailed(error: PreflightTest.FatalError): void {
-    clearInterval(this._callTimeoutId);
+    clearTimeout(this._callTimeoutId);
     this._releaseHandlers();
     this._endTime = Date.now();
     this._status = PreflightTest.TestStatus.Failed;
@@ -238,7 +242,9 @@ class PreflightTest extends EventEmitter {
    */
   private _releaseHandlers(): void {
     [this._device, this._connection].forEach((emitter: EventEmitter) => {
-      emitter.eventNames().forEach((name: string) => emitter.removeAllListeners(name));
+      if (emitter) {
+        emitter.eventNames().forEach((name: string) => emitter.removeAllListeners(name));
+      }
     });
   }
 

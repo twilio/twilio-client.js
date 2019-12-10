@@ -520,6 +520,41 @@ describe('Device', function() {
       });
     });
 
+    describe('on Publisher.error', () => {
+      before(() => {
+        device.setup(token, Object.assign(setupOptions, { publishEvents: true }));
+      });
+
+      it('should emit a twilio error', (done) => {
+        device.on('error', error => {
+          assert.equal(error.code, 31400);
+          assert.equal(error.twilioError.code, 31400);
+          done();
+        });
+        publisher.emit('error', {});
+      });
+
+      it('should not populate info if message is not a valid json string', (done) => {
+        device.on('error', error => {
+          assert.equal(error.code, 31400);
+          assert.equal(error.twilioError.code, 31400);
+          assert(!error.info);
+          done();
+        });
+        publisher.emit('error', { message: 'foo' });
+      });
+
+      it('should populate info if message is a valid json string', (done) => {
+        device.on('error', error => {
+          assert.equal(error.code, 31400);
+          assert.equal(error.twilioError.code, 31400);
+          assert.deepStrictEqual(error.info, {code: 1, message: 'bar'});
+          done();
+        });
+        publisher.emit('error', { message: '{"code": 1, "message": "bar"}' });
+      });
+    });
+
     describe('createDefaultPayload', () => {
       xit('should be tested', () => {
         // This should be moved somewhere that it can be tested. This is currently:
