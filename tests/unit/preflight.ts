@@ -102,7 +102,7 @@ describe('PreflightTest', () => {
       const preflight = new PreflightTest('foo', options);
       sinon.assert.calledWith(deviceContext.setup, 'foo', {
         codecPreferences: options.codecPreferences,
-        debug: true
+        debug: false
       });
     });
 

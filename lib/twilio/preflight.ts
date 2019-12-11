@@ -97,7 +97,7 @@ class PreflightTest extends EventEmitter {
     try {
       this._device = new (options.deviceFactory || Device)(token, {
         codecPreferences: this._options.codecPreferences,
-        debug: true,
+        debug: false,
       });
     } catch {
       // We want to return before failing so the consumer can capture the event
