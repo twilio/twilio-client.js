@@ -84,7 +84,7 @@ class PreflightTest extends EventEmitter {
    * @param [token] - A Twilio JWT token string
    * @param [options]
    */
-  constructor(token: string, options: PreflightTest.PreflightOptions) {
+  constructor(token: string, options: PreflightTest.ExtendedPreflightOptions) {
     super();
 
     Object.assign(this._options, options);
@@ -339,6 +339,17 @@ namespace PreflightTest {
   }
 
   /**
+   * Options that may be passed to {@link PreflightTest} constructor for internal testing
+   * @private
+   */
+  export interface ExtendedPreflightOptions extends PreflightOptions {
+    /**
+     * Device class to use
+     */
+    deviceFactory?: new (token: string, options: Device.Options) => Device;
+  }
+
+  /**
    * Options passed to {@link PreflightTest} constructor
    */
   export interface PreflightOptions {
@@ -357,11 +368,6 @@ namespace PreflightTest {
      * Parameters that will be sent to your Twilio Application via {@link Device.connect}
      */
     connectParams: Record<string, string>;
-
-    /**
-     * Device class to use
-     */
-    deviceFactory?: new (token: string, options: Device.Options) => Device;
   }
 
   /**
