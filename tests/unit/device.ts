@@ -122,13 +122,13 @@ describe('Device', function() {
 
   context('before Device is initialized', () => {
     describe('deprecated handler methods', () => {
-      Object.entries(Device.EventName).forEach(([eventName, eventString]: [Device.EventName, string]) => {
+      Object.entries(Device.EventName).forEach(([eventName, eventString]: [string, Device.EventName]) => {
         it(`should set an event listener on Device for .${eventString}(handler)`, () => {
           const handler = () => { };
           (device as any)[eventString](handler);
           assert.equal(device.listenerCount(eventString), 1);
           assert.equal(device.listeners(eventString)[0], handler);
-          device.removeListener(eventName, handler);
+          device.removeListener(eventString, handler);
         });
       });
     });
@@ -255,14 +255,14 @@ describe('Device', function() {
     });
 
     describe('deprecated handler methods', () => {
-      Object.entries(Device.EventName).forEach(([eventName, eventString]: [Device.EventName, string]) => {
+      Object.entries(Device.EventName).forEach(([eventName, eventString]: [string, Device.EventName]) => {
         it(`should set an event listener on Device for .${eventString}(handler)`, () => {
           const handler = () => { };
           device.removeAllListeners(eventString);
           (device as any)[eventString](handler);
           assert.equal(device.listenerCount(eventString), 1);
           assert.equal(device.listeners(eventString)[0], handler);
-          device.removeListener(eventName, handler);
+          device.removeListener(eventString, handler);
         });
       });
     });

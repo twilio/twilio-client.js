@@ -2,6 +2,7 @@
   "compilerOptions": {
     "allowJs": true,
     "checkJs": false,
+    "declaration": true,
     "target": "es5",
     "lib": ["es5", "es6", "es2016", "es2017.object", "dom"],
     "module": "commonjs",
@@ -15,6 +16,6 @@
     "strictNullChecks": true
   },
   "include": [
-    "lib/twilio/**.ts"
+    "lib/**/**.ts"
   ]
 }

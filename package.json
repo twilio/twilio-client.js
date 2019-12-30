@@ -3,6 +3,7 @@
   "version": "1.9.8-dev",
   "description": "Javascript SDK for Twilio Client",
   "main": "./es5/twilio.js",
+  "types": "./es5/twilio.d.ts",
   "license": "Apache-2.0",
   "keywords": [
     "twilio",
@@ -15,11 +16,11 @@
     "url": "git@github.com:twilio/twilio-client.js.git"
   },
   "scripts": {
-    "build": "npm-run-all clean build:version build:errors docs:ts build:es5 build:ts build:dist build:dist-min",
+    "build": "npm-run-all clean build:version build:errors build:es5 build:ts build:dist build:dist-min",
     "build:errors": "node ./scripts/errors.js",
     "build:es5": "rimraf ./es5 && babel lib -d es5",
     "build:dev": "ENV=dev npm run build",
-    "build:dist": "node ./scripts/build.js ./lib/browser.js ./LICENSE.md ./dist/twilio.js",
+    "build:dist": "node ./scripts/build.js ./es5/browser.js ./LICENSE.md ./dist/twilio.js",
     "build:dist-min": "uglifyjs ./dist/twilio.js -o ./dist/twilio.min.js --comments \"/^! twilio-client.js/\" -b beautify=false,ascii_only=true",
     "build:release": "npm-run-all lint build test:webpack test:es5 status",
     "build:ts": "./node_modules/typescript/bin/tsc",
@@ -54,12 +55,11 @@
   },
   "pre-commit": [
     "lint",
-    "test:unit",
-    "docs:ts"
+    "test:unit"
   ],
   "devDependencies": {
     "@types/mocha": "5.0.0",
-    "@types/node": "9.6.5",
+    "@types/node": "^13.1.2",
     "@types/sinon": "5.0.1",
     "@types/ws": "4.0.2",
     "babel-cli": "6.26.0",
@@ -107,7 +107,7 @@
     "typedoc-plugin-external-module-name": "2.1.0",
     "typedoc-plugin-internal-external": "2.0.2",
     "typedoc-twilio-theme": "1.0.0",
-    "typescript": "3.5.3",
+    "typescript": "^3.7.4",
     "uglify-js": "3.3.11",
     "vinyl-fs": "3.0.2",
     "vinyl-source-stream": "2.0.0"
