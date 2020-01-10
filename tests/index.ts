@@ -78,6 +78,7 @@ require('./unit/candidate');
 require('./unit/connection');
 require('./unit/device');
 require('./unit/deferred');
+require('./unit/preflight');
 require('./unit/tslog');
 require('./unit/wstransport');
 require('./unit/statsMonitor');

@@ -1038,7 +1038,7 @@ class Connection extends EventEmitter {
   }
 
   private _emitWarning = (groupPrefix: string, warningName: string, threshold: number,
-                          value: number|number[], wasCleared?: boolean): void => {
+                          value: number|number[], wasCleared?: boolean, warningData?: RTCWarning): void => {
     const groupSuffix = wasCleared ? '-cleared' : '-raised';
     const groupName = `${groupPrefix}warning${groupSuffix}`;
 
@@ -1074,7 +1074,7 @@ class Connection extends EventEmitter {
 
     if (warningName !== 'constant-audio-output-level') {
       const emitName = wasCleared ? 'warning-cleared' : 'warning';
-      this.emit(emitName, warningName);
+      this.emit(emitName, warningName, warningData && !wasCleared ? warningData : null);
     }
   }
 
@@ -1331,7 +1331,7 @@ class Connection extends EventEmitter {
     const warningName = warningPrefix + WARNING_NAMES[warningData.name];
 
     this._emitWarning(groupPrefix, warningName, warningData.threshold.value,
-                      warningData.values || warningData.value, wasCleared);
+                      warningData.values || warningData.value, wasCleared, warningData);
   }
 
   /**

@@ -15,7 +15,9 @@ import {
   InvalidStateError,
   NotSupportedError,
   SignalingErrors,
+  TwilioError,
 } from './errors';
+import PreflightTest from './preflight';
 import { PStream } from './pstream';
 import {
   defaultRegion,
@@ -200,6 +202,15 @@ class Device extends EventEmitter {
    * Whether or not this SDK is supported by the current browser.
    */
   static get isSupported(): boolean { return rtc.enabled(); }
+
+  /**
+   * Run some tests to identify issues, if any, prohibiting successful calling.
+   * @param [token] - A Twilio JWT token string
+   * @param [options] - Options passed to {@link PreflightTest} constructor
+   */
+  static testPreflight(token: string, options: PreflightTest.PreflightOptions): PreflightTest {
+    return new PreflightTest(token, options);
+  }
 
   /**
    * String representation of {@link Device} class.
@@ -694,6 +705,10 @@ class Device extends EventEmitter {
 
     if (this.options.publishEvents === false) {
       this._publisher.disable();
+    } else {
+      this._publisher.on('error', (error: Error) => {
+        this._onPublisherError(error);
+      });
     }
 
     if (networkInformation) {
@@ -993,6 +1008,31 @@ class Device extends EventEmitter {
     if (!this.connections.length) {
       this.soundcache.get(Device.SoundName.Incoming).stop();
     }
+  }
+
+  /**
+   * Called when publisher raises an error event
+   * @param error
+   */
+  private _onPublisherError(publisherError: Error): void {
+    let info;
+    try {
+      const errorResponse = JSON.parse(publisherError.message);
+      info = {
+        code: errorResponse.code,
+        message: errorResponse.message,
+      };
+    } catch {
+      this._log.info('Unable to parse publisher error. The server might be down or unreachable.');
+    }
+
+    const twilioError = new ClientErrors.BadRequest();
+    this.emit('error', {
+      code: twilioError.code,
+      info,
+      message: twilioError.description,
+      twilioError,
+    });
   }
 
   /**
@@ -1398,6 +1438,37 @@ namespace Device {
    * Names of all togglable sounds.
    */
   export type ToggleableSound = Device.SoundName.Incoming | Device.SoundName.Outgoing | Device.SoundName.Disconnect;
+
+  /**
+   * The error format used by errors emitted from {@link Device}.
+   */
+  export interface Error {
+    /**
+     * Error code
+     */
+    code: number;
+
+    /**
+     * Reference to the {@link Connection}
+     * This is usually available if the error is coming from {@link Connection}
+     */
+    connection?: Connection;
+
+    /**
+     * The info object from rtc/peerconnection or eventpublisher. May contain code and message (duplicated here).
+     */
+    info?: { code?: number, message?: string };
+
+    /**
+     * Error message
+     */
+    message: string;
+
+    /**
+     * Twilio Voice related error
+     */
+    twilioError?: TwilioError;
+  }
 
   /**
    * Options that may be passed to the {@link Device} constructor, or Device.setup via public API

@@ -1468,8 +1468,14 @@ describe('Connection', function() {
       });
 
       it('should emit a warning event', (done) => {
-        conn.on('warning', () => done());
-        monitor.emit('warning', { name: 'audio', threshold: { name: 'max' } });
+        const data = { name: 'audioInputLevel', threshold: { name: 'maxDuration', value: 1 }, values: [1, 2, 3] };
+        mediaStream.isMuted = false;
+        conn.on('warning', (name, warningData) => {
+          assert.equal(name, 'constant-audio-input-level');
+          assert.deepStrictEqual(data, warningData);
+          done();
+        });
+        monitor.emit('warning', data);
       });
     });
 
@@ -1479,9 +1485,40 @@ describe('Connection', function() {
         sinon.assert.calledWith(publisher.post, 'warning', 'network-quality-warning-raised');
       });
 
-      it('should emit a warning event', (done) => {
-        conn.on('warning', () => done());
-        monitor.emit('warning', { name: 'foo', threshold: { name: 'max' } });
+      [{
+        name: 'bytesReceived',
+        threshold: 'min',
+        warning: 'low-bytes-received',
+      },{
+        name: 'bytesSent',
+        threshold: 'min',
+        warning: 'low-bytes-sent',
+      },{
+        name: 'jitter',
+        threshold: 'max',
+        warning: 'high-jitter',
+      },{
+        name: 'mos',
+        threshold: 'min',
+        warning: 'low-mos',
+      },{
+        name: 'packetsLostFraction',
+        threshold: 'max',
+        warning: 'high-packet-loss',
+      },{
+        name: 'rtt',
+        threshold: 'max',
+        warning: 'high-rtt',
+      }].forEach(item => {
+        it(`should emit a warning event for ${item.name}`, (done) => {
+          const data = { name: item.name, threshold: { name: item.threshold, value: 1 }, values: [1, 2, 3] };
+          conn.on('warning', (name, warningData) => {
+            assert.equal(name, item.warning);
+            assert.deepStrictEqual(data, warningData);
+            done();
+          });
+          monitor.emit('warning', data);
+        });
       });
     });
   });
