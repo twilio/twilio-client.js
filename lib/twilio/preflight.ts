@@ -132,29 +132,16 @@ class PreflightTest extends EventEmitter {
       return null;
     }
 
-    const keys = Object.keys(this._latestSample)
-      .filter((key) => this._latestSample && typeof this._latestSample[key] === 'number');
-
-    // Get the totals for each key
-    const sampleTotals = this._samples.reduce((totals: any, currentSample: RTCSample) => {
-      keys.forEach((key: string) => {
-        if (!totals[key]) {
-          totals[key] = 0;
-        }
-        totals[key] += currentSample[key];
-      });
-      return totals;
-    }, {});
-
-    // Make a copy of a sample, along with the totals
-    const sample = Object.assign({}, this._latestSample, sampleTotals);
-
-    // Calculate the average
-    keys.forEach((key: string) => {
-      sample[key] = sample[key] / this._samples.length;
-    });
-
-    return sample;
+    return this._samples.reduce((cumulativeAverage: RTCSample, currentSample: RTCSample, index: number) => {
+      Object.keys(cumulativeAverage)
+        .filter((key: string) => typeof cumulativeAverage[key] === 'number')
+        .forEach((key: string) => {
+          const currentAverage = index === 0 ? 0 : cumulativeAverage[key];
+          // Cumulative average formula: avg = (x + n * avg) / (n + 1)
+          cumulativeAverage[key] = (currentSample[key] + index * currentAverage) / (index + 1);
+        });
+      return cumulativeAverage;
+    }, { ...this._latestSample });
   }
 
   /**
