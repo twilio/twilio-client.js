@@ -1,13 +1,25 @@
-1.9.6 (In Progress)
+1.9.7 (Dec 6, 2019)
+===================
+
+Added an experimental feature to enable 
+[Aggressive ICE Candidate Nomination](https://tools.ietf.org/html/rfc5245#section-8.1.1.2). This feature can be enabled by setting `forceAggressiveIceNomination` to true. If your deployment is on devices with one network interface and your RTT to Twilio's Servers is typically greater than 96 milliseconds, this feature may help reduce call connect time. As this is an experimental feature, we dont recommend enabling this until after testing it thoroughly in your deployment.
+
+Example:
+
+```
+Device.setup(TOKEN, {
+  forceAggressiveIceNomination: true
+});
+```
+
+1.9.6 (Nov 22, 2019)
 ===================
 
 Improvements
 ---------
 
-* Added additional triggers for media reconnection. ICE Restarts will be issued and will follow retry policy as defined in [media reconnection](https://www.twilio.com/docs/voice/client/javascript/connection#onreconnecting-handlererror) API.
-  * ICE Gathering Failure - happens when ICE Gathering state transitions to `complete` and no ICE Candidates were successfully gathered.
-  * ICE Gathering Timeout - happens when ICE Gathering exceeded 15 seconds and no ICE candidates were successfully gathered.
-* Locally gathered ICE candidates are now reported to Insights. (CLIENT-6957)
+* New improvements to [media reconnection](https://www.twilio.com/docs/voice/client/javascript/connection#onreconnecting-handlererror). ICE restart is now also requested when ICE gathering fails (transitions to complete and no ICE candidates were gathered), or ICE gathering exceeds 15 seconds and no ICE candidates were gathered.
+* Locally gathered ICE candidates are now logged for debugging purposes. (CLIENT-6957)
 
 1.9.5 (Nov 5, 2019)
 ===================

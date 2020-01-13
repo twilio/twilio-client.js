@@ -298,6 +298,7 @@ class Connection extends EventEmitter {
         debug: this.options.debug,
         dscp: this.options.dscp,
         enableIceRestart: this.options.enableIceRestart,
+        forceAggressiveIceNomination: this.options.forceAggressiveIceNomination,
         isUnifiedPlan: this._isUnifiedPlanDefault,
         maxAverageBitrate: this.options.maxAverageBitrate,
         warnings: this.options.warnings,
@@ -1610,6 +1611,12 @@ namespace Connection {
      * Whether the ringing state should be enabled.
      */
     enableRingingState?: boolean;
+
+    /**
+     * Experimental feature.
+     * Force Chrome's ICE agent to use aggressive nomination when selecting a candidate pair.
+     */
+    forceAggressiveIceNomination?: boolean;
 
     /**
      * The gateway currently connected to.
