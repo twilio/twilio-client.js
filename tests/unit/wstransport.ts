@@ -73,6 +73,10 @@ describe('WSTransport', () => {
 
   describe('#open, called', () => {
     describe('before anything else', () => {
+      afterEach(() => {
+        transport.close();
+      });
+
       it('returns undefined', () => {
         assert.equal(transport.open(), undefined);
       });
@@ -111,6 +115,10 @@ describe('WSTransport', () => {
         socket = wsManager.instances[0];
       });
 
+      afterEach(() => {
+        transport.close();
+      });
+
       it('returns undefined', () => {
         assert.equal(transport.open(), undefined);
       });
@@ -124,6 +132,11 @@ describe('WSTransport', () => {
     describe('after calling #open and then #close', () => {
       beforeEach(() => {
         transport.open();
+        transport.close();
+      });
+
+      afterEach(() => {
+        (transport as any)._backoff.reset();
         transport.close();
       });
 
@@ -149,6 +162,10 @@ describe('WSTransport', () => {
       beforeEach(() => {
         transport.open();
         socket = wsManager.instances[0];
+      });
+
+      afterEach(() => {
+        transport.close();
       });
 
       it('returns false', () => {
@@ -214,6 +231,10 @@ describe('WSTransport', () => {
       socket = wsManager.instances[0];
     });
 
+    afterEach(() => {
+      transport.close();
+    });
+
     context('when receiving a heartbeat', () => {
       it('should respond', () => {
         socket._readyState = WebSocket.OPEN;
@@ -252,6 +273,10 @@ describe('WSTransport', () => {
       socket = wsManager.instances[0];
     });
 
+    afterEach(() => {
+      transport.close();
+    });
+
     it('should set state to open', () => {
       socket.dispatchEvent({ type: WSTransportState.Open });
       assert.equal(transport.state, WSTransportState.Open);
@@ -274,6 +299,8 @@ describe('WSTransport', () => {
       socket.dispatchEvent({ type: 'error' });
       assert.equal((transport as any).emit.callCount, 1);
       assert.equal((transport as any).emit.args[0][0], 'error');
+
+      transport.close();
     });
   });
 
@@ -281,6 +308,10 @@ describe('WSTransport', () => {
     beforeEach(() => {
       transport.open();
       socket = wsManager.instances[0];
+    });
+
+    afterEach(() => {
+      transport.close();
     });
 
     it('should set state to connecting', () => {

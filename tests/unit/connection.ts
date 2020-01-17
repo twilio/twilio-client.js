@@ -471,7 +471,7 @@ describe('Connection', function() {
 
   describe('.cancel()', () => {
     it('should call .ignore()', () => {
-      conn.ignore = sinon.spy(conn.ignore);
+      conn.ignore = sinon.spy();
       conn.cancel();
       sinon.assert.calledOnce(conn.ignore as SinonSpy);
     });
@@ -851,7 +851,7 @@ describe('Connection', function() {
 
   describe('.unmute()', () => {
     it('should call .mute(false)', () => {
-      conn.mute = sinon.spy(conn.mute);
+      conn.mute = sinon.spy();
       conn.unmute();
       sinon.assert.calledWith(conn.mute as SinonSpy, false);
     });
