@@ -1,3 +1,12 @@
+1.9.8 (In Progress)
+===================
+
+* We now report registration and unregistration for incoming calls to Insights.
+* Added a new Device event, `open`, indicating that the signaling has opened successfully
+  and the Device is ready to place outgoing calls.
+* Updated the `ready` and `offline` event descriptions to reflect that they indicate when 
+  the device has successfully registered or unregistered to listen for incoming calls.
+
 1.9.7 (Dec 6, 2019)
 ===================
 

@@ -1010,6 +1010,7 @@ class Device extends EventEmitter {
    */
   private _onSignalingConnected = (payload: Record<string, any>) => {
     this._region = getRegionShortcode(payload.region) || payload.region;
+    this.emit('open', this);
     this._sendPresence();
   }
 
@@ -1086,6 +1087,7 @@ class Device extends EventEmitter {
     this._log.info('Stream is offline');
     this._status = Device.Status.Offline;
     this._region = null;
+    this._publisher.info('registration', 'unregistration', { }, this._activeConnection);
     this.emit('offline', this);
   }
 
@@ -1095,6 +1097,7 @@ class Device extends EventEmitter {
   private _onSignalingReady = () => {
     this._log.info('Stream is ready');
     this._status = Device.Status.Ready;
+    this._publisher.info('registration', 'registration', { }, this._activeConnection);
     this.emit('ready', this);
   }
 
@@ -1339,7 +1342,7 @@ namespace Device {
   declare function incomingEvent(connection: Connection): void;
 
   /**
-   * Emitted when the {@link Device} goes offline.
+   * Emitted when the {@link Device} becomes unregistered for incoming calls.
    * @param device
    * @example `device.on('offline', device => { })`
    * @event
@@ -1347,7 +1350,15 @@ namespace Device {
   declare function offlineEvent(device: Device): void;
 
   /**
-   * Emitted when the {@link Device} is connected to signaling and ready.
+   * Emitted when the {@link Device} connection signaling channel opens and is ready.
+   * @param device
+   * @example `device.on('open', device => { })`
+   * @event
+   */
+  declare function openEvent(device: Device): void;
+
+  /**
+   * Emitted when the {@link Device} successfully registers for incoming calls.
    * @param device
    * @example `device.on('ready', device => { })`
    * @event
