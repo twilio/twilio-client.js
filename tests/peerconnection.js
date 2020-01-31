@@ -482,6 +482,7 @@ describe('PeerConnection', () => {
         _initializeMediaStream: sinon.stub(),
         _maybeSetIceAggressiveNomination: (sdp) => sdp,
         _setEncodingParameters: sinon.stub(),
+        _setupRTCDtlsTransportListener: sinon.stub(),
         callSid: null,
         options: { dscp: true },
         version,
@@ -526,6 +527,7 @@ describe('PeerConnection', () => {
       assert(version.processSDP.calledOnce);
       assert(version.processSDP.calledWithExactly(undefined, undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(callback.called, false);
+      sinon.assert.notCalled(context._setupRTCDtlsTransportListener);
     });
 
     it('Should call onMediaStarted callback when processSDP success callback called and status is not closed', () => {
@@ -544,6 +546,7 @@ describe('PeerConnection', () => {
       assert(version.getSDP.calledOn(version));
       assert.equal(context._setEncodingParameters.callCount, 1);
       sinon.assert.calledWith(context._setEncodingParameters, true);
+      sinon.assert.calledOnce(context._setupRTCDtlsTransportListener);
       assert(callback.calledWithExactly(version.pc));
       assert.equal(context.onerror.called, false);
     });
@@ -565,6 +568,7 @@ describe('PeerConnection', () => {
       assert.equal(context.pstream.publish.called, false);
       assert.equal(version.getSDP.called, false);
       assert.equal(callback.called, false);
+      sinon.assert.notCalled(context._setupRTCDtlsTransportListener);
     });
 
     it('Should call onerror event when processSDP error callback is called and returns error message', () => {
@@ -583,6 +587,7 @@ describe('PeerConnection', () => {
       assert.equal(version.getSDP.called, false);
       sinon.assert.notCalled(context._setEncodingParameters);
       assert.equal(callback.called, false);
+      sinon.assert.notCalled(context._setupRTCDtlsTransportListener);
     });
 
     it('Should call callback for each success callback processSDP calls', () => {
@@ -595,6 +600,7 @@ describe('PeerConnection', () => {
       assert(callback.calledWithExactly(version.pc));
       assert(callback.calledTwice);
       assert.equal(context.onerror.called, false);
+      sinon.assert.calledTwice(context._setupRTCDtlsTransportListener);
     });
 
     it('Should call onerror for each error callback processSDP calls', () => {
@@ -610,6 +616,7 @@ describe('PeerConnection', () => {
 
       assert(context.onerror.calledTwice);
       assert.equal(callback.called, false);
+      sinon.assert.notCalled(context._setupRTCDtlsTransportListener);
     });
 
   });
@@ -791,6 +798,7 @@ describe('PeerConnection', () => {
         _initializeMediaStream: sinon.stub().returns(true),
         _maybeSetIceAggressiveNomination: (sdp) => sdp,
         _setEncodingParameters: sinon.stub(),
+        _setupRTCDtlsTransportListener: sinon.stub(),
         callSid: null,
         version,
         status: CLOSED,
@@ -842,6 +850,7 @@ describe('PeerConnection', () => {
       assert.equal(callback.called, false);
       assert.equal(context.pstream.publish.called, false);
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
+      sinon.assert.notCalled(context._setupRTCDtlsTransportListener);
     });
 
     it('Should call onOfferSuccess and pstream publish when createOffer calls success callback and status is not closed', () => {
@@ -863,6 +872,7 @@ describe('PeerConnection', () => {
       assert(version.getSDP.calledOnce);
       assert(version.getSDP.calledWithExactly());
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
+      sinon.assert.calledOnce(context._setupRTCDtlsTransportListener);
     });
 
     it('Should call onOfferSuccess when createOffer calls success callback and status is not closed and device token is not truthy', () => {
@@ -1106,6 +1116,68 @@ describe('PeerConnection', () => {
         assert(context.sinkIds instanceof Set);
         assert(context.sinkIds.has('a'));
         assert(!context._updateAudioOutputs.called);
+      });
+    });
+  });
+
+  context('PeerConnection.prototype._setupRTCDtlsTransportListener', () => {
+    const METHOD = PeerConnection.prototype._setupRTCDtlsTransportListener;
+
+    describe('when dtls transport is not supported', () => {
+      let context = null;
+      let transport = null;
+
+      beforeEach(() => {
+        transport = { state: 'new' };
+        context = {
+          getRTCDtlsTransport: sinon.stub().returns(transport),
+          log: sinon.stub(),
+          ondtlstransportstatechange: sinon.stub(),
+        };
+        toTest = METHOD.bind(context);
+      });
+
+      it('should not subscribe to dtls state change if dtls transport is not yet available', () => {
+        context.getRTCDtlsTransport = () => null;
+        toTest();
+        sinon.assert.notCalled(context.ondtlstransportstatechange);
+      });
+
+      it('should not subscribe to dtls state change more than once', () => {
+        toTest();
+        toTest();
+        toTest();
+        sinon.assert.calledOnce(context.ondtlstransportstatechange);
+        assert(typeof transport.onstatechange === 'function');
+      });
+    });
+
+    describe('on state changes', () => {
+      let context = null;
+      let transport = null;
+
+      before(() => {
+        transport = { state: 'new' };
+        context = {
+          getRTCDtlsTransport: sinon.stub().returns(transport),
+          log: sinon.stub(),
+          ondtlstransportstatechange: sinon.stub(),
+        };
+        METHOD.call(context);
+
+        sinon.assert.calledWithExactly(context.ondtlstransportstatechange, 'new');
+        sinon.assert.calledOnce(context.ondtlstransportstatechange);
+      });
+
+      ['new', 'connecting', 'connected', 'closed', 'failed'].forEach(state => {
+        it(`should call ondtlstransportstatechange when dtls transport state is ${state}`, () => {
+          context.ondtlstransportstatechange = sinon.stub();
+          transport.state = state;
+          transport.onstatechange();
+
+          sinon.assert.calledWithExactly(context.ondtlstransportstatechange, state);
+          sinon.assert.calledOnce(context.ondtlstransportstatechange);
+        });
       });
     });
   });

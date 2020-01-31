@@ -324,6 +324,11 @@ class Connection extends EventEmitter {
       this.emit('volume', inputVolume, outputVolume);
     };
 
+    this.mediaStream.ondtlstransportstatechange = (state: string): void => {
+      const level = state === 'failed' ? 'error' : 'debug';
+      this._publisher.post(level, 'dtls-transport-state', state, null, this);
+    };
+
     this.mediaStream.onpcconnectionstatechange = (state: string): void => {
       let level = 'debug';
       const dtlsTransport = this.mediaStream.getRTCDtlsTransport();
