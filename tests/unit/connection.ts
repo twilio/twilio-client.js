@@ -889,6 +889,18 @@ describe('Connection', function() {
       });
     });
 
+    describe('mediaStream.ondtlstransportstatechange', () => {
+      it('should publish an error event if state is failed', () => {
+        mediaStream.ondtlstransportstatechange('failed');
+        sinon.assert.calledWith(publisher.post, 'error', 'dtls-transport-state', 'failed');
+      });
+
+      it('should publish a debug event if state is not failed', () => {
+        mediaStream.ondtlstransportstatechange('foo');
+        sinon.assert.calledWith(publisher.post, 'debug', 'dtls-transport-state', 'foo');
+      });
+    });
+
     describe('mediaStream.oniceconnectionstatechange', () => {
       it('should publish an error event if state is failed', () => {
         mediaStream.oniceconnectionstatechange('failed');
