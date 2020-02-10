@@ -16,13 +16,13 @@ import {
   NotSupportedError,
   SignalingErrors,
 } from './errors';
+import Logger from './logger';
 import { PStream } from './pstream';
 import {
   defaultRegion,
   getRegionShortcode,
   getRegionURI,
 } from './regions';
-import Log, { LogLevel } from './tslog';
 import { Exception, queryToJson } from './util';
 
 const C = require('./constants');
@@ -98,11 +98,6 @@ export interface IExtendedDeviceOptions extends Device.Options {
    * ORTC are supported.
    */
   ignoreBrowserSupport?: boolean;
-
-  /**
-   * Custom {@link Log} constructor
-   */
-  Log?: typeof Log;
 
   /**
    * Whether to disable audio flag in MediaPresence (rrowland: Do we need this?)
@@ -202,6 +197,11 @@ class Device extends EventEmitter {
   static get isSupported(): boolean { return rtc.enabled(); }
 
   /**
+   * Package name of the SDK.
+   */
+  static get packageName(): string { return C.PACKAGE_NAME; }
+
+  /**
    * String representation of {@link Device} class.
    * @private
    */
@@ -287,14 +287,9 @@ class Device extends EventEmitter {
   private _isBrowserExtension: boolean;
 
   /**
-   * An instance of Log to use.
+   * An instance of Logger to use.
    */
-  private _log: Log = new Log(LogLevel.Off);
-
-  /**
-   * The current LogLevel
-   */
-  private _logLevel: LogLevel = LogLevel.Off;
+  private _logger: Logger = Logger.getInstance();
 
   /**
    * An Insights Event Publisher.
@@ -382,7 +377,7 @@ class Device extends EventEmitter {
     }
 
     if (this._isBrowserExtension) {
-      this._log.info('Running as browser extension.');
+      this._logger.info('Running as browser extension.');
     }
 
     if (token) {
@@ -611,7 +606,7 @@ class Device extends EventEmitter {
     }
 
     if (this.isInitialized) {
-      this._log.info('Found existing Device; using new token but ignoring options');
+      this._logger.info('Found existing Device; using new token but ignoring options');
       this.updateToken(token);
       return this;
     }
@@ -624,14 +619,13 @@ class Device extends EventEmitter {
       (this.options.rtcConstraints as any).optional = [{ googDscp: true }];
     }
 
-    this._logLevel = this.options.debug ? LogLevel.Debug
-      : this.options.warnings ? LogLevel.Warn
-      : LogLevel.Off;
-    this._log = new (this.options.Log || Log)(this._logLevel);
+    this._logger.setDefaultLevel(this.options.debug ? Logger.levels.DEBUG
+      : this.options.warnings ? Logger.levels.WARN
+      : Logger.levels.SILENT);
 
     const getOrSetSound = (key: Device.ToggleableSound, value?: boolean) => {
       if (!hasBeenWarnedSounds) {
-        this._log.warn('Device.sounds is deprecated and will be removed in the next breaking ' +
+        this._logger.warn('Device.sounds is deprecated and will be removed in the next breaking ' +
           'release. Please use the new functionality available on Device.audio.');
         hasBeenWarnedSounds = true;
       }
@@ -648,7 +642,7 @@ class Device extends EventEmitter {
       this.sounds[eventName] = getOrSetSound.bind(null, eventName);
     });
 
-    const regionURI = getRegionURI(this.options.region, newRegion => this._log.warn(
+    const regionURI = getRegionURI(this.options.region, newRegion => this._logger.warn(
       `Region ${this.options.region} is deprecated, please use ${newRegion}.`,
     ));
 
@@ -705,7 +699,6 @@ class Device extends EventEmitter {
         (this._updateSinkIds, this._updateInputStream, getUserMedia, {
       audioContext: Device.audioContext,
       enabledSounds: this._enabledSounds,
-      logLevel: this._logLevel,
     }) as AudioHelper;
 
     this.audio.on('deviceChange', (lostActiveDevices: MediaDeviceInfo[]) => {
@@ -738,7 +731,7 @@ class Device extends EventEmitter {
     // via error event.
     this.on(Device.EventName.Error, () => {
       if (this.listenerCount('error') > 1) { return; }
-      this._log.info('Uncaught error event suppressed.');
+      this._logger.info('Uncaught error event suppressed.');
     });
 
     return this;
@@ -788,7 +781,7 @@ class Device extends EventEmitter {
    */
   private _addHandler(eventName: Device.EventName, handler: (...args: any[]) => any): this {
     if (!hasBeenWarnedHandlers) {
-      this._log.warn(`Device callback handlers (connect, error, offline, incoming, cancel, ready, disconnect) \
+      this._logger.warn(`Device callback handlers (connect, error, offline, incoming, cancel, ready, disconnect) \
         have been deprecated and will be removed in the next breaking release. Instead, the EventEmitter \
         interface can be used to set event listeners. Example: device.on('${eventName}', handler)`);
       hasBeenWarnedHandlers = true;
@@ -905,7 +898,6 @@ class Device extends EventEmitter {
         this._removeConnection(this._activeConnection);
       },
       codecPreferences: this.options.codecPreferences,
-      debug: this.options.debug,
       dialtonePlayer: Device._dialtonePlayer,
       dscp: this.options.dscp,
       enableIceRestart: this.options.enableIceRestart,
@@ -918,7 +910,6 @@ class Device extends EventEmitter {
       rtcConstraints: this.options.rtcConstraints,
       shouldPlayDisconnect: () => this._enabledSounds.disconnect,
       twimlParams,
-      warnings: this.options.warnings,
     }, options);
 
     const connection = new this.options.connectionFactory(config, options);
@@ -949,7 +940,7 @@ class Device extends EventEmitter {
     });
 
     connection.once('cancel', () => {
-      this._log.info(`Canceled: ${connection.parameters.CallSid}`);
+      this._logger.info(`Canceled: ${connection.parameters.CallSid}`);
       this._removeConnection(connection);
       if (this.audio) {
         this.audio._maybeStopPollingVolume();
@@ -967,7 +958,7 @@ class Device extends EventEmitter {
     });
 
     connection.once('reject', () => {
-      this._log.info(`Rejected: ${connection.parameters.CallSid}`);
+      this._logger.info(`Rejected: ${connection.parameters.CallSid}`);
       if (this.audio) {
         this.audio._maybeStopPollingVolume();
       }
@@ -1037,7 +1028,7 @@ class Device extends EventEmitter {
       error.twilioError = new GeneralErrors.UnknownError();
     }
 
-    this._log.info('Received error: ', error);
+    this._logger.info('Received error: ', error);
     this.emit('error', error);
   }
 
@@ -1047,7 +1038,7 @@ class Device extends EventEmitter {
   private _onSignalingInvite = (payload: Record<string, any>) => {
     const wasBusy = !!this._activeConnection;
     if (wasBusy && !this.options.allowIncomingWhileBusy) {
-      this._log.info('Device busy; ignoring incoming invite');
+      this._logger.info('Device busy; ignoring incoming invite');
       return;
     }
 
@@ -1083,7 +1074,7 @@ class Device extends EventEmitter {
    * Called when an 'offline' event is received from the signaling stream.
    */
   private _onSignalingOffline = () => {
-    this._log.info('Stream is offline');
+    this._logger.info('Stream is offline');
     this._status = Device.Status.Offline;
     this._region = null;
     this.emit('offline', this);
@@ -1093,7 +1084,7 @@ class Device extends EventEmitter {
    * Called when a 'ready' event is received from the signaling stream.
    */
   private _onSignalingReady = () => {
-    this._log.info('Stream is ready');
+    this._logger.info('Stream is ready');
     this._status = Device.Status.Ready;
     this.emit('ready', this);
   }
@@ -1152,10 +1143,9 @@ class Device extends EventEmitter {
    * @param token
    */
   private _setupStream(token: string) {
-    this._log.info('Setting up VSP');
+    this._logger.info('Setting up VSP');
     this.stream = this.options.pStreamFactory(token, this.options.chunderw, {
       backoffMaxMs: this.options.backoffMaxMs,
-      debug: this.options.debug,
     });
 
     this.stream.addListener('close', this._onSignalingClose);
@@ -1182,7 +1172,7 @@ class Device extends EventEmitter {
         }, RINGTONE_PLAY_TIMEOUT);
       }),
     ]).catch(reason => {
-      this._log.info(reason.message);
+      this._logger.info(reason.message);
     }).then(() => {
       clearTimeout(timeout);
       this.emit('incoming', connection);

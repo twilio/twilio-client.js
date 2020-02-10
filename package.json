@@ -15,7 +15,7 @@
     "url": "git@github.com:twilio/twilio-client.js.git"
   },
   "scripts": {
-    "build": "npm-run-all clean build:version build:errors docs:ts build:es5 build:ts build:dist build:dist-min",
+    "build": "npm-run-all clean build:constants build:errors docs:ts build:es5 build:ts build:dist build:dist-min",
     "build:errors": "node ./scripts/errors.js",
     "build:es5": "rimraf ./es5 && babel lib -d es5",
     "build:dev": "ENV=dev npm run build",
@@ -23,7 +23,7 @@
     "build:dist-min": "uglifyjs ./dist/twilio.js -o ./dist/twilio.min.js --comments \"/^! twilio-client.js/\" -b beautify=false,ascii_only=true",
     "build:release": "npm-run-all lint build test:webpack test:es5 status",
     "build:ts": "./node_modules/typescript/bin/tsc",
-    "build:version": "node ./scripts/version.js",
+    "build:constants": "node ./scripts/constants.js",
     "clean": "rimraf ./coverage ./dist ./es5",
     "coverage": "nyc ./node_modules/mocha/bin/mocha -r ts-node/register ./tests/index.ts",
     "coverage:check": "nyc check-coverage --lines 60 --branches 60 --functions 60",
@@ -116,6 +116,7 @@
     "@twilio/audioplayer": "1.0.6",
     "@twilio/voice-errors": "1.0.1",
     "backoff": "2.5.0",
+    "loglevel": "1.6.7",
     "rtcpeerconnection-shim": "1.2.8",
     "ws": "6.1.3",
     "xmlhttprequest": "1.8.0"

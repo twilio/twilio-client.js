@@ -4,9 +4,9 @@
 import { EventEmitter } from 'events';
 import Device from './device';
 import { InvalidArgumentError, NotSupportedError } from './errors';
+import Logger from './logger';
 import OutputDeviceCollection from './outputdevicecollection';
 import * as defaultMediaDevices from './shims/mediadevices';
-import Log, { LogLevel } from './tslog';
 import { average, difference, isFirefox } from './util';
 
 const MediaDeviceInfoShim = require('./shims/mediadeviceinfo');
@@ -120,9 +120,9 @@ class AudioHelper extends EventEmitter {
   private _isPollingInputVolume: boolean = false;
 
   /**
-   * An instance of Log to use.
+   * An instance of Logger to use.
    */
-  private _log: Log;
+  private _logger: Logger = Logger.getInstance();
 
   /**
    * The MediaDevices instance to use.
@@ -162,7 +162,6 @@ class AudioHelper extends EventEmitter {
     }, options);
 
     this._getUserMedia = getUserMedia;
-    this._log = new Log(options.logLevel || LogLevel.Warn);
     this._mediaDevices = options.mediaDevices || defaultMediaDevices;
     this._onActiveInputChanged = onActiveInputChanged;
 
@@ -208,11 +207,11 @@ class AudioHelper extends EventEmitter {
       //   returns bad data for the listed devices. Instead, we check for
       //   isOutputSelectionSupported to avoid these quirks that may negatively affect customers.
       if (!this.isOutputSelectionSupported) {
-        this._log.warn('Warning: This browser does not support audio output selection.');
+        this._logger.warn('Warning: This browser does not support audio output selection.');
       }
 
       if (!this.isVolumeSupported) {
-        this._log.warn(`Warning: This browser does not support Twilio's volume indicator feature.`);
+        this._logger.warn(`Warning: This browser does not support Twilio's volume indicator feature.`);
       }
     });
 
@@ -402,7 +401,7 @@ class AudioHelper extends EventEmitter {
         this.speakerDevices.set('default'),
         this.ringtoneDevices.set('default'),
       ]).catch(reason => {
-        this._log.warn(`Warning: Unable to set audio output devices. ${reason}`);
+        this._logger.warn(`Warning: Unable to set audio output devices. ${reason}`);
       });
     });
   }
@@ -566,7 +565,7 @@ class AudioHelper extends EventEmitter {
       //   event or readyState because it is asynchronous and may take upwards of 5 seconds,
       //   in my testing. (rrowland)
       if (this.inputDevice !== null && this.inputDevice.deviceId === 'default') {
-        this._log.warn(`Calling getUserMedia after device change to ensure that the \
+        this._logger.warn(`Calling getUserMedia after device change to ensure that the \
           tracks of the active device (default) have not gone stale.`);
         this._setInputDevice(this.inputDevice.deviceId, true);
       }
@@ -672,11 +671,6 @@ namespace AudioHelper {
      * TODO: Remove / refactor in 2.0. (CLIENT-5302)
      */
     enabledSounds?: Record<Device.ToggleableSound, boolean>;
-
-    /**
-     * Logging level to use.
-     */
-    logLevel?: LogLevel;
 
     /**
      * A custom MediaDevices instance to use.
