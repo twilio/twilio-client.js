@@ -7,7 +7,7 @@ import { EventEmitter } from 'events';
 import Device from './device';
 import DialtonePlayer from './dialtonePlayer';
 import { GeneralErrors, InvalidArgumentError, MediaErrors, TwilioError } from './errors';
-import Logger from './logger';
+import Log from './log';
 import { RTCIceCandidate, RTCLocalIceCandidate } from './rtc/candidate';
 import RTCSample from './rtc/sample';
 import RTCWarning from './rtc/warning';
@@ -170,7 +170,7 @@ class Connection extends EventEmitter {
   /**
    * An instance of Logger to use.
    */
-  private _logger: Logger = Logger.getInstance();
+  private _log: Log = Log.getInstance();
 
   /**
    * An instance of Backoff for media reconnection
@@ -356,7 +356,7 @@ class Connection extends EventEmitter {
     };
 
     this.mediaStream.ondisconnected = (msg: string): void => {
-      this._logger.info(msg);
+      this._log.info(msg);
       this._publisher.warn('network-quality-warning-raised', 'ice-connectivity-lost', {
         message: msg,
       }, this);
@@ -377,7 +377,7 @@ class Connection extends EventEmitter {
     };
 
     this.mediaStream.onreconnected = (msg: string): void => {
-      this._logger.info(msg);
+      this._log.info(msg);
       this._publisher.info('network-quality-warning-cleared', 'ice-connectivity-lost', {
         message: msg,
       }, this);
@@ -397,7 +397,7 @@ class Connection extends EventEmitter {
         twilioError: e.info.twilioError,
       };
 
-      this._logger.error('Received an error from MediaStream:', e);
+      this._log.error('Received an error from MediaStream:', e);
       this.emit('error', error);
     };
 
@@ -441,7 +441,7 @@ class Connection extends EventEmitter {
     this.pstream.on('ringing', this._onRinging);
 
     this.pstream.on('transportClose', () => {
-      this._logger.error('Received transportClose from pstream');
+      this._log.error('Received transportClose from pstream');
       this.emit('transportClose');
     });
 
@@ -466,7 +466,7 @@ class Connection extends EventEmitter {
    * @private
    */
   _getRealCallSid(): string | null {
-    this._logger.warn('_getRealCallSid is deprecated and will be removed in 2.0.');
+    this._log.warn('_getRealCallSid is deprecated and will be removed in 2.0.');
     return /^TJ/.test(this.parameters.CallSid) ? null : this.parameters.CallSid;
   }
 
@@ -476,7 +476,7 @@ class Connection extends EventEmitter {
    * @private
    */
   _getTempCallSid(): string | undefined {
-    this._logger.warn('_getTempCallSid is deprecated and will be removed in 2.0. \
+    this._log.warn('_getTempCallSid is deprecated and will be removed in 2.0. \
                     Please use outboundConnectionId instead.');
     return this.outboundConnectionId;
   }
@@ -631,7 +631,7 @@ class Connection extends EventEmitter {
    */
   cancel(handler: () => void): void;
   cancel(handler?: () => void): void {
-    this._logger.warn('.cancel() is deprecated. Please use .ignore() instead.');
+    this._log.warn('.cancel() is deprecated. Please use .ignore() instead.');
 
     if (handler) {
       this.ignore(handler);
@@ -840,7 +840,7 @@ class Connection extends EventEmitter {
 
     if (dtmfSender) {
       if (!('canInsertDTMF' in dtmfSender) || dtmfSender.canInsertDTMF) {
-        this._logger.info('Sending digits using RTCDTMFSender');
+        this._log.info('Sending digits using RTCDTMFSender');
         // NOTE(mroberts): We can't just map 'w' to ',' since
         // RTCDTMFSender's pause duration is 2 s and Twilio's is more
         // like 500 ms. Instead, we will fudge it with setTimeout.
@@ -848,11 +848,11 @@ class Connection extends EventEmitter {
         return;
       }
 
-      this._logger.info('RTCDTMFSender cannot insert DTMF');
+      this._log.info('RTCDTMFSender cannot insert DTMF');
     }
 
     // send pstream message to send DTMF
-    this._logger.info('Sending digits over PStream');
+    this._log.info('Sending digits over PStream');
 
     if (this.pstream !== null && this.pstream.status !== 'disconnected') {
       this.pstream.publish('dtmf', {
@@ -886,7 +886,7 @@ class Connection extends EventEmitter {
    * @deprecated - Unmute the {@link Connection}.
    */
   unmute(): void {
-    this._logger.warn('.unmute() is deprecated. Please use .mute(false) to unmute a call instead.');
+    this._log.warn('.unmute() is deprecated. Please use .mute(false) to unmute a call instead.');
     this.mute(false);
   }
 
@@ -896,7 +896,7 @@ class Connection extends EventEmitter {
    */
   volume(handler: (inputVolume: number, outputVolume: number) => void): void {
     if (!window || (!(window as any).AudioContext && !(window as any).webkitAudioContext)) {
-      this._logger.warn('This browser does not support Connection.volume');
+      this._log.warn('This browser does not support Connection.volume');
     }
 
     this._addHandler('volume', handler);
@@ -909,7 +909,7 @@ class Connection extends EventEmitter {
    */
   private _addHandler(eventName: string, handler: (...args: any[]) => any): this {
     if (!hasBeenWarnedHandlers) {
-      this._logger.warn(`Connection callback handlers (accept, cancel, disconnect, error, ignore, mute, reject,
+      this._log.warn(`Connection callback handlers (accept, cancel, disconnect, error, ignore, mute, reject,
         volume) have been deprecated and will be removed in the next breaking release. Instead, the EventEmitter \
         interface can be used to set event listeners. Example: connection.on('${eventName}', handler)`);
       hasBeenWarnedHandlers = true;
@@ -1014,7 +1014,7 @@ class Connection extends EventEmitter {
       return;
     }
 
-    this._logger.info('Disconnecting...');
+    this._log.info('Disconnecting...');
 
     // send pstream hangup message
     if (this.pstream !== null && this.pstream.status !== 'disconnected' && this.sendHangup) {
@@ -1139,7 +1139,7 @@ class Connection extends EventEmitter {
       return;
     }
 
-    this._logger.info('Received HANGUP from gateway');
+    this._log.info('Received HANGUP from gateway');
     if (payload.error) {
       const error = {
         code: payload.error.code || 31000,
@@ -1147,7 +1147,7 @@ class Connection extends EventEmitter {
         message: payload.error.message || 'Error sent from gateway in HANGUP',
         twilioError: new GeneralErrors.ConnectionError(),
       };
-      this._logger.error('Received an error from the gateway:', error);
+      this._log.error('Received an error from the gateway:', error);
       this.emit('error', error);
     }
     this.sendHangup = false;
@@ -1193,7 +1193,7 @@ class Connection extends EventEmitter {
 
         // We already exceeded max retry time.
         if (Date.now() - this._mediaReconnectStartTime > BACKOFF_CONFIG.maxDelay) {
-          this._logger.info('Exceeded max ICE retries');
+          this._log.info('Exceeded max ICE retries');
           return this.mediaStream.onerror(MEDIA_DISCONNECT_ERROR);
         }
 
@@ -1219,7 +1219,7 @@ class Connection extends EventEmitter {
         message: 'Media connection failed.',
         twilioError: new MediaErrors.ConnectionError(),
       };
-      this._logger.warn('ICE Connection disconnected.');
+      this._log.warn('ICE Connection disconnected.');
       this._publisher.warn('connection', 'error', mediaReconnectionError, this);
       this._publisher.info('connection', 'reconnecting', null, this);
 
@@ -1241,7 +1241,7 @@ class Connection extends EventEmitter {
     if (this._status !== Connection.State.Reconnecting) {
       return;
     }
-    this._logger.info('ICE Connection reestablished.');
+    this._log.info('ICE Connection reestablished.');
     this._publisher.info('connection', 'reconnected', null, this);
 
     this._status = Connection.State.Open;
@@ -1313,7 +1313,7 @@ class Connection extends EventEmitter {
     this._publisher.postMetrics(
       'quality-metrics-samples', 'metrics-sample', this._metricsSamples.splice(0), this._createMetricPayload(), this,
     ).catch((e: any) => {
-      this._logger.warn('Unable to post metrics to Insights. Received error:', e);
+      this._log.warn('Unable to post metrics to Insights. Received error:', e);
     });
   }
 

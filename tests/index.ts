@@ -81,5 +81,5 @@ require('./unit/deferred');
 require('./unit/wstransport');
 require('./unit/statsMonitor');
 require('./unit/error');
-require('./unit/logger');
+require('./unit/log');
 require('./unit/regions');

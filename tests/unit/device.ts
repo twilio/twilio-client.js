@@ -120,11 +120,11 @@ describe('Device', function() {
       assert.equal(conn['options'].forceAggressiveIceNomination, true);
     });
 
-    describe('logger', () => {
+    describe('log', () => {
       let setDefaultLevelStub: any;
       beforeEach(() => {
         setDefaultLevelStub = sinon.stub();
-        device['_logger'].setDefaultLevel = setDefaultLevelStub;
+        device['_log'].setDefaultLevel = setDefaultLevelStub;
       });
 
       it('should set log level to DEBUG if debug is true and warnings is true', () => {
@@ -483,7 +483,7 @@ describe('Device', function() {
     describe('.sounds', () => {
       it('should log a deprecation warning the first time a child method is called', () => {
         const spy: SinonSpy = sinon.spy();
-        device['_logger'].warn = spy;
+        device['_log'].warn = spy;
         assert(device.sounds.incoming);
         if (device.sounds.incoming) {
           device.sounds.incoming(false);
@@ -493,7 +493,7 @@ describe('Device', function() {
 
       it('should not log a deprecation warning the second time a child method is called', () => {
         const spy: SinonSpy = sinon.spy();
-        device['_logger'].warn = spy;
+        device['_log'].warn = spy;
         if (device.sounds.incoming) {
           device.sounds.incoming(false);
         }

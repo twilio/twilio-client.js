@@ -6,7 +6,7 @@
 import { EventEmitter } from 'events';
 import * as WebSocket from 'ws';
 import { SignalingErrors } from './errors';
-import Logger from './logger';
+import Log from './log';
 
 // tslint:disable-next-line
 const Backoff = require('backoff');
@@ -92,7 +92,7 @@ export default class WSTransport extends EventEmitter {
   /**
    * An instance of Logger to use.
    */
-  private _logger: Logger = Logger.getInstance();
+  private _log: Log = Log.getInstance();
 
   /**
    * The currently connecting or open WebSocket.
@@ -137,7 +137,7 @@ export default class WSTransport extends EventEmitter {
     // Called when a backoff timer is started.
     this._backoff.on('backoff', (_: any, delay: number) => {
       if (this.state === WSTransportState.Closed) { return; }
-      this._logger.info(`Will attempt to reconnect WebSocket in ${delay}ms`);
+      this._log.info(`Will attempt to reconnect WebSocket in ${delay}ms`);
     });
 
     // Called when a backoff timer ends. We want to try to reconnect
@@ -152,7 +152,7 @@ export default class WSTransport extends EventEmitter {
    * Close the WebSocket, and don't try to reconnect.
    */
   close(): void {
-    this._logger.info('WSTransport.close() called...');
+    this._log.info('WSTransport.close() called...');
     this._close();
   }
 
@@ -160,12 +160,12 @@ export default class WSTransport extends EventEmitter {
    * Attempt to open a WebSocket connection.
    */
   open(): void {
-    this._logger.info('WSTransport.open() called...');
+    this._log.info('WSTransport.open() called...');
 
     if (this._socket &&
         (this._socket.readyState === WebSocket.CONNECTING ||
         this._socket.readyState === WebSocket.OPEN)) {
-      this._logger.info('WebSocket already open.');
+      this._log.info('WebSocket already open.');
       return;
     }
 
@@ -187,7 +187,7 @@ export default class WSTransport extends EventEmitter {
       this._socket.send(message);
     } catch (e) {
       // Some unknown error occurred. Reset the socket to get a fresh session.
-      this._logger.info('Error while sending message:', e.message);
+      this._log.info('Error while sending message:', e.message);
       this._closeSocket();
       return false;
     }
@@ -210,10 +210,10 @@ export default class WSTransport extends EventEmitter {
     clearTimeout(this._connectTimeout);
     clearTimeout(this._heartbeatTimeout);
 
-    this._logger.info('Closing and cleaning up WebSocket...');
+    this._log.info('Closing and cleaning up WebSocket...');
 
     if (!this._socket) {
-      this._logger.info('No WebSocket to clean up.');
+      this._log.info('No WebSocket to clean up.');
       return;
     }
 
@@ -245,9 +245,9 @@ export default class WSTransport extends EventEmitter {
    */
   private _connect(retryCount?: number): void {
     if (retryCount) {
-      this._logger.info(`Attempting to reconnect (retry #${retryCount})...`);
+      this._log.info(`Attempting to reconnect (retry #${retryCount})...`);
     } else {
-      this._logger.info('Attempting to connect...');
+      this._log.info('Attempting to connect...');
     }
 
     this._closeSocket();
@@ -257,7 +257,7 @@ export default class WSTransport extends EventEmitter {
     try {
       socket = new this._WebSocket(this._uri);
     } catch (e) {
-      this._logger.info('Could not connect to endpoint:', e.message);
+      this._log.info('Could not connect to endpoint:', e.message);
       this._close();
       this.emit('error', {
         code: 31000,
@@ -269,7 +269,7 @@ export default class WSTransport extends EventEmitter {
 
     delete this._timeOpened;
     this._connectTimeout = setTimeout(() => {
-      this._logger.info('WebSocket connection attempt timed out.');
+      this._log.info('WebSocket connection attempt timed out.');
       this._closeSocket();
     }, CONNECT_TIMEOUT);
 
@@ -284,7 +284,7 @@ export default class WSTransport extends EventEmitter {
    * Called in response to WebSocket#close event.
    */
   private _onSocketClose = (event: CloseEvent): void => {
-    this._logger.info(`Received websocket close event code: ${event.code}`);
+    this._log.info(`Received websocket close event code: ${event.code}`);
     if (event.code === 1006) {
       this.emit('error', {
         code: 31005,
@@ -303,7 +303,7 @@ export default class WSTransport extends EventEmitter {
    * Called in response to WebSocket#error event.
    */
   private _onSocketError = (err: Error): void => {
-    this._logger.info(`WebSocket received error: ${err.message}`);
+    this._log.info(`WebSocket received error: ${err.message}`);
     this.emit('error', {
       code: 31000,
       message: err.message || 'WSTransport socket error',
@@ -332,7 +332,7 @@ export default class WSTransport extends EventEmitter {
    * Called in response to WebSocket#open event.
    */
   private _onSocketOpen = (): void => {
-    this._logger.info('WebSocket opened successfully.');
+    this._log.info('WebSocket opened successfully.');
     this._timeOpened = Date.now();
     this.state = WSTransportState.Open;
     clearTimeout(this._connectTimeout);
@@ -348,7 +348,7 @@ export default class WSTransport extends EventEmitter {
   private _setHeartbeatTimeout(): void {
     clearTimeout(this._heartbeatTimeout);
     this._heartbeatTimeout = setTimeout(() => {
-      this._logger.info(`No messages received in ${HEARTBEAT_TIMEOUT / 1000} seconds. Reconnecting...`);
+      this._log.info(`No messages received in ${HEARTBEAT_TIMEOUT / 1000} seconds. Reconnecting...`);
       this._closeSocket();
     }, HEARTBEAT_TIMEOUT);
   }

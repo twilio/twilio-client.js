@@ -681,7 +681,7 @@ describe('PeerConnection', () => {
       context = {
         callSid: CALLSID,
         codecPreferences: ['opus'],
-        _logger: { info: sinon.stub() },
+        _log: { info: sinon.stub() },
         onerror: sinon.stub(),
         options,
         pstream,
@@ -1131,7 +1131,7 @@ describe('PeerConnection', () => {
         transport = { state: 'new' };
         context = {
           getRTCDtlsTransport: sinon.stub().returns(transport),
-          _logger: { info: sinon.stub() },
+          _log: { info: sinon.stub() },
           ondtlstransportstatechange: sinon.stub(),
         };
         toTest = METHOD.bind(context);
@@ -1160,7 +1160,7 @@ describe('PeerConnection', () => {
         transport = { state: 'new' };
         context = {
           getRTCDtlsTransport: sinon.stub().returns(transport),
-          _logger: { info: sinon.stub() },
+          _log: { info: sinon.stub() },
           ondtlstransportstatechange: sinon.stub(),
         };
         METHOD.call(context);
@@ -1201,7 +1201,7 @@ describe('PeerConnection', () => {
       context = {
         version,
         options: {},
-        _logger: { info: sinon.stub() },
+        _log: { info: sinon.stub() },
         onfailed: sinon.stub(),
         onopen: sinon.stub(),
         onicecandidate: sinon.stub(),
@@ -1400,7 +1400,7 @@ describe('PeerConnection', () => {
       context = {
         _iceState: 'new',
         _stopIceGatheringTimeout: sinon.stub(),
-        _logger: { info: sinon.stub() },
+        _log: { info: sinon.stub() },
         onconnected: sinon.stub(),
         onreconnected: sinon.stub(),
         ondisconnected: sinon.stub(),
@@ -1873,7 +1873,7 @@ describe('PeerConnection', () => {
       pc.outputs.set(MASTER_ID, output);
       context = {
         _disableOutput: sinon.stub(),
-        _logger: { info: sinon.stub() }
+        _log: { info: sinon.stub() }
       };
       toTest = METHOD.bind(context, pc, MASTER_ID);
     });
@@ -1985,7 +1985,7 @@ describe('PeerConnection', () => {
         version: {
           pc
         },
-        _logger: { info: sinon.stub() }
+        _log: { info: sinon.stub() }
       };
       toTest = METHOD.bind(context);
     });
@@ -2005,14 +2005,14 @@ describe('PeerConnection', () => {
       context.version.pc = false;
       assert.deepStrictEqual(toTest(), null);
       assert.equal(context._getAudioTracks.called, false);
-      assert(context._logger.info.calledWith('No RTCPeerConnection available to call createDTMFSender on'));
+      assert(context._log.info.calledWith('No RTCPeerConnection available to call createDTMFSender on'));
     });
 
     xit('Should return null and set dtmf unsupported true when createDTMFSender is not a function', () => {
       pc.createDTMFSender = false;
       pc.getLocalStreams.returns([]);
       assert.deepStrictEqual(toTest(), null);
-      assert(context._logger.info.calledWith('No local audio MediaStreamTrack available on the ' +
+      assert(context._log.info.calledWith('No local audio MediaStreamTrack available on the ' +
         'RTCPeerConnection to pass to createDTMFSender'));
       assert.equal(context._getAudioTracks.called, false);
     });
@@ -2022,7 +2022,7 @@ describe('PeerConnection', () => {
       assert.deepStrictEqual(toTest(), null);
       assert(pc.getLocalStreams.calledWithExactly());
       assert.equal(context._getAudioTracks.called, false);
-      assert(context._logger.info.calledWith('No local audio MediaStreamTrack available on the RTCPeerConnection to pass to createDTMFSender'));
+      assert(context._log.info.calledWith('No local audio MediaStreamTrack available on the RTCPeerConnection to pass to createDTMFSender'));
     });
 
     xit('Should return null when any of the local streams getAudioTracks does not have tracks', () => {
@@ -2034,7 +2034,7 @@ describe('PeerConnection', () => {
       assert(context._getAudioTracks.calledWithExactly('stream1'));
       assert(context._getAudioTracks.calledWithExactly('stream2'));
       assert(context._getAudioTracks.calledWithExactly('stream3'));
-      assert(context._logger.info.calledWith('No local audio MediaStreamTrack available on the RTCPeerConnection to pass to createDTMFSender'));
+      assert(context._log.info.calledWith('No local audio MediaStreamTrack available on the RTCPeerConnection to pass to createDTMFSender'));
     });
 
     xit('Should find first available track from all local streams and createDTMFSender from it', () => {
@@ -2043,7 +2043,7 @@ describe('PeerConnection', () => {
 
       assert.deepStrictEqual(toTest(), DTMF_SENDER);
       assert(pc.getLocalStreams.calledWithExactly());
-      assert(context._logger.info.calledWith('Creating RTCDTMFSender'));
+      assert(context._log.info.calledWith('Creating RTCDTMFSender'));
       assert(pc.createDTMFSender.calledWithExactly('track1'));
       assert(context._getAudioTracks.calledWithExactly('stream1'));
       assert.equal(context._getAudioTracks.calledWithExactly('stream2'), false);

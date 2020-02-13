@@ -4,7 +4,7 @@
 import { EventEmitter } from 'events';
 import Device from './device';
 import { InvalidArgumentError, NotSupportedError } from './errors';
-import Logger from './logger';
+import Log from './log';
 import OutputDeviceCollection from './outputdevicecollection';
 import * as defaultMediaDevices from './shims/mediadevices';
 import { average, difference, isFirefox } from './util';
@@ -122,7 +122,7 @@ class AudioHelper extends EventEmitter {
   /**
    * An instance of Logger to use.
    */
-  private _logger: Logger = Logger.getInstance();
+  private _log: Log = Log.getInstance();
 
   /**
    * The MediaDevices instance to use.
@@ -207,11 +207,11 @@ class AudioHelper extends EventEmitter {
       //   returns bad data for the listed devices. Instead, we check for
       //   isOutputSelectionSupported to avoid these quirks that may negatively affect customers.
       if (!this.isOutputSelectionSupported) {
-        this._logger.warn('Warning: This browser does not support audio output selection.');
+        this._log.warn('Warning: This browser does not support audio output selection.');
       }
 
       if (!this.isVolumeSupported) {
-        this._logger.warn(`Warning: This browser does not support Twilio's volume indicator feature.`);
+        this._log.warn(`Warning: This browser does not support Twilio's volume indicator feature.`);
       }
     });
 
@@ -401,7 +401,7 @@ class AudioHelper extends EventEmitter {
         this.speakerDevices.set('default'),
         this.ringtoneDevices.set('default'),
       ]).catch(reason => {
-        this._logger.warn(`Warning: Unable to set audio output devices. ${reason}`);
+        this._log.warn(`Warning: Unable to set audio output devices. ${reason}`);
       });
     });
   }
@@ -565,7 +565,7 @@ class AudioHelper extends EventEmitter {
       //   event or readyState because it is asynchronous and may take upwards of 5 seconds,
       //   in my testing. (rrowland)
       if (this.inputDevice !== null && this.inputDevice.deviceId === 'default') {
-        this._logger.warn(`Calling getUserMedia after device change to ensure that the \
+        this._log.warn(`Calling getUserMedia after device change to ensure that the \
           tracks of the active device (default) have not gone stale.`);
         this._setInputDevice(this.inputDevice.deviceId, true);
       }

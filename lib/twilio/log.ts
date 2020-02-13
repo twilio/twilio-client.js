@@ -7,10 +7,10 @@ import * as LogLevelModule from 'loglevel';
 import { PACKAGE_NAME } from './constants';
 
 /**
- * Options that may be passed to the {@link Logger} constructor for internal testing.
+ * Options that may be passed to the {@link Log} constructor for internal testing.
  * @private
  */
-export interface LoggerOptions {
+export interface LogOptions {
   /**
    * Custom loglevel module
    */
@@ -18,33 +18,33 @@ export interface LoggerOptions {
 }
 
 /**
- * {@link Logger} provides logging features throught the sdk using loglevel module
+ * {@link Log} provides logging features throught the sdk using loglevel module
  * See https://github.com/pimterry/loglevel for documentation
  */
-class Logger {
+class Log {
   /**
-   * Logger log levels
+   * Log levels
    */
   static levels: LogLevelModule.LogLevel = LogLevelModule.levels;
 
   /**
    * Create the logger singleton instance if it doesn't exists
-   * @returns The singleton {@link Logger} instance
+   * @returns The singleton {@link Log} instance
    */
-  static getInstance(): Logger {
-    if (!Logger.instance) {
-      Logger.instance = new Logger();
+  static getInstance(): Log {
+    if (!Log.instance) {
+      Log.instance = new Log();
     }
-    return Logger.instance;
+    return Log.instance;
   }
 
   /**
    * The logger singleton instance
    */
-  private static instance: Logger;
+  private static instance: Log;
 
   /**
-   * The loglevel logger instance that will be used in this {@link Logger}
+   * The loglevel logger instance that will be used in this {@link Log}
    */
   private _log: LogLevelModule.Logger;
 
@@ -52,7 +52,7 @@ class Logger {
    * @constructor
    * @param [options] - Optional settings
    */
-  constructor(options?: LoggerOptions) {
+  constructor(options?: LogOptions) {
     this._log = (options && options.LogLevelModule ? options.LogLevelModule : LogLevelModule).getLogger(PACKAGE_NAME);
   }
 
@@ -96,4 +96,4 @@ class Logger {
   }
 }
 
-export default Logger;
+export default Log;
