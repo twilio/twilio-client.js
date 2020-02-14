@@ -7,11 +7,11 @@ import { EventEmitter } from 'events';
 import Device from './device';
 import DialtonePlayer from './dialtonePlayer';
 import { GeneralErrors, InvalidArgumentError, MediaErrors, TwilioError } from './errors';
+import Log from './log';
 import { RTCIceCandidate, RTCLocalIceCandidate } from './rtc/candidate';
 import RTCSample from './rtc/sample';
 import RTCWarning from './rtc/warning';
 import StatsMonitor from './statsMonitor';
-import Log, { LogLevel } from './tslog';
 import { isChrome } from './util';
 
 const Backoff = require('backoff');
@@ -168,9 +168,9 @@ class Connection extends EventEmitter {
   private _latestOutputVolume: number = 0;
 
   /**
-   * An instance of Log to use.
+   * An instance of Logger to use.
    */
-  private readonly _log: Log = new Log(LogLevel.Off);
+  private _log: Log = Log.getInstance();
 
   /**
    * An instance of Backoff for media reconnection
@@ -222,7 +222,6 @@ class Connection extends EventEmitter {
    * Options passed to this {@link Connection}.
    */
   private options: Connection.Options = {
-    debug: false,
     enableRingingState: false,
     mediaStreamFactory: PeerConnection,
     offerSdp: null,
@@ -262,10 +261,6 @@ class Connection extends EventEmitter {
 
     this._direction = this.parameters.CallSid ? Connection.CallDirection.Incoming : Connection.CallDirection.Outgoing;
 
-    this._log.setLogLevel(this.options.debug ? LogLevel.Debug
-      : this.options.warnings ? LogLevel.Warn
-      : LogLevel.Off);
-
     this._mediaReconnectBackoff = Backoff.exponential(BACKOFF_CONFIG);
     this._mediaReconnectBackoff.on('ready', () => this.mediaStream.iceRestart());
 
@@ -295,13 +290,11 @@ class Connection extends EventEmitter {
     this.mediaStream = new (this.options.MediaStream || this.options.mediaStreamFactory)
       (config.audioHelper, config.pstream, config.getUserMedia, {
         codecPreferences: this.options.codecPreferences,
-        debug: this.options.debug,
         dscp: this.options.dscp,
         enableIceRestart: this.options.enableIceRestart,
         forceAggressiveIceNomination: this.options.forceAggressiveIceNomination,
         isUnifiedPlan: this._isUnifiedPlanDefault,
         maxAverageBitrate: this.options.maxAverageBitrate,
-        warnings: this.options.warnings,
       });
 
     this.on('volume', (inputVolume: number, outputVolume: number): void => {
@@ -1593,11 +1586,6 @@ namespace Connection {
     codecPreferences?: Codec[];
 
     /**
-     * Whether to enable debug level logging.
-     */
-    debug?: boolean;
-
-    /**
      * A DialTone player, to play mock DTMF sounds.
      */
     dialtonePlayer?: DialtonePlayer;
@@ -1698,11 +1686,6 @@ namespace Connection {
      * TwiML params for the call. May be set for either outgoing or incoming calls.
      */
     twimlParams?: Record<string, any>;
-
-    /**
-     * Whether to enable warn level logging.
-     */
-    warnings?: boolean;
   }
 
   /**

@@ -4,9 +4,9 @@
 import { EventEmitter } from 'events';
 import Device from './device';
 import { InvalidArgumentError, NotSupportedError } from './errors';
+import Log from './log';
 import OutputDeviceCollection from './outputdevicecollection';
 import * as defaultMediaDevices from './shims/mediadevices';
-import Log, { LogLevel } from './tslog';
 import { average, difference, isFirefox } from './util';
 
 const MediaDeviceInfoShim = require('./shims/mediadeviceinfo');
@@ -120,9 +120,9 @@ class AudioHelper extends EventEmitter {
   private _isPollingInputVolume: boolean = false;
 
   /**
-   * An instance of Log to use.
+   * An instance of Logger to use.
    */
-  private _log: Log;
+  private _log: Log = Log.getInstance();
 
   /**
    * The MediaDevices instance to use.
@@ -162,7 +162,6 @@ class AudioHelper extends EventEmitter {
     }, options);
 
     this._getUserMedia = getUserMedia;
-    this._log = new Log(options.logLevel || LogLevel.Warn);
     this._mediaDevices = options.mediaDevices || defaultMediaDevices;
     this._onActiveInputChanged = onActiveInputChanged;
 
@@ -672,11 +671,6 @@ namespace AudioHelper {
      * TODO: Remove / refactor in 2.0. (CLIENT-5302)
      */
     enabledSounds?: Record<Device.ToggleableSound, boolean>;
-
-    /**
-     * Logging level to use.
-     */
-    logLevel?: LogLevel;
 
     /**
      * A custom MediaDevices instance to use.

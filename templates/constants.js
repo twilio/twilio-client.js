@@ -1,5 +1,7 @@
+const PACKAGE_NAME = '$packageName';
 const RELEASE_VERSION = '$version';
 module.exports.SOUNDS_BASE_URL = 'https://sdk.twilio.com/js/client/sounds/releases/1.0.0';
+module.exports.PACKAGE_NAME = PACKAGE_NAME;
 module.exports.RELEASE_VERSION = RELEASE_VERSION;
 
 /**
