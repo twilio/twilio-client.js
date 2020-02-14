@@ -60,13 +60,6 @@
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
-			<section class="tsd-panel tsd-comment">
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Options to be passed to the <a href="../classes/voice.connection.html">Connection</a> constructor.</p>
-					</div>
-				</div>
-			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
@@ -88,7 +81,6 @@
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.options.html#beforeaccept" class="tsd-kind-icon">before<wbr>Accept</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.options.html#callparameters" class="tsd-kind-icon">call<wbr>Parameters</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.options.html#codecpreferences" class="tsd-kind-icon">codec<wbr>Preferences</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.options.html#debug" class="tsd-kind-icon">debug</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.options.html#dialtoneplayer" class="tsd-kind-icon">dialtone<wbr>Player</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.options.html#dscp" class="tsd-kind-icon">dscp</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.options.html#enableicerestart" class="tsd-kind-icon">enable<wbr>Ice<wbr>Restart</a></li>
@@ -106,7 +98,6 @@
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.options.html#selectedregion" class="tsd-kind-icon">selected<wbr>Region</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.options.html#shouldplaydisconnect" class="tsd-kind-icon">should<wbr>Play<wbr>Disconnect</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.options.html#twimlparams" class="tsd-kind-icon">twiml<wbr>Params</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.options.html#warnings" class="tsd-kind-icon">warnings</a></li>
 							</ul>
 						</section>
 					</div>
@@ -120,14 +111,9 @@
 					<div class="tsd-signature tsd-kind-icon">Media<wbr>Stream<span class="tsd-signature-symbol">:</span> <a href="../modules/voice.html#ipeerconnection" class="tsd-signature-type">IPeerConnection</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1649">connection.ts:1649</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1642">connection.ts:1642</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Custom MediaStream (PeerConnection) constructor. Overrides mediaStreamFactory (deprecated).</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="statsmonitor" class="tsd-anchor"></a>
@@ -135,14 +121,9 @@
 					<div class="tsd-signature tsd-kind-icon">Stats<wbr>Monitor<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">object</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1690">connection.ts:1690</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1683">connection.ts:1683</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>An override for the StatsMonitor dependency.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="audioconstraints" class="tsd-anchor"></a>
@@ -150,15 +131,9 @@
 					<div class="tsd-signature tsd-kind-icon">audio<wbr>Constraints<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">MediaTrackConstraints</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">boolean</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1573">connection.ts:1573</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1571">connection.ts:1571</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Audio Constraints to pass to getUserMedia when making or accepting a Call.
-							This is placed directly under <code>audio</code> of the MediaStreamConstraints object.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="beforeaccept" class="tsd-anchor"></a>
@@ -166,14 +141,9 @@
 					<div class="tsd-signature tsd-kind-icon">before<wbr>Accept<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1578">connection.ts:1578</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1576">connection.ts:1576</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>A method to call before Connection.accept is processed.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="callparameters" class="tsd-anchor"></a>
@@ -181,14 +151,9 @@
 					<div class="tsd-signature tsd-kind-icon">call<wbr>Parameters<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1583">connection.ts:1583</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1581">connection.ts:1581</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Custom format context parameters associated with this call.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="codecpreferences" class="tsd-anchor"></a>
@@ -196,29 +161,9 @@
 					<div class="tsd-signature tsd-kind-icon">codec<wbr>Preferences<span class="tsd-signature-symbol">:</span> <a href="../enums/voice.connection.codec.html" class="tsd-signature-type">Codec</a><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1588">connection.ts:1588</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1586">connection.ts:1586</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>An ordered array of codec names, from most to least preferred.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="debug" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> debug</h3>
-					<div class="tsd-signature tsd-kind-icon">debug<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1593">connection.ts:1593</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Whether to enable debug level logging.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="dialtoneplayer" class="tsd-anchor"></a>
@@ -226,14 +171,9 @@
 					<div class="tsd-signature tsd-kind-icon">dialtone<wbr>Player<span class="tsd-signature-symbol">:</span> <a href="../classes/tools.dialtoneplayer.html" class="tsd-signature-type">DialtonePlayer</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1598">connection.ts:1598</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1591">connection.ts:1591</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>A DialTone player, to play mock DTMF sounds.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="dscp" class="tsd-anchor"></a>
@@ -241,14 +181,9 @@
 					<div class="tsd-signature tsd-kind-icon">dscp<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1603">connection.ts:1603</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1596">connection.ts:1596</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Whether or not to enable DSCP.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="enableicerestart" class="tsd-anchor"></a>
@@ -256,14 +191,9 @@
 					<div class="tsd-signature tsd-kind-icon">enable<wbr>Ice<wbr>Restart<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1608">connection.ts:1608</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1601">connection.ts:1601</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Whether to automatically restart ICE when media connection fails</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="enableringingstate" class="tsd-anchor"></a>
@@ -271,14 +201,9 @@
 					<div class="tsd-signature tsd-kind-icon">enable<wbr>Ringing<wbr>State<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1613">connection.ts:1613</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1606">connection.ts:1606</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Whether the ringing state should be enabled.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="forceaggressiveicenomination" class="tsd-anchor"></a>
@@ -286,15 +211,9 @@
 					<div class="tsd-signature tsd-kind-icon">force<wbr>Aggressive<wbr>Ice<wbr>Nomination<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1619">connection.ts:1619</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1612">connection.ts:1612</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Experimental feature.
-							Force Chrome&#39;s ICE agent to use aggressive nomination when selecting a candidate pair.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="gateway" class="tsd-anchor"></a>
@@ -302,14 +221,9 @@
 					<div class="tsd-signature tsd-kind-icon">gateway<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1624">connection.ts:1624</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1617">connection.ts:1617</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The gateway currently connected to.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="getinputstream" class="tsd-anchor"></a>
@@ -317,14 +231,9 @@
 					<div class="tsd-signature tsd-kind-icon">get<wbr>Input<wbr>Stream<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1629">connection.ts:1629</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1622">connection.ts:1622</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>A method that returns the current input MediaStream set on <a href="../classes/voice.device.html">Device</a>.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="getsinkids" class="tsd-anchor"></a>
@@ -332,14 +241,9 @@
 					<div class="tsd-signature tsd-kind-icon">get<wbr>Sink<wbr>Ids<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1634">connection.ts:1634</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1627">connection.ts:1627</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>A method that returns the current SinkIDs set on <a href="../classes/voice.device.html">Device</a>.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="maxaveragebitrate" class="tsd-anchor"></a>
@@ -347,19 +251,9 @@
 					<div class="tsd-signature tsd-kind-icon">max<wbr>Average<wbr>Bitrate<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1644">connection.ts:1644</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1637">connection.ts:1637</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The maximum average audio bitrate to use, in bits per second (bps) based on
-								<a href="https://tools.ietf.org/html/rfc7587#section-7.1">RFC-7587 7.1</a>. By default, the setting
-								is not used. If you specify 0, then the setting is not used. Any positive integer is allowed,
-								but values outside the range 6000 to 510000 are ignored and treated as 0. The recommended
-								bitrate for speech is between 8000 and 40000 bps as noted in
-							<a href="https://tools.ietf.org/html/rfc7587#section-3.1.1">RFC-7587 3.1.1</a>.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="mediastreamfactory" class="tsd-anchor"></a>
@@ -367,14 +261,9 @@
 					<div class="tsd-signature tsd-kind-icon">media<wbr>Stream<wbr>Factory<span class="tsd-signature-symbol">:</span> <a href="../modules/voice.html#ipeerconnection" class="tsd-signature-type">IPeerConnection</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1654">connection.ts:1654</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1647">connection.ts:1647</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Custom MediaStream (PeerConnection) constructor (deprecated)</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="offersdp" class="tsd-anchor"></a>
@@ -382,14 +271,9 @@
 					<div class="tsd-signature tsd-kind-icon">offer<wbr>Sdp<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1659">connection.ts:1659</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1652">connection.ts:1652</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The offer SDP, if this is an incoming call.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="region" class="tsd-anchor"></a>
@@ -397,14 +281,9 @@
 					<div class="tsd-signature tsd-kind-icon">region<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1664">connection.ts:1664</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1657">connection.ts:1657</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The Region currently connected to.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="rtcconfiguration" class="tsd-anchor"></a>
@@ -412,14 +291,9 @@
 					<div class="tsd-signature tsd-kind-icon">rtc<wbr>Configuration<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">RTCConfiguration</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1669">connection.ts:1669</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1662">connection.ts:1662</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>An RTCConfiguration to pass to the RTCPeerConnection constructor.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="rtcconstraints" class="tsd-anchor"></a>
@@ -427,15 +301,9 @@
 					<div class="tsd-signature tsd-kind-icon">rtc<wbr>Constraints<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">MediaStreamConstraints</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1675">connection.ts:1675</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1668">connection.ts:1668</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>RTC Constraints to pass to getUserMedia when making or accepting a Call.
-							The format of this object depends on browser.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="selectedregion" class="tsd-anchor"></a>
@@ -443,14 +311,9 @@
 					<div class="tsd-signature tsd-kind-icon">selected<wbr>Region<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1680">connection.ts:1680</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1673">connection.ts:1673</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The region passed to <a href="../classes/voice.device.html">Device</a> on setup.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="shouldplaydisconnect" class="tsd-anchor"></a>
@@ -458,14 +321,9 @@
 					<div class="tsd-signature tsd-kind-icon">should<wbr>Play<wbr>Disconnect<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1685">connection.ts:1685</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1678">connection.ts:1678</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Whether the disconnect sound should be played.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="twimlparams" class="tsd-anchor"></a>
@@ -473,29 +331,9 @@
 					<div class="tsd-signature tsd-kind-icon">twiml<wbr>Params<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1695">connection.ts:1695</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1a1303e/lib/twilio/connection.ts#L1688">connection.ts:1688</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>TwiML params for the call. May be set for either outgoing or incoming calls.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="warnings" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> warnings</h3>
-					<div class="tsd-signature tsd-kind-icon">warnings<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/dbe24ac/lib/twilio/connection.ts#L1700">connection.ts:1700</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Whether to enable warn level logging.</p>
-						</div>
-					</div>
 				</section>
 			</section>
 		</div>
@@ -519,9 +357,6 @@
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="../modules/_errors_index_.html">"errors/index"</a>
-					</li>
-					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_log_.html">"log"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="../modules/_pstream_.html">"pstream"</a>
@@ -567,9 +402,6 @@
 									</li>
 									<li class=" tsd-kind-property tsd-parent-kind-interface">
 										<a href="voice.connection.options.html#codecpreferences" class="tsd-kind-icon">codec<wbr>Preferences</a>
-									</li>
-									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="voice.connection.options.html#debug" class="tsd-kind-icon">debug</a>
 									</li>
 									<li class=" tsd-kind-property tsd-parent-kind-interface">
 										<a href="voice.connection.options.html#dialtoneplayer" class="tsd-kind-icon">dialtone<wbr>Player</a>
@@ -621,9 +453,6 @@
 									</li>
 									<li class=" tsd-kind-property tsd-parent-kind-interface">
 										<a href="voice.connection.options.html#twimlparams" class="tsd-kind-icon">twiml<wbr>Params</a>
-									</li>
-									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="voice.connection.options.html#warnings" class="tsd-kind-icon">warnings</a>
 									</li>
 								</ul>
 							</li>
