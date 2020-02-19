@@ -1,17 +1,16 @@
-1.10.0 (In Progress)
-===================
+1.10.0 (Feb 19, 2020)
 
 Improvements
 ---------
 
-* Added the ability to access the SDK logger instance using the [loglevel](https://github.com/pimterry/loglevel) npm module. Please refer to the loglevel [documentation](https://github.com/pimterry/loglevel) for a list of logger APIs. (CLIENT-7187)
+* Added the ability to access the SDK logger instance using the [loglevel npm module](https://github.com/pimterry/loglevel). Please refer to the [loglevel documentation](https://github.com/pimterry/loglevel) for a list of logger APIs.
 
-  For example, to set the log level:
+For example, to set the log level:
 
 ```
 import { getLogger } from 'loglevel';
-const logger = getLogger(Device.packageName);
 
+const logger = getLogger(Device.packageName);
 // Set log level on subsequent page loads and refreshes
 logger.setLevel('DEBUG');
 ```

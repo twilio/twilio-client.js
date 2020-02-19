@@ -41,7 +41,7 @@
     "development": {
       "commands": [
         "node ./node_modules/.bin/release --bump ${RELEASE_VERSION} ${DEVELOPMENT_VERSION}",
-        "npm run build:version",
+        "npm run build:constants",
         "git rm -rf dist es5 docs",
         "npm run clean",
         "npm run docs:clean",

@@ -1,3 +1,4 @@
+import { levels as LogLevels } from 'loglevel';
 import Connection from '../../lib/twilio/connection';
 import Device from '../../lib/twilio/device';
 import { regionShortcodes } from '../../lib/twilio/regions';
@@ -117,6 +118,34 @@ describe('Device', function() {
     it('should set forceAggressiveIceNomination to true if passed in as true', () => {
       const conn = device.setup(token, Object.assign({ forceAggressiveIceNomination: true}, setupOptions));
       assert.equal(conn['options'].forceAggressiveIceNomination, true);
+    });
+
+    describe('log', () => {
+      let setDefaultLevelStub: any;
+      beforeEach(() => {
+        setDefaultLevelStub = sinon.stub();
+        device['_log'].setDefaultLevel = setDefaultLevelStub;
+      });
+
+      it('should set log level to DEBUG if debug is true and warnings is true', () => {
+        device.setup(token, Object.assign({ debug: true, warnings: true }, setupOptions));
+        sinon.assert.calledWith(setDefaultLevelStub, LogLevels.DEBUG);
+      });
+
+      it('should set log level to DEBUG if debug is true and warnings is false', () => {
+        device.setup(token, Object.assign({ debug: true, warnings: false }, setupOptions));
+        sinon.assert.calledWith(setDefaultLevelStub, LogLevels.DEBUG);
+      });
+
+      it('should set log level to WARN if debug is false and warnings is true', () => {
+        device.setup(token, Object.assign({ debug: false, warnings: true }, setupOptions));
+        sinon.assert.calledWith(setDefaultLevelStub, LogLevels.WARN);
+      });
+
+      it('should set log level to SILENT if debug is false and warnings is false', () => {
+        device.setup(token, Object.assign({ debug: false, warnings: false }, setupOptions));
+        sinon.assert.calledWith(setDefaultLevelStub, LogLevels.SILENT);
+      });
     });
   });
 

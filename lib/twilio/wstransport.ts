@@ -6,7 +6,7 @@
 import { EventEmitter } from 'events';
 import * as WebSocket from 'ws';
 import { SignalingErrors } from './errors';
-import Log, { LogLevel } from './tslog';
+import Log from './log';
 
 // tslint:disable-next-line
 const Backoff = require('backoff');
@@ -52,11 +52,6 @@ export interface IWSTransportConstructorOptions {
   backoffMaxMs?: number;
 
   /**
-   * Minimum log level.
-   */
-  logLevel?: LogLevel;
-
-  /**
    * A WebSocket factory to use instead of WebSocket.
    */
   WebSocket?: any;
@@ -95,9 +90,9 @@ export default class WSTransport extends EventEmitter {
   private _heartbeatTimeout?: any;
 
   /**
-   * An instance of Log to use.
+   * An instance of Logger to use.
    */
-  private readonly _log: Log;
+  private _log: Log = Log.getInstance();
 
   /**
    * The currently connecting or open WebSocket.
@@ -136,7 +131,6 @@ export default class WSTransport extends EventEmitter {
       randomisationFactor: 0.40,
     });
 
-    this._log = new Log(options.logLevel || LogLevel.Off);
     this._uri = uri;
     this._WebSocket = options.WebSocket || WebSocket;
 
