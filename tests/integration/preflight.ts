@@ -1,9 +1,8 @@
 import Device from '../../lib/twilio/device';
-import Preflight from '../../lib/twilio/preflight';
 import { generateAccessToken } from '../lib/token';
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
-import PreflightTest from '../../lib/twilio/preflight';
+import PreflightTest from '../../lib/twilio/preflight/preflight';
 import Connection from '../../lib/twilio/connection';
 
 const DURATION_PADDING = 1000;
@@ -19,7 +18,7 @@ describe('Preflight Test', function() {
   let callerConnection: Connection;
   let receiverIdentity: string;
   let receiverDevice: Device;
-  let preflight: Preflight;
+  let preflight: PreflightTest;
 
   const expectEvent = (eventName: string, emitter: EventEmitter) => {
     return new Promise((resolve) => emitter.once(eventName, (res) => resolve(res)));
@@ -113,7 +112,6 @@ describe('Preflight Test', function() {
     it('should emit completed event', () => {
       return waitFor(expectEvent('completed', preflight).then((results: PreflightTest.TestResults) => {
         assert(!!results);
-        assert(!!results.averageSample);
         assert(!!results.samples.length);
         assert(!!results.errors.length);
         assert(!!results.warnings.length);
