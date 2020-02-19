@@ -319,7 +319,7 @@ describe('PreflightTest', () => {
         assert.equal(preflight.status, PreflightTest.TestStatus.Failed);
         sinon.assert.calledOnce(deviceContext.destroy);
         sinon.assert.calledOnce(onFailed);
-        sinon.assert.calledWithExactly(onFailed, PreflightTest.FatalError[error.name]);
+        sinon.assert.calledWithExactly(onFailed, (PreflightTest.FatalError as any)[error.name]);
       });
     });
 
