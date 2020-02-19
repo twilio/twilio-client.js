@@ -471,7 +471,7 @@ describe('Connection', function() {
 
   describe('.cancel()', () => {
     it('should call .ignore()', () => {
-      conn.ignore = sinon.spy(conn.ignore);
+      conn.ignore = sinon.spy();
       conn.cancel();
       sinon.assert.calledOnce(conn.ignore as SinonSpy);
     });
@@ -851,7 +851,7 @@ describe('Connection', function() {
 
   describe('.unmute()', () => {
     it('should call .mute(false)', () => {
-      conn.mute = sinon.spy(conn.mute);
+      conn.mute = sinon.spy();
       conn.unmute();
       sinon.assert.calledWith(conn.mute as SinonSpy, false);
     });
@@ -886,6 +886,18 @@ describe('Connection', function() {
       it('should publish a debug event if state is not failed', () => {
         mediaStream.onpcconnectionstatechange('foo');
         sinon.assert.calledWith(publisher.post, 'debug', 'pc-connection-state', 'foo');
+      });
+    });
+
+    describe('mediaStream.ondtlstransportstatechange', () => {
+      it('should publish an error event if state is failed', () => {
+        mediaStream.ondtlstransportstatechange('failed');
+        sinon.assert.calledWith(publisher.post, 'error', 'dtls-transport-state', 'failed');
+      });
+
+      it('should publish a debug event if state is not failed', () => {
+        mediaStream.ondtlstransportstatechange('foo');
+        sinon.assert.calledWith(publisher.post, 'debug', 'dtls-transport-state', 'foo');
       });
     });
 

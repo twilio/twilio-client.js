@@ -482,6 +482,7 @@ describe('PeerConnection', () => {
         _initializeMediaStream: sinon.stub(),
         _maybeSetIceAggressiveNomination: (sdp) => sdp,
         _setEncodingParameters: sinon.stub(),
+        _setupRTCDtlsTransportListener: sinon.stub(),
         callSid: null,
         options: { dscp: true },
         version,
@@ -526,6 +527,7 @@ describe('PeerConnection', () => {
       assert(version.processSDP.calledOnce);
       assert(version.processSDP.calledWithExactly(undefined, undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(callback.called, false);
+      sinon.assert.notCalled(context._setupRTCDtlsTransportListener);
     });
 
     it('Should call onMediaStarted callback when processSDP success callback called and status is not closed', () => {
@@ -544,6 +546,7 @@ describe('PeerConnection', () => {
       assert(version.getSDP.calledOn(version));
       assert.equal(context._setEncodingParameters.callCount, 1);
       sinon.assert.calledWith(context._setEncodingParameters, true);
+      sinon.assert.calledOnce(context._setupRTCDtlsTransportListener);
       assert(callback.calledWithExactly(version.pc));
       assert.equal(context.onerror.called, false);
     });
@@ -565,6 +568,7 @@ describe('PeerConnection', () => {
       assert.equal(context.pstream.publish.called, false);
       assert.equal(version.getSDP.called, false);
       assert.equal(callback.called, false);
+      sinon.assert.notCalled(context._setupRTCDtlsTransportListener);
     });
 
     it('Should call onerror event when processSDP error callback is called and returns error message', () => {
@@ -583,6 +587,7 @@ describe('PeerConnection', () => {
       assert.equal(version.getSDP.called, false);
       sinon.assert.notCalled(context._setEncodingParameters);
       assert.equal(callback.called, false);
+      sinon.assert.notCalled(context._setupRTCDtlsTransportListener);
     });
 
     it('Should call callback for each success callback processSDP calls', () => {
@@ -595,6 +600,7 @@ describe('PeerConnection', () => {
       assert(callback.calledWithExactly(version.pc));
       assert(callback.calledTwice);
       assert.equal(context.onerror.called, false);
+      sinon.assert.calledTwice(context._setupRTCDtlsTransportListener);
     });
 
     it('Should call onerror for each error callback processSDP calls', () => {
@@ -610,6 +616,7 @@ describe('PeerConnection', () => {
 
       assert(context.onerror.calledTwice);
       assert.equal(callback.called, false);
+      sinon.assert.notCalled(context._setupRTCDtlsTransportListener);
     });
 
   });
@@ -674,7 +681,7 @@ describe('PeerConnection', () => {
       context = {
         callSid: CALLSID,
         codecPreferences: ['opus'],
-        log: sinon.stub(),
+        _log: { info: sinon.stub() },
         onerror: sinon.stub(),
         options,
         pstream,
@@ -791,6 +798,7 @@ describe('PeerConnection', () => {
         _initializeMediaStream: sinon.stub().returns(true),
         _maybeSetIceAggressiveNomination: (sdp) => sdp,
         _setEncodingParameters: sinon.stub(),
+        _setupRTCDtlsTransportListener: sinon.stub(),
         callSid: null,
         version,
         status: CLOSED,
@@ -842,6 +850,7 @@ describe('PeerConnection', () => {
       assert.equal(callback.called, false);
       assert.equal(context.pstream.publish.called, false);
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
+      sinon.assert.notCalled(context._setupRTCDtlsTransportListener);
     });
 
     it('Should call onOfferSuccess and pstream publish when createOffer calls success callback and status is not closed', () => {
@@ -863,6 +872,7 @@ describe('PeerConnection', () => {
       assert(version.getSDP.calledOnce);
       assert(version.getSDP.calledWithExactly());
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
+      sinon.assert.calledOnce(context._setupRTCDtlsTransportListener);
     });
 
     it('Should call onOfferSuccess when createOffer calls success callback and status is not closed and device token is not truthy', () => {
@@ -1110,6 +1120,68 @@ describe('PeerConnection', () => {
     });
   });
 
+  context('PeerConnection.prototype._setupRTCDtlsTransportListener', () => {
+    const METHOD = PeerConnection.prototype._setupRTCDtlsTransportListener;
+
+    describe('when dtls transport is not supported', () => {
+      let context = null;
+      let transport = null;
+
+      beforeEach(() => {
+        transport = { state: 'new' };
+        context = {
+          getRTCDtlsTransport: sinon.stub().returns(transport),
+          _log: { info: sinon.stub() },
+          ondtlstransportstatechange: sinon.stub(),
+        };
+        toTest = METHOD.bind(context);
+      });
+
+      it('should not subscribe to dtls state change if dtls transport is not yet available', () => {
+        context.getRTCDtlsTransport = () => null;
+        toTest();
+        sinon.assert.notCalled(context.ondtlstransportstatechange);
+      });
+
+      it('should not subscribe to dtls state change more than once', () => {
+        toTest();
+        toTest();
+        toTest();
+        sinon.assert.calledOnce(context.ondtlstransportstatechange);
+        assert(typeof transport.onstatechange === 'function');
+      });
+    });
+
+    describe('on state changes', () => {
+      let context = null;
+      let transport = null;
+
+      before(() => {
+        transport = { state: 'new' };
+        context = {
+          getRTCDtlsTransport: sinon.stub().returns(transport),
+          _log: { info: sinon.stub() },
+          ondtlstransportstatechange: sinon.stub(),
+        };
+        METHOD.call(context);
+
+        sinon.assert.calledWithExactly(context.ondtlstransportstatechange, 'new');
+        sinon.assert.calledOnce(context.ondtlstransportstatechange);
+      });
+
+      ['new', 'connecting', 'connected', 'closed', 'failed'].forEach(state => {
+        it(`should call ondtlstransportstatechange when dtls transport state is ${state}`, () => {
+          context.ondtlstransportstatechange = sinon.stub();
+          transport.state = state;
+          transport.onstatechange();
+
+          sinon.assert.calledWithExactly(context.ondtlstransportstatechange, state);
+          sinon.assert.calledOnce(context.ondtlstransportstatechange);
+        });
+      });
+    });
+  });
+
   context('PeerConnection.prototype._setupChannel', () => {
     const METHOD = PeerConnection.prototype._setupChannel;
 
@@ -1129,7 +1201,7 @@ describe('PeerConnection', () => {
       context = {
         version,
         options: {},
-        log: sinon.stub(),
+        _log: { info: sinon.stub() },
         onfailed: sinon.stub(),
         onopen: sinon.stub(),
         onicecandidate: sinon.stub(),
@@ -1328,7 +1400,7 @@ describe('PeerConnection', () => {
       context = {
         _iceState: 'new',
         _stopIceGatheringTimeout: sinon.stub(),
-        log: sinon.stub(),
+        _log: { info: sinon.stub() },
         onconnected: sinon.stub(),
         onreconnected: sinon.stub(),
         ondisconnected: sinon.stub(),
@@ -1552,12 +1624,12 @@ describe('PeerConnection', () => {
 
     it('Should throw error when createMediaStreamDestination throws error', () => {
       context._audioContext.createMediaStreamDestination.throws(ERROR);
-      assert.throws(toTest, MESSAGE);
+      assert.throws(toTest, Error, MESSAGE);
     });
 
     it('Should throw error when mediaStreamSource connect throws error', () => {
       context._mediaStreamSource.connect.throws(ERROR);
-      assert.throws(toTest, MESSAGE);
+      assert.throws(toTest, Error, MESSAGE);
     });
 
     it('Should reject and not call audio play and set outputs when setSinkIds rejects', done => {
@@ -1699,21 +1771,21 @@ describe('PeerConnection', () => {
 
     it('Should throw error when reassignMasterOutput throws error', () => {
       context._reassignMasterOutput.throws(ERROR);
-      assert.throws(toTest, MESSAGE);
+      assert.throws(toTest, Error, MESSAGE);
       assert.equal(context._disableOutput.called, false);
     });
 
     it('Should throw error when disable output throws error', () => {
       context._masterAudioDeviceId = ID_DIFF;
       context._disableOutput.throws(ERROR);
-      assert.throws(toTest, MESSAGE);
+      assert.throws(toTest, Error, MESSAGE);
       assert.equal(context.outputs.delete.called, false);
     });
 
     it('Should throw error when collection throws error', () => {
       context._masterAudioDeviceId = ID_DIFF;
       context.outputs.delete.throws(ERROR);
-      assert.throws(toTest, MESSAGE);
+      assert.throws(toTest, Error, MESSAGE);
       assert(context._disableOutput.calledOnce);
     });
   });
@@ -1801,7 +1873,7 @@ describe('PeerConnection', () => {
       pc.outputs.set(MASTER_ID, output);
       context = {
         _disableOutput: sinon.stub(),
-        log: sinon.stub()
+        _log: { info: sinon.stub() }
       };
       toTest = METHOD.bind(context, pc, MASTER_ID);
     });
@@ -1913,7 +1985,7 @@ describe('PeerConnection', () => {
         version: {
           pc
         },
-        log: sinon.stub()
+        _log: { info: sinon.stub() }
       };
       toTest = METHOD.bind(context);
     });
@@ -1933,14 +2005,14 @@ describe('PeerConnection', () => {
       context.version.pc = false;
       assert.deepStrictEqual(toTest(), null);
       assert.equal(context._getAudioTracks.called, false);
-      assert(context.log.calledWith('No RTCPeerConnection available to call createDTMFSender on'));
+      assert(context._log.info.calledWith('No RTCPeerConnection available to call createDTMFSender on'));
     });
 
     xit('Should return null and set dtmf unsupported true when createDTMFSender is not a function', () => {
       pc.createDTMFSender = false;
       pc.getLocalStreams.returns([]);
       assert.deepStrictEqual(toTest(), null);
-      assert(context.log.calledWith('No local audio MediaStreamTrack available on the ' +
+      assert(context._log.info.calledWith('No local audio MediaStreamTrack available on the ' +
         'RTCPeerConnection to pass to createDTMFSender'));
       assert.equal(context._getAudioTracks.called, false);
     });
@@ -1950,7 +2022,7 @@ describe('PeerConnection', () => {
       assert.deepStrictEqual(toTest(), null);
       assert(pc.getLocalStreams.calledWithExactly());
       assert.equal(context._getAudioTracks.called, false);
-      assert(context.log.calledWith('No local audio MediaStreamTrack available on the RTCPeerConnection to pass to createDTMFSender'));
+      assert(context._log.info.calledWith('No local audio MediaStreamTrack available on the RTCPeerConnection to pass to createDTMFSender'));
     });
 
     xit('Should return null when any of the local streams getAudioTracks does not have tracks', () => {
@@ -1962,7 +2034,7 @@ describe('PeerConnection', () => {
       assert(context._getAudioTracks.calledWithExactly('stream1'));
       assert(context._getAudioTracks.calledWithExactly('stream2'));
       assert(context._getAudioTracks.calledWithExactly('stream3'));
-      assert(context.log.calledWith('No local audio MediaStreamTrack available on the RTCPeerConnection to pass to createDTMFSender'));
+      assert(context._log.info.calledWith('No local audio MediaStreamTrack available on the RTCPeerConnection to pass to createDTMFSender'));
     });
 
     xit('Should find first available track from all local streams and createDTMFSender from it', () => {
@@ -1971,7 +2043,7 @@ describe('PeerConnection', () => {
 
       assert.deepStrictEqual(toTest(), DTMF_SENDER);
       assert(pc.getLocalStreams.calledWithExactly());
-      assert(context.log.calledWith('Creating RTCDTMFSender'));
+      assert(context._log.info.calledWith('Creating RTCDTMFSender'));
       assert(pc.createDTMFSender.calledWithExactly('track1'));
       assert(context._getAudioTracks.calledWithExactly('stream1'));
       assert.equal(context._getAudioTracks.calledWithExactly('stream2'), false);
@@ -2028,7 +2100,6 @@ describe('PeerConnection', () => {
     const METHOD = PeerConnection.prototype._setupPeerConnection;
     const CONSTRAINTS = {audio: 'boolean'};
     const ICE_SERVERS = {many: 'ice', servers: 'here'};
-    const LOG = 'log';
     const STREAM = 'stream';
     const MESSAGE = 'error message';
     const ERROR = new Error(MESSAGE);
@@ -2069,7 +2140,6 @@ describe('PeerConnection', () => {
           rtcpcFactory
         },
         stream: STREAM,
-        log: LOG,
         _onAddTrack: sinon.stub(),
         _fallbackOnAddTrack: sinon.stub(),
         _startPollingVolume: sinon.stub(),
@@ -2084,23 +2154,23 @@ describe('PeerConnection', () => {
 
     it('Should set callback on version pc onaddstream when create and addstream do not throw error', () => {
       assert.deepStrictEqual(toTest(), new rtcpcFactory());
-      assert(versionCreate.calledWithExactly(LOG, CONSTRAINTS, ICE_SERVERS));
+      assert(versionCreate.calledWithExactly(CONSTRAINTS, ICE_SERVERS));
       assert(versionPc.addStream.calledWithExactly(STREAM));
       assert.equal(typeof versionPc.onaddstream, 'function');
     });
 
     it('Should not create onaddstream callback function when version create throws error', () => {
       versionCreate.throws(ERROR);
-      assert.throws(toTest, MESSAGE);
-      assert(versionCreate.calledWithExactly(LOG, CONSTRAINTS, ICE_SERVERS));
+      assert.throws(toTest, Error, MESSAGE);
+      assert(versionCreate.calledWithExactly(CONSTRAINTS, ICE_SERVERS));
       assert.equal(versionPc.addStream.called, false);
       assert.equal(typeof versionPc.onaddstream, 'undefined');
     });
 
     it('Should not create onaddstream callback function when pc addstream throws error', () => {
       versionPc.addStream.throws(ERROR);
-      assert.throws(toTest, MESSAGE);
-      assert(versionCreate.calledWithExactly(LOG, CONSTRAINTS, ICE_SERVERS));
+      assert.throws(toTest, Error, MESSAGE);
+      assert(versionCreate.calledWithExactly(CONSTRAINTS, ICE_SERVERS));
       assert(versionPc.addStream.calledWithExactly(STREAM));
       assert.equal(typeof versionPc.onaddstream, 'undefined');
     });

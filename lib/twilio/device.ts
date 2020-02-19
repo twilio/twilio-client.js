@@ -17,6 +17,7 @@ import {
   SignalingErrors,
   TwilioError,
 } from './errors';
+import Log from './log';
 import PreflightTest from './preflight';
 import { PStream } from './pstream';
 import {
@@ -24,7 +25,6 @@ import {
   getRegionShortcode,
   getRegionURI,
 } from './regions';
-import Log, { LogLevel } from './tslog';
 import { Exception, queryToJson } from './util';
 
 const C = require('./constants');
@@ -100,11 +100,6 @@ export interface IExtendedDeviceOptions extends Device.Options {
    * ORTC are supported.
    */
   ignoreBrowserSupport?: boolean;
-
-  /**
-   * Custom {@link Log} constructor
-   */
-  Log?: typeof Log;
 
   /**
    * Whether to disable audio flag in MediaPresence (rrowland: Do we need this?)
@@ -204,6 +199,11 @@ class Device extends EventEmitter {
   static get isSupported(): boolean { return rtc.enabled(); }
 
   /**
+   * Package name of the SDK.
+   */
+  static get packageName(): string { return C.PACKAGE_NAME; }
+
+  /**
    * Run some tests to identify issues, if any, prohibiting successful calling.
    * @param [token] - A Twilio JWT token string
    * @param [options] - Options passed to {@link PreflightTest} constructor
@@ -298,14 +298,9 @@ class Device extends EventEmitter {
   private _isBrowserExtension: boolean;
 
   /**
-   * An instance of Log to use.
+   * An instance of Logger to use.
    */
-  private _log: Log = new Log(LogLevel.Off);
-
-  /**
-   * The current LogLevel
-   */
-  private _logLevel: LogLevel = LogLevel.Off;
+  private _log: Log = Log.getInstance();
 
   /**
    * An Insights Event Publisher.
@@ -635,10 +630,9 @@ class Device extends EventEmitter {
       (this.options.rtcConstraints as any).optional = [{ googDscp: true }];
     }
 
-    this._logLevel = this.options.debug ? LogLevel.Debug
-      : this.options.warnings ? LogLevel.Warn
-      : LogLevel.Off;
-    this._log = new (this.options.Log || Log)(this._logLevel);
+    this._log.setDefaultLevel(this.options.debug ? Log.levels.DEBUG
+      : this.options.warnings ? Log.levels.WARN
+      : Log.levels.SILENT);
 
     const getOrSetSound = (key: Device.ToggleableSound, value?: boolean) => {
       if (!hasBeenWarnedSounds) {
@@ -720,7 +714,6 @@ class Device extends EventEmitter {
         (this._updateSinkIds, this._updateInputStream, getUserMedia, {
       audioContext: Device.audioContext,
       enabledSounds: this._enabledSounds,
-      logLevel: this._logLevel,
     }) as AudioHelper;
 
     this.audio.on('deviceChange', (lostActiveDevices: MediaDeviceInfo[]) => {
@@ -920,7 +913,6 @@ class Device extends EventEmitter {
         this._removeConnection(this._activeConnection);
       },
       codecPreferences: this.options.codecPreferences,
-      debug: this.options.debug,
       dialtonePlayer: Device._dialtonePlayer,
       dscp: this.options.dscp,
       enableIceRestart: this.options.enableIceRestart,
@@ -933,7 +925,6 @@ class Device extends EventEmitter {
       rtcConstraints: this.options.rtcConstraints,
       shouldPlayDisconnect: () => this._enabledSounds.disconnect,
       twimlParams,
-      warnings: this.options.warnings,
     }, options);
 
     const connection = new this.options.connectionFactory(config, options);
@@ -1195,7 +1186,6 @@ class Device extends EventEmitter {
     this._log.info('Setting up VSP');
     this.stream = this.options.pStreamFactory(token, this.options.chunderw, {
       backoffMaxMs: this.options.backoffMaxMs,
-      debug: this.options.debug,
     });
 
     this.stream.addListener('close', this._onSignalingClose);
