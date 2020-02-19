@@ -16,6 +16,10 @@ const logger = getLogger(Device.packageName);
 logger.setLevel('DEBUG');
 ```
 
+* https://sdk.twilio.com is now being used for serving the sound files. (CLIENT-7221)
+* Updated npm dependencies to support node version 12. (CLIENT-7024)
+* We now log [RTCDtlsTransport](https://developer.mozilla.org/en-US/docs/Web/API/RTCDtlsTransport/state) state changes to Insights. This will help with isolating issues should they arise. (CLIENT-6913)
+
 1.9.7 (Dec 6, 2019)
 ===================
 
