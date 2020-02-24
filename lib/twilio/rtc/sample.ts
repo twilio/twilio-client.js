@@ -85,7 +85,7 @@ export default interface RTCSample {
  * Totals included in RTC statistics samples
  * @private
  */
-interface RTCSampleTotals {
+export interface RTCSampleTotals {
   /**
    * Total bytes received in last second.
    */

@@ -1,5 +1,5 @@
 import Connection from '../../lib/twilio/connection';
-import PreflightTest from '../../lib/twilio/preflight';
+import PreflightTest from '../../lib/twilio/preflight/preflight';
 import { EventEmitter } from 'events';
 import { SinonFakeTimers } from 'sinon';
 import * as assert from 'assert';
@@ -55,25 +55,29 @@ describe('PreflightTest', () => {
       const val = i+1;
       total += val;
       samples.push({
-        foo: val,
+        mos: val,
+        jitter: val,
+        rtt: val,
         totals: {
           foo: total
         }
       });
     }
 
-    const average = {...samples[samples.length - 1]};
-    average.foo = average.totals.foo/totalSampleCount;
-    return {
-      average,
-      samples
-    };
+    return samples;
   };
 
   beforeEach(() => {
-    clock = sinon.useFakeTimers(Date.now());
+    clock = sinon.useFakeTimers();
 
-    connectionContext = {};
+    connectionContext = {
+      mediaStream: {
+        callSid: 'test_callsid',
+        onpcconnectionstatechange: sinon.stub(),
+        oniceconnectionstatechange: sinon.stub(),
+        ondtlstransportstatechange: sinon.stub(),
+      }
+    };
     connection = new EventEmitter();
     Object.assign(connection, connectionContext);
 
@@ -124,13 +128,29 @@ describe('PreflightTest', () => {
       device.emit('ready');
 
       const count = 10;
-      const sample = {foo: 'foo', bar: 'bar'};
+      const sample = {foo: 'foo', bar: 'bar', mos: 1};
       for (let i = 1; i <= count; i++) {
         const data = {...sample, count: i};
         connection.emit('sample', data);
         sinon.assert.callCount(onSample, i);
         sinon.assert.calledWithExactly(onSample, data);
         assert.deepEqual(preflight.latestSample, data)
+      }
+    });
+
+    it('should not emit samples if mos is not available', () => {
+      const onSample = sinon.stub();
+      const preflight = new PreflightTest('foo', options);
+      preflight.on('sample', onSample);
+      device.emit('ready');
+
+      const count = 10;
+      const sample = {foo: 'foo', bar: 'bar'};
+      for (let i = 1; i <= count; i++) {
+        const data = {...sample, count: i};
+        connection.emit('sample', data);
+        sinon.assert.notCalled(onSample);
+        assert.equal(preflight.latestSample, undefined)
       }
     });
   });
@@ -161,7 +181,7 @@ describe('PreflightTest', () => {
       device.emit('error', { code: 31400 });
 
       sinon.assert.calledOnce(onError);
-      sinon.assert.calledWithExactly(onError, PreflightTest.NonFatalError.InsightsConnectionFailed);
+      sinon.assert.calledWithExactly(onError, PreflightTest.NonFatalError.InsightsConnectionFailed, { code: 31400 });
     });
 
     it('should not emit error for unknown code', () => {
@@ -241,16 +261,58 @@ describe('PreflightTest', () => {
     });
 
     it('should provide results', (done) => {
+      clock.reset();
       const warningData = {foo: 'foo', bar: 'bar'};
       const preflight = new PreflightTest('foo', options);
 
       assert.equal(preflight.status, PreflightTest.TestStatus.Connecting);
 
       const onCompleted = (results: PreflightTest.TestResults) => {
+        // This is derived from testSamples
         const expected = {
-          averageSample: testSamples.average,
+          callSid: 'test_callsid',
           errors: ['InsightsConnectionFailed'],
-          samples: testSamples.samples,
+          networkTiming: {
+            dtls: {
+              duration: 1000,
+              end: 1000,
+              start: 0
+            },
+            ice: {
+              duration: 1000,
+              end: 1000,
+              start: 0
+            },
+            peerConnection: {
+              duration: 1000,
+              end: 1000,
+              start: 0
+            }
+          },
+          samples: testSamples,
+          stats: {
+            jitter: {
+              average: 8,
+              max: 15,
+              min: 1
+            },
+            mos: {
+              average: 8,
+              max: 15,
+              min: 1
+            },
+            rtt: {
+              average: 8,
+              max: 15,
+              min: 1
+            }
+          },
+          testTiming: {
+            start: 0,
+            end: 15000,
+            duration: 15000
+          },
+          totals: testSamples[testSamples.length - 1].totals,
           warnings: [{name: 'foo', data: warningData}],
         };
         assert.equal(preflight.status, PreflightTest.TestStatus.Completed);
@@ -263,16 +325,29 @@ describe('PreflightTest', () => {
       preflight.on('error', sinon.stub());
       device.emit('ready');
 
-      // Populate data
+      // Populate error
       device.emit('error', { code: 31400 });
-      for (let i = 0; i < testSamples.samples.length; i++) {
-        const sample = testSamples.samples[i];
+      for (let i = 0; i < testSamples.length; i++) {
+        const sample = testSamples[i];
         const data = {...sample};
         connection.emit('sample', data);
       }
+      // Populate warnings
       connection.emit('warning', 'foo', warningData);
+      // Populate callsid
+      connection.emit('accept');
 
-      clock.tick(15000);
+      // Populate network timings
+      connection.mediaStream.onpcconnectionstatechange('connecting');
+      connection.mediaStream.ondtlstransportstatechange('connecting');
+      connection.mediaStream.oniceconnectionstatechange('checking');
+      clock.tick(1000);
+
+      connection.mediaStream.onpcconnectionstatechange('connected');
+      connection.mediaStream.ondtlstransportstatechange('connected');
+      connection.mediaStream.oniceconnectionstatechange('connected');
+
+      clock.tick(14000);
       device.emit('offline');
     });
   });
@@ -289,7 +364,7 @@ describe('PreflightTest', () => {
       clock.tick(1);
       assert.equal(preflight.status, PreflightTest.TestStatus.Failed);
       sinon.assert.calledOnce(onFailed);
-      sinon.assert.calledWithExactly(onFailed, PreflightTest.FatalError.UnsupportedBrowser);
+      sinon.assert.calledWithExactly(onFailed, PreflightTest.FatalError.UnsupportedBrowser, undefined);
     });
 
     it('should emit failed on CallCancelled and destroy device', () => {
@@ -304,7 +379,7 @@ describe('PreflightTest', () => {
       assert.equal(preflight.status, PreflightTest.TestStatus.Failed);
       sinon.assert.calledOnce(deviceContext.destroy);
       sinon.assert.calledOnce(onFailed);
-      sinon.assert.calledWithExactly(onFailed, PreflightTest.FatalError.CallCancelled);
+      sinon.assert.calledWithExactly(onFailed, PreflightTest.FatalError.CallCancelled, undefined);
     });
 
     FATAL_ERRORS.forEach((error: any) => {
@@ -319,7 +394,7 @@ describe('PreflightTest', () => {
         assert.equal(preflight.status, PreflightTest.TestStatus.Failed);
         sinon.assert.calledOnce(deviceContext.destroy);
         sinon.assert.calledOnce(onFailed);
-        sinon.assert.calledWithExactly(onFailed, (PreflightTest.FatalError as any)[error.name]);
+        sinon.assert.calledWithExactly(onFailed, (PreflightTest.FatalError as any)[error.name], { code: error.code });
       });
     });
 

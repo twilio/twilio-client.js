@@ -18,7 +18,7 @@ import {
   TwilioError,
 } from './errors';
 import Log from './log';
-import PreflightTest from './preflight';
+import PreflightTest from './preflight/preflight';
 import { PStream } from './pstream';
 import {
   defaultRegion,
