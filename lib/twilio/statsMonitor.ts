@@ -303,6 +303,9 @@ class StatsMonitor extends EventEmitter {
       (stats.packetsLost / totalInboundPackets) * 100 : 100;
 
     const rttValue = (typeof stats.rtt === 'number' || !previousSample) ? stats.rtt : previousSample.rtt;
+    const rttSecondsValue = typeof stats.rttSeconds === 'number' || !previousSample
+      ? stats.rttSeconds
+      : previousSample.rttSeconds;
 
     return {
       audioInputLevel: Math.round(average(this._inputVolumes.splice(0))),
@@ -317,6 +320,7 @@ class StatsMonitor extends EventEmitter {
       packetsReceived: currentPacketsReceived,
       packetsSent: currentPacketsSent,
       rtt: rttValue,
+      rttSeconds: rttSecondsValue,
       timestamp: stats.timestamp,
       totals: {
         bytesReceived: stats.bytesReceived,

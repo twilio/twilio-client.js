@@ -1403,6 +1403,7 @@ describe('Connection', function() {
         packetsLostFraction: 0,
         jitter: 0,
         rtt: 0,
+        rttSeconds: 0,
         mos: 0,
         codecName: 'opus'
       };

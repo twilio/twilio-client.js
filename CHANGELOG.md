@@ -1,3 +1,11 @@
+1.10.1 (Mar 4, 2020)
+===================
+
+Bug Fixes
+---------
+
+* Fixed an issue where Firefox is reporting `rtt` values in seconds instead of milliseconds. Added another field in the `sample` object `rttSeconds` to provide the `rtt` value in seconds.
+
 1.10.0 (Feb 19, 2020)
 ===================
 
@@ -23,7 +31,7 @@ logger.setLevel('DEBUG');
 1.9.7 (Dec 6, 2019)
 ===================
 
-Added an experimental feature to enable 
+Added an experimental feature to enable
 [Aggressive ICE Candidate Nomination](https://tools.ietf.org/html/rfc5245#section-8.1.1.2). This feature can be enabled by setting `forceAggressiveIceNomination` to true. If your deployment is on devices with one network interface and your RTT to Twilio's Servers is typically greater than 96 milliseconds, this feature may help reduce call connect time. As this is an experimental feature, we dont recommend enabling this until after testing it thoroughly in your deployment.
 
 Example:
