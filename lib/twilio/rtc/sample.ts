@@ -71,11 +71,6 @@ export default interface RTCSample {
   rtt: number;
 
   /**
-   * Round trip time, normalized to seconds.
-   */
-  rttSeconds: number;
-
-  /**
    * Timestamp
    */
   timestamp: number;

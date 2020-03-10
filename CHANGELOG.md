@@ -4,7 +4,7 @@
 Bug Fixes
 ---------
 
-* Fixed an issue where Firefox is reporting `rtt` values in seconds instead of milliseconds. Added another field in the `sample` object `rttSeconds` to provide the `rtt` value in seconds.
+* Fixed an issue where Firefox is reporting `rtt` values in seconds instead of milliseconds.
 
 1.10.0 (Feb 19, 2020)
 ===================
