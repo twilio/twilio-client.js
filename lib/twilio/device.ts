@@ -208,8 +208,8 @@ class Device extends EventEmitter {
    * @param [token] - A Twilio JWT token string
    * @param [options] - Options passed to {@link PreflightTest} constructor
    */
-  static testPreflight(token: string, options: PreflightTest.PreflightOptions): PreflightTest {
-    return new PreflightTest(token, options);
+  static testPreflight(token: string, options?: PreflightTest.PreflightOptions): PreflightTest {
+    return new PreflightTest(token, options || {});
   }
 
   /**
