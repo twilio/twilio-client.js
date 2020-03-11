@@ -1,10 +1,10 @@
-1.10.1 (Mar 4, 2020)
+1.11.0 (In Progress)
 ===================
 
 Bug Fixes
 ---------
 
-* Fixed an issue where Firefox is reporting `rtt` values in seconds instead of milliseconds.
+* Fixed an issue where `rtcSample.rtt` was reported in seconds instead of milliseconds in Firefox. If your application is converting `rtcSample.rtt` to milliseconds in Firefox, please update your application to account for this change.
 
 1.10.0 (Feb 19, 2020)
 ===================

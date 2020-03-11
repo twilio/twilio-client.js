@@ -119,7 +119,6 @@ describe('StatsMonitor', () => {
       'packetsReceived',
       'packetsSent',
       'rtt',
-      'rttSeconds',
       'timestamp',
       {
         'totals': [
@@ -145,7 +144,6 @@ describe('StatsMonitor', () => {
         packetsReceived: 15,
         packetsSent: 20,
         rtt: 30,
-        rttSeconds: 0.030,
         timestamp: Date.now(),
       }
     });
