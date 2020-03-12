@@ -1,9 +1,9 @@
 const assert = require('assert');
-const EventEmitter = require('events').EventEmitter;
-const EventTarget = require('../lib/twilio/shims/eventtarget');
 const sinon = require('sinon');
 
 const { PStream } = require('../lib/twilio/pstream');
+const { RELEASE_VERSION } = require('../lib/twilio/constants');
+const TransportFactory = require('./mock/WSTransport');
 
 describe('PStream', () => {
   let pstream;
@@ -30,10 +30,24 @@ describe('PStream', () => {
     });
 
     it('should send a LISTEN with the token', () => {
-      pstream.transport.send = sinon.spy();
       pstream.transport.emit('open');
       assert.equal(pstream.transport.send.callCount, 1);
-      assert.equal(JSON.parse(pstream.transport.send.args[0][0]).type, 'listen');
+      assert.deepEqual(JSON.parse(pstream.transport.send.args[0][0]), {
+        payload: {
+          browserinfo: {
+            browser: {
+              platform: 'unknown',
+              userAgent: 'unknown',
+            },
+            p: 'browser',
+            plugin: 'rtc',
+            v: RELEASE_VERSION,
+          },
+          token: 'foo',
+        },
+        type: 'listen',
+        version: '1.5'
+      });
     });
 
 
@@ -154,10 +168,25 @@ describe('PStream', () => {
       assert.equal(pstream.token, 'foobar');
     });
 
-    it('should call ._publish', () => {
-      pstream._publish = sinon.spy();
+    it('should send a LISTEN with the new token', () => {
       pstream.setToken('foobar');
-      assert.equal(pstream._publish.callCount, 1);
+      assert.equal(pstream.transport.send.callCount, 1);
+      assert.deepEqual(JSON.parse(pstream.transport.send.args[0][0]), {
+        payload: {
+          browserinfo: {
+            browser: {
+              platform: 'unknown',
+              userAgent: 'unknown',
+            },
+            p: 'browser',
+            plugin: 'rtc',
+            v: RELEASE_VERSION,
+          },
+          token: 'foobar',
+        },
+        type: 'listen',
+        version: '1.5'
+      });
     });
   });
 
@@ -166,10 +195,14 @@ describe('PStream', () => {
       assert.equal(pstream.register(), undefined);
     });
 
-    it('should call ._publish', () => {
-      pstream._publish = sinon.spy();
-      pstream.register();
-      assert.equal(pstream._publish.callCount, 1);
+    it('should send a REGISTER with the specified media capabilities', () => {
+      pstream.register({ foo: 'bar' });
+      assert.equal(pstream.transport.send.callCount, 1);
+      assert.deepEqual(JSON.parse(pstream.transport.send.args[0][0]), {
+        payload: { media: { foo: 'bar' } },
+        type: 'register',
+        version: '1.5'
+      });
     });
   });
 
@@ -179,7 +212,6 @@ describe('PStream', () => {
     });
 
     it('should close the transport', () => {
-      pstream.transport.close = sinon.spy();
       pstream.destroy();
       assert.equal(pstream.transport.close.callCount, 1);
     });
@@ -191,7 +223,6 @@ describe('PStream', () => {
     });
 
     it('should call transport.send', () => {
-      pstream.transport.send = sinon.spy();
       pstream.publish();
       assert.equal(pstream.transport.send.callCount, 1);
     });
@@ -241,16 +272,15 @@ describe('PStream', () => {
       assert(stub.calledWithExactly('reinvite', { sdp, callsid }, false));
       stub.restore();
     });
+
+    it('should send a REINVITE', () => {
+      pstream.reinvite(sdp, callsid);
+      assert.equal(pstream.transport.send.callCount, 1);
+      assert.deepEqual(JSON.parse(pstream.transport.send.args[0][0]), {
+        payload: { callsid, sdp },
+        type: 'reinvite',
+        version: '1.5'
+      });
+    });
   });
 });
-
-class TransportFactory extends EventEmitter {
-  constructor() {
-    super();
-    this._socket = new EventTarget();
-  }
-
-  close() { }
-  open() { }
-  send() { }
-}
