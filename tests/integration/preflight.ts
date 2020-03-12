@@ -14,10 +14,10 @@ describe('Preflight Test', function() {
 
   let callerIdentity: string;
   let callerToken: string;
-  let callerDevice: Device;
+  let callerDevice: any;
   let callerConnection: Connection;
   let receiverIdentity: string;
-  let receiverDevice: Device;
+  let receiverDevice: any;
   let preflight: PreflightTest;
 
   const expectEvent = (eventName: string, emitter: EventEmitter) => {
@@ -55,11 +55,16 @@ describe('Preflight Test', function() {
   describe('when test finishes', function() {
     before(async () => {
       await setupDevices();
-      receiverDevice.on('incoming', conn => {
+      receiverDevice.on('incoming', (conn: Connection) => {
         conn.accept();
       });
-      preflight = Device.testPreflight(callerToken, { connectParams: { To: receiverIdentity }});
+      preflight = Device.testPreflight(callerToken);
       callerDevice = preflight['_device'];
+
+      (callerDevice as any).connectOverride = callerDevice.connect;
+      callerDevice.connect = () => {
+        return (callerDevice as any).connectOverride({ To: receiverIdentity });
+      };
     });
 
     after(() => {
@@ -110,6 +115,7 @@ describe('Preflight Test', function() {
     });
 
     it('should emit completed event', () => {
+      setTimeout(() => receiverDevice.disconnectAll(), 10000);
       return waitFor(expectEvent('completed', preflight).then((results: PreflightTest.TestResults) => {
         assert(!!results);
         assert(!!results.samples.length);
@@ -122,26 +128,23 @@ describe('Preflight Test', function() {
     it('should set status to completed', () => {
       assert.equal(preflight.status, PreflightTest.TestStatus.Completed);
     });
-
-    it('should set call duration to 15s by default', () => {
-      const delta = preflight.endTime! - preflight.startTime;
-      const duration = 15000;
-      assert(delta >= duration && delta <= duration + DURATION_PADDING);
-    });
   });
 
   describe('when using non-default options', () => {
     before(async () => {
       await setupDevices();
-      receiverDevice.on('incoming', conn => {
+      receiverDevice.on('incoming', (conn: Connection) => {
         conn.accept();
       });
       preflight = Device.testPreflight(callerToken, {
-        callSeconds: 5,
         codecPreferences: [Connection.Codec.PCMU],
-        connectParams: { To: receiverIdentity }
       });
       callerDevice = preflight['_device'];
+
+      (callerDevice as any).connectOverride = callerDevice.connect;
+      callerDevice.connect = () => {
+        return (callerDevice as any).connectOverride({ To: receiverIdentity });
+      };
     });
 
     after(() => {
@@ -151,25 +154,22 @@ describe('Preflight Test', function() {
     it('should use codePreferences passed in', () => {
       assert.deepEqual(callerDevice['options'].codecPreferences, [Connection.Codec.PCMU]);
     });
-
-    it('should finish test using custom call duration', () => {
-      return waitFor(expectEvent('completed', preflight).then(() => {
-        const delta = preflight.endTime! - preflight.startTime;
-        const duration = 5000;
-        assert(delta >= duration && delta <= duration + DURATION_PADDING);
-      }), EVENT_TIMEOUT);
-    });
   });
 
   describe('when test is cancelled', function() {
     const FAIL_DELAY = 1000;
     before(async () => {
       await setupDevices();
-      receiverDevice.on('incoming', conn => {
+      receiverDevice.on('incoming', (conn: Connection) => {
         conn.accept();
       });
-      preflight = Device.testPreflight(callerToken, { connectParams: { To: receiverIdentity }});
+      preflight = Device.testPreflight(callerToken);
       callerDevice = preflight['_device'];
+
+      (callerDevice as any).connectOverride = callerDevice.connect;
+      callerDevice.connect = () => {
+        return (callerDevice as any).connectOverride({ To: receiverIdentity });
+      };
     });
 
     after(() => {
@@ -191,6 +191,7 @@ describe('Preflight Test', function() {
 
     it('should populate call duration correctly', () => {
       const delta = preflight.endTime! - preflight.startTime;
+      console.log(preflight.endTime, preflight.startTime);
       assert(delta >= FAIL_DELAY && delta <= FAIL_DELAY + DURATION_PADDING);
     });
   });
@@ -216,11 +217,16 @@ describe('Preflight Test', function() {
       describe(`code: ${error.code}`, () => {
         before(async () => {
           await setupDevices();
-          receiverDevice.on('incoming', conn => {
+          receiverDevice.on('incoming', (conn: Connection) => {
             conn.accept();
           });
-          preflight = Device.testPreflight(callerToken, { connectParams: { To: receiverIdentity }});
+          preflight = Device.testPreflight(callerToken);
           callerDevice = preflight['_device'];
+          
+          (callerDevice as any).connectOverride = callerDevice.connect;
+          callerDevice.connect = () => {
+            return (callerDevice as any).connectOverride({ To: receiverIdentity });
+          };
         });
     
         after(() => {

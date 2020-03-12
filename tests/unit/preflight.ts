@@ -89,7 +89,6 @@ describe('PreflightTest', () => {
     deviceFactory = getDeviceFactory(deviceContext)
 
     options = {
-      connectParams: {},
       deviceFactory
     };
 
@@ -107,15 +106,6 @@ describe('PreflightTest', () => {
       sinon.assert.calledWith(deviceContext.setup, 'foo', {
         codecPreferences: options.codecPreferences,
         debug: false
-      });
-    });
-
-    it('should pass connectParams on connect', () => {
-      options.connectParams = 'foo';
-      const preflight = new PreflightTest('foo', options);
-      device.emit('ready');
-      return wait().then(() => {
-        sinon.assert.calledWith(deviceContext.connect, 'foo');
       });
     });
   });
@@ -224,26 +214,16 @@ describe('PreflightTest', () => {
   });
 
   describe('on completed and destroy device', () => {
-    it('should end call after 15s by default', () => {
+    it('should end call after device disconnects', () => {
       const onCompleted = sinon.stub();
       const preflight = new PreflightTest('foo', options);
       preflight.on('completed', onCompleted);
       device.emit('ready');
-      clock.tick(15000);
+      clock.tick(14000);
+      device.emit('disconnect');
+      clock.tick(1000);
       device.emit('offline');
       assert(preflight.endTime! - preflight.startTime === 15000);
-      sinon.assert.calledOnce(deviceContext.destroy);
-      sinon.assert.called(onCompleted);
-    });
-
-    it('should end call after 10s and destroy device', () => {
-      options.callSeconds = 10;
-      const onCompleted = sinon.stub();
-      const preflight = new PreflightTest('foo', options);
-      preflight.on('completed', onCompleted);
-      device.emit('ready');
-      clock.tick(10000);
-      device.emit('offline');
       sinon.assert.calledOnce(deviceContext.destroy);
       sinon.assert.called(onCompleted);
     });
@@ -253,7 +233,9 @@ describe('PreflightTest', () => {
       const preflight = new PreflightTest('foo', options);
       preflight.on('completed', onCompleted);
       device.emit('ready');
-      clock.tick(15000);
+      clock.tick(14000);
+      device.emit('disconnect');
+      clock.tick(1000);
       device.emit('offline');
 
       assert.equal(device.eventNames().length, 0);
@@ -347,7 +329,9 @@ describe('PreflightTest', () => {
       connection.mediaStream.ondtlstransportstatechange('connected');
       connection.mediaStream.oniceconnectionstatechange('connected');
 
-      clock.tick(14000);
+      clock.tick(13000);
+      device.emit('disconnect');
+      clock.tick(1000);
       device.emit('offline');
     });
   });

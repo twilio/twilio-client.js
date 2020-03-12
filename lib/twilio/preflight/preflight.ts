@@ -22,11 +22,6 @@ class PreflightTest extends EventEmitter {
   private _callSid: string | undefined;
 
   /**
-   * Timeout id for when to end this test call
-   */
-  private _callTimeoutId: NodeJS.Timer;
-
-  /**
    * The {@link Connection} for this test call
    */
   private _connection: Connection;
@@ -60,9 +55,7 @@ class PreflightTest extends EventEmitter {
    * The options passed to {@link PreflightTest} constructor
    */
   private _options: PreflightTest.PreflightOptions = {
-    callSeconds: 15,
     codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
-    connectParams: {},
   };
 
   /**
@@ -120,7 +113,7 @@ class PreflightTest extends EventEmitter {
     }
 
     this._device.on('ready', () => {
-      this._onDeviceReady(this._options.connectParams);
+      this._onDeviceReady();
     });
 
     this._device.on('error', (error: Device.Error) => {
@@ -233,16 +226,15 @@ class PreflightTest extends EventEmitter {
 
   /**
    * Called on {@link Device} ready event
-   * @param connectParams - Parameters that will be sent to your Twilio Application via {@link Device.connect}
    */
-  private _onDeviceReady(connectParams: Record<string, string>): void {
-    this._connection = this._device.connect(connectParams);
+  private _onDeviceReady(): void {
+    this._connection = this._device.connect();
     this._setupConnectionHandlers(this._connection);
 
-    this._callTimeoutId = setTimeout(() => {
+    this._device.once('disconnect', () => {
       this._device.once('offline', () => this._onCompleted());
       this._device.destroy();
-    }, (this._options.callSeconds! * 1000));
+    });
   }
 
   /**
@@ -250,7 +242,6 @@ class PreflightTest extends EventEmitter {
    * @param error
    */
   private _onFailed(reason: PreflightTest.FatalError, error?: Device.Error): void {
-    clearTimeout(this._callTimeoutId);
     this._releaseHandlers();
     this._endTime = Date.now();
     this._status = PreflightTest.TestStatus.Failed;
@@ -417,20 +408,10 @@ namespace PreflightTest {
    */
   export interface PreflightOptions {
     /**
-     * Maximum duration of the test call
-     */
-    callSeconds?: number;
-
-    /**
      * An ordered array of codec names that will be used during the test call,
      * from most to least preferred.
      */
     codecPreferences?: Connection.Codec[];
-
-    /**
-     * Parameters that will be sent to your Twilio Application via {@link Device.connect}
-     */
-    connectParams: Record<string, string>;
   }
 
   /**
