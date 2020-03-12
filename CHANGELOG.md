@@ -4,7 +4,7 @@
 Bug Fixes
 ---------
 
-* Fixed an issue where `rtcSample.rtt` was reported in seconds instead of milliseconds in Firefox. If your application is converting `rtcSample.rtt` to milliseconds in Firefox, please update your application to account for this change.
+* Fixed an issue where `rtcSample.rtt` raised by `Connection.on('sample', rtcSample => ...)` was reported in seconds instead of milliseconds in Firefox. If your application is converting `rtcSample.rtt` to milliseconds in Firefox, please update your application to account for this change.
 
 1.10.0 (Feb 19, 2020)
 ===================
