@@ -262,24 +262,37 @@ describe('PStream', () => {
     });
   });
 
-  describe('reinvite', () => {
-    const callsid = 'foo';
-    const sdp = 'bar';
+  ['invite', 'answer', 'reinvite'].forEach(method => {
+    describe(method, () => {
+      const callsid = 'foo';
+      const params = 'baz=zee&foo=2';
+      const sdp = 'bar';
 
-    it('should publish without retry', () => {
-      const stub = sinon.stub(pstream, '_publish');
-      pstream.reinvite(sdp, callsid);
-      assert(stub.calledWithExactly('reinvite', { sdp, callsid }, false));
-      stub.restore();
-    });
+      const args = method === 'invite'
+        ? [sdp, callsid, params]
+        : [sdp, callsid];
 
-    it('should send a REINVITE', () => {
-      pstream.reinvite(sdp, callsid);
-      assert.equal(pstream.transport.send.callCount, 1);
-      assert.deepEqual(JSON.parse(pstream.transport.send.args[0][0]), {
-        payload: { callsid, sdp },
-        type: 'reinvite',
-        version: '1.5'
+      const payload = method === 'invite'
+        ? { callsid, sdp, twilio: { params } }
+        : { sdp, callsid };
+
+      const shouldRetry = method !== 'reinvite';
+
+      it(`should publish with${shouldRetry ? '' : 'out'} retry`, () => {
+        const stub = sinon.stub(pstream, '_publish');
+        pstream[method](...args);
+        assert(stub.calledWithExactly(method, payload, shouldRetry));
+        stub.restore();
+      });
+
+      it(`should send a ${method.toUpperCase()}`, () => {
+        pstream[method](...args);
+        assert.equal(pstream.transport.send.callCount, 1);
+        assert.deepEqual(JSON.parse(pstream.transport.send.args[0][0]), {
+          payload,
+          type: method,
+          version: '1.5'
+        });
       });
     });
   });
