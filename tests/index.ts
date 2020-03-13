@@ -57,7 +57,9 @@ root.navigator = {
   mediaDevices: {
     getUserMedia() { return Promise.resolve() },
     enumerateDevices() { return Promise.resolve([]) },
-  }
+  },
+  platform: 'platform',
+  userAgent: 'userAgent'
 };
 
 root.RTCPeerConnection = root.window.RTCPeerConnection = function() { };
