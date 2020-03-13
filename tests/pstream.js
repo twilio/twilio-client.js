@@ -36,8 +36,8 @@ describe('PStream', () => {
         payload: {
           browserinfo: {
             browser: {
-              platform: 'unknown',
-              userAgent: 'unknown',
+              platform: navigator.platform,
+              userAgent: navigator.userAgent,
             },
             p: 'browser',
             plugin: 'rtc',
@@ -175,8 +175,8 @@ describe('PStream', () => {
         payload: {
           browserinfo: {
             browser: {
-              platform: 'unknown',
-              userAgent: 'unknown',
+              platform: navigator.platform,
+              userAgent: navigator.userAgent,
             },
             p: 'browser',
             plugin: 'rtc',
@@ -185,22 +185,6 @@ describe('PStream', () => {
           token: 'foobar',
         },
         type: 'listen',
-        version: '1.5'
-      });
-    });
-  });
-
-  describe('register', () => {
-    it('should return undefined', () => {
-      assert.equal(pstream.register(), undefined);
-    });
-
-    it('should send a REGISTER with the specified media capabilities', () => {
-      pstream.register({ foo: 'bar' });
-      assert.equal(pstream.transport.send.callCount, 1);
-      assert.deepEqual(JSON.parse(pstream.transport.send.args[0][0]), {
-        payload: { media: { foo: 'bar' } },
-        type: 'register',
         version: '1.5'
       });
     });
@@ -263,6 +247,13 @@ describe('PStream', () => {
   });
 
   [
+    ['register', [
+      {
+        args: [{ audio: true }],
+        payload: { media: { audio: true } },
+        scenario: 'called with media capabilities'
+      }
+    ]],
     ['invite', [
       {
         args: ['bar', 'foo', ''],
@@ -320,6 +311,10 @@ describe('PStream', () => {
       const shouldRetry = method !== 'reinvite';
       scenarios.forEach(({ args, payload, scenario }) => {
         context(scenario, () => {
+          it('should return undefined', () => {
+            assert.equal(pstream[method](...args), undefined);
+          });
+
           it(`should publish with${shouldRetry ? '' : 'out'} retry`, () => {
             const stub = sinon.stub(pstream, '_publish');
             pstream[method](...args);
