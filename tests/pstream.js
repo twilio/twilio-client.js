@@ -262,36 +262,80 @@ describe('PStream', () => {
     });
   });
 
-  ['invite', 'answer', 'reinvite'].forEach(method => {
+  [
+    ['invite', [
+      {
+        args: ['bar', 'foo', ''],
+        payload: { callsid: 'foo', sdp: 'bar', twilio: {} },
+        scenario: 'called with empty params'
+      },
+      {
+        args: ['bar', 'foo', 'baz=zee&foo=2'],
+        payload: { callsid: 'foo', sdp: 'bar', twilio: { params: 'baz=zee&foo=2' } },
+        scenario: 'called with non-empty params'
+      }
+    ]],
+    ['answer', [
+      {
+        args: ['bar', 'foo'],
+        payload: { callsid: 'foo', sdp: 'bar' },
+        scenario: 'called with sdp and callsid'
+      }
+    ]],
+    ['dtmf', [
+      {
+        args: ['foo', '123'],
+        payload: { callsid: 'foo', dtmf: '123' },
+        scenario: 'called without callsid and dtmf digits'
+      }
+    ]],
+    ['hangup', [
+      {
+        args: ['foo'],
+        payload: { callsid: 'foo' },
+        scenario: 'called without a message'
+      },
+      {
+        args: ['foo', 'bar'],
+        payload: { callsid: 'foo', message: 'bar' },
+        scenario: 'called with a message'
+      }
+    ]],
+    ['reject', [
+      {
+        args: ['foo'],
+        payload: { callsid: 'foo' },
+        scenario: 'called with callsid'
+      }
+    ]],
+    ['reinvite', [
+      {
+        args: ['bar', 'foo'],
+        payload: { callsid: 'foo', sdp: 'bar' },
+        scenario: 'called with sdp and callsid'
+      }
+    ]]
+  ].forEach(([method, scenarios]) => {
     describe(method, () => {
-      const callsid = 'foo';
-      const params = 'baz=zee&foo=2';
-      const sdp = 'bar';
-
-      const args = method === 'invite'
-        ? [sdp, callsid, params]
-        : [sdp, callsid];
-
-      const payload = method === 'invite'
-        ? { callsid, sdp, twilio: { params } }
-        : { sdp, callsid };
-
       const shouldRetry = method !== 'reinvite';
+      scenarios.forEach(({ args, payload, scenario }) => {
+        context(scenario, () => {
+          it(`should publish with${shouldRetry ? '' : 'out'} retry`, () => {
+            const stub = sinon.stub(pstream, '_publish');
+            pstream[method](...args);
+            assert(stub.calledWithExactly(method, payload, shouldRetry));
+            stub.restore();
+          });
 
-      it(`should publish with${shouldRetry ? '' : 'out'} retry`, () => {
-        const stub = sinon.stub(pstream, '_publish');
-        pstream[method](...args);
-        assert(stub.calledWithExactly(method, payload, shouldRetry));
-        stub.restore();
-      });
-
-      it(`should send a ${method.toUpperCase()}`, () => {
-        pstream[method](...args);
-        assert.equal(pstream.transport.send.callCount, 1);
-        assert.deepEqual(JSON.parse(pstream.transport.send.args[0][0]), {
-          payload,
-          type: method,
-          version: '1.5'
+          it(`should send a ${method.toUpperCase()}`, () => {
+            pstream[method](...args);
+            assert.equal(pstream.transport.send.callCount, 1);
+            assert.deepEqual(JSON.parse(pstream.transport.send.args[0][0]), {
+              payload,
+              type: method,
+              version: '1.5'
+            });
+          });
         });
       });
     });
