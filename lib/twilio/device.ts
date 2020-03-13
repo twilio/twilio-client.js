@@ -1,4 +1,5 @@
 /**
+ * @packageDocumentation
  * @module Voice
  * @preferred
  * @publicapi
@@ -18,7 +19,7 @@ import {
   TwilioError,
 } from './errors';
 import Log from './log';
-import PreflightTest from './preflight/preflight';
+import { PreflightTest } from './preflight/preflight';
 import { PStream } from './pstream';
 import {
   defaultRegion,
@@ -205,8 +206,8 @@ class Device extends EventEmitter {
 
   /**
    * Run some tests to identify issues, if any, prohibiting successful calling.
-   * @param [token] - A Twilio JWT token string
-   * @param [options] - Options passed to {@link PreflightTest} constructor
+   * @param token - A Twilio JWT token string
+   * @param options
    */
   static testPreflight(token: string, options?: PreflightTest.PreflightOptions): PreflightTest {
     return new PreflightTest(token, options || {});

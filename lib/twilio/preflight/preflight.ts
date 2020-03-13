@@ -1,4 +1,5 @@
 /**
+ * @packageDocumentation
  * @module Voice
  * @preferred
  * @publicapi
@@ -12,10 +13,9 @@ import RTCWarning from '../rtc/warning';
 import { NetworkTiming, TimeMeasurement } from './timing';
 
 /**
- * A {@link PreflightTest} runs some tests to identify issues, if any, prohibiting successful calling.
- * @publicapi
+ * Runs some tests to identify issues, if any, prohibiting successful calling.
  */
-class PreflightTest extends EventEmitter {
+export class PreflightTest extends EventEmitter {
   /**
    * Callsid generated for this test call
    */
@@ -84,10 +84,10 @@ class PreflightTest extends EventEmitter {
   private _warnings: PreflightTest.PreflightWarning[];
 
   /**
-   * Construct a {@link PreflightTest} instance
+   * Construct a {@link PreflightTest} instance.
    * @constructor
-   * @param [token] - A Twilio JWT token string
-   * @param [options]
+   * @param token - A Twilio JWT token string.
+   * @param options
    */
   constructor(token: string, options: PreflightTest.ExtendedPreflightOptions) {
     super();
@@ -122,7 +122,7 @@ class PreflightTest extends EventEmitter {
   }
 
   /**
-   * Cancels the current test and raises failed event
+   * Cancels the current test and raises a failed event.
    */
   cancel(): void {
     this._device.once('offline', () => this._onFailed(PreflightTest.FatalError.CallCancelled));
@@ -190,7 +190,7 @@ class PreflightTest extends EventEmitter {
     this._endTime = Date.now();
     this._status = PreflightTest.TestStatus.Completed;
     this._results = this._getResults();
-    this.emit('completed', this._results);
+    this.emit(PreflightTest.Events.Completed, this._results);
   }
 
   /**
@@ -202,7 +202,7 @@ class PreflightTest extends EventEmitter {
     switch (error.code) {
       case 31400:
         this._errors.push(PreflightTest.NonFatalError.InsightsConnectionFailed);
-        this.emit('error', PreflightTest.NonFatalError.InsightsConnectionFailed, error);
+        this.emit(PreflightTest.Events.Error, PreflightTest.NonFatalError.InsightsConnectionFailed, error);
         return;
       case 31000:
         fatalError = PreflightTest.FatalError.SignalingConnectionFailed;
@@ -245,7 +245,7 @@ class PreflightTest extends EventEmitter {
     this._releaseHandlers();
     this._endTime = Date.now();
     this._status = PreflightTest.TestStatus.Failed;
-    this.emit('failed', reason, error);
+    this.emit(PreflightTest.Events.Failed, reason, error);
   }
 
   /**
@@ -266,13 +266,13 @@ class PreflightTest extends EventEmitter {
   private _setupConnectionHandlers(connection: Connection): void {
     connection.on('warning', (name: string, data: RTCWarning) => {
       this._warnings.push({ name, data });
-      this.emit('warning', name, data);
+      this.emit(PreflightTest.Events.Warning, name, data);
     });
 
     connection.once('accept', () => {
       this._callSid = connection.mediaStream.callSid;
       this._status = PreflightTest.TestStatus.Connected;
-      this.emit(PreflightTest.TestStatus.Connected);
+      this.emit(PreflightTest.Events.Connected);
     });
 
     connection.on('sample', (sample) => {
@@ -282,7 +282,7 @@ class PreflightTest extends EventEmitter {
       }
       this._latestSample = sample;
       this._samples.push(sample);
-      this.emit('sample', sample);
+      this.emit(PreflightTest.Events.Sample, sample);
     });
 
     // TODO: Update the following once the SDK supports emitting these events
@@ -318,51 +318,64 @@ class PreflightTest extends EventEmitter {
   }
 
   /**
-   * Return the callsid generated for this test call
+   * Returns the callsid generated for the test call.
    */
   get callSid(): string | undefined {
     return this._callSid;
   }
 
   /**
-   * Return the end of the test timestamp
+   * Returns a timestamp in milliseconds of when the test ended.
    */
   get endTime(): number | undefined {
     return this._endTime;
   }
 
   /**
-   * Returns the latest WebRTC sample collected
+   * Returns the latest WebRTC sample collected.
    */
   get latestSample(): RTCSample | undefined {
     return this._latestSample;
   }
 
   /**
-   * Returns the results of the test
+   * Returns the results of the test.
    */
   get results(): PreflightTest.TestResults | undefined {
     return this._results;
   }
 
   /**
-   * Return the start of the test timestamp
+   * Returns a timestamp in milliseconds of when the test started.
    */
   get startTime(): number {
     return this._startTime;
   }
 
   /**
-   * Returns the status of the current test
+   * Returns the status of the test.
    */
   get status(): PreflightTest.TestStatus {
     return this._status;
   }
 }
 
-namespace PreflightTest {
+export namespace PreflightTest {
   /**
-   * Possible fatal errors
+   * Possible events that a [[PreflightTest]] might emit. See [[PreflightTest.on]].
+   * @internalapi
+   */
+  export enum Events {
+    Completed = 'completed',
+    Connected = 'connected',
+    Error = 'error',
+    Failed = 'failed',
+    Sample = 'sample',
+    Warning = 'warning',
+  }
+  /**
+   * Possible fatal errors.
+   * @internalapi
    */
   export enum FatalError {
     CallCancelled = 'CallCancelled',
@@ -376,35 +389,51 @@ namespace PreflightTest {
   }
 
   /**
-   * Possible non fatal errors
+   * Possible non fatal errors.
+   * @internalapi
    */
   export enum NonFatalError {
     InsightsConnectionFailed = 'InsightsConnectionFailed',
   }
 
   /**
-   * Possible status of the test
+   * Possible status of the test.
    */
   export enum TestStatus {
+    /**
+     * Connection to Twilio has initiated.
+     */
     Connecting = 'connecting',
+
+    /**
+     * Connection to Twilio has been established.
+     */
     Connected = 'connected',
+
+    /**
+     * The test finished gathering data and is now complete..
+     */
     Completed = 'completed',
+    
+    /**
+     * The test has stopped and failed.
+     */
     Failed = 'failed',
   }
 
   /**
-   * Options that may be passed to {@link PreflightTest} constructor for internal testing
-   * @private
+   * Options that may be passed to {@link PreflightTest} constructor for internal testing.
+   * @internalapi
    */
   export interface ExtendedPreflightOptions extends PreflightOptions {
     /**
-     * Device class to use
+     * Device class to use.
      */
     deviceFactory?: new (token: string, options: Device.Options) => Device;
   }
 
   /**
-   * Options passed to {@link PreflightTest} constructor
+   * Options passed to {@link PreflightTest} constructor.
    */
   export interface PreflightOptions {
     /**
@@ -415,31 +444,32 @@ namespace PreflightTest {
   }
 
   /**
-   * Represents the warning emitted from Voice SDK
+   * Represents the warning emitted from VoiceJS SDK.
+   * @internalapi
    */
   export interface PreflightWarning {
     /**
-     * Warning data associated with the warning
+     * Data coming from VoiceJS SDK associated with the warning.
      */
     data: RTCWarning;
 
     /**
-     * Name of the warning
+     * Name of the warning.
      */
     name: string;
   }
 
   /**
-   * Represents RTC related stats that are extracted from RTC samples
+   * Represents RTC related stats that are extracted from RTC samples.
    */
   export interface RTCStats {
     /**
-     * Packets delay variation
+     * Packets delay variation.
      */
     jitter: Stats;
 
     /**
-     * Mean opinion score, 1.0 through roughly 4.5
+     * Mean opinion score, 1.0 through roughly 4.5.
      */
     mos: Stats;
 
@@ -450,21 +480,21 @@ namespace PreflightTest {
   }
 
   /**
-   * Represents general stats for a specific metric
+   * Represents general stats for a specific metric.
    */
   export interface Stats {
     /**
-     * The average value for this metric
+     * The average value for this metric.
      */
     average: number;
 
     /**
-     * The maximum value for this metric
+     * The maximum value for this metric.
      */
     max: number;
 
     /**
-     * The minimum value for this metric
+     * The minimum value for this metric.
      */
     min: number;
   }
@@ -474,45 +504,43 @@ namespace PreflightTest {
    */
   export interface TestResults {
     /**
-     * CallSid generaged during the test
+     * CallSid generaged during the test.
      */
     callSid: string | undefined;
 
     /**
-     * Non-fatal errors detected during the test
+     * Non-fatal errors detected during the test.
      */
     errors: PreflightTest.NonFatalError[];
 
     /**
-     * Network related timing measurements
+     * Network related time measurements.
      */
     networkTiming: NetworkTiming;
 
     /**
-     * WebRTC samples collected during the test
+     * WebRTC samples collected during the test.
      */
     samples: RTCSample[];
 
     /**
-     * RTC related stats captured during the test
+     * RTC related stats captured during the test.
      */
     stats?: RTCStats;
 
     /**
-     * Timing measurements of the test
+     * Time measurements of test run time.
      */
     testTiming: TimeMeasurement;
 
     /**
-     * Totals in RTC statistics samples
+     * Calculated totals in RTC statistics samples.
      */
     totals?: RTCSampleTotals;
 
     /**
-     * List of warning names and warning data detected during this test
+     * List of warning names and warning data detected during this test.
      */
     warnings: PreflightWarning[];
   }
  }
-
-export default PreflightTest;
