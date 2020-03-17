@@ -275,7 +275,7 @@ export class PreflightTest extends EventEmitter {
 
     connection.on('sample', (sample) => {
       // This is the first sample and no mos yet
-      if (typeof sample.mos !== 'number') {
+      if (typeof sample.mos !== 'number' && !this._samples.length) {
         return;
       }
       this._latestSample = sample;
