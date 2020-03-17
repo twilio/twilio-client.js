@@ -1025,7 +1025,7 @@ class Device extends EventEmitter {
     this.emit('error', {
       code: twilioError.code,
       info,
-      message: twilioError.description,
+      message: 'Received an error while publishing events to insights',
       twilioError,
     });
   }

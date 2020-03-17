@@ -17,6 +17,14 @@ import { NetworkTiming, TimeMeasurement } from './timing';
  */
 export class PreflightTest extends EventEmitter {
   /**
+   * Non-fatal errors. We use this to determine whether we should fail the test or not.
+   */
+  private static nonFatalErrors = [
+    // Insights connection failure
+    31400,
+  ];
+
+  /**
    * Callsid generated for this test call
    */
   private _callSid: string | undefined;
@@ -39,7 +47,7 @@ export class PreflightTest extends EventEmitter {
   /**
    * Non-fatal errors detected during this test
    */
-  private _errors: PreflightTest.NonFatalError[];
+  private _errors: Array<Device.Error | Error>;
 
   /**
    * Latest WebRTC sample collected for this test
@@ -56,6 +64,7 @@ export class PreflightTest extends EventEmitter {
    */
   private _options: PreflightTest.Options = {
     codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
+    debug: false,
   };
 
   /**
@@ -102,12 +111,12 @@ export class PreflightTest extends EventEmitter {
     try {
       this._device = new (options.deviceFactory || Device)(token, {
         codecPreferences: this._options.codecPreferences,
-        debug: false,
+        debug: this._options.debug,
       });
-    } catch {
+    } catch(error) {
       // We want to return before failing so the consumer can capture the event
       setTimeout(() => {
-        this._onFailed(PreflightTest.FatalError.UnsupportedBrowser);
+        this._onFailed(error);
       });
       return;
     }
@@ -125,7 +134,11 @@ export class PreflightTest extends EventEmitter {
    * Stops the current test and raises a failed event.
    */
   stop(): void {
-    this._device.once('offline', () => this._onFailed(PreflightTest.FatalError.CallCancelled));
+    const error: Device.Error = {
+      code: 31008,
+      message: 'Call cancelled',
+    };
+    this._device.once('offline', () => this._onFailed(error));
     this._device.destroy();
   }
 
@@ -198,30 +211,15 @@ export class PreflightTest extends EventEmitter {
    * @param error
    */
   private _onDeviceError(error: Device.Error): void {
-    let fatalError: PreflightTest.FatalError = PreflightTest.FatalError.UnknownError;
-    switch (error.code) {
-      case 31400:
-        this._errors.push(PreflightTest.NonFatalError.InsightsConnectionFailed);
-        this.emit(PreflightTest.Events.Error, PreflightTest.NonFatalError.InsightsConnectionFailed, error);
-        return;
-      case 31000:
-        fatalError = PreflightTest.FatalError.SignalingConnectionFailed;
-        break;
-      case 31003:
-        fatalError = PreflightTest.FatalError.IceConnectionFailed;
-        break;
-      case 20101:
-        fatalError = PreflightTest.FatalError.InvalidToken;
-        break;
-      case 31208:
-        fatalError = PreflightTest.FatalError.MediaPermissionsFailed;
-        break;
-      case 31201:
-        fatalError = PreflightTest.FatalError.NoDevicesFound;
-        break;
+    if (PreflightTest.nonFatalErrors.includes(error.code)) {
+      this._errors.push(error);
+      this.emit(PreflightTest.Events.Error, error);
+      return;
     }
+
+    // This is a fatal error so we will fail the test.
     this._device.destroy();
-    this._onFailed(fatalError, error);
+    this._onFailed(error);
   }
 
   /**
@@ -241,11 +239,11 @@ export class PreflightTest extends EventEmitter {
    * Called when there is a fatal error
    * @param error
    */
-  private _onFailed(reason: PreflightTest.FatalError, error?: Device.Error): void {
+  private _onFailed(error: Device.Error | Error): void {
     this._releaseHandlers();
     this._endTime = Date.now();
     this._status = PreflightTest.Status.Failed;
-    this.emit(PreflightTest.Events.Failed, reason, error);
+    this.emit(PreflightTest.Events.Failed, error);
   }
 
   /**
@@ -373,28 +371,6 @@ export namespace PreflightTest {
     Sample = 'sample',
     Warning = 'warning',
   }
-  /**
-   * Possible fatal errors.
-   * @internalapi
-   */
-  export enum FatalError {
-    CallCancelled = 'CallCancelled',
-    IceConnectionFailed = 'IceConnectionFailed',
-    InvalidToken = 'InvalidToken',
-    MediaPermissionsFailed = 'MediaPermissionsFailed',
-    NoDevicesFound = 'NoDevicesFound',
-    SignalingConnectionFailed = 'SignalingConnectionFailed',
-    UnknownError = 'UnknownError',
-    UnsupportedBrowser = 'UnsupportedBrowser',
-  }
-
-  /**
-   * Possible non fatal errors.
-   * @internalapi
-   */
-  export enum NonFatalError {
-    InsightsConnectionFailed = 'InsightsConnectionFailed',
-  }
 
   /**
    * Possible status of the test.
@@ -439,8 +415,15 @@ export namespace PreflightTest {
     /**
      * An ordered array of codec names that will be used during the test call,
      * from most to least preferred.
+     * @default ['pcmu','opus']
      */
     codecPreferences?: Connection.Codec[];
+
+    /**
+     * Whether to enable debug logging.
+     * @default false
+     */
+    debug?: boolean;
   }
 
   /**
@@ -511,7 +494,7 @@ export namespace PreflightTest {
     /**
      * Non-fatal errors detected during the test.
      */
-    errors: PreflightTest.NonFatalError[];
+    errors: Array<Device.Error | Error>;
 
     /**
      * Network related time measurements.
