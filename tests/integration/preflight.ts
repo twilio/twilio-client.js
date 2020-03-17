@@ -72,7 +72,7 @@ describe('Preflight Test', function() {
     });
 
     it('should set status to connecting', () => {
-      assert.equal(preflight.status, PreflightTest.TestStatus.Connecting);
+      assert.equal(preflight.status, PreflightTest.Status.Connecting);
     });
 
     it('should emit non-fatal error', () => {
@@ -92,7 +92,7 @@ describe('Preflight Test', function() {
     });
 
     it('should set status to connected', () => {
-      assert.equal(preflight.status, PreflightTest.TestStatus.Connected);
+      assert.equal(preflight.status, PreflightTest.Status.Connected);
     });
 
     it('should set default codePreferences', () => {
@@ -116,7 +116,7 @@ describe('Preflight Test', function() {
 
     it('should emit completed event', () => {
       setTimeout(() => receiverDevice.disconnectAll(), 10000);
-      return waitFor(expectEvent('completed', preflight).then((results: PreflightTest.TestResults) => {
+      return waitFor(expectEvent('completed', preflight).then((results: PreflightTest.Report) => {
         assert(!!results);
         assert(!!results.samples.length);
         assert(!!results.errors.length);
@@ -126,7 +126,7 @@ describe('Preflight Test', function() {
     });
 
     it('should set status to completed', () => {
-      assert.equal(preflight.status, PreflightTest.TestStatus.Completed);
+      assert.equal(preflight.status, PreflightTest.Status.Completed);
     });
   });
 

@@ -54,14 +54,14 @@ export class PreflightTest extends EventEmitter {
   /**
    * The options passed to {@link PreflightTest} constructor
    */
-  private _options: PreflightTest.PreflightOptions = {
+  private _options: PreflightTest.Options = {
     codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
   };
 
   /**
    * Results of this test
    */
-  private _results: PreflightTest.TestResults | undefined;
+  private _results: PreflightTest.Report | undefined;
 
   /**
    * WebRTC samples collected during this test
@@ -76,12 +76,12 @@ export class PreflightTest extends EventEmitter {
   /**
    * Current status of this test
    */
-  private _status: PreflightTest.TestStatus = PreflightTest.TestStatus.Connecting;
+  private _status: PreflightTest.Status = PreflightTest.Status.Connecting;
 
   /**
    * List of warning names and warning data detected during this test
    */
-  private _warnings: PreflightTest.PreflightWarning[];
+  private _warnings: PreflightTest.Warning[];
 
   /**
    * Construct a {@link PreflightTest} instance.
@@ -89,7 +89,7 @@ export class PreflightTest extends EventEmitter {
    * @param token - A Twilio JWT token string.
    * @param options
    */
-  constructor(token: string, options: PreflightTest.ExtendedPreflightOptions) {
+  constructor(token: string, options: PreflightTest.ExtendedOptions) {
     super();
 
     Object.assign(this._options, options);
@@ -122,9 +122,9 @@ export class PreflightTest extends EventEmitter {
   }
 
   /**
-   * Cancels the current test and raises a failed event.
+   * Stops the current test and raises a failed event.
    */
-  cancel(): void {
+  stop(): void {
     this._device.once('offline', () => this._onFailed(PreflightTest.FatalError.CallCancelled));
     this._device.destroy();
   }
@@ -132,7 +132,7 @@ export class PreflightTest extends EventEmitter {
   /**
    * Returns the results of the test call
    */
-  private _getResults(): PreflightTest.TestResults {
+  private _getResults(): PreflightTest.Report {
     const testTiming: TimeMeasurement = { start: this._startTime };
     if (this._endTime) {
       testTiming.end = this._endTime;
@@ -188,7 +188,7 @@ export class PreflightTest extends EventEmitter {
   private _onCompleted(): void {
     this._releaseHandlers();
     this._endTime = Date.now();
-    this._status = PreflightTest.TestStatus.Completed;
+    this._status = PreflightTest.Status.Completed;
     this._results = this._getResults();
     this.emit(PreflightTest.Events.Completed, this._results);
   }
@@ -244,7 +244,7 @@ export class PreflightTest extends EventEmitter {
   private _onFailed(reason: PreflightTest.FatalError, error?: Device.Error): void {
     this._releaseHandlers();
     this._endTime = Date.now();
-    this._status = PreflightTest.TestStatus.Failed;
+    this._status = PreflightTest.Status.Failed;
     this.emit(PreflightTest.Events.Failed, reason, error);
   }
 
@@ -271,7 +271,7 @@ export class PreflightTest extends EventEmitter {
 
     connection.once('accept', () => {
       this._callSid = connection.mediaStream.callSid;
-      this._status = PreflightTest.TestStatus.Connected;
+      this._status = PreflightTest.Status.Connected;
       this.emit(PreflightTest.Events.Connected);
     });
 
@@ -341,7 +341,7 @@ export class PreflightTest extends EventEmitter {
   /**
    * Returns the results of the test.
    */
-  get results(): PreflightTest.TestResults | undefined {
+  get results(): PreflightTest.Report | undefined {
     return this._results;
   }
 
@@ -355,14 +355,14 @@ export class PreflightTest extends EventEmitter {
   /**
    * Returns the status of the test.
    */
-  get status(): PreflightTest.TestStatus {
+  get status(): PreflightTest.Status {
     return this._status;
   }
 }
 
 export namespace PreflightTest {
   /**
-   * Possible events that a [[PreflightTest]] might emit. See [[PreflightTest.on]].
+   * Possible events that a [[PreflightTest]] might emit.
    * @internalapi
    */
   export enum Events {
@@ -399,7 +399,7 @@ export namespace PreflightTest {
   /**
    * Possible status of the test.
    */
-  export enum TestStatus {
+  export enum Status {
     /**
      * Connection to Twilio has initiated.
      */
@@ -425,7 +425,7 @@ export namespace PreflightTest {
    * Options that may be passed to {@link PreflightTest} constructor for internal testing.
    * @internalapi
    */
-  export interface ExtendedPreflightOptions extends PreflightOptions {
+  export interface ExtendedOptions extends Options {
     /**
      * Device class to use.
      */
@@ -435,7 +435,7 @@ export namespace PreflightTest {
   /**
    * Options passed to {@link PreflightTest} constructor.
    */
-  export interface PreflightOptions {
+  export interface Options {
     /**
      * An ordered array of codec names that will be used during the test call,
      * from most to least preferred.
@@ -447,7 +447,7 @@ export namespace PreflightTest {
    * Represents the warning emitted from VoiceJS SDK.
    * @internalapi
    */
-  export interface PreflightWarning {
+  export interface Warning {
     /**
      * Data coming from VoiceJS SDK associated with the warning.
      */
@@ -502,7 +502,7 @@ export namespace PreflightTest {
   /**
    * Represents the results of the {@link PreflightTest}
    */
-  export interface TestResults {
+  export interface Report {
     /**
      * CallSid generaged during the test.
      */
@@ -541,6 +541,6 @@ export namespace PreflightTest {
     /**
      * List of warning names and warning data detected during this test.
      */
-    warnings: PreflightWarning[];
+    warnings: Warning[];
   }
  }

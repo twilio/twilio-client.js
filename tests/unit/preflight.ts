@@ -35,7 +35,7 @@ describe('PreflightTest', () => {
   let testSamples: any;
 
   const getDeviceFactory = (context: any) => {
-    const factory = function(this: any, token: string, options: PreflightTest.PreflightOptions) {
+    const factory = function(this: any, token: string, options: PreflightTest.Options) {
       Object.assign(this, context);
       if (token) {
         this.setup(token, options);
@@ -208,7 +208,7 @@ describe('PreflightTest', () => {
       device.emit('ready');
 
       connection.emit('accept');
-      assert.equal(preflight.status, PreflightTest.TestStatus.Connected);
+      assert.equal(preflight.status, PreflightTest.Status.Connected);
       sinon.assert.calledOnce(onConnected);
     });
   });
@@ -247,9 +247,9 @@ describe('PreflightTest', () => {
       const warningData = {foo: 'foo', bar: 'bar'};
       const preflight = new PreflightTest('foo', options);
 
-      assert.equal(preflight.status, PreflightTest.TestStatus.Connecting);
+      assert.equal(preflight.status, PreflightTest.Status.Connecting);
 
-      const onCompleted = (results: PreflightTest.TestResults) => {
+      const onCompleted = (results: PreflightTest.Report) => {
         // This is derived from testSamples
         const expected = {
           callSid: 'test_callsid',
@@ -297,7 +297,7 @@ describe('PreflightTest', () => {
           totals: testSamples[testSamples.length - 1].totals,
           warnings: [{name: 'foo', data: warningData}],
         };
-        assert.equal(preflight.status, PreflightTest.TestStatus.Completed);
+        assert.equal(preflight.status, PreflightTest.Status.Completed);
         assert.deepEqual(results, expected);
         assert.deepEqual(preflight.results, expected);
         done();
@@ -346,7 +346,7 @@ describe('PreflightTest', () => {
       const preflight = new PreflightTest('foo', options);
       preflight.on('failed', onFailed);
       clock.tick(1);
-      assert.equal(preflight.status, PreflightTest.TestStatus.Failed);
+      assert.equal(preflight.status, PreflightTest.Status.Failed);
       sinon.assert.calledOnce(onFailed);
       sinon.assert.calledWithExactly(onFailed, PreflightTest.FatalError.UnsupportedBrowser, undefined);
     });
@@ -360,7 +360,7 @@ describe('PreflightTest', () => {
       preflight.cancel();
       device.emit('offline');
 
-      assert.equal(preflight.status, PreflightTest.TestStatus.Failed);
+      assert.equal(preflight.status, PreflightTest.Status.Failed);
       sinon.assert.calledOnce(deviceContext.destroy);
       sinon.assert.calledOnce(onFailed);
       sinon.assert.calledWithExactly(onFailed, PreflightTest.FatalError.CallCancelled, undefined);
@@ -375,7 +375,7 @@ describe('PreflightTest', () => {
 
         device.emit('error', { code: error.code });
 
-        assert.equal(preflight.status, PreflightTest.TestStatus.Failed);
+        assert.equal(preflight.status, PreflightTest.Status.Failed);
         sinon.assert.calledOnce(deviceContext.destroy);
         sinon.assert.calledOnce(onFailed);
         sinon.assert.calledWithExactly(onFailed, (PreflightTest.FatalError as any)[error.name], { code: error.code });
@@ -394,7 +394,7 @@ describe('PreflightTest', () => {
 
       clock.tick(15000);
       device.emit('offline');
-      assert.equal(preflight.status, PreflightTest.TestStatus.Failed);
+      assert.equal(preflight.status, PreflightTest.Status.Failed);
       sinon.assert.notCalled(onCompleted);
     });
 
