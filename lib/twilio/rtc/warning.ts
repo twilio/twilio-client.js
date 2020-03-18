@@ -1,14 +1,12 @@
 /**
  * @packageDocumentation
  * @module Voice
- * @internalapi
+ * @publicapi
  */
-
 import RTCSample from './sample';
 
 /**
  * Warning data for a stat
- * @private
  */
 export default interface RTCWarning {
   /**
@@ -39,9 +37,8 @@ export default interface RTCWarning {
 
 /**
  * Threshold data for a {@link RTCWarning}.
- * @private
  */
-interface ThresholdWarningData {
+export interface ThresholdWarningData {
   /**
    * Name of this threshold
    */

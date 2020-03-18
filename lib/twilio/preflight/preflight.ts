@@ -12,6 +12,60 @@ import RTCSample from '../rtc/sample';
 import RTCWarning from '../rtc/warning';
 import { NetworkTiming, TimeMeasurement } from './timing';
 
+export declare interface PreflightTest {
+  /**
+   * Raised when [[PreflightTest.status]] has transitioned to [[PreflightTest.Status.Completed]].
+   * During this time, [[PreflightTest.report]] is available and ready to be inspected.
+   * In some cases, this will not trigger if the test encounters a fatal error prior connecting to Twilio.
+   * See [[PreflightTest.failedEvent]].
+   * @param report
+   * @example `preflight.on('completed', report => console.log(report))`
+   * @event
+   */
+  completedEvent(report: PreflightTest.Report): void;
+
+  /**
+   * Raised when [[PreflightTest.status]] has transitioned to [[PreflightTest.Status.Connected]].
+   * @example `preflight.on('connected', () => console.log('Test connected'))`
+   * @event
+   */
+  connectedEvent(): void;
+
+  /**
+   * Raised whenever the test encounters a non-fatal error.
+   * @param error
+   * @example `preflight.on('error', error => console.log(error))`
+   * @event
+   */
+  errorEvent(error: Device.Error): void;
+
+  /**
+   * Raised when [[PreflightTest.status]] has transitioned to [[PreflightTest.Status.Failed]].
+   * This happens when establishing a connection to Twilio has failed or when a test call has encountered a fatal error.
+   * This is also raised if [[PreflightTest.stop]] is called while the test is in progress.
+   * @param error
+   * @example `preflight.on('failed', error => console.log(error))`
+   * @event
+   */
+  failedEvent(error: Device.Error | DOMError): void;
+
+  /**
+   * Raised when the [[Connection]] gets a webrtc sample object. This event is published every second.
+   * @param sample
+   * @example `preflight.on('sample', sample => console.log(sample))`
+   * @event
+   */
+  sampleEvent(sample: RTCSample): void;
+
+  /**
+   * Raised whenever the [[Connection]] encounters a warning.
+   * @param name - The name of the warning.
+   * @example `preflight.on('warning', (name, data) => console.log({ name, data }))`
+   * @event
+   */
+  warningEvent(name: string, data: RTCWarning): void;
+}
+
 /**
  * Runs some tests to identify issues, if any, prohibiting successful calling.
  */
@@ -45,9 +99,9 @@ export class PreflightTest extends EventEmitter {
   private _endTime: number | undefined;
 
   /**
-   * Non-fatal errors detected during this test
+   * Non-fatal errors detected during this test.
    */
-  private _errors: Array<Device.Error | Error>;
+  private _errors: Device.Error[];
 
   /**
    * Latest WebRTC sample collected for this test
@@ -68,9 +122,9 @@ export class PreflightTest extends EventEmitter {
   };
 
   /**
-   * Results of this test
+   * The report for this test.
    */
-  private _results: PreflightTest.Report | undefined;
+  private _report: PreflightTest.Report | undefined;
 
   /**
    * WebRTC samples collected during this test
@@ -143,9 +197,9 @@ export class PreflightTest extends EventEmitter {
   }
 
   /**
-   * Returns the results of the test call
+   * Returns the report for this test.
    */
-  private _getResults(): PreflightTest.Report {
+  private _getReport(): PreflightTest.Report {
     const testTiming: TimeMeasurement = { start: this._startTime };
     if (this._endTime) {
       testTiming.end = this._endTime;
@@ -202,8 +256,8 @@ export class PreflightTest extends EventEmitter {
     this._releaseHandlers();
     this._endTime = Date.now();
     this._status = PreflightTest.Status.Completed;
-    this._results = this._getResults();
-    this.emit(PreflightTest.Events.Completed, this._results);
+    this._report = this._getReport();
+    this.emit(PreflightTest.Events.Completed, this._report);
   }
 
   /**
@@ -239,7 +293,7 @@ export class PreflightTest extends EventEmitter {
    * Called when there is a fatal error
    * @param error
    */
-  private _onFailed(error: Device.Error | Error): void {
+  private _onFailed(error: Device.Error | DOMError): void {
     this._releaseHandlers();
     this._endTime = Date.now();
     this._status = PreflightTest.Status.Failed;
@@ -337,10 +391,10 @@ export class PreflightTest extends EventEmitter {
   }
 
   /**
-   * Returns the results of the test.
+   * Returns the report for this test.
    */
-  get results(): PreflightTest.Report | undefined {
-    return this._results;
+  get report(): PreflightTest.Report | undefined {
+    return this._report;
   }
 
   /**
@@ -361,14 +415,36 @@ export class PreflightTest extends EventEmitter {
 export namespace PreflightTest {
   /**
    * Possible events that a [[PreflightTest]] might emit.
-   * @internalapi
    */
   export enum Events {
+    /**
+     * See [[PreflightTest.completedEvent]]
+     */
     Completed = 'completed',
+
+    /**
+     * See [[PreflightTest.connectedEvent]]
+     */
     Connected = 'connected',
+
+    /**
+     * See [[PreflightTest.errorEvent]]
+     */
     Error = 'error',
+
+    /**
+     * See [[PreflightTest.failedEvent]]
+     */
     Failed = 'failed',
+
+    /**
+     * See [[PreflightTest.sampleEvent]]
+     */
     Sample = 'sample',
+
+    /**
+     * See [[PreflightTest.warningEvent]]
+     */
     Warning = 'warning',
   }
 
@@ -387,10 +463,10 @@ export namespace PreflightTest {
     Connected = 'connected',
 
     /**
-     * The test finished gathering data and is now complete..
+     * The connection to Twilio has been disconnected and the test call has completed.
      */
     Completed = 'completed',
-    
+
     /**
      * The test has stopped and failed.
      */
@@ -428,7 +504,6 @@ export namespace PreflightTest {
 
   /**
    * Represents the warning emitted from VoiceJS SDK.
-   * @internalapi
    */
   export interface Warning {
     /**
@@ -483,7 +558,7 @@ export namespace PreflightTest {
   }
 
   /**
-   * Represents the results of the {@link PreflightTest}
+   * Represents the report generated from a {@link PreflightTest}.
    */
   export interface Report {
     /**
@@ -494,7 +569,7 @@ export namespace PreflightTest {
     /**
      * Non-fatal errors detected during the test.
      */
-    errors: Array<Device.Error | Error>;
+    errors: Device.Error[];
 
     /**
      * Network related time measurements.
