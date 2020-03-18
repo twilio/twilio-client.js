@@ -1,6 +1,76 @@
 1.11.0 (In Progress)
 ===================
 
+New Feature
+------------
+
+### Preflight Test
+The SDK now supports a preflight test API which can help determine Voice calling readiness. The API creates a test call and will provide information to help troubleshoot call related issues. This new API is a static member of the [Device](https://www.twilio.com/docs/voice/client/javascript/device#twilio-device) class and can be used like the example below. Please see [API Docs](PREFLIGHT.md) for more details about this new API.
+
+```ts
+// Initiate the test
+const preflight = Device.testPreflight(token, options);
+
+// Subscribe to events
+preflight.on('completed', (report) => console.log(report));
+preflight.on('failed', (error) => console.log(error));
+```
+
+Improvements
+---------
+
+* Added tests to validate signaling payloads.
+* [Device.on('error')](https://www.twilio.com/docs/voice/client/javascript/device#error) is now raised when publishing an event to insights has failed. Below is the example error object.
+
+  ```json
+  {
+    "code": 31400,
+    "message": "Received an error while publishing events to insights",
+    "twilioError": {
+      "code": 31400,
+      "description": "Bad Request (HTTP/SIP)",
+      "explanation": "The request could not be understood due to malformed syntax.",
+    }
+  }
+  ```
+
+* [Connection.on('warning)](https://www.twilio.com/docs/voice/client/javascript/connection#onwarning-handlerwarningname) now provides data associated with the warning. This data can provide more details about the warning such as thresholds and WebRTC samples collected that caused the warning. The example below is a warning for high jitter. Please see [Voice Insights SDK Events Reference](https://www.twilio.com/docs/voice/insights/call-quality-events-twilio-client-sdk#warning-events) for a list of possible warnings.
+
+  ```ts
+  connection.on('warning', (warningName, warningData) => {
+    console.log({ warningName, warningData });
+  });
+  ```
+  Example output:
+  ```js
+  {
+    "warningName": "high-jitter",
+    "warningData": {
+      "name": "jitter",
+
+      /**
+       *  Array of jitter values in the past 5 samples that triggered the warning
+       */
+      "values": [35, 44, 31, 32, 32],
+
+      /**
+       * Array of samples collected that triggered the warning.
+       * See sample object format here https://www.twilio.com/docs/voice/client/javascript/connection#sample
+       */
+      "samples": [...],
+
+      /**
+       * The threshold configuration.
+       * In this example, high-jitter warning will be raised if the value exceeded more than 30
+       */
+      "threshold": {
+        "name": "max",
+        "value": 30
+      }
+    }
+  }
+  ```
+
 Bug Fixes
 ---------
 

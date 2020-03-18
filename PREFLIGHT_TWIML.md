@@ -1,7 +1,7 @@
 Preflight Test TwiML App
 =========================
 
-`Device.testPreflight(token, options)` API requires a TwiML app that can record an audio from a microphone and the ability to play the recorded audio back to the browser. In order to achieve this, we need two TwiML endpoints: one to capture and record the audio, and another one to play the recorded audio.
+`Device.testPreflight(token, options)` API requires a [token](https://www.twilio.com/docs/iam/access-tokens) with a TwiML app that can record an audio from a microphone and the ability to play the recorded audio back to the browser. In order to achieve this, we need two TwiML endpoints: one to capture and record the audio, and another one to play the recorded audio.
 
 TwiML Bins
 ----------
