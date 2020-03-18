@@ -784,8 +784,7 @@ class Connection extends EventEmitter {
       return;
     }
 
-    const payload = { callsid: this.parameters.CallSid };
-    this.pstream.publish('reject', payload);
+    this.pstream.reject(this.parameters.CallSid);
     this._status = Connection.State.Closed;
     this.emit('reject');
     this.mediaStream.reject(this.parameters.CallSid);
@@ -856,10 +855,7 @@ class Connection extends EventEmitter {
     this._log.info('Sending digits over PStream');
 
     if (this.pstream !== null && this.pstream.status !== 'disconnected') {
-      this.pstream.publish('dtmf', {
-        callsid: this.parameters.CallSid,
-        dtmf: digits,
-      });
+      this.pstream.dtmf(this.parameters.CallSid, digits);
     } else {
       const error = {
         code: 31000,
@@ -1021,11 +1017,7 @@ class Connection extends EventEmitter {
     if (this.pstream !== null && this.pstream.status !== 'disconnected' && this.sendHangup) {
       const callsid: string | undefined = this.parameters.CallSid || this.outboundConnectionId;
       if (callsid) {
-        const payload: Partial<Record<string, string>> = { callsid };
-        if (message) {
-          payload.message = message;
-        }
-        this.pstream.publish('hangup', payload);
+        this.pstream.hangup(callsid, message);
       }
     }
 
