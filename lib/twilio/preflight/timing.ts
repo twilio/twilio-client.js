@@ -31,21 +31,21 @@ export interface NetworkTiming {
   /**
    * Measurements for establishing DTLS connection.
    * This is measured from RTCDtlsTransport `connecting` to `connected` state.
-   * See [RTCDtlsTransport state](https://developer.mozilla.org/en-US/docs/Web/API/RTCDtlsTransport/state) for more information.
+   * See [RTCDtlsTransport state](https://developer.mozilla.org/en-US/docs/Web/API/RTCDtlsTransport/state).
    */
   dtls?: TimeMeasurement;
 
   /**
    * Measurements for establishing ICE connection.
    * This is measured from ICE connection `checking` to `connected` state.
-   * See [RTCPeerConnection.iceConnectionState](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceConnectionState) for more information.
+   * See [RTCPeerConnection.iceConnectionState](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceConnectionState).
    */
   ice?: TimeMeasurement;
 
   /**
    * Measurements for establishing a PeerConnection.
    * This is measured from PeerConnection `connecting` to `connected` state.
-   * See [RTCPeerConnection.connectionState](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/connectionState) for more information.
+   * See [RTCPeerConnection.connectionState](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/connectionState).
    */
   peerConnection?: TimeMeasurement;
 }

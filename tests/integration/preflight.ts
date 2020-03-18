@@ -2,7 +2,7 @@ import Device from '../../lib/twilio/device';
 import { generateAccessToken } from '../lib/token';
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
-import PreflightTest from '../../lib/twilio/preflight/preflight';
+import { PreflightTest } from '../../lib/twilio/preflight/preflight';
 import Connection from '../../lib/twilio/connection';
 
 const DURATION_PADDING = 1000;
@@ -81,7 +81,7 @@ describe('Preflight Test', function() {
       }, 5);
 
       return waitFor(expectEvent('error', preflight).then(error => {
-        assert.equal(error, PreflightTest.NonFatalError.InsightsConnectionFailed);
+        assert.deepEqual(error, { code: 31400 });
       }), EVENT_TIMEOUT);
     });
 
@@ -116,12 +116,12 @@ describe('Preflight Test', function() {
 
     it('should emit completed event', () => {
       setTimeout(() => receiverDevice.disconnectAll(), 10000);
-      return waitFor(expectEvent('completed', preflight).then((results: PreflightTest.Report) => {
-        assert(!!results);
-        assert(!!results.samples.length);
-        assert(!!results.errors.length);
-        assert(!!results.warnings.length);
-        assert.deepEqual(results, preflight.results);
+      return waitFor(expectEvent('completed', preflight).then((report: PreflightTest.Report) => {
+        assert(!!report);
+        assert(!!report.samples.length);
+        assert(!!report.errors.length);
+        assert(!!report.warnings.length);
+        assert.deepEqual(report, preflight.report);
       }), EVENT_TIMEOUT);
     });
 
@@ -182,10 +182,13 @@ describe('Preflight Test', function() {
 
     it('should emit failed event on cancelled', () => {
       setTimeout(() => {
-        preflight.cancel();
+        preflight.stop();
       }, FAIL_DELAY);
       return waitFor(expectEvent('failed', preflight).then(error => {
-        assert.equal(error, PreflightTest.FatalError.CallCancelled);
+        assert.deepEqual(error, {
+          code: 31008,
+          message: 'Call cancelled',
+        });
       }), EVENT_TIMEOUT);
     });
 
@@ -200,19 +203,10 @@ describe('Preflight Test', function() {
     const FAIL_DELAY = 500;
     [{
       code: 31000,
-      name: PreflightTest.FatalError.SignalingConnectionFailed
+      message: 'Signaling disconnected',
     },{
       code: 31003,
-      name: PreflightTest.FatalError.IceConnectionFailed
-    },{
-      code: 20101,
-      name: PreflightTest.FatalError.InvalidToken
-    },{
-      code: 31208,
-      name: PreflightTest.FatalError.MediaPermissionsFailed
-    },{
-      code: 31201,
-      name: PreflightTest.FatalError.NoDevicesFound
+      message: 'Ice connection failed'
     }].forEach(error => {
       describe(`code: ${error.code}`, () => {
         before(async () => {
@@ -239,10 +233,10 @@ describe('Preflight Test', function() {
     
         it('should emit failed event on fatal error', () => {
           setTimeout(() => {
-            callerDevice.emit('error', { code: error.code });
+            callerDevice.emit('error', error);
           }, FAIL_DELAY);
-          return waitFor(expectEvent('failed', preflight).then(name => {
-            assert.equal(name, PreflightTest.FatalError[error.name]);
+          return waitFor(expectEvent('failed', preflight).then(emittedError => {
+            assert.equal(emittedError, error);
           }), EVENT_TIMEOUT);
         });
     

@@ -167,7 +167,7 @@ export class PreflightTest extends EventEmitter {
         codecPreferences: this._options.codecPreferences,
         debug: this._options.debug,
       });
-    } catch(error) {
+    } catch (error) {
       // We want to return before failing so the consumer can capture the event
       setTimeout(() => {
         this._onFailed(error);
