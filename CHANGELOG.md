@@ -19,22 +19,8 @@ preflight.on('failed', (error) => console.log(error));
 Improvements
 ---------
 
-* Added tests to validate signaling payloads.
-* [Device.on('error')](https://www.twilio.com/docs/voice/client/javascript/device#error) is now raised when publishing an event to insights has failed. Below is the example error object.
-
-  ```json
-  {
-    "code": 31400,
-    "message": "Received an error while publishing events to insights",
-    "twilioError": {
-      "code": 31400,
-      "description": "Bad Request (HTTP/SIP)",
-      "explanation": "The request could not be understood due to malformed syntax.",
-    }
-  }
-  ```
-
-* [Connection.on('warning)](https://www.twilio.com/docs/voice/client/javascript/connection#onwarning-handlerwarningname) now provides data associated with the warning. This data can provide more details about the warning such as thresholds and WebRTC samples collected that caused the warning. The example below is a warning for high jitter. Please see [Voice Insights SDK Events Reference](https://www.twilio.com/docs/voice/insights/call-quality-events-twilio-client-sdk#warning-events) for a list of possible warnings.
+* Added tests to validate signaling payloads. (CLIENT-4533)
+* [Connection.on('warning')](https://www.twilio.com/docs/voice/client/javascript/connection#onwarning-handlerwarningname) now provides data associated with the warning. This data can provide more details about the warning such as thresholds and WebRTC samples collected that caused the warning. The example below is a warning for high jitter. Please see [Voice Insights SDK Events Reference](https://www.twilio.com/docs/voice/insights/call-quality-events-twilio-client-sdk#warning-events) for a list of possible warnings.
 
   ```ts
   connection.on('warning', (warningName, warningData) => {
