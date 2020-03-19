@@ -140,7 +140,7 @@ Raised when `PreflightTest.status` has transitioned to `completed`. During this 
 ```
 
 #### .on('connected', handler())
-Raised when `PreflightTest.status` has transitioned to `completed`. This means, the connection to Twilio has been established.
+Raised when `PreflightTest.status` has transitioned to `connected`. This means, the connection to Twilio has been established.
 
 #### .on('error', handler(error))
 Raised whenever the test encounters a non-fatal error. This is coming from [Device.on('error)](https://www.twilio.com/docs/voice/client/javascript/device#error) and uses the same error format.
@@ -158,12 +158,12 @@ Properties
 ----------
 You can access the following properties on the `PreflightTest` object:
 
-* `callSid` - Returns the callsid generated for the test call. This is set when the client has finished connecting to Twilio.
-* `endTime` - Returns a timestamp in milliseconds of when the test ended. This is set when the test has completed and raised the `completed` event.
-* `latestSample` - Returns the latest WebRTC sample collected. This is set whenever the connection emits a `sample`. Please see [Connection.on('sample')](https://www.twilio.com/docs/voice/client/javascript/connection#sample) API for more details.
-* `report` - Returns the report for this test. This is set when the test has completed and raised the `completed` event.
-* `startTime` - Returns a timestamp in milliseconds of when the test started. This is set right after calling `Device.testPreflight(token, options)`.
-* `status` - Returns the status of the test. Below are the possible values for this property.
+* `callSid` - The callsid generated for the test call. This is set when the client has finished connecting to Twilio.
+* `endTime` - A timestamp in milliseconds of when the test ended. This is set when the test has completed and raised the `completed` event.
+* `latestSample` - The latest WebRTC sample collected. This is set whenever the connection emits a `sample`. Please see [Connection.on('sample')](https://www.twilio.com/docs/voice/client/javascript/connection#sample) API for more details.
+* `report` - The report for this test. This is set when the test has completed and raised the `completed` event.
+* `startTime` - A timestamp in milliseconds of when the test started. This is set right after calling `Device.testPreflight(token, options)`.
+* `status` - The status of the test. Below are the possible values for this property.
 
   | Value | Description |
   |:------|:------------|

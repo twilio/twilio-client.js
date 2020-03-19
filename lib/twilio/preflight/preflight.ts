@@ -370,42 +370,42 @@ export class PreflightTest extends EventEmitter {
   }
 
   /**
-   * Returns the callsid generated for the test call.
+   * The callsid generated for the test call.
    */
   get callSid(): string | undefined {
     return this._callSid;
   }
 
   /**
-   * Returns a timestamp in milliseconds of when the test ended.
+   * A timestamp in milliseconds of when the test ended.
    */
   get endTime(): number | undefined {
     return this._endTime;
   }
 
   /**
-   * Returns the latest WebRTC sample collected.
+   * The latest WebRTC sample collected.
    */
   get latestSample(): RTCSample | undefined {
     return this._latestSample;
   }
 
   /**
-   * Returns the report for this test.
+   * The report for this test.
    */
   get report(): PreflightTest.Report | undefined {
     return this._report;
   }
 
   /**
-   * Returns a timestamp in milliseconds of when the test started.
+   * A timestamp in milliseconds of when the test started.
    */
   get startTime(): number {
     return this._startTime;
   }
 
   /**
-   * Returns the status of the test.
+   * The status of the test.
    */
   get status(): PreflightTest.Status {
     return this._status;
