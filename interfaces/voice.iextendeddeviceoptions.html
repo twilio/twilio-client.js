@@ -57,6 +57,13 @@
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Options that may be passed to the <a href="../classes/voice.device.html">Device</a> constructor for internal testing.</p>
+					</div>
+				</div>
+			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
@@ -73,6 +80,11 @@
 			<section class="tsd-panel tsd-kind-interface tsd-parent-kind-external-module tsd-is-private">
 				<h3 class="tsd-before-signature">Indexable</h3>
 				<div class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">[</span>key: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">any</span></div>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Options that may be passed to the <a href="../classes/voice.device.html">Device</a> constructor for internal testing.</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
@@ -122,9 +134,14 @@
 					<div class="tsd-signature tsd-kind-icon">Audio<wbr>Helper<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L73">device.ts:73</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L76">lib/twilio/device.ts:76</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Custom <a href="voice.iextendeddeviceoptions.html#audiohelper">AudioHelper</a> constructor</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="publisher" class="tsd-anchor"></a>
@@ -132,31 +149,48 @@
 					<div class="tsd-signature tsd-kind-icon">Publisher<span class="tsd-signature-symbol">:</span> <a href="../modules/voice.html#ipublisher" class="tsd-signature-type">IPublisher</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L115">device.ts:115</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L118">lib/twilio/device.ts:118</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Custom Publisher constructor</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 					<a name="allowincomingwhilebusy" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> allow<wbr>Incoming<wbr>While<wbr>Busy</h3>
 					<div class="tsd-signature tsd-kind-icon">allow<wbr>Incoming<wbr>While<wbr>Busy<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from <a href="voice.device.options.html">Options</a>.<a href="voice.device.options.html#allowincomingwhilebusy">allowIncomingWhileBusy</a></p>
+						<p>Inherited from <a href="voice.iextendeddeviceoptions.html">IExtendedDeviceOptions</a>.<a href="voice.iextendeddeviceoptions.html#allowincomingwhilebusy">allowIncomingWhileBusy</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L1405">device.ts:1405</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1477">lib/twilio/device.ts:1477</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Whether the Device should raise the <a href="../classes/voice.device.html#incomingevent">incomingEvent</a> event when a new call invite is
+							received while already on an active call. Default behavior is false.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 					<a name="audioconstraints" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> audio<wbr>Constraints</h3>
 					<div class="tsd-signature tsd-kind-icon">audio<wbr>Constraints<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">MediaTrackConstraints</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">boolean</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from <a href="voice.device.options.html">Options</a>.<a href="voice.device.options.html#audioconstraints">audioConstraints</a></p>
+						<p>Inherited from <a href="voice.iextendeddeviceoptions.html">IExtendedDeviceOptions</a>.<a href="voice.iextendeddeviceoptions.html#audioconstraints">audioConstraints</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L1411">device.ts:1411</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1483">lib/twilio/device.ts:1483</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Audio Constraints to pass to getUserMedia when making or accepting a Call.
+							This is placed directly under <code>audio</code> of the MediaStreamConstraints object.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="chunderw" class="tsd-anchor"></a>
@@ -164,31 +198,48 @@
 					<div class="tsd-signature tsd-kind-icon">chunderw<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L78">device.ts:78</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L81">lib/twilio/device.ts:81</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Hostname of the signaling gateway to connect to.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 					<a name="closeprotection" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> close<wbr>Protection</h3>
 					<div class="tsd-signature tsd-kind-icon">close<wbr>Protection<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from <a href="voice.device.options.html">Options</a>.<a href="voice.device.options.html#closeprotection">closeProtection</a></p>
+						<p>Inherited from <a href="voice.iextendeddeviceoptions.html">IExtendedDeviceOptions</a>.<a href="voice.iextendeddeviceoptions.html#closeprotection">closeProtection</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L1418">device.ts:1418</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1490">lib/twilio/device.ts:1490</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Whether to enable close protection, to prevent users from accidentally
+								navigating away from the page during a call. If string, the value will
+							be used as a custom message.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 					<a name="codecpreferences" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> codec<wbr>Preferences</h3>
 					<div class="tsd-signature tsd-kind-icon">codec<wbr>Preferences<span class="tsd-signature-symbol">:</span> <a href="../enums/voice.connection.codec.html" class="tsd-signature-type">Codec</a><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from <a href="voice.device.options.html">Options</a>.<a href="voice.device.options.html#codecpreferences">codecPreferences</a></p>
+						<p>Inherited from <a href="voice.iextendeddeviceoptions.html">IExtendedDeviceOptions</a>.<a href="voice.iextendeddeviceoptions.html#codecpreferences">codecPreferences</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L1423">device.ts:1423</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1495">lib/twilio/device.ts:1495</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>An ordered array of codec names, from most to least preferred.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="connectionfactory" class="tsd-anchor"></a>
@@ -196,64 +247,97 @@
 					<div class="tsd-signature tsd-kind-icon">connection<wbr>Factory<span class="tsd-signature-symbol">:</span> <a href="../classes/voice.connection.html" class="tsd-signature-type">Connection</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L83">device.ts:83</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L86">lib/twilio/device.ts:86</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Custom <a href="../classes/voice.connection.html">Connection</a> constructor</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 					<a name="debug" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> debug</h3>
 					<div class="tsd-signature tsd-kind-icon">debug<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from <a href="voice.device.options.html">Options</a>.<a href="voice.device.options.html#debug">debug</a></p>
+						<p>Inherited from <a href="voice.iextendeddeviceoptions.html">IExtendedDeviceOptions</a>.<a href="voice.iextendeddeviceoptions.html#debug">debug</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L1428">device.ts:1428</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1500">lib/twilio/device.ts:1500</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Whether to enable debug logging.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 					<a name="disableaudiocontextsounds" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> disable<wbr>Audio<wbr>Context<wbr>Sounds</h3>
 					<div class="tsd-signature tsd-kind-icon">disable<wbr>Audio<wbr>Context<wbr>Sounds<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from <a href="voice.device.options.html">Options</a>.<a href="voice.device.options.html#disableaudiocontextsounds">disableAudioContextSounds</a></p>
+						<p>Inherited from <a href="voice.iextendeddeviceoptions.html">IExtendedDeviceOptions</a>.<a href="voice.iextendeddeviceoptions.html#disableaudiocontextsounds">disableAudioContextSounds</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L1435">device.ts:1435</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1507">lib/twilio/device.ts:1507</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Whether AudioContext sounds should be disabled. Useful for trouble shooting sound issues
+								that may be caused by AudioContext-specific sounds. If set to true, will fall back to
+							HTMLAudioElement sounds.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 					<a name="dscp" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> dscp</h3>
 					<div class="tsd-signature tsd-kind-icon">dscp<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from <a href="voice.device.options.html">Options</a>.<a href="voice.device.options.html#dscp">dscp</a></p>
+						<p>Inherited from <a href="voice.iextendeddeviceoptions.html">IExtendedDeviceOptions</a>.<a href="voice.iextendeddeviceoptions.html#dscp">dscp</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L1440">device.ts:1440</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1512">lib/twilio/device.ts:1512</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Whether to use googDscp in RTC constraints.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 					<a name="enableicerestart" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> enable<wbr>Ice<wbr>Restart</h3>
 					<div class="tsd-signature tsd-kind-icon">enable<wbr>Ice<wbr>Restart<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from <a href="voice.device.options.html">Options</a>.<a href="voice.device.options.html#enableicerestart">enableIceRestart</a></p>
+						<p>Inherited from <a href="voice.iextendeddeviceoptions.html">IExtendedDeviceOptions</a>.<a href="voice.iextendeddeviceoptions.html#enableicerestart">enableIceRestart</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L1445">device.ts:1445</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1517">lib/twilio/device.ts:1517</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Whether to automatically restart ICE when media connection fails</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 					<a name="enableringingstate" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> enable<wbr>Ringing<wbr>State</h3>
 					<div class="tsd-signature tsd-kind-icon">enable<wbr>Ringing<wbr>State<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from <a href="voice.device.options.html">Options</a>.<a href="voice.device.options.html#enableringingstate">enableRingingState</a></p>
+						<p>Inherited from <a href="voice.iextendeddeviceoptions.html">IExtendedDeviceOptions</a>.<a href="voice.iextendeddeviceoptions.html#enableringingstate">enableRingingState</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L1451">device.ts:1451</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1523">lib/twilio/device.ts:1523</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Whether the ringing state should be enabled on <a href="../classes/voice.connection.html">Connection</a> objects. This is required
+							to enable answerOnBridge functionality.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="eventgw" class="tsd-anchor"></a>
@@ -261,31 +345,49 @@
 					<div class="tsd-signature tsd-kind-icon">eventgw<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L88">device.ts:88</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L91">lib/twilio/device.ts:91</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Hostname of the event gateway to connect to.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 					<a name="fakelocaldtmf" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> fake<wbr>LocalDTMF</h3>
 					<div class="tsd-signature tsd-kind-icon">fake<wbr>LocalDTMF<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from <a href="voice.device.options.html">Options</a>.<a href="voice.device.options.html#fakelocaldtmf">fakeLocalDTMF</a></p>
+						<p>Inherited from <a href="voice.iextendeddeviceoptions.html">IExtendedDeviceOptions</a>.<a href="voice.iextendeddeviceoptions.html#fakelocaldtmf">fakeLocalDTMF</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L1458">device.ts:1458</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1530">lib/twilio/device.ts:1530</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Whether or not to override the local DTMF sounds with fake dialtones. This won&#39;t affect
+								the DTMF tone sent over the connection, but will prevent double-send issues caused by
+							using real DTMF tones for user interface. In 2.0, this will be enabled by default.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 					<a name="forceaggressiveicenomination" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> force<wbr>Aggressive<wbr>Ice<wbr>Nomination</h3>
 					<div class="tsd-signature tsd-kind-icon">force<wbr>Aggressive<wbr>Ice<wbr>Nomination<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from <a href="voice.device.options.html">Options</a>.<a href="voice.device.options.html#forceaggressiveicenomination">forceAggressiveIceNomination</a></p>
+						<p>Inherited from <a href="voice.iextendeddeviceoptions.html">IExtendedDeviceOptions</a>.<a href="voice.iextendeddeviceoptions.html#forceaggressiveicenomination">forceAggressiveIceNomination</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L1464">device.ts:1464</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1536">lib/twilio/device.ts:1536</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Experimental feature.
+							Whether to use ICE Aggressive nomination.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="iceservers" class="tsd-anchor"></a>
@@ -293,9 +395,18 @@
 					<div class="tsd-signature tsd-kind-icon">ice<wbr>Servers<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Object</span><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L94">device.ts:94</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L97">lib/twilio/device.ts:97</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>A list of specific ICE servers to use. Overridden by <a href="voice.device.options.html#rtcconfiguration">Device.Options.rtcConfiguration</a>.</p>
+						</div>
+						<dl class="tsd-comment-tags">
+							<dt>deprecated</dt>
+							<dd></dd>
+						</dl>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="ignorebrowsersupport" class="tsd-anchor"></a>
@@ -303,20 +414,36 @@
 					<div class="tsd-signature tsd-kind-icon">ignore<wbr>Browser<wbr>Support<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L100">device.ts:100</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L103">lib/twilio/device.ts:103</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Ignore browser support, disabling the exception that is thrown when neither WebRTC nor
+							ORTC are supported.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 					<a name="maxaveragebitrate" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> max<wbr>Average<wbr>Bitrate</h3>
 					<div class="tsd-signature tsd-kind-icon">max<wbr>Average<wbr>Bitrate<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from <a href="voice.device.options.html">Options</a>.<a href="voice.device.options.html#maxaveragebitrate">maxAverageBitrate</a></p>
+						<p>Inherited from <a href="voice.iextendeddeviceoptions.html">IExtendedDeviceOptions</a>.<a href="voice.iextendeddeviceoptions.html#maxaveragebitrate">maxAverageBitrate</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L1474">device.ts:1474</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1546">lib/twilio/device.ts:1546</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The maximum average audio bitrate to use, in bits per second (bps) based on
+								<a href="https://tools.ietf.org/html/rfc7587#section-7.1">RFC-7587 7.1</a>. By default, the setting
+								is not used. If you specify 0, then the setting is not used. Any positive integer is allowed,
+								but values outside the range 6000 to 510000 are ignored and treated as 0. The recommended
+								bitrate for speech is between 8000 and 40000 bps as noted in
+							<a href="https://tools.ietf.org/html/rfc7587#section-3.1.1">RFC-7587 3.1.1</a>.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="noregister" class="tsd-anchor"></a>
@@ -324,9 +451,14 @@
 					<div class="tsd-signature tsd-kind-icon">no<wbr>Register<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L105">device.ts:105</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L108">lib/twilio/device.ts:108</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Whether to disable audio flag in MediaPresence (rrowland: Do we need this?)</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="pstreamfactory" class="tsd-anchor"></a>
@@ -334,9 +466,14 @@
 					<div class="tsd-signature tsd-kind-icon">p<wbr>Stream<wbr>Factory<span class="tsd-signature-symbol">:</span> <a href="../modules/voice.html#ipstream" class="tsd-signature-type">IPStream</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L110">device.ts:110</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L113">lib/twilio/device.ts:113</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Custom PStream constructor</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="publishevents" class="tsd-anchor"></a>
@@ -344,31 +481,46 @@
 					<div class="tsd-signature tsd-kind-icon">publish<wbr>Events<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L120">device.ts:120</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L123">lib/twilio/device.ts:123</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Whether Insights events should be published</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 					<a name="region" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> region</h3>
 					<div class="tsd-signature tsd-kind-icon">region<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from <a href="voice.device.options.html">Options</a>.<a href="voice.device.options.html#region">region</a></p>
+						<p>Inherited from <a href="voice.iextendeddeviceoptions.html">IExtendedDeviceOptions</a>.<a href="voice.iextendeddeviceoptions.html#region">region</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L1479">device.ts:1479</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1551">lib/twilio/device.ts:1551</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The region code of the region to connect to.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 					<a name="rtcconfiguration" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> rtc<wbr>Configuration</h3>
 					<div class="tsd-signature tsd-kind-icon">rtc<wbr>Configuration<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">RTCConfiguration</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from <a href="voice.device.options.html">Options</a>.<a href="voice.device.options.html#rtcconfiguration">rtcConfiguration</a></p>
+						<p>Inherited from <a href="voice.iextendeddeviceoptions.html">IExtendedDeviceOptions</a>.<a href="voice.iextendeddeviceoptions.html#rtcconfiguration">rtcConfiguration</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L1484">device.ts:1484</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1556">lib/twilio/device.ts:1556</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>An RTCConfiguration to pass to the RTCPeerConnection constructor.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="rtcconstraints" class="tsd-anchor"></a>
@@ -376,9 +528,15 @@
 					<div class="tsd-signature tsd-kind-icon">rtc<wbr>Constraints<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Object</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L126">device.ts:126</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L129">lib/twilio/device.ts:129</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>RTC Constraints to pass to getUserMedia when making or accepting a Call.
+							The format of this object depends on browser.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="soundfactory" class="tsd-anchor"></a>
@@ -386,31 +544,46 @@
 					<div class="tsd-signature tsd-kind-icon">sound<wbr>Factory<span class="tsd-signature-symbol">:</span> <a href="../modules/voice.html#isound" class="tsd-signature-type">ISound</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L131">device.ts:131</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L134">lib/twilio/device.ts:134</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Custom Sound constructor</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 					<a name="sounds" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> sounds</h3>
 					<div class="tsd-signature tsd-kind-icon">sounds<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><a href="../enums/voice.device.soundname.html" class="tsd-signature-type">SoundName</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from <a href="voice.device.options.html">Options</a>.<a href="voice.device.options.html#sounds">sounds</a></p>
+						<p>Inherited from <a href="voice.iextendeddeviceoptions.html">IExtendedDeviceOptions</a>.<a href="voice.iextendeddeviceoptions.html#sounds">sounds</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L1489">device.ts:1489</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1561">lib/twilio/device.ts:1561</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>A mapping of custom sound URLs by sound name.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
 					<a name="warnings" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> warnings</h3>
 					<div class="tsd-signature tsd-kind-icon">warnings<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from <a href="voice.device.options.html">Options</a>.<a href="voice.device.options.html#warnings">warnings</a></p>
+						<p>Inherited from <a href="voice.iextendeddeviceoptions.html">IExtendedDeviceOptions</a>.<a href="voice.iextendeddeviceoptions.html#warnings">warnings</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/8b564a2/lib/twilio/device.ts#L1494">device.ts:1494</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1566">lib/twilio/device.ts:1566</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Whether to enable warn logging.</p>
+						</div>
+					</div>
 				</section>
 			</section>
 		</div>
@@ -430,22 +603,22 @@
 						<span>Externals</span>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_constants_.html">"constants"</a>
+						<a href="../modules/_constants_.html">&quot;constants&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_errors_index_.html">"errors/index"</a>
+						<a href="../modules/_errors_index_.html">&quot;errors/index&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_pstream_.html">"pstream"</a>
+						<a href="../modules/_pstream_.html">&quot;pstream&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_shims_eventtarget_.html">"shims/eventtarget"</a>
+						<a href="../modules/_shims_eventtarget_.html">&quot;shims/eventtarget&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_shims_mediadevices_.html">"shims/mediadevices"</a>
+						<a href="../modules/_shims_mediadevices_.html">&quot;shims/mediadevices&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_util_.html">"util"</a>
+						<a href="../modules/_util_.html">&quot;util&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="../modules/tools.html">Tools</a>

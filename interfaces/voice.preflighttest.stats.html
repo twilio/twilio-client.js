@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Config | twilio-client</title>
+	<title>Stats | twilio-client</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -47,13 +47,13 @@
 					<a href="../modules/voice.html">Voice</a>
 				</li>
 				<li>
-					<a href="../classes/voice.connection.html">Connection</a>
+					<a href="../classes/voice.preflighttest.html">PreflightTest</a>
 				</li>
 				<li>
-					<a href="voice.connection.config.html">Config</a>
+					<a href="voice.preflighttest.stats.html">Stats</a>
 				</li>
 			</ul>
-			<h1>Interface Config</h1>
+			<h1>Interface Stats</h1>
 		</div>
 	</div>
 </header>
@@ -63,7 +63,7 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Mandatory config options to be passed to the <a href="../classes/voice.connection.html">Connection</a> constructor.</p>
+						<p>Represents general stats for a specific metric.</p>
 					</div>
 				</div>
 			</section>
@@ -71,7 +71,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">Config</span>
+						<span class="target">Stats</span>
 					</li>
 				</ul>
 			</section>
@@ -82,12 +82,9 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.config.html#audiohelper" class="tsd-kind-icon">audio<wbr>Helper</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.config.html#getusermedia" class="tsd-kind-icon">get<wbr>User<wbr>Media</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.config.html#isunifiedplandefault" class="tsd-kind-icon">is<wbr>Unified<wbr>Plan<wbr>Default</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.config.html#pstream" class="tsd-kind-icon">pstream</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.config.html#publisher" class="tsd-kind-icon">publisher</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.config.html#soundcache" class="tsd-kind-icon">soundcache</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.preflighttest.stats.html#average" class="tsd-kind-icon">average</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.preflighttest.stats.html#max" class="tsd-kind-icon">max</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.preflighttest.stats.html#min" class="tsd-kind-icon">min</a></li>
 							</ul>
 						</section>
 					</div>
@@ -96,113 +93,47 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="audiohelper" class="tsd-anchor"></a>
-					<h3>audio<wbr>Helper</h3>
-					<div class="tsd-signature tsd-kind-icon">audio<wbr>Helper<span class="tsd-signature-symbol">:</span> <a href="../modules/voice.html#iaudiohelper" class="tsd-signature-type">IAudioHelper</a></div>
+					<a name="average" class="tsd-anchor"></a>
+					<h3>average</h3>
+					<div class="tsd-signature tsd-kind-icon">average<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/connection.ts#L1527">lib/twilio/connection.ts:1527</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/preflight/preflight.ts#L547">lib/twilio/preflight/preflight.ts:547</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>An AudioHelper instance to be used for input/output devices.</p>
+							<p>The average value for this metric.</p>
 						</div>
 					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="getusermedia" class="tsd-anchor"></a>
-					<h3>get<wbr>User<wbr>Media</h3>
-					<div class="tsd-signature tsd-kind-icon">get<wbr>User<wbr>Media<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
+					<a name="max" class="tsd-anchor"></a>
+					<h3>max</h3>
+					<div class="tsd-signature tsd-kind-icon">max<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/connection.ts#L1532">lib/twilio/connection.ts:1532</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/preflight/preflight.ts#L552">lib/twilio/preflight/preflight.ts:552</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>A method to use for getUserMedia.</p>
-						</div>
-					</div>
-					<div class="tsd-type-declaration">
-						<h4>Type declaration</h4>
-						<ul class="tsd-parameters">
-							<li class="tsd-parameter-siganture">
-								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property">
-									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>constraints<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MediaStreamConstraints</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">MediaStream</span><span class="tsd-signature-symbol">&gt;</span></li>
-								</ul>
-								<ul class="tsd-descriptions">
-									<li class="tsd-description">
-										<h4 class="tsd-parameters-title">Parameters</h4>
-										<ul class="tsd-parameters">
-											<li>
-												<h5>constraints: <span class="tsd-signature-type">MediaStreamConstraints</span></h5>
-											</li>
-										</ul>
-										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">MediaStream</span><span class="tsd-signature-symbol">&gt;</span></h4>
-									</li>
-								</ul>
-							</li>
-						</ul>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="isunifiedplandefault" class="tsd-anchor"></a>
-					<h3>is<wbr>Unified<wbr>Plan<wbr>Default</h3>
-					<div class="tsd-signature tsd-kind-icon">is<wbr>Unified<wbr>Plan<wbr>Default<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/connection.ts#L1537">lib/twilio/connection.ts:1537</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Whether or not the browser uses unified-plan SDP by default.</p>
+							<p>The maximum value for this metric.</p>
 						</div>
 					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="pstream" class="tsd-anchor"></a>
-					<h3>pstream</h3>
-					<div class="tsd-signature tsd-kind-icon">pstream<span class="tsd-signature-symbol">:</span> <a href="../modules/voice.html#ipstream" class="tsd-signature-type">IPStream</a></div>
+					<a name="min" class="tsd-anchor"></a>
+					<h3>min</h3>
+					<div class="tsd-signature tsd-kind-icon">min<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/connection.ts#L1542">lib/twilio/connection.ts:1542</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/preflight/preflight.ts#L557">lib/twilio/preflight/preflight.ts:557</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>The PStream instance to use for Twilio call signaling.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="publisher" class="tsd-anchor"></a>
-					<h3>publisher</h3>
-					<div class="tsd-signature tsd-kind-icon">publisher<span class="tsd-signature-symbol">:</span> <a href="../modules/voice.html#ipublisher" class="tsd-signature-type">IPublisher</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/connection.ts#L1547">lib/twilio/connection.ts:1547</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>An EventPublisher instance to use for publishing events</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="soundcache" class="tsd-anchor"></a>
-					<h3>soundcache</h3>
-					<div class="tsd-signature tsd-kind-icon">soundcache<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><a href="../enums/voice.device.soundname.html" class="tsd-signature-type">SoundName</a><span class="tsd-signature-symbol">, </span><a href="../modules/voice.html#isound" class="tsd-signature-type">ISound</a><span class="tsd-signature-symbol">&gt;</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/connection.ts#L1552">lib/twilio/connection.ts:1552</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>A Map of Sounds to play.</p>
+							<p>The minimum value for this metric.</p>
 						</div>
 					</div>
 				</section>
@@ -251,30 +182,135 @@
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-class tsd-parent-kind-external-module">
-						<a href="../classes/voice.connection.html" class="tsd-kind-icon">Connection</a>
+						<a href="../classes/voice.preflighttest.html" class="tsd-kind-icon">Preflight<wbr>Test</a>
 						<ul>
-							<li class="current tsd-kind-interface tsd-parent-kind-class tsd-is-private">
-								<a href="voice.connection.config.html" class="tsd-kind-icon">Config</a>
+							<li class=" tsd-kind-enum tsd-parent-kind-class tsd-is-static">
+								<a href="../enums/voice.preflighttest.events.html" class="tsd-kind-icon">Events</a>
+							</li>
+							<li class=" tsd-kind-enum tsd-parent-kind-class tsd-is-static">
+								<a href="../enums/voice.preflighttest.status.html" class="tsd-kind-icon">Status</a>
+							</li>
+							<li class=" tsd-kind-interface tsd-parent-kind-class tsd-is-external">
+								<a href="voice.preflighttest.extendedoptions.html" class="tsd-kind-icon">Extended<wbr>Options</a>
+							</li>
+							<li class=" tsd-kind-interface tsd-parent-kind-class">
+								<a href="voice.preflighttest.options.html" class="tsd-kind-icon">Options</a>
+							</li>
+							<li class=" tsd-kind-interface tsd-parent-kind-class">
+								<a href="voice.preflighttest.rtcstats.html" class="tsd-kind-icon">RTCStats</a>
+							</li>
+							<li class=" tsd-kind-interface tsd-parent-kind-class">
+								<a href="voice.preflighttest.report.html" class="tsd-kind-icon">Report</a>
+							</li>
+							<li class="current tsd-kind-interface tsd-parent-kind-class">
+								<a href="voice.preflighttest.stats.html" class="tsd-kind-icon">Stats</a>
 								<ul>
 									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="voice.connection.config.html#audiohelper" class="tsd-kind-icon">audio<wbr>Helper</a>
+										<a href="voice.preflighttest.stats.html#average" class="tsd-kind-icon">average</a>
 									</li>
 									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="voice.connection.config.html#getusermedia" class="tsd-kind-icon">get<wbr>User<wbr>Media</a>
+										<a href="voice.preflighttest.stats.html#max" class="tsd-kind-icon">max</a>
 									</li>
 									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="voice.connection.config.html#isunifiedplandefault" class="tsd-kind-icon">is<wbr>Unified<wbr>Plan<wbr>Default</a>
-									</li>
-									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="voice.connection.config.html#pstream" class="tsd-kind-icon">pstream</a>
-									</li>
-									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="voice.connection.config.html#publisher" class="tsd-kind-icon">publisher</a>
-									</li>
-									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="voice.connection.config.html#soundcache" class="tsd-kind-icon">soundcache</a>
+										<a href="voice.preflighttest.stats.html#min" class="tsd-kind-icon">min</a>
 									</li>
 								</ul>
+							</li>
+							<li class=" tsd-kind-interface tsd-parent-kind-class">
+								<a href="voice.preflighttest.warning.html" class="tsd-kind-icon">Warning</a>
+							</li>
+							<li class=" tsd-kind-constructor tsd-parent-kind-class">
+								<a href="../classes/voice.preflighttest.html#constructor" class="tsd-kind-icon">constructor</a>
+							</li>
+							<li class=" tsd-kind-event tsd-parent-kind-class">
+								<a href="../classes/voice.preflighttest.html#completedevent" class="tsd-kind-icon">completed<wbr>Event</a>
+							</li>
+							<li class=" tsd-kind-event tsd-parent-kind-class">
+								<a href="../classes/voice.preflighttest.html#connectedevent" class="tsd-kind-icon">connected<wbr>Event</a>
+							</li>
+							<li class=" tsd-kind-event tsd-parent-kind-class">
+								<a href="../classes/voice.preflighttest.html#errorevent" class="tsd-kind-icon">error<wbr>Event</a>
+							</li>
+							<li class=" tsd-kind-event tsd-parent-kind-class">
+								<a href="../classes/voice.preflighttest.html#failedevent" class="tsd-kind-icon">failed<wbr>Event</a>
+							</li>
+							<li class=" tsd-kind-event tsd-parent-kind-class">
+								<a href="../classes/voice.preflighttest.html#sampleevent" class="tsd-kind-icon">sample<wbr>Event</a>
+							</li>
+							<li class=" tsd-kind-event tsd-parent-kind-class">
+								<a href="../classes/voice.preflighttest.html#warningevent" class="tsd-kind-icon">warning<wbr>Event</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+								<a href="../classes/voice.preflighttest.html#defaultmaxlisteners" class="tsd-kind-icon">default<wbr>Max<wbr>Listeners</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
+								<a href="../classes/voice.preflighttest.html#callsid" class="tsd-kind-icon">call<wbr>Sid</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
+								<a href="../classes/voice.preflighttest.html#endtime" class="tsd-kind-icon">end<wbr>Time</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
+								<a href="../classes/voice.preflighttest.html#latestsample" class="tsd-kind-icon">latest<wbr>Sample</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
+								<a href="../classes/voice.preflighttest.html#report-1" class="tsd-kind-icon">report</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
+								<a href="../classes/voice.preflighttest.html#starttime" class="tsd-kind-icon">start<wbr>Time</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
+								<a href="../classes/voice.preflighttest.html#status-1" class="tsd-kind-icon">status</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+								<a href="../classes/voice.preflighttest.html#addlistener" class="tsd-kind-icon">add<wbr>Listener</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+								<a href="../classes/voice.preflighttest.html#emit" class="tsd-kind-icon">emit</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+								<a href="../classes/voice.preflighttest.html#eventnames" class="tsd-kind-icon">event<wbr>Names</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+								<a href="../classes/voice.preflighttest.html#getmaxlisteners" class="tsd-kind-icon">get<wbr>Max<wbr>Listeners</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+								<a href="../classes/voice.preflighttest.html#listenercount" class="tsd-kind-icon">listener<wbr>Count</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+								<a href="../classes/voice.preflighttest.html#listeners" class="tsd-kind-icon">listeners</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+								<a href="../classes/voice.preflighttest.html#off" class="tsd-kind-icon">off</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+								<a href="../classes/voice.preflighttest.html#on" class="tsd-kind-icon">on</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+								<a href="../classes/voice.preflighttest.html#once" class="tsd-kind-icon">once</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+								<a href="../classes/voice.preflighttest.html#prependlistener" class="tsd-kind-icon">prepend<wbr>Listener</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+								<a href="../classes/voice.preflighttest.html#prependoncelistener" class="tsd-kind-icon">prepend<wbr>Once<wbr>Listener</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+								<a href="../classes/voice.preflighttest.html#rawlisteners" class="tsd-kind-icon">raw<wbr>Listeners</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+								<a href="../classes/voice.preflighttest.html#removealllisteners" class="tsd-kind-icon">remove<wbr>All<wbr>Listeners</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+								<a href="../classes/voice.preflighttest.html#removelistener" class="tsd-kind-icon">remove<wbr>Listener</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
+								<a href="../classes/voice.preflighttest.html#setmaxlisteners" class="tsd-kind-icon">set<wbr>Max<wbr>Listeners</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="../classes/voice.preflighttest.html#stop" class="tsd-kind-icon">stop</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static">
+								<a href="../classes/voice.preflighttest.html#listenercount-1" class="tsd-kind-icon">listener<wbr>Count</a>
 							</li>
 						</ul>
 					</li>
