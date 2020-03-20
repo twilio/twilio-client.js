@@ -13,7 +13,7 @@ const preflightTest = Device.testPreflight(token, options);
 `Device.testPreflight(token, options)` requires a [Twilio Access Token](https://www.twilio.com/docs/iam/access-tokens) to initiate the test call. This access token will be passed directly to the [Device's constructor](https://www.twilio.com/docs/voice/client/javascript/device#setup) and will be used to connect to a TwiML app that you associated with your [Twilio Access Token](https://www.twilio.com/docs/iam/access-tokens). In order to get better results, the TwiML app should be able to record audio from a microphone and play it back to the browser. Please see [Preflight Test TwiML App](PREFLIGHT_TWIML.md) for details.
 
 ### Options
-The `option` parameter is a JavaScript object containing configuration settings. Available settings are listed below:
+The `options` parameter is a JavaScript object containing configuration settings. Available settings are listed below:
 
 | Property | Default | Description |
 |:---------|:--------|:------------|
