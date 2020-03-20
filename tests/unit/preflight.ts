@@ -1,5 +1,5 @@
 import Connection from '../../lib/twilio/connection';
-import PreflightTest from '../../lib/twilio/preflight/preflight';
+import { PreflightTest } from '../../lib/twilio/preflight/preflight';
 import { EventEmitter } from 'events';
 import { SinonFakeTimers } from 'sinon';
 import * as assert from 'assert';
@@ -7,23 +7,7 @@ import * as sinon from 'sinon';
 import { inherits } from 'util';
 
 describe('PreflightTest', () => {
-  const wait = () => Promise.resolve();
-  const FATAL_ERRORS = [{
-    code: 31000,
-    name: PreflightTest.FatalError.SignalingConnectionFailed
-  },{
-    code: 31003,
-    name: PreflightTest.FatalError.IceConnectionFailed
-  },{
-    code: 20101,
-    name: PreflightTest.FatalError.InvalidToken
-  },{
-    code: 31208,
-    name: PreflightTest.FatalError.MediaPermissionsFailed
-  },{
-    code: 31201,
-    name: PreflightTest.FatalError.NoDevicesFound
-  }]
+  const CALL_SID = 'foo-bar';
 
   let clock: SinonFakeTimers;
   let connection: any;
@@ -35,7 +19,7 @@ describe('PreflightTest', () => {
   let testSamples: any;
 
   const getDeviceFactory = (context: any) => {
-    const factory = function(this: any, token: string, options: PreflightTest.PreflightOptions) {
+    const factory = function(this: any, token: string, options: PreflightTest.Options) {
       Object.assign(this, context);
       if (token) {
         this.setup(token, options);
@@ -72,7 +56,7 @@ describe('PreflightTest', () => {
 
     connectionContext = {
       mediaStream: {
-        callSid: 'test_callsid',
+        callSid: CALL_SID,
         onpcconnectionstatechange: sinon.stub(),
         oniceconnectionstatechange: sinon.stub(),
         ondtlstransportstatechange: sinon.stub(),
@@ -139,9 +123,27 @@ describe('PreflightTest', () => {
       for (let i = 1; i <= count; i++) {
         const data = {...sample, count: i};
         connection.emit('sample', data);
-        sinon.assert.notCalled(onSample);
-        assert.equal(preflight.latestSample, undefined)
+        assert.equal(preflight.latestSample, undefined);
       }
+      sinon.assert.notCalled(onSample);
+    });
+
+    it('should emit samples after mos is available, then becomes unavailable', () => {
+      const onSample = sinon.stub();
+      const preflight = new PreflightTest('foo', options);
+      preflight.on('sample', onSample);
+      device.emit('ready');
+
+      connection.emit('sample', { mos: 4 });
+
+      const count = 10;
+      const sample = {foo: 'foo', bar: 'bar'};
+      for (let i = 1; i <= count; i++) {
+        const data = {...sample, count: i};
+        connection.emit('sample', data);
+        assert.deepEqual(preflight.latestSample, data);
+      }
+      sinon.assert.callCount(onSample, 11);
     });
   });
 
@@ -171,10 +173,10 @@ describe('PreflightTest', () => {
       device.emit('error', { code: 31400 });
 
       sinon.assert.calledOnce(onError);
-      sinon.assert.calledWithExactly(onError, PreflightTest.NonFatalError.InsightsConnectionFailed, { code: 31400 });
+      sinon.assert.calledWithExactly(onError, { code: 31400 });
     });
 
-    it('should not emit error for unknown code', () => {
+    it('should not emit error for fatal errors', () => {
       const onError = sinon.stub();
       const preflight = new PreflightTest('foo', options);
       preflight.on('error', onError);
@@ -183,19 +185,6 @@ describe('PreflightTest', () => {
       device.emit('error', { code: 123 });
 
       sinon.assert.notCalled(onError);
-    });
-
-    FATAL_ERRORS.forEach((error: any) => {
-      it(`should not emit error for code ${error.code}`, () => {
-        const onError = sinon.stub();
-        const preflight = new PreflightTest('foo', options);
-        preflight.on('error', onError);
-        device.emit('ready');
-
-        device.emit('error', { code: error.code });
-
-        sinon.assert.notCalled(onError);
-      });
     });
   });
 
@@ -208,8 +197,16 @@ describe('PreflightTest', () => {
       device.emit('ready');
 
       connection.emit('accept');
-      assert.equal(preflight.status, PreflightTest.TestStatus.Connected);
+      assert.equal(preflight.status, PreflightTest.Status.Connected);
       sinon.assert.calledOnce(onConnected);
+    });
+
+    it('should populate callsid', () => {
+      const preflight = new PreflightTest('foo', options);
+      device.emit('ready');
+      connection.emit('accept');
+
+      assert.equal(preflight.callSid, CALL_SID);
     });
   });
 
@@ -242,18 +239,18 @@ describe('PreflightTest', () => {
       assert.equal(connection.eventNames().length, 0);
     });
 
-    it('should provide results', (done) => {
+    it('should provide report', (done) => {
       clock.reset();
       const warningData = {foo: 'foo', bar: 'bar'};
       const preflight = new PreflightTest('foo', options);
 
-      assert.equal(preflight.status, PreflightTest.TestStatus.Connecting);
+      assert.equal(preflight.status, PreflightTest.Status.Connecting);
 
-      const onCompleted = (results: PreflightTest.TestResults) => {
+      const onCompleted = (results: PreflightTest.Report) => {
         // This is derived from testSamples
         const expected = {
-          callSid: 'test_callsid',
-          errors: ['InsightsConnectionFailed'],
+          callSid: CALL_SID,
+          errors: [{ code: 31400 }],
           networkTiming: {
             dtls: {
               duration: 1000,
@@ -297,9 +294,9 @@ describe('PreflightTest', () => {
           totals: testSamples[testSamples.length - 1].totals,
           warnings: [{name: 'foo', data: warningData}],
         };
-        assert.equal(preflight.status, PreflightTest.TestStatus.Completed);
+        assert.equal(preflight.status, PreflightTest.Status.Completed);
         assert.deepEqual(results, expected);
-        assert.deepEqual(preflight.results, expected);
+        assert.deepEqual(preflight.report, expected);
         done();
       };
 
@@ -309,6 +306,8 @@ describe('PreflightTest', () => {
 
       // Populate error
       device.emit('error', { code: 31400 });
+
+      // Populate samples
       for (let i = 0; i < testSamples.length; i++) {
         const sample = testSamples[i];
         const data = {...sample};
@@ -337,49 +336,50 @@ describe('PreflightTest', () => {
   });
 
   describe('on failed', () => {
-    it('should emit failed on UnsupportedBrowser', () => {
+    it('should emit failed if Device failed to initialized', () => {
       deviceContext.setup = () => {
-        throw new Error();
+        throw 'foo';
       };
 
       const onFailed = sinon.stub();
       const preflight = new PreflightTest('foo', options);
       preflight.on('failed', onFailed);
       clock.tick(1);
-      assert.equal(preflight.status, PreflightTest.TestStatus.Failed);
+      assert.equal(preflight.status, PreflightTest.Status.Failed);
       sinon.assert.calledOnce(onFailed);
-      sinon.assert.calledWithExactly(onFailed, PreflightTest.FatalError.UnsupportedBrowser, undefined);
+      sinon.assert.calledWithExactly(onFailed, 'foo');
     });
 
-    it('should emit failed on CallCancelled and destroy device', () => {
+    it('should emit failed when test is stopped and destroy device', () => {
       const onFailed = sinon.stub();
       const preflight = new PreflightTest('foo', options);
       preflight.on('failed', onFailed);
       device.emit('ready');
 
-      preflight.cancel();
+      preflight.stop();
       device.emit('offline');
 
-      assert.equal(preflight.status, PreflightTest.TestStatus.Failed);
+      assert.equal(preflight.status, PreflightTest.Status.Failed);
       sinon.assert.calledOnce(deviceContext.destroy);
       sinon.assert.calledOnce(onFailed);
-      sinon.assert.calledWithExactly(onFailed, PreflightTest.FatalError.CallCancelled, undefined);
+      sinon.assert.calledWithExactly(onFailed, {
+        code: 31008,
+        message: 'Call cancelled',
+      });
     });
 
-    FATAL_ERRORS.forEach((error: any) => {
-      it(`should emit failed on ${error.name} and destroy device`, () => {
-        const onFailed = sinon.stub();
-        const preflight = new PreflightTest('foo', options);
-        preflight.on('failed', onFailed);
-        device.emit('ready');
+    it(`should emit failed on fatal device errors and destroy device`, () => {
+      const onFailed = sinon.stub();
+      const preflight = new PreflightTest('foo', options);
+      preflight.on('failed', onFailed);
+      device.emit('ready');
 
-        device.emit('error', { code: error.code });
+      device.emit('error', { code: 123 });
 
-        assert.equal(preflight.status, PreflightTest.TestStatus.Failed);
-        sinon.assert.calledOnce(deviceContext.destroy);
-        sinon.assert.calledOnce(onFailed);
-        sinon.assert.calledWithExactly(onFailed, (PreflightTest.FatalError as any)[error.name], { code: error.code });
-      });
+      assert.equal(preflight.status, PreflightTest.Status.Failed);
+      sinon.assert.calledOnce(deviceContext.destroy);
+      sinon.assert.calledOnce(onFailed);
+      sinon.assert.calledWithExactly(onFailed, { code: 123 });
     });
 
     it('should stop test', () => {
@@ -389,12 +389,12 @@ describe('PreflightTest', () => {
       device.emit('ready');
 
       clock.tick(5000);
-      preflight.cancel();
+      preflight.stop();
       device.emit('offline');
 
       clock.tick(15000);
       device.emit('offline');
-      assert.equal(preflight.status, PreflightTest.TestStatus.Failed);
+      assert.equal(preflight.status, PreflightTest.Status.Failed);
       sinon.assert.notCalled(onCompleted);
     });
 
@@ -402,7 +402,7 @@ describe('PreflightTest', () => {
       const preflight = new PreflightTest('foo', options);
       device.emit('ready');
 
-      preflight.cancel();
+      preflight.stop();
       device.emit('offline');
 
       assert.equal(device.eventNames().length, 0);

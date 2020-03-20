@@ -1,11 +1,11 @@
 /**
+ * @packageDocumentation
  * @module Voice
- * @internalapi
+ * @publicapi
  */
 
 /**
- * Sample RTC statistics coming from {@link StatsMonitor}
- * @private
+ * Sample RTC statistics. See [[Connection.sampleEvent]]
  */
 export default interface RTCSample {
   [key: string]: any;
@@ -83,21 +83,20 @@ export default interface RTCSample {
 
 /**
  * Totals included in RTC statistics samples
- * @private
  */
 export interface RTCSampleTotals {
   /**
-   * Total bytes received in last second.
+   * Total bytes received.
    */
   bytesReceived: number;
 
   /**
-   * Total bytes sent in last second.
+   * Total bytes sent.
    */
   bytesSent: number;
 
   /**
-   * Total packets lost in last second.
+   * Total packets lost.
    */
   packetsLost: number;
 
@@ -107,12 +106,12 @@ export interface RTCSampleTotals {
   packetsLostFraction: number;
 
   /**
-   * Total packets received in last second.
+   * Total packets received.
    */
   packetsReceived: number;
 
   /**
-   * Total packets sent in last second.
+   * Total packets sent.
    */
   packetsSent: number;
 }

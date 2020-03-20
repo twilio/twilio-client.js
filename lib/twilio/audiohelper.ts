@@ -1,4 +1,5 @@
 /**
+ * @packageDocumentation
  * @module Voice
  */
 import { EventEmitter } from 'events';

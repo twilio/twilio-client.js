@@ -1,5 +1,11 @@
 /**
- * Timing measurements that provides operational milestones
+ * @packageDocumentation
+ * @module Voice
+ * @publicapi
+ */
+
+/**
+ * Timing measurements that provides operational milestones.
  */
 export interface TimeMeasurement {
   /**
@@ -19,21 +25,27 @@ export interface TimeMeasurement {
 }
 
 /**
- * Represents network related time measurements
+ * Represents network related time measurements.
  */
 export interface NetworkTiming {
   /**
-   * Measurements for TLS handshake
+   * Measurements for establishing DTLS connection.
+   * This is measured from RTCDtlsTransport `connecting` to `connected` state.
+   * See [RTCDtlsTransport state](https://developer.mozilla.org/en-US/docs/Web/API/RTCDtlsTransport/state).
    */
   dtls?: TimeMeasurement;
 
   /**
-   * Measurements for establishing TLS connection
+   * Measurements for establishing ICE connection.
+   * This is measured from ICE connection `checking` to `connected` state.
+   * See [RTCPeerConnection.iceConnectionState](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceConnectionState).
    */
   ice?: TimeMeasurement;
 
   /**
-   * Measurements for establishing a connection
+   * Measurements for establishing a PeerConnection.
+   * This is measured from PeerConnection `connecting` to `connected` state.
+   * See [RTCPeerConnection.connectionState](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/connectionState).
    */
   peerConnection?: TimeMeasurement;
 }

@@ -1,4 +1,5 @@
 /**
+ * @packageDocumentation
  * @module Voice
  */
 import { SOUNDS_BASE_URL } from './constants';
