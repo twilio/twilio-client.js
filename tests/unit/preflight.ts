@@ -163,31 +163,6 @@ describe('PreflightTest', () => {
     });
   });
 
-  describe('on error', () => {
-    it('should emit error for non fatal error', () => {
-      const onError = sinon.stub();
-      const preflight = new PreflightTest('foo', options);
-      preflight.on('error', onError);
-      device.emit('ready');
-
-      device.emit('error', { code: 31400 });
-
-      sinon.assert.calledOnce(onError);
-      sinon.assert.calledWithExactly(onError, { code: 31400 });
-    });
-
-    it('should not emit error for fatal errors', () => {
-      const onError = sinon.stub();
-      const preflight = new PreflightTest('foo', options);
-      preflight.on('error', onError);
-      device.emit('ready');
-
-      device.emit('error', { code: 123 });
-
-      sinon.assert.notCalled(onError);
-    });
-  });
-
   describe('on connected', () => {
     it('should emit connected', () => {
       const onConnected = sinon.stub();
@@ -250,7 +225,6 @@ describe('PreflightTest', () => {
         // This is derived from testSamples
         const expected = {
           callSid: CALL_SID,
-          errors: [{ code: 31400 }],
           networkTiming: {
             dtls: {
               duration: 1000,
@@ -301,11 +275,7 @@ describe('PreflightTest', () => {
       };
 
       preflight.on('completed', onCompleted);
-      preflight.on('error', sinon.stub());
       device.emit('ready');
-
-      // Populate error
-      device.emit('error', { code: 31400 });
 
       // Populate samples
       for (let i = 0; i < testSamples.length; i++) {
