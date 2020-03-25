@@ -75,16 +75,6 @@ describe('Preflight Test', function() {
       assert.equal(preflight.status, PreflightTest.Status.Connecting);
     });
 
-    it('should emit non-fatal error', () => {
-      setTimeout(() => {
-        callerDevice.emit('error', { code: 31400 });
-      }, 5);
-
-      return waitFor(expectEvent('error', preflight).then(error => {
-        assert.deepEqual(error, { code: 31400 });
-      }), EVENT_TIMEOUT);
-    });
-
     it('should emit connected event', () => {
       return waitFor(expectEvent('connected', preflight).then(() => {
         callerConnection = preflight['_connection'];
@@ -119,7 +109,6 @@ describe('Preflight Test', function() {
       return waitFor(expectEvent('completed', preflight).then((report: PreflightTest.Report) => {
         assert(!!report);
         assert(!!report.samples.length);
-        assert(!!report.errors.length);
         assert(!!report.warnings.length);
         assert.deepEqual(report, preflight.report);
       }), EVENT_TIMEOUT);

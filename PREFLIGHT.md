@@ -126,12 +126,6 @@ Raised when `PreflightTest.status` has transitioned to `completed`. During this 
   "samples": [...],
 
   /**
-   * Non-fatal errors detected during the test.
-   * These are coming from Device.on('error').
-   */
-  "errors": [...],
-
-  /**
    * Warnings detected during the test.
    * These are coming from Connection.on('warning').
    */
@@ -141,9 +135,6 @@ Raised when `PreflightTest.status` has transitioned to `completed`. During this 
 
 #### .on('connected', handler())
 Raised when `PreflightTest.status` has transitioned to `connected`. This means, the connection to Twilio has been established.
-
-#### .on('error', handler(error))
-Raised whenever the test encounters a non-fatal error. This is coming from [Device.on('error)](https://www.twilio.com/docs/voice/client/javascript/device#error) and uses the same error format.
 
 #### .on('failed', handler(error))
 Raised when `PreflightTest.status` has transitioned to `failed`. This happens when establishing a connection to Twilio has failed or when a test call has encountered a fatal error. This is also raised if `PreflightTest.stop` is called while the test is in progress. The error emitted from this event is coming from [Device.on('error)](https://www.twilio.com/docs/voice/client/javascript/device#error) and uses the same error format.

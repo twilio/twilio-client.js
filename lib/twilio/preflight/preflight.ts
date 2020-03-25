@@ -32,14 +32,6 @@ export declare interface PreflightTest {
   connectedEvent(): void;
 
   /**
-   * Raised whenever the test encounters a non-fatal error.
-   * @param error
-   * @example `preflight.on('error', error => console.log(error))`
-   * @event
-   */
-  errorEvent(error: Device.Error): void;
-
-  /**
    * Raised when [[PreflightTest.status]] has transitioned to [[PreflightTest.Status.Failed]].
    * This happens when establishing a connection to Twilio has failed or when a test call has encountered a fatal error.
    * This is also raised if [[PreflightTest.stop]] is called while the test is in progress.
@@ -71,14 +63,6 @@ export declare interface PreflightTest {
  */
 export class PreflightTest extends EventEmitter {
   /**
-   * Non-fatal errors. We use this to determine whether we should fail the test or not.
-   */
-  private static nonFatalErrors = [
-    // Insights connection failure
-    31400,
-  ];
-
-  /**
    * Callsid generated for this test call
    */
   private _callSid: string | undefined;
@@ -97,11 +81,6 @@ export class PreflightTest extends EventEmitter {
    * End of test timestamp
    */
   private _endTime: number | undefined;
-
-  /**
-   * Non-fatal errors detected during this test.
-   */
-  private _errors: Device.Error[];
 
   /**
    * Latest WebRTC sample collected for this test
@@ -157,7 +136,6 @@ export class PreflightTest extends EventEmitter {
 
     Object.assign(this._options, options);
 
-    this._errors = [];
     this._samples = [];
     this._warnings = [];
     this._startTime = Date.now();
@@ -207,7 +185,6 @@ export class PreflightTest extends EventEmitter {
     }
     return {
       callSid: this._callSid,
-      errors: this._errors,
       networkTiming: this._networkTiming,
       samples: this._samples,
       stats: this._getRTCStats(),
@@ -265,13 +242,6 @@ export class PreflightTest extends EventEmitter {
    * @param error
    */
   private _onDeviceError(error: Device.Error): void {
-    if (PreflightTest.nonFatalErrors.includes(error.code)) {
-      this._errors.push(error);
-      this.emit(PreflightTest.Events.Error, error);
-      return;
-    }
-
-    // This is a fatal error so we will fail the test.
     this._device.destroy();
     this._onFailed(error);
   }
@@ -428,11 +398,6 @@ export namespace PreflightTest {
     Connected = 'connected',
 
     /**
-     * See [[PreflightTest.errorEvent]]
-     */
-    Error = 'error',
-
-    /**
      * See [[PreflightTest.failedEvent]]
      */
     Failed = 'failed',
@@ -565,11 +530,6 @@ export namespace PreflightTest {
      * CallSid generaged during the test.
      */
     callSid: string | undefined;
-
-    /**
-     * Non-fatal errors detected during the test.
-     */
-    errors: Device.Error[];
 
     /**
      * Network related time measurements.
