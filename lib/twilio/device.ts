@@ -701,6 +701,10 @@ class Device extends EventEmitter {
 
     if (this.options.publishEvents === false) {
       this._publisher.disable();
+    } else {
+      this._publisher.on('error', (error: Error) => {
+        this._log.warn('Cannot connect to insights.', error);
+      });
     }
 
     if (networkInformation) {
