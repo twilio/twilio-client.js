@@ -701,10 +701,6 @@ class Device extends EventEmitter {
 
     if (this.options.publishEvents === false) {
       this._publisher.disable();
-    } else {
-      this._publisher.on('error', (error: Error) => {
-        this._onPublisherError(error);
-      });
     }
 
     if (networkInformation) {
@@ -1003,31 +999,6 @@ class Device extends EventEmitter {
     if (!this.connections.length) {
       this.soundcache.get(Device.SoundName.Incoming).stop();
     }
-  }
-
-  /**
-   * Called when publisher raises an error event
-   * @param error
-   */
-  private _onPublisherError(publisherError: Error): void {
-    let info;
-    try {
-      const errorResponse = JSON.parse(publisherError.message);
-      info = {
-        code: errorResponse.code,
-        message: errorResponse.message,
-      };
-    } catch {
-      this._log.info('Unable to parse publisher error. The server might be down or unreachable.');
-    }
-
-    const twilioError = new ClientErrors.BadRequest();
-    this.emit('error', {
-      code: twilioError.code,
-      info,
-      message: 'Received an error while publishing events to insights',
-      twilioError,
-    });
   }
 
   /**
