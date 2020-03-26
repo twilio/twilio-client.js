@@ -7,4 +7,6 @@ fs.writeFileSync('./lib/twilio/constants.js', `\
 /**
  * This file is generated on build. To make changes, see /templates/constants.js
  */
-${twilioFileString.replace('$version', pkg.version)}`, 'utf8');
+${twilioFileString
+    .replace('$packageName', pkg.name)
+    .replace('$version', pkg.version)}`, 'utf8');

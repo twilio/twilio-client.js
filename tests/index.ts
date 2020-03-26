@@ -57,7 +57,9 @@ root.navigator = {
   mediaDevices: {
     getUserMedia() { return Promise.resolve() },
     enumerateDevices() { return Promise.resolve([]) },
-  }
+  },
+  platform: 'platform',
+  userAgent: 'userAgent'
 };
 
 root.RTCPeerConnection = root.window.RTCPeerConnection = function() { };
@@ -78,8 +80,8 @@ require('./unit/candidate');
 require('./unit/connection');
 require('./unit/device');
 require('./unit/deferred');
-require('./unit/tslog');
 require('./unit/wstransport');
 require('./unit/statsMonitor');
 require('./unit/error');
+require('./unit/log');
 require('./unit/regions');

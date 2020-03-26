@@ -8,12 +8,14 @@ function getUserMedia() {
 
 describe('AudioHelper', () => {
   context('when enumerateDevices is not supported', () => {
+    const noop = () => {};
+
     let audio;
     let oldHTMLAudioElement;
     let oldNavigator;
 
     beforeEach(() => {
-      audio = new AudioHelper(() => {});
+      audio = new AudioHelper(noop, noop, getUserMedia, { mediaDevices: {} });
     });
 
     before(() => {
@@ -41,7 +43,14 @@ describe('AudioHelper', () => {
       });
     });
 
-    context('when adding listeners', () => {
+    // NOTE(mroberts): The following three tests may not hold. console.warn
+    // may not be called a second time if AudioContext is available. I think
+    // the tests should actually read something like,
+    //
+    //   when enumerateDevices and output selection are supported, but not
+    //   volume indication, ...
+    //
+    describe.skip('when adding listeners', () => {
       let sandbox;
       before(() => {
         sandbox = sinon.sandbox.create();
@@ -55,25 +64,19 @@ describe('AudioHelper', () => {
         sandbox.restore();
       });
 
-      // NOTE(mroberts): The following three tests may not hold. console.warn
-      // may not be called a second time if AudioContext is available. I think
-      // the tests should actually read something like,
-      //
-      //   when enumerateDevices and output selection are supported, but not
-      //   volume indication, ...
-      //
-      it.skip('#on should log a console warning when invoked', () => {
+
+      it('#on should log a console warning when invoked', () => {
         audio.on('foo', () => { });
         console.log(console.warn);
         assert(console.warn.calledTwice);
       });
 
-      it.skip('#once should log a console warning when invoked', () => {
+      it('#once should log a console warning when invoked', () => {
         audio.once('foo', () => { });
         assert(console.warn.calledTwice);
       });
 
-      it.skip('#addListener should log a console warning when invoked', () => {
+      it('#addListener should log a console warning when invoked', () => {
         audio.addListener('foo', () => { });
         assert(console.warn.calledTwice);
       });
@@ -115,7 +118,14 @@ describe('AudioHelper', () => {
       });
     });
 
-    context('when adding listeners', () => {
+    // NOTE(mroberts): The following three tests may not hold. console.warn
+    // could be called if AudioContext is unavailable. I think the tests
+    // should actually read something like,
+    //
+    //   when enumerateDevices is supported, as well as output selection and
+    //   volume indication, ...
+    //
+    describe.skip('when adding listeners', () => {
       let sandbox;
       before(() => {
         sandbox = sinon.sandbox.create();
@@ -129,13 +139,6 @@ describe('AudioHelper', () => {
         sandbox.restore();
       });
 
-      // NOTE(mroberts): The following three tests may not hold. console.warn
-      // could be called if AudioContext is unavailable. I think the tests
-      // should actually read something like,
-      //
-      //   when enumerateDevices is supported, as well as output selection and
-      //   volume indication, ...
-      //
       it.skip('#on should not log a console warning when invoked', () => {
         audio.on('foo', () => { });
         assert.equal(console.warn.callCount, 0);

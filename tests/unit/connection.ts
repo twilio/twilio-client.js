@@ -471,7 +471,7 @@ describe('Connection', function() {
 
   describe('.cancel()', () => {
     it('should call .ignore()', () => {
-      conn.ignore = sinon.spy(conn.ignore);
+      conn.ignore = sinon.spy();
       conn.cancel();
       sinon.assert.calledOnce(conn.ignore as SinonSpy);
     });
@@ -488,9 +488,9 @@ describe('Connection', function() {
           (conn as any)['_status'] = state;
         });
 
-        it('should call pstream.publish with hangup', () => {
+        it('should call pstream.hangup', () => {
           conn.disconnect();
-          sinon.assert.calledWith(pstream.publish, 'hangup');
+          sinon.assert.calledWith(pstream.hangup, conn.outboundConnectionId);
         });
 
         it('should call mediaStream.close', () => {
@@ -509,9 +509,9 @@ describe('Connection', function() {
           (conn as any)['_status'] = state;
         });
 
-        it('should not call pstream.publish', () => {
+        it('should not call pstream.hangup', () => {
           conn.disconnect();
-          sinon.assert.notCalled(pstream.publish);
+          sinon.assert.notCalled(pstream.hangup);
         });
 
         it('should not call mediaStream.close', () => {
@@ -689,10 +689,10 @@ describe('Connection', function() {
 
   describe('.reject()', () => {
     context('when state is pending', () => {
-      it('should call pstream.publish with reject', () => {
+      it('should call pstream.reject', () => {
         conn.reject();
-        sinon.assert.calledOnce(pstream.publish);
-        sinon.assert.calledWith(pstream.publish, 'reject', { callsid: conn.parameters.CallSid });
+        sinon.assert.calledOnce(pstream.reject);
+        sinon.assert.calledWith(pstream.reject, conn.parameters.CallSid);
       });
 
       it('should call mediaStream.reject', () => {
@@ -727,9 +727,9 @@ describe('Connection', function() {
           (conn as any)['_status'] = state;
         });
 
-        it('should not call pstream.publish', () => {
+        it('should not call pstream.reject', () => {
           conn.reject();
-          sinon.assert.notCalled(pstream.publish);
+          sinon.assert.notCalled(pstream.reject);
         });
 
         it('should not call mediaStream.reject', () => {
@@ -834,12 +834,9 @@ describe('Connection', function() {
       sinon.assert.callCount(soundcache.get(Device.SoundName.DtmfH).play, 1);
     });
 
-    it('should call pstream.publish if connected', () => {
+    it('should call pstream.dtmf if connected', () => {
       conn.sendDigits('123');
-      sinon.assert.calledWith(pstream.publish, 'dtmf', {
-        callsid: conn.parameters.CallSid,
-        dtmf: '123',
-      });
+      sinon.assert.calledWith(pstream.dtmf, conn.parameters.CallSid, '123');
     });
 
     it('should emit error if pstream is disconnected', (done) => {
@@ -851,7 +848,7 @@ describe('Connection', function() {
 
   describe('.unmute()', () => {
     it('should call .mute(false)', () => {
-      conn.mute = sinon.spy(conn.mute);
+      conn.mute = sinon.spy();
       conn.unmute();
       sinon.assert.calledWith(conn.mute as SinonSpy, false);
     });
@@ -886,6 +883,18 @@ describe('Connection', function() {
       it('should publish a debug event if state is not failed', () => {
         mediaStream.onpcconnectionstatechange('foo');
         sinon.assert.calledWith(publisher.post, 'debug', 'pc-connection-state', 'foo');
+      });
+    });
+
+    describe('mediaStream.ondtlstransportstatechange', () => {
+      it('should publish an error event if state is failed', () => {
+        mediaStream.ondtlstransportstatechange('failed');
+        sinon.assert.calledWith(publisher.post, 'error', 'dtls-transport-state', 'failed');
+      });
+
+      it('should publish a debug event if state is not failed', () => {
+        mediaStream.ondtlstransportstatechange('foo');
+        sinon.assert.calledWith(publisher.post, 'debug', 'dtls-transport-state', 'foo');
       });
     });
 
@@ -979,10 +988,9 @@ describe('Connection', function() {
               (conn as any)['_status'] = state;
             });
 
-            it('should call pstream.publish with hangup', () => {
+            it('should call pstream.hangup with error message', () => {
               mediaStream.onerror(Object.assign({ disconnect: true }, baseError));
-              sinon.assert.calledWith(pstream.publish, 'hangup');
-              assert.equal(pstream.publish.args[0][1].message, 'foo');
+              sinon.assert.calledWith(pstream.hangup, conn.outboundConnectionId, 'foo');
             });
 
             it('should call mediaStream.close', () => {
@@ -1001,9 +1009,9 @@ describe('Connection', function() {
               (conn as any)['_status'] = state;
             });
 
-            it('should not call pstream.publish', () => {
+            it('should not call pstream.hangup', () => {
               mediaStream.onerror(Object.assign({ disconnect: true }, baseError));
-              sinon.assert.notCalled(pstream.publish);
+              sinon.assert.notCalled(pstream.hangup);
             });
 
             it('should not call mediaStream.close', () => {
@@ -1213,9 +1221,9 @@ describe('Connection', function() {
           sinon.assert.calledWith(publisher.info, 'connection', 'disconnected-by-remote');
         });
 
-        it('should not call pstream.publish with hangup', () => {
+        it('should not call pstream.hangup', () => {
           pstream.emit('hangup', { callsid: 'CA123' });
-          sinon.assert.notCalled(pstream.publish);
+          sinon.assert.notCalled(pstream.hangup);
         });
 
         it('should throw an error if the payload contains an error', () => {
@@ -1254,9 +1262,9 @@ describe('Connection', function() {
           sinon.assert.notCalled(publisher.info);
         });
 
-        it('should not call pstream.publish with hangup', () => {
+        it('should not call pstream.hangup', () => {
           pstream.emit('hangup', { callsid: 'CA123' });
-          sinon.assert.notCalled(pstream.publish);
+          sinon.assert.notCalled(pstream.hangup);
         });
       });
     });
