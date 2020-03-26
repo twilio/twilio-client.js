@@ -1612,12 +1612,12 @@ describe('PeerConnection', () => {
 
     it('Should throw error when createMediaStreamDestination throws error', () => {
       context._audioContext.createMediaStreamDestination.throws(ERROR);
-      assert.throws(toTest, ERROR);
+      assert.throws(toTest, Error, MESSAGE);
     });
 
     it('Should throw error when mediaStreamSource connect throws error', () => {
       context._mediaStreamSource.connect.throws(ERROR);
-      assert.throws(toTest, ERROR);
+      assert.throws(toTest, Error, MESSAGE);
     });
 
     it('Should reject and not call audio play and set outputs when setSinkIds rejects', done => {
@@ -1759,21 +1759,21 @@ describe('PeerConnection', () => {
 
     it('Should throw error when reassignMasterOutput throws error', () => {
       context._reassignMasterOutput.throws(ERROR);
-      assert.throws(toTest, ERROR);
+      assert.throws(toTest, Error, MESSAGE);
       assert.equal(context._disableOutput.called, false);
     });
 
     it('Should throw error when disable output throws error', () => {
       context._masterAudioDeviceId = ID_DIFF;
       context._disableOutput.throws(ERROR);
-      assert.throws(toTest, ERROR);
+      assert.throws(toTest, Error, MESSAGE);
       assert.equal(context.outputs.delete.called, false);
     });
 
     it('Should throw error when collection throws error', () => {
       context._masterAudioDeviceId = ID_DIFF;
       context.outputs.delete.throws(ERROR);
-      assert.throws(toTest, ERROR);
+      assert.throws(toTest, Error, MESSAGE);
       assert(context._disableOutput.calledOnce);
     });
   });
@@ -2149,16 +2149,16 @@ describe('PeerConnection', () => {
 
     it('Should not create onaddstream callback function when version create throws error', () => {
       versionCreate.throws(ERROR);
-      assert.throws(toTest, ERROR);
-      assert(versionCreate.calledWithExactly(LOG, CONSTRAINTS, ICE_SERVERS));
+      assert.throws(toTest, Error, MESSAGE);
+      assert(versionCreate.calledWithExactly(CONSTRAINTS, ICE_SERVERS));
       assert.equal(versionPc.addStream.called, false);
       assert.equal(typeof versionPc.onaddstream, 'undefined');
     });
 
     it('Should not create onaddstream callback function when pc addstream throws error', () => {
       versionPc.addStream.throws(ERROR);
-      assert.throws(toTest, ERROR);
-      assert(versionCreate.calledWithExactly(LOG, CONSTRAINTS, ICE_SERVERS));
+      assert.throws(toTest, Error, MESSAGE);
+      assert(versionCreate.calledWithExactly(CONSTRAINTS, ICE_SERVERS));
       assert(versionPc.addStream.calledWithExactly(STREAM));
       assert.equal(typeof versionPc.onaddstream, 'undefined');
     });
