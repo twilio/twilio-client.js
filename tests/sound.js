@@ -213,12 +213,37 @@ describe('Sound', () => {
 
     let context;
     let toTest;
+
+    beforeEach(() => {
+      context = {
+        _operations: {
+          enqueue: (cb) => cb()
+        },
+        _stop: sinon.stub(),
+      };
+      toTest = METHOD.bind(context);
+    });
+
+    it('should call _stop', () => {
+      toTest();
+      return wait().then(() => sinon.assert.calledOnce(context._stop));
+    });
+  });
+
+  context('Sound.prototype._stop', () => {
+    const METHOD = Sound.prototype._stop;
+
+    let context;
+    let toTest;
     let activeEls;
 
     beforeEach(() => {
       activeEls = new Map();
       context = {
         _activeEls: activeEls,
+        _operations: {
+          enqueue: (cb) => cb()
+        },
         _sinkIds: []
       };
       toTest = METHOD.bind(context);
@@ -275,7 +300,10 @@ describe('Sound', () => {
 
     beforeEach(() => {
       context = {
-        _play: sinon.stub()
+        _play: sinon.stub(),
+        _operations: {
+          enqueue: (cb) => cb()
+        },
       };
       toTest = METHOD.bind(context);
     });
@@ -283,16 +311,16 @@ describe('Sound', () => {
     it('should play unmuted', () => {
       toTest();
       sinon.assert.calledOnce(context._play);
-      sinon.assert.calledWithExactly(context._play, false);
+      assert(context._play.getCall(0).args.length === 0);
 
       toTest(true);
-      sinon.assert.calledWithExactly(context._play, false);
+      assert(context._play.getCall(0).args.length === 0);
     });
 
     it('should not override shouldLoop', () => {
       toTest(true, true);
       sinon.assert.calledOnce(context._play);
-      sinon.assert.calledWithExactly(context._play, false);
+      assert(context._play.getCall(0).args.length === 0);
     });
   });
 
@@ -312,7 +340,7 @@ describe('Sound', () => {
         _activeEls: activeEls,
         _sinkIds: [],
         _playAudioElement: sinon.stub(),
-        stop: sinon.stub()
+        _stop: sinon.stub(),
       };
 
       audio = new AudioFactory();
@@ -325,9 +353,9 @@ describe('Sound', () => {
     it('should call stop appropriately', () => {
       scope.isPlaying = true;
       toTest();
-      sinon.assert.calledOnce(scope.stop);
+      sinon.assert.calledOnce(scope._stop);
       sinon.assert.calledOnce(scope._playAudioElement);
-      sinon.assert.callOrder(scope.stop, scope._playAudioElement);
+      sinon.assert.callOrder(scope._stop, scope._playAudioElement);
     });
 
     it('should call stop after maxDuration threshold', () => {
@@ -335,7 +363,7 @@ describe('Sound', () => {
       scope._maxDuration = 10;
       toTest();
       return wait(20).then(() => {
-        sinon.assert.calledOnce(scope.stop);
+        sinon.assert.calledOnce(scope._stop);
       });
     });
 
