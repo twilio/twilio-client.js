@@ -1,3 +1,12 @@
+1.10.1 (In Progress)
+===================
+
+Bug Fixes
+---------
+
+* Fixed an issue where `Device.on('incoming')` event is not raised when the incoming sound is stopped right after playing it. This is a timing issue which can happen if multiple incoming connections comes in almost at the same time. (CLIENT-7482, GH-129)
+
+
 1.10.0 (Feb 19, 2020)
 ===================
 
