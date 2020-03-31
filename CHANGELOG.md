@@ -5,6 +5,7 @@ Bug Fixes
 ---------
 
 * Fixed an issue where `Device.on('incoming')` event is not raised when the incoming sound is stopped right after playing it. This is a timing issue which can happen if multiple incoming connections comes in almost at the same time. (CLIENT-7482, GH-129)
+* Fixed an issue where setting output devices on Android chrome throws the error `This browser does not support audio output selection`. We now check if this is supported on the browser before setting the output device. (CLIENT-7373, GH-124)
 
 
 1.10.0 (Feb 19, 2020)
