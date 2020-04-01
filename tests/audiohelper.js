@@ -480,7 +480,7 @@ describe('AudioHelper', () => {
       });
     });
 
-    describe('mediageDevices:deviceinfochange', () => {
+    describe('mediaDevices:deviceinfochange', () => {
       let audio;
       const wait = () => new Promise(r => setTimeout(r, 0));
       const noop = () => {};
