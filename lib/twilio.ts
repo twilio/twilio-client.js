@@ -1,5 +1,7 @@
 import { EventEmitter } from 'events';
+import Connection from './twilio/connection';
 import Device from './twilio/device';
+import { PStream } from './twilio/pstream';
 
 let instance: Device | null | undefined;
 Object.defineProperty(Device, 'instance', {
@@ -56,6 +58,4 @@ Object.getOwnPropertyNames(instance)
     });
   });
 
-export { Device };
-export { default as Connection } from './twilio/connection';
-export { PStream } from './twilio/pstream';
+export { Connection, Device, PStream };
