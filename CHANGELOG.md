@@ -4,21 +4,21 @@
 Improvements
 ---------
 
-* Typescript declarations are now included with our NPM package.
+* Typescript declarations are now included with our NPM package. (CLIENT-7427, GH-36)
 
-In the following example, `Device`, `Connection`, and their functions should have the correct typings.
+  In the following example, `Device`, `Connection`, and their functions should have the correct typings.
 
-```
-import { Device, Connection } from 'twilio-client';
+  ```
+  import { Device, Connection } from 'twilio-client';
 
-const token = ...;
-const deviceOptions = ...;
-const device: Device = new Device(token, deviceOptions);
+  const token = ...;
+  const deviceOptions = ...;
+  const device: Device = new Device(token, deviceOptions);
 
-const connection: Connection = device.connect(...);
-...
-connection.disconnect();
-```
+  const connection: Connection = device.connect(...);
+  ...
+  connection.disconnect();
+  ```
 
 Bug Fixes
 ---------
