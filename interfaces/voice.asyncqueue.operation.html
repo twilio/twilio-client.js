@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Error | twilio-client</title>
+	<title>Operation | twilio-client</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -47,31 +47,24 @@
 					<a href="../modules/voice.html">Voice</a>
 				</li>
 				<li>
-					<a href="../classes/voice.device.html">Device</a>
+					<a href="../classes/voice.asyncqueue.html">AsyncQueue</a>
 				</li>
 				<li>
-					<a href="voice.device.error.html">Error</a>
+					<a href="voice.asyncqueue.operation.html">Operation</a>
 				</li>
 			</ul>
-			<h1>Interface Error</h1>
+			<h1>Interface Operation</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
-			<section class="tsd-panel tsd-comment">
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>The error format used by errors emitted from <a href="../classes/voice.device.html">Device</a>.</p>
-					</div>
-				</div>
-			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">Error</span>
+						<span class="target">Operation</span>
 					</li>
 				</ul>
 			</section>
@@ -79,96 +72,52 @@
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
-						<section class="tsd-index-section ">
+						<section class="tsd-index-section tsd-is-external">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.device.error.html#code" class="tsd-kind-icon">code</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.device.error.html#connection" class="tsd-kind-icon">connection</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.device.error.html#info" class="tsd-kind-icon">info</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.device.error.html#message" class="tsd-kind-icon">message</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.device.error.html#twilioerror" class="tsd-kind-icon">twilio<wbr>Error</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="voice.asyncqueue.operation.html#callback" class="tsd-kind-icon">callback</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-external"><a href="voice.asyncqueue.operation.html#deferred" class="tsd-kind-icon">deferred</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
-			<section class="tsd-panel-group tsd-member-group ">
+			<section class="tsd-panel-group tsd-member-group tsd-is-external">
 				<h2>Properties</h2>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="code" class="tsd-anchor"></a>
-					<h3>code</h3>
-					<div class="tsd-signature tsd-kind-icon">code<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a name="callback" class="tsd-anchor"></a>
+					<h3>callback</h3>
+					<div class="tsd-signature tsd-kind-icon">callback<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1443">lib/twilio/device.ts:1443</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1c295c9/lib/twilio/asyncQueue.ts#L75">twilio/asyncQueue.ts:75</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Error code</p>
-						</div>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-siganture">
+								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property tsd-is-not-exported">
+									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
+								</ul>
+								<ul class="tsd-descriptions">
+									<li class="tsd-description">
+										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
+									</li>
+								</ul>
+							</li>
+						</ul>
 					</div>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="connection" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> connection</h3>
-					<div class="tsd-signature tsd-kind-icon">connection<span class="tsd-signature-symbol">:</span> <a href="../classes/voice.connection.html" class="tsd-signature-type">Connection</a></div>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+					<a name="deferred" class="tsd-anchor"></a>
+					<h3>deferred</h3>
+					<div class="tsd-signature tsd-kind-icon">deferred<span class="tsd-signature-symbol">:</span> <a href="../classes/voice.deferred.html" class="tsd-signature-type">Deferred</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1449">lib/twilio/device.ts:1449</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1c295c9/lib/twilio/asyncQueue.ts#L80">twilio/asyncQueue.ts:80</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Reference to the <a href="../classes/voice.connection.html">Connection</a>
-							This is usually available if the error is coming from <a href="../classes/voice.connection.html">Connection</a></p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="info" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> info</h3>
-					<div class="tsd-signature tsd-kind-icon">info<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">object</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1454">lib/twilio/device.ts:1454</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The info object from rtc/peerconnection or eventpublisher. May contain code and message (duplicated here).</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="message" class="tsd-anchor"></a>
-					<h3>message</h3>
-					<div class="tsd-signature tsd-kind-icon">message<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1459">lib/twilio/device.ts:1459</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Error message</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="twilioerror" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> twilio<wbr>Error</h3>
-					<div class="tsd-signature tsd-kind-icon">twilio<wbr>Error<span class="tsd-signature-symbol">:</span> <a href="voice.twilioerror.html" class="tsd-signature-type">TwilioError</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/device.ts#L1464">lib/twilio/device.ts:1464</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Twilio Voice related error</p>
-						</div>
-					</div>
 				</section>
 			</section>
 		</div>
@@ -188,22 +137,25 @@
 						<span>Externals</span>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_constants_.html">&quot;constants&quot;</a>
+						<a href="../modules/_twilio_.html">"twilio"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_errors_index_.html">&quot;errors/index&quot;</a>
+						<a href="../modules/_twilio_constants_.html">"twilio/constants"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_pstream_.html">&quot;pstream&quot;</a>
+						<a href="../modules/_twilio_errors_index_.html">"twilio/errors/index"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_shims_eventtarget_.html">&quot;shims/eventtarget&quot;</a>
+						<a href="../modules/_twilio_pstream_.html">"twilio/pstream"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_shims_mediadevices_.html">&quot;shims/mediadevices&quot;</a>
+						<a href="../modules/_twilio_shims_eventtarget_.html">"twilio/shims/eventtarget"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_util_.html">&quot;util&quot;</a>
+						<a href="../modules/_twilio_shims_mediadevices_.html">"twilio/shims/mediadevices"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_twilio_util_.html">"twilio/util"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="../modules/tools.html">Tools</a>
@@ -214,28 +166,22 @@
 				<ul class="before-current">
 				</ul>
 				<ul class="current">
-					<li class="current tsd-kind-class tsd-parent-kind-external-module">
-						<a href="../classes/voice.device.html" class="tsd-kind-icon">Device</a>
+					<li class="current tsd-kind-class tsd-parent-kind-external-module tsd-is-external">
+						<a href="../classes/voice.asyncqueue.html" class="tsd-kind-icon">Async<wbr>Queue</a>
 						<ul>
-							<li class="current tsd-kind-interface tsd-parent-kind-class">
-								<a href="voice.device.error.html" class="tsd-kind-icon">Error</a>
+							<li class="current tsd-kind-interface tsd-parent-kind-class tsd-is-external">
+								<a href="voice.asyncqueue.operation.html" class="tsd-kind-icon">Operation</a>
 								<ul>
-									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="voice.device.error.html#code" class="tsd-kind-icon">code</a>
+									<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+										<a href="voice.asyncqueue.operation.html#callback" class="tsd-kind-icon">callback</a>
 									</li>
-									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="voice.device.error.html#connection" class="tsd-kind-icon">connection</a>
-									</li>
-									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="voice.device.error.html#info" class="tsd-kind-icon">info</a>
-									</li>
-									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="voice.device.error.html#message" class="tsd-kind-icon">message</a>
-									</li>
-									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="voice.device.error.html#twilioerror" class="tsd-kind-icon">twilio<wbr>Error</a>
+									<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-external">
+										<a href="voice.asyncqueue.operation.html#deferred" class="tsd-kind-icon">deferred</a>
 									</li>
 								</ul>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-external">
+								<a href="../classes/voice.asyncqueue.html#enqueue" class="tsd-kind-icon">enqueue</a>
 							</li>
 						</ul>
 					</li>

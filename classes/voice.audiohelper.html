@@ -57,13 +57,6 @@
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
-			<section class="tsd-panel tsd-comment">
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>Provides input and output audio-based functionality in one convenient class.</p>
-					</div>
-				</div>
-			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
@@ -151,27 +144,13 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/audiohelper.ts#L630">lib/twilio/audiohelper.ts:630</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1c295c9/lib/twilio/audiohelper.ts#L632">twilio/audiohelper.ts:632</a></li>
 								</ul>
 							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Emitted when the available set of Devices changes.</p>
-								</div>
-								<dl class="tsd-comment-tags">
-									<dt>example</dt>
-									<dd><p><code>device.audio.on(&#39;deviceChange&#39;, lostActiveDevices =&gt; { })</code></p>
-									</dd>
-								</dl>
-							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>lostActiveDevices: <span class="tsd-signature-type">MediaDeviceInfo</span><span class="tsd-signature-symbol">[]</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>An array containing any Devices that were previously active
-										that were lost as a result of this deviceChange event.</p>
-									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -188,29 +167,13 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/audiohelper.ts#L641">lib/twilio/audiohelper.ts:641</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1c295c9/lib/twilio/audiohelper.ts#L643">twilio/audiohelper.ts:643</a></li>
 								</ul>
 							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Emitted on <code>requestAnimationFrame</code> (up to 60fps, depending on browser) with
-										the current input and output volumes, as a percentage of maximum
-										volume, between -100dB and -30dB. Represented by a floating point
-									number.</p>
-								</div>
-								<dl class="tsd-comment-tags">
-									<dt>example</dt>
-									<dd><p><code>device.audio.on(&#39;inputVolume&#39;, volume =&gt; { })</code></p>
-									</dd>
-								</dl>
-							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>inputVolume: <span class="tsd-signature-type">number</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>A floating point number between 0.0 and 1.0 inclusive.</p>
-									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -223,32 +186,22 @@
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="availableinputdevices" class="tsd-anchor"></a>
 					<h3>available<wbr>Input<wbr>Devices</h3>
-					<div class="tsd-signature tsd-kind-icon">available<wbr>Input<wbr>Devices<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">MediaDeviceInfo</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = new Map()</span></div>
+					<div class="tsd-signature tsd-kind-icon">available<wbr>Input<wbr>Devices<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">MediaDeviceInfo</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;new Map()</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/audiohelper.ts#L37">lib/twilio/audiohelper.ts:37</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1c295c9/lib/twilio/audiohelper.ts#L36">twilio/audiohelper.ts:36</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>A Map of all audio input devices currently available to the browser by their device ID.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="availableoutputdevices" class="tsd-anchor"></a>
 					<h3>available<wbr>Output<wbr>Devices</h3>
-					<div class="tsd-signature tsd-kind-icon">available<wbr>Output<wbr>Devices<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">MediaDeviceInfo</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = new Map()</span></div>
+					<div class="tsd-signature tsd-kind-icon">available<wbr>Output<wbr>Devices<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">MediaDeviceInfo</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> =&nbsp;new Map()</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/audiohelper.ts#L42">lib/twilio/audiohelper.ts:42</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1c295c9/lib/twilio/audiohelper.ts#L41">twilio/audiohelper.ts:41</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>A Map of all audio output devices currently available to the browser by their device ID.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="isoutputselectionsupported" class="tsd-anchor"></a>
@@ -256,15 +209,9 @@
 					<div class="tsd-signature tsd-kind-icon">is<wbr>Output<wbr>Selection<wbr>Supported<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/audiohelper.ts#L59">lib/twilio/audiohelper.ts:59</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1c295c9/lib/twilio/audiohelper.ts#L58">twilio/audiohelper.ts:58</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>False if the browser does not support <code>HTMLAudioElement.setSinkId()</code> or
-							<code>MediaDevices.enumerateDevices()</code> and Twilio cannot facilitate output selection functionality.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="isvolumesupported" class="tsd-anchor"></a>
@@ -272,15 +219,9 @@
 					<div class="tsd-signature tsd-kind-icon">is<wbr>Volume<wbr>Supported<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/audiohelper.ts#L65">lib/twilio/audiohelper.ts:65</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1c295c9/lib/twilio/audiohelper.ts#L64">twilio/audiohelper.ts:64</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>False if the browser does not support AudioContext and Twilio can not analyse the volume
-							in real-time.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="ringtonedevices" class="tsd-anchor"></a>
@@ -288,17 +229,9 @@
 					<div class="tsd-signature tsd-kind-icon">ringtone<wbr>Devices<span class="tsd-signature-symbol">:</span> <a href="voice.outputdevicecollection.html" class="tsd-signature-type">OutputDeviceCollection</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/audiohelper.ts#L73">lib/twilio/audiohelper.ts:73</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1c295c9/lib/twilio/audiohelper.ts#L72">twilio/audiohelper.ts:72</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The current set of output devices that incoming ringtone audio is routed through.
-								These are the sounds that may play while the user is away from the machine or not wearing
-								their headset. It is important that this audio is heard. If all specified
-							devices lost, this Set will revert to contain only the &quot;default&quot; device.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="speakerdevices" class="tsd-anchor"></a>
@@ -306,24 +239,16 @@
 					<div class="tsd-signature tsd-kind-icon">speaker<wbr>Devices<span class="tsd-signature-symbol">:</span> <a href="voice.outputdevicecollection.html" class="tsd-signature-type">OutputDeviceCollection</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/audiohelper.ts#L81">lib/twilio/audiohelper.ts:81</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1c295c9/lib/twilio/audiohelper.ts#L80">twilio/audiohelper.ts:80</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>The current set of output devices that call audio (<code>[voice, outgoing, disconnect, dtmf]</code>)
-								is routed through. These are the sounds that are initiated by the user, or played while
-								the user is otherwise present at the endpoint. If all specified devices are lost,
-							this Set will revert to contain only the &quot;default&quot; device.</p>
-						</div>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static">
 					<a name="defaultmaxlisteners" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagStatic">Static</span> default<wbr>Max<wbr>Listeners</h3>
 					<div class="tsd-signature tsd-kind-icon">default<wbr>Max<wbr>Listeners<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from <a href="voice.statsmonitor.html">StatsMonitor</a>.<a href="voice.statsmonitor.html#defaultmaxlisteners">defaultMaxListeners</a></p>
+						<p>Inherited from EventEmitter.defaultMaxListeners</p>
 						<ul>
 						</ul>
 					</aside>
@@ -334,78 +259,32 @@
 				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
 					<a name="audioconstraints" class="tsd-anchor"></a>
 					<h3>audio<wbr>Constraints</h3>
-					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> audioConstraints<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MediaTrackConstraints</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/audiohelper.ts#L32">lib/twilio/audiohelper.ts:32</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>The currently set audio constraints set by setAudioConstraints(). Starts as null.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">MediaTrackConstraints</span>
-								<span class="tsd-signature-symbol"> | </span>
-								<span class="tsd-signature-type">null</span>
-							</h4>
-						</li>
-					</ul>
+					<div class="tsd-signature tsd-kind-icon">audio<wbr>Constraints<span class="tsd-signature-symbol">:</span> </div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1c295c9/lib/twilio/audiohelper.ts#L31">twilio/audiohelper.ts:31</a></li>
+						</ul>
+					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
 					<a name="inputdevice" class="tsd-anchor"></a>
 					<h3>input<wbr>Device</h3>
-					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> inputDevice<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MediaDeviceInfo</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/audiohelper.ts#L48">lib/twilio/audiohelper.ts:48</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>The active input device. Having no inputDevice specified by <code>setInputDevice()</code>
-									will disable input selection related functionality.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">MediaDeviceInfo</span>
-								<span class="tsd-signature-symbol"> | </span>
-								<span class="tsd-signature-type">null</span>
-							</h4>
-						</li>
-					</ul>
+					<div class="tsd-signature tsd-kind-icon">input<wbr>Device<span class="tsd-signature-symbol">:</span> </div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1c295c9/lib/twilio/audiohelper.ts#L47">twilio/audiohelper.ts:47</a></li>
+						</ul>
+					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
 					<a name="inputstream" class="tsd-anchor"></a>
 					<h3>input<wbr>Stream</h3>
-					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> inputStream<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MediaStream</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/audiohelper.ts#L53">lib/twilio/audiohelper.ts:53</a></li>
-								</ul>
-							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>The current input stream.</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">MediaStream</span>
-								<span class="tsd-signature-symbol"> | </span>
-								<span class="tsd-signature-type">null</span>
-							</h4>
-						</li>
-					</ul>
+					<div class="tsd-signature tsd-kind-icon">input<wbr>Stream<span class="tsd-signature-symbol">:</span> </div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1c295c9/lib/twilio/audiohelper.ts#L52">twilio/audiohelper.ts:52</a></li>
+						</ul>
+					</aside>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
@@ -420,14 +299,9 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/audiohelper.ts#L228">lib/twilio/audiohelper.ts:228</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1c295c9/lib/twilio/audiohelper.ts#L227">twilio/audiohelper.ts:227</a></li>
 								</ul>
 							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Start polling volume if it&#39;s supported and there&#39;s an input stream to poll.</p>
-								</div>
-							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
@@ -442,14 +316,9 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/audiohelper.ts#L260">lib/twilio/audiohelper.ts:260</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1c295c9/lib/twilio/audiohelper.ts#L259">twilio/audiohelper.ts:259</a></li>
 								</ul>
 							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Stop polling volume if it&#39;s currently polling and there are no listeners.</p>
-								</div>
-							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
@@ -464,14 +333,9 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/audiohelper.ts#L279">lib/twilio/audiohelper.ts:279</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1c295c9/lib/twilio/audiohelper.ts#L278">twilio/audiohelper.ts:278</a></li>
 								</ul>
 							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Unbind the listeners from mediaDevices.</p>
-								</div>
-							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
@@ -485,7 +349,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from <a href="voice.statsmonitor.html">StatsMonitor</a>.<a href="voice.statsmonitor.html#addlistener">addListener</a></p>
+								<p>Inherited from EventEmitter.addListener</p>
 								<p>Overrides EventEmitter.addListener</p>
 								<ul>
 								</ul>
@@ -500,14 +364,14 @@
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-siganture">
 											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
 												<li class="tsd-description">
 													<h4 class="tsd-parameters-title">Parameters</h4>
 													<ul class="tsd-parameters">
 														<li>
-															<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
+															<h5><span class="tsd-flag ts-flagRest">Rest</span> args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 														</li>
 													</ul>
 													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -525,12 +389,12 @@
 					<a name="emit" class="tsd-anchor"></a>
 					<h3>emit</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
-						<li class="tsd-signature tsd-kind-icon">emit<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span>, <span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+						<li class="tsd-signature tsd-kind-icon">emit<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span>, args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from <a href="voice.statsmonitor.html">StatsMonitor</a>.<a href="voice.statsmonitor.html#emit">emit</a></p>
+								<p>Inherited from EventEmitter.emit</p>
 								<p>Overrides EventEmitter.emit</p>
 								<ul>
 								</ul>
@@ -541,7 +405,7 @@
 									<h5>event: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span></h5>
 								</li>
 								<li>
-									<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
+									<h5><span class="tsd-flag ts-flagRest">Rest</span> args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -557,7 +421,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from <a href="voice.statsmonitor.html">StatsMonitor</a>.<a href="voice.statsmonitor.html#eventnames">eventNames</a></p>
+								<p>Inherited from EventEmitter.eventNames</p>
 								<p>Overrides EventEmitter.eventNames</p>
 								<ul>
 								</ul>
@@ -575,7 +439,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from <a href="voice.statsmonitor.html">StatsMonitor</a>.<a href="voice.statsmonitor.html#getmaxlisteners">getMaxListeners</a></p>
+								<p>Inherited from EventEmitter.getMaxListeners</p>
 								<p>Overrides EventEmitter.getMaxListeners</p>
 								<ul>
 								</ul>
@@ -593,7 +457,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from <a href="voice.statsmonitor.html">StatsMonitor</a>.<a href="voice.statsmonitor.html#listenercount-1">listenerCount</a></p>
+								<p>Inherited from EventEmitter.listenerCount</p>
 								<p>Overrides EventEmitter.listenerCount</p>
 								<ul>
 								</ul>
@@ -617,7 +481,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from <a href="voice.statsmonitor.html">StatsMonitor</a>.<a href="voice.statsmonitor.html#listeners">listeners</a></p>
+								<p>Inherited from EventEmitter.listeners</p>
 								<p>Overrides EventEmitter.listeners</p>
 								<ul>
 								</ul>
@@ -641,7 +505,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from <a href="voice.statsmonitor.html">StatsMonitor</a>.<a href="voice.statsmonitor.html#off">off</a></p>
+								<p>Inherited from EventEmitter.off</p>
 								<p>Overrides EventEmitter.off</p>
 								<ul>
 								</ul>
@@ -656,14 +520,14 @@
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-siganture">
 											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
 												<li class="tsd-description">
 													<h4 class="tsd-parameters-title">Parameters</h4>
 													<ul class="tsd-parameters">
 														<li>
-															<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
+															<h5><span class="tsd-flag ts-flagRest">Rest</span> args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 														</li>
 													</ul>
 													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -686,7 +550,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from <a href="voice.statsmonitor.html">StatsMonitor</a>.<a href="voice.statsmonitor.html#on">on</a></p>
+								<p>Inherited from EventEmitter.on</p>
 								<p>Overrides EventEmitter.on</p>
 								<ul>
 								</ul>
@@ -701,14 +565,14 @@
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-siganture">
 											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
 												<li class="tsd-description">
 													<h4 class="tsd-parameters-title">Parameters</h4>
 													<ul class="tsd-parameters">
 														<li>
-															<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
+															<h5><span class="tsd-flag ts-flagRest">Rest</span> args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 														</li>
 													</ul>
 													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -731,7 +595,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from <a href="voice.statsmonitor.html">StatsMonitor</a>.<a href="voice.statsmonitor.html#once">once</a></p>
+								<p>Inherited from EventEmitter.once</p>
 								<p>Overrides EventEmitter.once</p>
 								<ul>
 								</ul>
@@ -746,14 +610,14 @@
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-siganture">
 											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
 												<li class="tsd-description">
 													<h4 class="tsd-parameters-title">Parameters</h4>
 													<ul class="tsd-parameters">
 														<li>
-															<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
+															<h5><span class="tsd-flag ts-flagRest">Rest</span> args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 														</li>
 													</ul>
 													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -776,7 +640,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from <a href="voice.statsmonitor.html">StatsMonitor</a>.<a href="voice.statsmonitor.html#prependlistener">prependListener</a></p>
+								<p>Inherited from EventEmitter.prependListener</p>
 								<p>Overrides EventEmitter.prependListener</p>
 								<ul>
 								</ul>
@@ -791,14 +655,14 @@
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-siganture">
 											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
 												<li class="tsd-description">
 													<h4 class="tsd-parameters-title">Parameters</h4>
 													<ul class="tsd-parameters">
 														<li>
-															<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
+															<h5><span class="tsd-flag ts-flagRest">Rest</span> args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 														</li>
 													</ul>
 													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -821,7 +685,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from <a href="voice.statsmonitor.html">StatsMonitor</a>.<a href="voice.statsmonitor.html#prependoncelistener">prependOnceListener</a></p>
+								<p>Inherited from EventEmitter.prependOnceListener</p>
 								<p>Overrides EventEmitter.prependOnceListener</p>
 								<ul>
 								</ul>
@@ -836,14 +700,14 @@
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-siganture">
 											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
 												<li class="tsd-description">
 													<h4 class="tsd-parameters-title">Parameters</h4>
 													<ul class="tsd-parameters">
 														<li>
-															<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
+															<h5><span class="tsd-flag ts-flagRest">Rest</span> args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 														</li>
 													</ul>
 													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -866,7 +730,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from <a href="voice.statsmonitor.html">StatsMonitor</a>.<a href="voice.statsmonitor.html#rawlisteners">rawListeners</a></p>
+								<p>Inherited from EventEmitter.rawListeners</p>
 								<p>Overrides EventEmitter.rawListeners</p>
 								<ul>
 								</ul>
@@ -885,12 +749,12 @@
 					<a name="removealllisteners" class="tsd-anchor"></a>
 					<h3>remove<wbr>All<wbr>Listeners</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
-						<li class="tsd-signature tsd-kind-icon">remove<wbr>All<wbr>Listeners<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+						<li class="tsd-signature tsd-kind-icon">remove<wbr>All<wbr>Listeners<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from <a href="voice.statsmonitor.html">StatsMonitor</a>.<a href="voice.statsmonitor.html#removealllisteners">removeAllListeners</a></p>
+								<p>Inherited from EventEmitter.removeAllListeners</p>
 								<p>Overrides EventEmitter.removeAllListeners</p>
 								<ul>
 								</ul>
@@ -914,7 +778,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from <a href="voice.statsmonitor.html">StatsMonitor</a>.<a href="voice.statsmonitor.html#removelistener">removeListener</a></p>
+								<p>Inherited from EventEmitter.removeListener</p>
 								<p>Overrides EventEmitter.removeListener</p>
 								<ul>
 								</ul>
@@ -929,14 +793,14 @@
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-siganture">
 											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
 												<li class="tsd-description">
 													<h4 class="tsd-parameters-title">Parameters</h4>
 													<ul class="tsd-parameters">
 														<li>
-															<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
+															<h5><span class="tsd-flag ts-flagRest">Rest</span> args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 														</li>
 													</ul>
 													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -960,24 +824,13 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/audiohelper.ts#L297">lib/twilio/audiohelper.ts:297</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1c295c9/lib/twilio/audiohelper.ts#L296">twilio/audiohelper.ts:296</a></li>
 								</ul>
 							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Set the MediaTrackConstraints to be applied on every getUserMedia call for new input
-										device audio. Any deviceId specified here will be ignored. Instead, device IDs should
-										be specified using {@link AudioHelper#setInputDevice}. The returned Promise resolves
-									when the media is successfully reacquired, or immediately if no input device is set.</p>
-								</div>
-							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>audioConstraints: <span class="tsd-signature-type">MediaTrackConstraints</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>The MediaTrackConstraints to apply.</p>
-									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -994,22 +847,13 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/audiohelper.ts#L311">lib/twilio/audiohelper.ts:311</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1c295c9/lib/twilio/audiohelper.ts#L310">twilio/audiohelper.ts:310</a></li>
 								</ul>
 							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Replace the current input device with a new device by ID.</p>
-								</div>
-							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>deviceId: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>An ID of a device to replace the existing
-										input device with.</p>
-									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -1025,7 +869,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from <a href="voice.statsmonitor.html">StatsMonitor</a>.<a href="voice.statsmonitor.html#setmaxlisteners">setMaxListeners</a></p>
+								<p>Inherited from EventEmitter.setMaxListeners</p>
 								<p>Overrides EventEmitter.setMaxListeners</p>
 								<ul>
 								</ul>
@@ -1050,16 +894,9 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/audiohelper.ts#L325">lib/twilio/audiohelper.ts:325</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1c295c9/lib/twilio/audiohelper.ts#L324">twilio/audiohelper.ts:324</a></li>
 								</ul>
 							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Unset the MediaTrackConstraints to be applied on every getUserMedia call for new input
-										device audio. The returned Promise resolves when the media is successfully reacquired,
-									or immediately if no input device is set.</p>
-								</div>
-							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
@@ -1074,15 +911,9 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/286ca8d/lib/twilio/audiohelper.ts#L336">lib/twilio/audiohelper.ts:336</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1c295c9/lib/twilio/audiohelper.ts#L335">twilio/audiohelper.ts:335</a></li>
 								</ul>
 							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>Unset the input device, stopping the tracks. This should only be called when not in a connection, and
-									will not allow removal of the input device during a live call.</p>
-								</div>
-							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
@@ -1096,17 +927,10 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from <a href="voice.statsmonitor.html">StatsMonitor</a>.<a href="voice.statsmonitor.html#listenercount-1">listenerCount</a></p>
+								<p>Inherited from EventEmitter.listenerCount</p>
 								<ul>
 								</ul>
 							</aside>
-							<div class="tsd-comment tsd-typography">
-								<dl class="tsd-comment-tags">
-									<dt>deprecated</dt>
-									<dd><p>since v4.0.0</p>
-									</dd>
-								</dl>
-							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -1138,22 +962,25 @@
 						<span>Externals</span>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_constants_.html">&quot;constants&quot;</a>
+						<a href="../modules/_twilio_.html">"twilio"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_errors_index_.html">&quot;errors/index&quot;</a>
+						<a href="../modules/_twilio_constants_.html">"twilio/constants"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_pstream_.html">&quot;pstream&quot;</a>
+						<a href="../modules/_twilio_errors_index_.html">"twilio/errors/index"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_shims_eventtarget_.html">&quot;shims/eventtarget&quot;</a>
+						<a href="../modules/_twilio_pstream_.html">"twilio/pstream"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_shims_mediadevices_.html">&quot;shims/mediadevices&quot;</a>
+						<a href="../modules/_twilio_shims_eventtarget_.html">"twilio/shims/eventtarget"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_util_.html">&quot;util&quot;</a>
+						<a href="../modules/_twilio_shims_mediadevices_.html">"twilio/shims/mediadevices"</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_twilio_util_.html">"twilio/util"</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="../modules/tools.html">Tools</a>
