@@ -1,3 +1,6 @@
+/**
+ * @internalapi
+ */
 import { EventEmitter } from 'events';
 import Connection from './twilio/connection';
 import Device from './twilio/device';
