@@ -1,3 +1,6 @@
+/**
+ * @internalapi
+ */
 /* tslint:disable max-classes-per-file */
 import {
   AuthorizationErrors,
