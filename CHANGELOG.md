@@ -6,13 +6,14 @@ Improvements
 
 * Typescript declarations are now included with our NPM package.
 
-In the following example, `Device` and `Connection` should have the correct typings.
+In the following example, `Device`, `Connection`, and their functions should have the correct typings.
 
 ```
 import { Device, Connection } from 'twilio-client';
 
-const device: Device = new Device();
-device.setup(...);
+const token = ...;
+const deviceOptions = ...;
+const device: Device = new Device(token, deviceOptions);
 
 const connection: Connection = device.connect(...);
 ...
