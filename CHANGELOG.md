@@ -15,7 +15,6 @@ const device: Device = new Device();
 device.setup(...);
 
 const connection: Connection = device.connect(...);
-connection.accept();
 ...
 connection.disconnect();
 ```
