@@ -1,4 +1,4 @@
-1.10.1 (In Progress)
+1.10.1 (Apr 6, 2020)
 ===================
 
 Improvements
