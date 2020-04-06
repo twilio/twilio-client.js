@@ -1,3 +1,11 @@
+1.11.0 (In Progress)
+===================
+
+Bug Fixes
+---------
+
+* Fixed an issue where `rtcSample.rtt` raised by `Connection.on('sample', rtcSample => ...)` was reported in seconds instead of milliseconds in Firefox. If your application is converting `rtcSample.rtt` to milliseconds in Firefox, please update your application to account for this change.
+
 1.10.1 (Apr 6, 2020)
 ===================
 
@@ -25,7 +33,6 @@ Bug Fixes
 
 * Fixed an issue where `Device.on('incoming')` event is not raised when the incoming sound is stopped right after playing it. This is a timing issue which can happen if multiple incoming connections comes in almost at the same time. (CLIENT-7482, GH-129)
 * Fixed an issue causing Android chrome to throw the error `This browser does not support audio output selection`. We now check if this is supported on the browser before attempting to update the output device. (CLIENT-7373, GH-124)
-
 
 1.10.0 (Feb 19, 2020)
 ===================
