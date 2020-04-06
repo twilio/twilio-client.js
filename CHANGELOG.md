@@ -1,3 +1,52 @@
+1.10.2 (In Progress)
+===================
+
+Bug Fixes
+---------
+
+* Fixed an issue where certain device event handlers, when an exception is thrown, causes some connection event handlers to stop working. This causes potential side effects such as incoming ringtone not being able to stop after receiving a call.
+  ### Example
+  In the following example, `connection.on('accept')` will not trigger if `device.on('connect')` throws an error. With this fix, `connection.on('accept')` handler should now receive the event.
+
+  ```ts
+  connection.on('accept', () => {
+    console.log('This is my "accept" handler.');
+  });
+
+  device.on('connect', () => {
+    throw 'Something went wrong.';
+  });
+  ```
+
+  ### Events affected
+  The following are the events affected and should be fixed with this release.
+
+  | Device Events           | Affected Connection Events  |
+  |:------------------------|:----------------------------|
+  | device.on('connect')    | connection.on('accept')     |
+  | device.on('error')      | connection.on('error')      |
+  | device.on('cancel')     | connection.on('cancel')     |
+  | device.on('disconnect') | connection.on('disconnect') |
+
+  ### More information about NodeJS Events
+  As mentioned in our public [documentation](https://www.twilio.com/docs/voice/client/javascript/connection#handler-methods), the [Device](https://www.twilio.com/docs/voice/client/javascript/device) and [Connection](https://www.twilio.com/docs/voice/client/javascript/connection) objects are [EventEmitters](https://nodejs.org/api/events.html). This release doesn't change the default behavior of `EventEmitters`, where if one of the handlers on the ***same*** `EventEmitter` object throws an exception, the rest of the event handlers will not receive the event. Consider the following example.
+
+  ```ts
+  const myEmitter = new EventEmitter();
+
+  // Subscribe some event handlers
+  myEmitter.on('testevent', () => console.log('This is my handler 1'));
+  myEmitter.on('testevent', () => {
+    console.log('This is my handler 2');
+    throw 'Something went wrong';
+  });
+  myEmitter.on('testevent', () => console.log('This is my handler 3'));
+
+  // Emit an event
+  myEmitter.emit('testevent');
+  ```
+  In the above example, `testevent` has three handlers and are on the ***same*** EventEmitter object `myEmitter`. If one of the handlers, in this case handler number 2, throws an error, the rest of the event handlers will not receive the event. In this case, handler 3 will not receive `testevent`. This is a normal behavior on `EventEmitters` and this SDK release doesn't change this behavior. This release only fixes the issue where if the events are comming from two different `EventEmitter` objects - `Connection` and `Device`;
+
 1.10.1 (In Progress)
 ===================
 
