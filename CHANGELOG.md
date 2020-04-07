@@ -1,9 +1,10 @@
-1.10.2 (In Progress)
+1.11.0 (In Progress)
 ===================
 
 Bug Fixes
 ---------
 
+* Fixed an issue where `rtcSample.rtt` raised by `Connection.on('sample', rtcSample => ...)` was reported in seconds instead of milliseconds in Firefox. If your application is converting `rtcSample.rtt` to milliseconds in Firefox, please update your application to account for this change.
 * Fixed an issue where certain device event handlers, when an exception is thrown, causes some connection event handlers to stop working. This causes potential side effects such as incoming ringtone not being able to stop after receiving a call.
   ### Example
   In the following example, `connection.on('accept')` will not trigger if `device.on('connect')` throws an error. With this fix, `connection.on('accept')` handler should now receive the event.
@@ -47,7 +48,7 @@ Bug Fixes
   ```
   In the above example, `testevent` has three handlers and are on the ***same*** EventEmitter object `myEmitter`. If one of the handlers, in this case handler number 2, throws an error, the rest of the event handlers will not receive the event. In this case, handler 3 will not receive `testevent`. This is a normal behavior on `EventEmitters` and this SDK release doesn't change this behavior. This release only fixes the issue where if the events are comming from two different `EventEmitter` objects - `Connection` and `Device`;
 
-1.10.1 (In Progress)
+1.10.1 (Apr 6, 2020)
 ===================
 
 Improvements
@@ -74,7 +75,6 @@ Bug Fixes
 
 * Fixed an issue where `Device.on('incoming')` event is not raised when the incoming sound is stopped right after playing it. This is a timing issue which can happen if multiple incoming connections comes in almost at the same time. (CLIENT-7482, GH-129)
 * Fixed an issue causing Android chrome to throw the error `This browser does not support audio output selection`. We now check if this is supported on the browser before attempting to update the output device. (CLIENT-7373, GH-124)
-
 
 1.10.0 (Feb 19, 2020)
 ===================
