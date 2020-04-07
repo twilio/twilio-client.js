@@ -1,8 +1,9 @@
 {
   "name": "twilio-client",
-  "version": "1.10.1-dev",
+  "version": "1.10.2-dev",
   "description": "Javascript SDK for Twilio Client",
   "main": "./es5/twilio.js",
+  "types": "./es5/twilio.d.ts",
   "license": "Apache-2.0",
   "keywords": [
     "twilio",

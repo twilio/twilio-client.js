@@ -6,6 +6,34 @@ Bug Fixes
 
 * Fixed an issue where `rtcSample.rtt` raised by `Connection.on('sample', rtcSample => ...)` was reported in seconds instead of milliseconds in Firefox. If your application is converting `rtcSample.rtt` to milliseconds in Firefox, please update your application to account for this change.
 
+1.10.1 (Apr 6, 2020)
+===================
+
+Improvements
+---------
+
+* Typescript declarations are now included with our NPM package. (CLIENT-7427, GH-36)
+
+  In the following example, `Device`, `Connection`, and their functions should have the correct typings.
+
+  ```
+  import { Device, Connection } from 'twilio-client';
+
+  const token = ...;
+  const deviceOptions = ...;
+  const device: Device = new Device(token, deviceOptions);
+
+  const connection: Connection = device.connect(...);
+  ...
+  connection.disconnect();
+  ```
+
+Bug Fixes
+---------
+
+* Fixed an issue where `Device.on('incoming')` event is not raised when the incoming sound is stopped right after playing it. This is a timing issue which can happen if multiple incoming connections comes in almost at the same time. (CLIENT-7482, GH-129)
+* Fixed an issue causing Android chrome to throw the error `This browser does not support audio output selection`. We now check if this is supported on the browser before attempting to update the output device. (CLIENT-7373, GH-124)
+
 1.10.0 (Feb 19, 2020)
 ===================
 
