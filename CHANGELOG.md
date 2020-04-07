@@ -6,7 +6,7 @@ Bug Fixes
 
 * Fixed an issue where `rtcSample.rtt` raised by `Connection.on('sample', rtcSample => ...)` was reported in seconds instead of milliseconds in Firefox. If your application is converting `rtcSample.rtt` to milliseconds in Firefox, please update your application to account for this change.
 * Fixed an issue where certain device event handlers, when an exception is thrown, causes some connection event handlers to stop working. This causes potential side effects such as incoming ringtone not being able to stop after receiving a call.
-  ### Example
+  #### Example
   In the following example, `connection.on('accept')` will not trigger if `device.on('connect')` throws an error. With this fix, `connection.on('accept')` handler should now receive the event.
 
   ```ts
@@ -19,7 +19,7 @@ Bug Fixes
   });
   ```
 
-  ### Events affected
+  #### Events affected
   The following are the events affected and should be fixed with this release.
 
   | Device Events           | Affected Connection Events  |
@@ -29,7 +29,7 @@ Bug Fixes
   | device.on('cancel')     | connection.on('cancel')     |
   | device.on('disconnect') | connection.on('disconnect') |
 
-  ### More information about NodeJS Events
+  #### More information about NodeJS Events
   As mentioned in our public [documentation](https://www.twilio.com/docs/voice/client/javascript/connection#handler-methods), the [Device](https://www.twilio.com/docs/voice/client/javascript/device) and [Connection](https://www.twilio.com/docs/voice/client/javascript/connection) objects are [EventEmitters](https://nodejs.org/api/events.html). This release doesn't change the default behavior of `EventEmitters`, where if one of the handlers on the ***same*** `EventEmitter` object throws an exception, the rest of the event handlers will not receive the event. Consider the following example.
 
   ```ts
