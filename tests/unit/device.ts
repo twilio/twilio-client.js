@@ -757,6 +757,44 @@ describe('Device', function() {
       });
     });
 
+    describe('on event subscriptions coming from connection', () => {
+      let connection: any;
+
+      beforeEach((done: Function) => {
+        device.once(Device.EventName.Incoming, () => {
+          device.connections[0].parameters = { };
+          connection = device.connections[0];
+          done();
+        });
+        pstream.emit('invite', {
+          callsid: 'CA1234',
+          sdp: 'foobar',
+        });
+      });
+
+      it('should emit device:connect asynchronously', () => {
+        const stub = sinon.stub();
+        device.on('connect', stub);
+        connection.emit('accept');
+
+        sinon.assert.notCalled(stub);
+        clock.tick(1);
+        sinon.assert.calledOnce(stub);
+      });
+
+      ['error', 'cancel', 'disconnect'].forEach(event => {
+        it(`should emit device:${event} asynchronously`, () => {
+          const stub = sinon.stub();
+          device.on(event, stub);
+          connection.emit(event);
+
+          sinon.assert.notCalled(stub);
+          clock.tick(1);
+          sinon.assert.calledOnce(stub);
+        });
+      });
+    });
+
     context('with a pending incoming call', () => {
       beforeEach((done: Function) => {
         device.once(Device.EventName.Incoming, () => {
@@ -785,6 +823,8 @@ describe('Device', function() {
 
         it('should emit Device.connect', () => {
           device.connections[0].emit('accept');
+          clock.tick(1);
+
           sinon.assert.calledOnce(device.emit as any);
           sinon.assert.calledWith(device.emit as any, 'connect');
         });
@@ -806,6 +846,8 @@ describe('Device', function() {
 
         it('should emit Device.error', () => {
           device.connections[0].emit('error');
+          clock.tick(1);
+
           sinon.assert.calledOnce(device.emit as any);
           sinon.assert.calledWith(device.emit as any, 'error');
         });
@@ -832,6 +874,8 @@ describe('Device', function() {
           });
 
           device.connections[0].emit('cancel');
+          clock.tick(1);
+
           sinon.assert.calledOnce(device.emit as any);
           sinon.assert.calledWith(device.emit as any, 'cancel');
         });
@@ -840,6 +884,8 @@ describe('Device', function() {
       describe('on connection.disconnect', () => {
         it('should emit Device.disconnect', () => {
           device.connections[0].emit('disconnect');
+          clock.tick(1);
+
           sinon.assert.calledOnce(device.emit as any);
           sinon.assert.calledWith(device.emit as any, 'disconnect');
         });
