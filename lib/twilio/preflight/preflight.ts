@@ -186,7 +186,9 @@ export class PreflightTest extends EventEmitter {
     return {
       callSid: this._callSid,
       networkTiming: this._networkTiming,
+      region: this._device.region(),
       samples: this._samples,
+      selectedRegion: 'gll',
       stats: this._getRTCStats(),
       testTiming,
       totals: this._getRTCSampleTotals(),
@@ -537,9 +539,20 @@ export namespace PreflightTest {
     networkTiming: NetworkTiming;
 
     /**
+     * The region that we end up connecting to in the signaling stack.
+     * Parsed from the `connected` event that occurs upon connection.
+     */
+    region: string;
+
+    /**
      * WebRTC samples collected during the test.
      */
     samples: RTCSample[];
+
+    /**
+     * The region provided in the {@link PreflightTest.Options}.
+     */
+    selectedRegion: string;
 
     /**
      * RTC related stats captured during the test.

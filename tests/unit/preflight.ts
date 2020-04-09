@@ -69,6 +69,7 @@ describe('PreflightTest', () => {
       setup: sinon.stub(),
       connect: sinon.stub().returns(connection),
       destroy: sinon.stub(),
+      region: sinon.stub().returns('foobar-region'),
     };
     deviceFactory = getDeviceFactory(deviceContext)
 
@@ -167,7 +168,7 @@ describe('PreflightTest', () => {
     it('should emit connected', () => {
       const onConnected = sinon.stub();
       const preflight = new PreflightTest('foo', options);
-      
+
       preflight.on('connected', onConnected);
       device.emit('ready');
 
@@ -242,7 +243,9 @@ describe('PreflightTest', () => {
               start: 0
             }
           },
+          region: 'foobar-region',
           samples: testSamples,
+          selectedRegion: 'gll',
           stats: {
             jitter: {
               average: 8,
