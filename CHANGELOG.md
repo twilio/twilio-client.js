@@ -1,6 +1,13 @@
 1.11.0 (In Progress)
 ===================
 
+New Features
+---------
+
+* Deprecated the `Twilio.Device.Options.region` option for setting up a `Twilio.Device` as part of Phase 1 Regional Twilio.
+Instead of using `Twilio.Device.Options.region`, please use `Twilio.Device.Options.edge`. In a future breaking release, `Twilio.Device.Options.region` will be for a different option.
+Please see TODO mhuynh.
+
 Bug Fixes
 ---------
 

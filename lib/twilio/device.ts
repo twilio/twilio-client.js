@@ -19,9 +19,9 @@ import {
 import Log from './log';
 import { PStream } from './pstream';
 import {
-  defaultRegion,
+  defaultEdge,
+  getChunderURI,
   getRegionShortcode,
-  getRegionURI,
 } from './regions';
 import { Exception, queryToJson } from './util';
 
@@ -322,13 +322,13 @@ class Device extends EventEmitter {
     connectionFactory: Connection,
     debug: false,
     dscp: true,
+    edge: defaultEdge,
     enableIceRestart: false,
     eventgw: 'eventgw.twilio.com',
     forceAggressiveIceNomination: false,
     iceServers: [],
     noRegister: false,
     pStreamFactory: PStream,
-    region: defaultRegion,
     rtcConstraints: { },
     soundFactory: Sound,
     sounds: { },
@@ -580,6 +580,12 @@ class Device extends EventEmitter {
       throw new InvalidArgumentError('Token is required for Device.setup()');
     }
 
+    const regionURI = getChunderURI(
+      this.options.edge,
+      this.options.region,
+      this._log.warn,
+    );
+
     if (typeof Device._isUnifiedPlanDefault === 'undefined') {
       Device._isUnifiedPlanDefault = typeof window !== 'undefined'
         && typeof RTCPeerConnection !== 'undefined'
@@ -641,10 +647,6 @@ class Device extends EventEmitter {
         .forEach((eventName: Device.SoundName) => {
       this.sounds[eventName] = getOrSetSound.bind(null, eventName);
     });
-
-    const regionURI = getRegionURI(this.options.region, newRegion => this._log.warn(
-      `Region ${this.options.region} is deprecated, please use ${newRegion}.`,
-    ));
 
     this.options.chunderw = `wss://${this.options.chunderw || regionURI}/signal`;
 
@@ -1454,6 +1456,11 @@ namespace Device {
     dscp?: boolean;
 
     /**
+     * The edge to connect to.
+     */
+    edge?: string;
+
+    /**
      * Whether to automatically restart ICE when media connection fails
      */
     enableIceRestart?: boolean;
@@ -1489,6 +1496,10 @@ namespace Device {
 
     /**
      * The region code of the region to connect to.
+     *
+     * @deprecated
+     *
+     * CLIENT-7519 Deprecated in favor of the `edge` option parameter.
      */
     region?: string;
 

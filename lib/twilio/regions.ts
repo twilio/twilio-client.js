@@ -3,7 +3,6 @@
  * This module describes valid and deprecated regions.
  */
 import { InvalidArgumentError } from './errors';
-import { Exception } from './util';
 
 /**
  * Valid deprecated regions.
@@ -21,12 +20,43 @@ export enum DeprecatedRegion {
 }
 
 /**
+ * Valid edges.
+ */
+export enum Edge {
+  Sydney = 'sydney',
+  SaoPaolo = 'sao-paolo',
+  Dublin = 'dublin',
+  Frankfurt = 'frankfurt',
+  Tokyo = 'tokyo',
+  Singapore = 'singapore',
+  Ashburn = 'ashburn',
+  Umatilla = 'umatilla',
+  Roaming = 'roaming',
+  /**
+   * Interconnect edges
+   */
+  AshburnIx = 'ashburn-ix',
+  SanJoseIx = 'san-jose-ix',
+  LondonIx = 'london-ix',
+  FrankfurtIx = 'frankfurt-ix',
+  SingaporeIx = 'singapore-ix',
+}
+
+/**
  * Valid current regions.
  *
- * @deprecated CLIENT-6831
+ * @deprecated
+ *
+ * CLIENT-6831
  * This is no longer used or updated for checking validity of regions in the
  * SDK. We now allow any string to be passed for region. Invalid regions won't
  * be able to connect, and won't throw an exception.
+ *
+ * CLIENT-7519
+ * This is used again to temporarily convert edge values to regions as part of
+ * Phase 1 Regional. This is still considered deprecated.
+ *
+ * @private
  */
 export enum Region {
   Au1 = 'au1',
@@ -39,6 +69,8 @@ export enum Region {
   Ie1Tnx = 'ie1-tnx',
   Jp1 = 'jp1',
   Sg1 = 'sg1',
+  Sg1Ix = 'sg1-ix',
+  Sg1Tnx = 'sg1-tnx',
   Us1 = 'us1',
   Us1Ix = 'us1-ix',
   Us1Tnx = 'us1-tnx',
@@ -55,6 +87,7 @@ export type ValidRegion = Region | DeprecatedRegion;
 
 /**
  * Deprecated regions. Maps the deprecated region to its equivalent up-to-date region.
+ * @private
  */
 export const deprecatedRegions: Record<DeprecatedRegion, Region> = {
   [DeprecatedRegion.Au]: Region.Au1,
@@ -96,6 +129,8 @@ const regionURIs: Record<Region, string> = {
   [Region.Ie1Tnx]: 'chunderw-vpc-gll-ie1-tnx.twilio.com',
   [Region.Jp1]: 'chunderw-vpc-gll-jp1.twilio.com',
   [Region.Sg1]: 'chunderw-vpc-gll-sg1.twilio.com',
+  [Region.Sg1Ix]: 'chunderw-vpc-gll-sg1-ix.twilio.com',
+  [Region.Sg1Tnx]: 'chunderw-vpc-gll-sg1-tnx.twilio.com',
   [Region.Us1]: 'chunderw-vpc-gll-us1.twilio.com',
   [Region.Us1Ix]: 'chunderw-vpc-gll-us1-ix.twilio.com',
   [Region.Us1Tnx]: 'chunderw-vpc-gll-us1-tnx.twilio.com',
@@ -105,11 +140,83 @@ const regionURIs: Record<Region, string> = {
 };
 
 /**
+ * Edge to region mapping, as part of Phase 1 Regional (CLIENT-7519).
+ * Temporary.
+ * @private
+ */
+export const edgeToRegion: Record<Edge, Region> = {
+  [Edge.Sydney]: Region.Au1,
+  [Edge.SaoPaolo]: Region.Br1,
+  [Edge.Dublin]: Region.Ie1,
+  [Edge.Frankfurt]: Region.De1,
+  [Edge.Tokyo]: Region.Jp1,
+  [Edge.Singapore]: Region.Sg1,
+  [Edge.Ashburn]: Region.Us1,
+  [Edge.Umatilla]: Region.Us2,
+  [Edge.Roaming]: Region.Gll,
+  /**
+   * Interconnect edges
+   */
+  [Edge.AshburnIx]: Region.Us1Ix,
+  [Edge.SanJoseIx]: Region.Us2Ix,
+  [Edge.LondonIx]: Region.Ie1Ix,
+  [Edge.FrankfurtIx]: Region.De1Ix,
+  [Edge.SingaporeIx]: Region.Sg1Ix,
+};
+
+/**
+ * Region to edge mapping, as part of Phase 1 Regional (CLIENT-7519).
+ * Temporary.
+ * @private
+ */
+export const regionToEdge: Record<Region, Edge> = {
+  [Region.Au1]: Edge.Sydney,
+  [Region.Br1]: Edge.SaoPaolo,
+  [Region.Ie1]: Edge.Dublin,
+  [Region.De1]: Edge.Frankfurt,
+  [Region.Jp1]: Edge.Tokyo,
+  [Region.Sg1]: Edge.Singapore,
+  [Region.Us1]: Edge.Ashburn,
+  [Region.Us2]: Edge.Umatilla,
+  [Region.Gll]: Edge.Roaming,
+  /**
+   * Interconnect edges
+   */
+  [Region.Us1Ix]: Edge.AshburnIx,
+  [Region.Us2Ix]: Edge.SanJoseIx,
+  [Region.Ie1Ix]: Edge.LondonIx,
+  [Region.De1Ix]: Edge.FrankfurtIx,
+  [Region.Sg1Ix]: Edge.SingaporeIx,
+  /**
+   * Tnx regions
+   */
+  [Region.Us1Tnx]: Edge.AshburnIx,
+  [Region.Us2Tnx]: Edge.AshburnIx,
+  [Region.Ie1Tnx]: Edge.LondonIx,
+  [Region.Sg1Tnx]: Edge.SingaporeIx,
+};
+
+/**
  * The default region to connect to and create a chunder uri from if region is
  * not defined.
  * @constant
+ * @private
  */
 export const defaultRegion: string = 'gll';
+
+/**
+ * The default edge to connect to and create a chunder uri from, if the edge
+ * parameter is not specified during setup in `Device`.
+ * @constant
+ */
+export const defaultEdge: Edge = Edge.Roaming;
+
+/**
+ * The default chunder URI to connect to, should map to `gll` or `roaming`.
+ * @constant
+ * @private
+ */
+export const defaultChunderUri = 'chunderw-vpc-gll.twilio.com';
 
 /**
  * Get the URI associated with the passed shortcode.
@@ -134,6 +241,86 @@ export function getRegionURI(region?: string, onDeprecated?: (newRegion: string)
   }
 
   return `chunderw-vpc-gll-${region}.twilio.com`;
+}
+
+/**
+ * Get the URI associated with the passed region or edge. If both are passed,
+ * then we want to fail `Device` setup, so we throw an error.
+ * As of CLIENT-7519, Regions are deprecated in favor of edges as part of
+ * Phase 1 Regional.
+ *
+ * @private
+ * @param edge - The edge.
+ * @param region - The region shortcode.
+ * @param [onDeprecated] - A callback containing the deprecation message to be
+ *   warned when the passed parameters are deprecated.
+ */
+export function getChunderURI(
+  edge: string | undefined,
+  region: string | undefined,
+  onDeprecated?: (message: string) => void,
+): string {
+  if (region && edge) {
+    throw new InvalidArgumentError(
+      'Defining both a `region` and an `edge` in `Twilio.Device.Options` is ' +
+      'unsupported.',
+    );
+  }
+
+  if ((edge === undefined || edge === defaultRegion) && region === undefined) {
+    return defaultChunderUri;
+  }
+
+  const deprecatedMessages: string[] = [];
+
+  let chunderRegion: string | undefined;
+
+  if (region) {
+    chunderRegion = region;
+
+    // TODO mhuynh direct to documentation regarding Twilio regional phase 1
+    deprecatedMessages.push(
+      'Regions are deprecated in favor of edges. Please see TODO.',
+    );
+
+    const isNonDeprecatedRegion: boolean =
+      (Object.values(Region) as string[]).includes(chunderRegion);
+
+    const isDeprecatedRegion: boolean =
+      (Object.values(DeprecatedRegion) as string[]).includes(chunderRegion);
+
+    if (isNonDeprecatedRegion || isDeprecatedRegion) {
+      chunderRegion =
+        deprecatedRegions[chunderRegion as DeprecatedRegion] || chunderRegion;
+
+      const preferredEdge = regionToEdge[chunderRegion as Region];
+      deprecatedMessages.push(
+        `Region "${chunderRegion}" is deprecated, please use \`edge\` ` +
+        `"${preferredEdge}".`,
+      );
+    }
+  }
+
+  if (edge) {
+    const isKnownEdge: boolean =
+      (Object.values(Edge) as string[]).includes(edge);
+
+    if (isKnownEdge) {
+      chunderRegion = edgeToRegion[edge as Edge];
+    } else {
+      chunderRegion = edge;
+    }
+  }
+
+  if (onDeprecated && deprecatedMessages.length) {
+    setTimeout(() => onDeprecated(deprecatedMessages.join(' ')));
+  }
+
+  if (chunderRegion === defaultRegion) {
+    return defaultChunderUri;
+  }
+
+  return `chunderw-vpc-gll-${chunderRegion}.twilio.com`;
 }
 
 /**
