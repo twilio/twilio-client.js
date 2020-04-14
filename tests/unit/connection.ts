@@ -55,7 +55,7 @@ describe('Connection', function() {
 
     audioHelper = createEmitterStub(require('../../lib/twilio/audiohelper').default);
     getUserMedia = sinon.spy(() => Promise.resolve(new MediaStream()));
-    pstream = createEmitterStub(require('../../lib/twilio/pstream').PStream);
+    pstream = createEmitterStub(require('../../lib/twilio/pstream'));
     publisher = createEmitterStub(require('../../lib/twilio/eventpublisher'));
     publisher.postMetrics = sinon.spy(() => Promise.resolve());
 

@@ -17,7 +17,6 @@ import {
   SignalingErrors,
 } from './errors';
 import Log from './log';
-import { PStream } from './pstream';
 import {
   defaultRegion,
   getRegionShortcode,
@@ -27,6 +26,7 @@ import { Exception, queryToJson } from './util';
 
 const C = require('./constants');
 const Publisher = require('./eventpublisher');
+const PStream = require('./pstream');
 const rtc = require('./rtc');
 const getUserMedia = require('./rtc/getusermedia');
 const Sound = require('./sound');
