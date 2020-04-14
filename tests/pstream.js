@@ -3,7 +3,7 @@ const EventEmitter = require('events').EventEmitter;
 const EventTarget = require('../lib/twilio/shims/eventtarget');
 const sinon = require('sinon');
 
-const { PStream } = require('../lib/twilio/pstream');
+const PStream = require('../lib/twilio/pstream');
 
 describe('PStream', () => {
   let pstream;

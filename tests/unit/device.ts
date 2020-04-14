@@ -39,7 +39,7 @@ describe('Device', function() {
     return activeConnection = createEmitterStub(require('../../lib/twilio/connection').default);
   };
   const pStreamFactory = () =>
-    pstream = createEmitterStub(require('../../lib/twilio/pstream').PStream);
+    pstream = createEmitterStub(require('../../lib/twilio/pstream'));
   const Publisher = () =>
     publisher = createEmitterStub(require('../../lib/twilio/eventpublisher'));
   const soundFactory = (name: Device.SoundName) =>
