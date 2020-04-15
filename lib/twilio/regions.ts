@@ -23,6 +23,9 @@ export enum DeprecatedRegion {
  * Valid edges.
  */
 export enum Edge {
+  /**
+   * Public edges
+   */
   Sydney = 'sydney',
   SaoPaolo = 'sao-paolo',
   Dublin = 'dublin',
@@ -256,26 +259,29 @@ export function getRegionURI(region?: string, onDeprecated?: (newRegion: string)
  *   warned when the passed parameters are deprecated.
  */
 export function getChunderURI(
-  edge: string | undefined,
-  region: string | undefined,
+  edge: any,
+  region: any,
   onDeprecated?: (message: string) => void,
 ): string {
-  if (region && edge) {
+  if (
+    (typeof region !== 'string' && typeof region !== 'undefined') ||
+    (typeof edge !== 'string' && typeof edge !== 'undefined')
+  ) {
     throw new InvalidArgumentError(
-      'Defining both a `region` and an `edge` in `Twilio.Device.Options` is ' +
-      'unsupported.',
+      'If `region` or `edge` are defined, they must of type `string`.',
     );
-  }
-
-  if ((edge === undefined || edge === defaultRegion) && region === undefined) {
-    return defaultChunderUri;
   }
 
   const deprecatedMessages: string[] = [];
 
   let chunderRegion: string | undefined;
 
-  if (region) {
+  if (region && edge) {
+    throw new InvalidArgumentError(
+      'Defining both a `region` and an `edge` in `Twilio.Device.Options` is ' +
+      'unsupported.',
+    );
+  } else if (region) {
     chunderRegion = region;
 
     // TODO mhuynh direct to documentation regarding Twilio regional phase 1
@@ -283,44 +289,34 @@ export function getChunderURI(
       'Regions are deprecated in favor of edges. Please see TODO.',
     );
 
-    const isNonDeprecatedRegion: boolean =
-      (Object.values(Region) as string[]).includes(chunderRegion);
-
     const isDeprecatedRegion: boolean =
       (Object.values(DeprecatedRegion) as string[]).includes(chunderRegion);
+    if (isDeprecatedRegion) {
+      chunderRegion = deprecatedRegions[chunderRegion as DeprecatedRegion];
+    }
 
-    if (isNonDeprecatedRegion || isDeprecatedRegion) {
-      chunderRegion =
-        deprecatedRegions[chunderRegion as DeprecatedRegion] || chunderRegion;
-
+    const isKnownRegion: boolean =
+      (Object.values(Region) as string[]).includes(chunderRegion);
+    if (isKnownRegion) {
       const preferredEdge = regionToEdge[chunderRegion as Region];
       deprecatedMessages.push(
         `Region "${chunderRegion}" is deprecated, please use \`edge\` ` +
         `"${preferredEdge}".`,
       );
     }
-  }
-
-  if (edge) {
-    const isKnownEdge: boolean =
-      (Object.values(Edge) as string[]).includes(edge);
-
-    if (isKnownEdge) {
-      chunderRegion = edgeToRegion[edge as Edge];
-    } else {
-      chunderRegion = edge;
-    }
+  } else if (edge) {
+    chunderRegion = (Object.values(Edge) as string[]).includes(edge)
+      ? edgeToRegion[edge as Edge]
+      : edge;
   }
 
   if (onDeprecated && deprecatedMessages.length) {
-    setTimeout(() => onDeprecated(deprecatedMessages.join(' ')));
+    setTimeout(() => onDeprecated(deprecatedMessages.join('\n')));
   }
 
-  if (chunderRegion === defaultRegion) {
-    return defaultChunderUri;
-  }
-
-  return `chunderw-vpc-gll-${chunderRegion}.twilio.com`;
+  return !chunderRegion || chunderRegion === defaultRegion
+    ? defaultChunderUri
+    : `chunderw-vpc-gll-${chunderRegion}.twilio.com`;
 }
 
 /**

@@ -227,6 +227,11 @@ describe('Device', function() {
           assert.throws(() => (device.setup as any)(), /Token is required/);
         });
 
+        it('should throw if both `edge` and `region` are defined in options', () => {
+          device = new Device();
+          assert.throws(() => device.setup(token, { edge: 'foo', region: 'bar' }));
+        });
+
         it('should set device.isInitialized to true', () => {
           assert.equal(device.isInitialized, true);
         });

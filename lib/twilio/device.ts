@@ -20,6 +20,8 @@ import Log from './log';
 import { PStream } from './pstream';
 import {
   defaultEdge,
+  Edge,
+  edgeToRegion,
   getChunderURI,
   getRegionShortcode,
 } from './regions';
@@ -322,7 +324,6 @@ class Device extends EventEmitter {
     connectionFactory: Connection,
     debug: false,
     dscp: true,
-    edge: defaultEdge,
     enableIceRestart: false,
     eventgw: 'eventgw.twilio.com',
     forceAggressiveIceNomination: false,
@@ -532,6 +533,13 @@ class Device extends EventEmitter {
    * if not connected.
    */
   region(): string {
+    this._log.warn(
+      'The value that `Twilio.Device.region` returns is deprecated. ' +
+      'At the moment, it represents the region that the signaling stack ' +
+      'connects to. ' +
+      'In a future breaking release, this value will change meaning as part ' +
+      'of Twilio Regional.',
+    );
     this._throwUnlessSetup('region');
     return typeof this._region === 'string' ? this._region : 'offline';
   }
@@ -581,8 +589,8 @@ class Device extends EventEmitter {
     }
 
     const regionURI = getChunderURI(
-      this.options.edge,
-      this.options.region,
+      options.edge || this.options.edge,
+      options.region || this.options.region,
       this._log.warn,
     );
 
@@ -833,10 +841,13 @@ class Device extends EventEmitter {
       aggressive_nomination: this.options.forceAggressiveIceNomination,
       browser_extension: this._isBrowserExtension,
       dscp: !!this.options.dscp,
+      edge: this.options.edge,
       ice_restart_enabled: this.options.enableIceRestart,
       platform: rtc.getMediaEngine(),
       sdk_version: C.RELEASE_VERSION,
-      selected_region: this.options.region,
+      selected_region: this.options.edge
+        ? edgeToRegion[this.options.edge as Edge]
+        : this.options.region,
     };
 
     function setIfDefined(propertyName: string, value: string | undefined) {
@@ -1456,7 +1467,11 @@ namespace Device {
     dscp?: boolean;
 
     /**
-     * The edge to connect to.
+     * The edge value corresponds to the geographic location that the client
+     * will use to connect to Twilio infrastructure. The default value is
+     * "roaming" which automatically selects an edge based on the latency of the
+     * client relative to available edges. You may not specify both `edge` and
+     * `region` in the Device options.
      */
     edge?: string;
 
@@ -1499,7 +1514,9 @@ namespace Device {
      *
      * @deprecated
      *
-     * CLIENT-7519 Deprecated in favor of the `edge` option parameter.
+     * CLIENT-7519 This parameter is deprecated in favor of the `edge`
+     * parameter. You may not specify both `edge` and `region` in the Device
+     * options.
      */
     region?: string;
 
