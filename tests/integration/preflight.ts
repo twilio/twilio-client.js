@@ -37,7 +37,7 @@ describe('Preflight Test', function() {
   const setupDevices = () => {
     receiverIdentity = 'id1-' + Date.now();
     callerIdentity = 'id2-' + Date.now();
-    
+
     const receiverToken = generateAccessToken(receiverIdentity);
     callerToken = generateAccessToken(callerIdentity);
     receiverDevice = new Device();
@@ -119,7 +119,7 @@ describe('Preflight Test', function() {
     });
   });
 
-  describe('when using non-default options', () => {
+  describe('when using non-default codec options', () => {
     before(async () => {
       await setupDevices();
       receiverDevice.on('incoming', (conn: Connection) => {
@@ -140,8 +140,52 @@ describe('Preflight Test', function() {
       destroyReceiver();
     });
 
-    it('should use codePreferences passed in', () => {
+    it('should use codecPreferences passed in', () => {
       assert.deepEqual(callerDevice['options'].codecPreferences, [Connection.Codec.PCMU]);
+    });
+  });
+
+  describe('when using non-default region options', () => {
+    [
+      ['gll', 'us1'],
+      ['us1', 'us1'],
+      ['ie1', 'ie1'],
+    ].forEach(([selectedRegion, region]) => {
+      describe(selectedRegion, () => {
+        let report: PreflightTest.Report | undefined;
+
+        before(async () => {
+          await setupDevices();
+          receiverDevice.on('incoming', (conn: Connection) => {
+            conn.accept();
+          });
+          preflight = Device.testPreflight(callerToken, {
+            region: selectedRegion,
+          });
+          const waitForReport: Promise<PreflightTest.Report> =
+            new Promise(resolve => {
+              preflight.on(PreflightTest.Events.Completed, resolve);
+            });
+          callerDevice = preflight['_device'];
+
+          (callerDevice as any).connectOverride = callerDevice.connect;
+          callerDevice.connect = () => {
+            return (callerDevice as any).connectOverride({ To: receiverIdentity });
+          };
+
+          setTimeout(() => receiverDevice.disconnectAll(), 5000);
+          report = await waitForReport;
+        });
+
+        after(() => {
+          destroyReceiver();
+        });
+
+        it('should use region passed in', () => {
+          assert.equal(report?.selectedRegion, selectedRegion);
+          assert.equal(report?.region, region);
+        });
+      });
     });
   });
 
@@ -205,21 +249,21 @@ describe('Preflight Test', function() {
           });
           preflight = Device.testPreflight(callerToken);
           callerDevice = preflight['_device'];
-          
+
           (callerDevice as any).connectOverride = callerDevice.connect;
           callerDevice.connect = () => {
             return (callerDevice as any).connectOverride({ To: receiverIdentity });
           };
         });
-    
+
         after(() => {
           destroyReceiver();
         });
-    
+
         it('should emit connected event', () => {
           return waitFor(expectEvent('connected', preflight), EVENT_TIMEOUT);
         });
-    
+
         it('should emit failed event on fatal error', () => {
           setTimeout(() => {
             callerDevice.emit('error', error);
@@ -228,7 +272,7 @@ describe('Preflight Test', function() {
             assert.equal(emittedError, error);
           }), EVENT_TIMEOUT);
         });
-    
+
         it('should populate call duration correctly', () => {
           const delta = preflight.endTime! - preflight.startTime;
           assert(delta >= FAIL_DELAY && delta <= FAIL_DELAY + DURATION_PADDING);

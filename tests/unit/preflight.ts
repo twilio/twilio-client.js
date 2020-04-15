@@ -90,7 +90,18 @@ describe('PreflightTest', () => {
       const preflight = new PreflightTest('foo', options);
       sinon.assert.calledWith(deviceContext.setup, 'foo', {
         codecPreferences: options.codecPreferences,
-        debug: false
+        debug: false,
+        region: 'gll',
+      });
+    });
+
+    it('should pass region to device', () => {
+      options.region = 'gll';
+      const preflight = new PreflightTest('foo', options);
+      sinon.assert.calledWith(deviceContext.setup, 'foo', {
+        codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
+        debug: false,
+        region: options.region,
       });
     });
   });

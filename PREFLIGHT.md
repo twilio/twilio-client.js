@@ -33,7 +33,7 @@ Raised when `PreflightTest.status` has transitioned to `completed`. During this 
   "callSid": "CAa6a7a187a9cba2714d6fdccf472cc7b1",
 
   /**
-   * Network related time measurements which includes millisecond timestamps 
+   * Network related time measurements which includes millisecond timestamps
    * and duration for each type of connection.
    */
   "networkTiming": {
@@ -124,6 +124,16 @@ Raised when `PreflightTest.status` has transitioned to `completed`. During this 
    * https://www.twilio.com/docs/voice/client/javascript/connection#sample
    */
   "samples": [...],
+
+  /**
+   * The region passed to the `Twilio.Device`.
+   */
+  "selectedRegion": "foobar",
+
+  /**
+   * The region that the `Twilio.Device` actually connected to.
+   */
+  "region": "biffbazz",
 
   /**
    * Warnings detected during the test.
