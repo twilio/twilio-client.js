@@ -477,7 +477,10 @@ export namespace PreflightTest {
     debug?: boolean;
 
     /**
-     * The region to connect the test call through.
+     * Specifies which Twilio Data Center to use when initiating the test call.
+     * Please see this
+     * [page](https://www.twilio.com/docs/voice/client/regions#twilio-js-regions)
+     * for the list of available regions.
      */
     region?: string;
   }
@@ -552,8 +555,7 @@ export namespace PreflightTest {
     networkTiming: NetworkTiming;
 
     /**
-     * The region that we end up connecting to in the signaling stack.
-     * Parsed from the `connected` event that occurs upon connection.
+     * The region that the test call was connected to.
      */
     region?: string;
 
@@ -563,7 +565,7 @@ export namespace PreflightTest {
     samples: RTCSample[];
 
     /**
-     * The region provided to the {@link Device} created for the test call.
+     * The region passed to `Device.preflightTest`.
      */
     selectedRegion?: string;
 

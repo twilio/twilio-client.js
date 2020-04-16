@@ -19,6 +19,7 @@ The `options` parameter is a JavaScript object containing configuration settings
 |:---------|:--------|:------------|
 | `codecPreferences` | `['pcmu', 'opus']` | An ordered list of preferred codecs. |
 | `debug` | `false` | Can be `true` or `false`. Set this property to true to enable debug logging in your browser console. |
+| `region` | `gll` | Specifies which Twilio Data Center to use when initiating the test call. Please see this [page](https://www.twilio.com/docs/voice/client/regions#twilio-js-regions) for the list of available regions. |
 
 Events
 ------
@@ -126,14 +127,14 @@ Raised when `PreflightTest.status` has transitioned to `completed`. During this 
   "samples": [...],
 
   /**
-   * The region passed to the `Twilio.Device`.
+   * The region passed to `Device.preflightTest`.
    */
-  "selectedRegion": "foobar",
+  "selectedRegion": "gll",
 
   /**
-   * The region that the `Twilio.Device` actually connected to.
+   * The region that the test call was connected to.
    */
-  "region": "biffbazz",
+  "region": "us1",
 
   /**
    * Warnings detected during the test.
