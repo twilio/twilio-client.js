@@ -127,7 +127,7 @@ Raised when `PreflightTest.status` has transitioned to `completed`. During this 
   "samples": [...],
 
   /**
-   * The region passed to `Device.preflightTest`.
+   * The region passed to `Device.testPreflight`.
    */
   "selectedRegion": "gll",
 

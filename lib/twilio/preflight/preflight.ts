@@ -565,7 +565,7 @@ export namespace PreflightTest {
     samples: RTCSample[];
 
     /**
-     * The region passed to `Device.preflightTest`.
+     * The region passed to `Device.testPreflight`.
      */
     selectedRegion?: string;
 
