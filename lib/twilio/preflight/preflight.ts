@@ -78,6 +78,11 @@ export class PreflightTest extends EventEmitter {
   private _device: Device;
 
   /**
+   * The edge that the `Twilio.Device` connected to.
+   */
+  private _edge: string | undefined;
+
+  /**
    * End of test timestamp
    */
   private _endTime: number | undefined;
@@ -98,13 +103,8 @@ export class PreflightTest extends EventEmitter {
   private _options: PreflightTest.Options = {
     codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
     debug: false,
-    region: 'gll',
+    edge: 'roaming',
   };
-
-  /**
-   * The region that the `Twilio.Device` connected to.
-   */
-  private _region: string | undefined;
 
   /**
    * The report for this test.
@@ -150,7 +150,7 @@ export class PreflightTest extends EventEmitter {
       this._device = new (options.deviceFactory || Device)(token, {
         codecPreferences: this._options.codecPreferences,
         debug: this._options.debug,
-        region: this._options.region,
+        edge: this._options.edge,
       });
     } catch (error) {
       // We want to return before failing so the consumer can capture the event
@@ -192,10 +192,10 @@ export class PreflightTest extends EventEmitter {
     }
     return {
       callSid: this._callSid,
+      edge: this._edge,
       networkTiming: this._networkTiming,
-      region: this._region,
       samples: this._samples,
-      selectedRegion: this._options.region,
+      selectedEdge: this._options.edge,
       stats: this._getRTCStats(),
       testTiming,
       totals: this._getRTCSampleTotals(),
@@ -261,7 +261,7 @@ export class PreflightTest extends EventEmitter {
   private _onDeviceReady(): void {
     this._connection = this._device.connect();
     this._setupConnectionHandlers(this._connection);
-    this._region = this._device.region();
+    this._edge = this._device.edge();
 
     this._device.once('disconnect', () => {
       this._device.once('offline', () => this._onCompleted());
@@ -479,10 +479,10 @@ export namespace PreflightTest {
     /**
      * Specifies which Twilio Data Center to use when initiating the test call.
      * Please see this
-     * [page](https://www.twilio.com/docs/voice/client/regions#twilio-js-regions)
-     * for the list of available regions.
+     * [page](TODO)
+     * for the list of available edges.
      */
-    region?: string;
+    edge?: string;
   }
 
   /**
@@ -550,14 +550,14 @@ export namespace PreflightTest {
     callSid: string | undefined;
 
     /**
+     * The edge that the test call was connected to.
+     */
+    edge?: string;
+
+    /**
      * Network related time measurements.
      */
     networkTiming: NetworkTiming;
-
-    /**
-     * The region that the test call was connected to.
-     */
-    region?: string;
 
     /**
      * WebRTC samples collected during the test.
@@ -565,9 +565,9 @@ export namespace PreflightTest {
     samples: RTCSample[];
 
     /**
-     * The region passed to `Device.testPreflight`.
+     * The edge passed to `Device.testPreflight`.
      */
-    selectedRegion?: string;
+    selectedEdge?: string;
 
     /**
      * RTC related stats captured during the test.

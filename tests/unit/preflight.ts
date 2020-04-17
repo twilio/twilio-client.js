@@ -70,6 +70,7 @@ describe('PreflightTest', () => {
       connect: sinon.stub().returns(connection),
       destroy: sinon.stub(),
       region: sinon.stub().returns('foobar-region'),
+      edge: sinon.stub().returns('foobar-edge'),
     };
     deviceFactory = getDeviceFactory(deviceContext)
 
@@ -91,17 +92,17 @@ describe('PreflightTest', () => {
       sinon.assert.calledWith(deviceContext.setup, 'foo', {
         codecPreferences: options.codecPreferences,
         debug: false,
-        region: 'gll',
+        edge: 'roaming',
       });
     });
 
-    it('should pass region to device', () => {
-      options.region = 'gll';
+    it('should pass edge to device', () => {
+      options.edge = 'ashburn';
       const preflight = new PreflightTest('foo', options);
       sinon.assert.calledWith(deviceContext.setup, 'foo', {
         codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
         debug: false,
-        region: options.region,
+        edge: options.edge,
       });
     });
   });
@@ -237,6 +238,7 @@ describe('PreflightTest', () => {
         // This is derived from testSamples
         const expected = {
           callSid: CALL_SID,
+          edge: 'foobar-edge',
           networkTiming: {
             dtls: {
               duration: 1000,
@@ -254,9 +256,8 @@ describe('PreflightTest', () => {
               start: 0
             }
           },
-          region: 'foobar-region',
           samples: testSamples,
-          selectedRegion: 'gll',
+          selectedEdge: 'roaming',
           stats: {
             jitter: {
               average: 8,
