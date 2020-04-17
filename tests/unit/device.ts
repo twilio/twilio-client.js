@@ -1,8 +1,12 @@
 import { levels as LogLevels } from 'loglevel';
 import Connection from '../../lib/twilio/connection';
 import Device from '../../lib/twilio/device';
-import { regionShortcodes } from '../../lib/twilio/regions';
 import { GeneralErrors } from '../../lib/twilio/errors';
+import {
+  Region,
+  regionShortcodes,
+  regionToEdge,
+} from '../../lib/twilio/regions';
 
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
@@ -421,7 +425,40 @@ describe('Device', function() {
       });
     });
 
+    describe('.edge()', () => {
+      it(`should return 'offline' if not connected`, () => {
+        assert.equal(device.edge(), 'offline');
+      });
+
+      // these unit tests will need to be changed for Phase 2 Regional
+      context('when the region is mapped to a known edge', () => {
+        Object.entries(regionShortcodes).forEach(([fullName, region]: [string, string]) => {
+          const preferredEdge = regionToEdge[region as Region];
+          it(`should return ${preferredEdge} for ${region}`, () => {
+            pstream.emit('connected', { region: fullName });
+            assert.equal(device.edge(), preferredEdge);
+          });
+        });
+      });
+
+      context('when the region is not mapped to a known edge', () => {
+        ['FOO_BAR', ''].forEach((name: string) => {
+          it(`should return the region string directly if it's '${name}'`, () => {
+            pstream.emit('connected', { region: name });
+            assert.equal(device.region(), name);
+          });
+        });
+      });
+    });
+
     describe('.region()', () => {
+      it(`should log.warn a deprecation warning`, () => {
+        const spy = sinon.spy();
+        device['_log'].warn = spy;
+        device.region();
+        assert(spy.calledOnce);
+      });
+
       it(`should return 'offline' if not connected`, () => {
         assert.equal(device.region(), 'offline');
       });

@@ -19,11 +19,10 @@ import {
 import Log from './log';
 import { PStream } from './pstream';
 import {
-  defaultEdge,
-  Edge,
-  edgeToRegion,
   getChunderURI,
   getRegionShortcode,
+  Region,
+  regionToEdge,
 } from './regions';
 import { Exception, queryToJson } from './util';
 
@@ -275,6 +274,11 @@ class Device extends EventEmitter {
   private _connectionSinkIds: string[] = ['default'];
 
   /**
+   * The edge the {@link Device} is connected to.
+   */
+  private _edge: string | null = null;
+
+  /**
    * Whether each sound is enabled.
    */
   private _enabledSounds: Record<Device.ToggleableSound, boolean> = {
@@ -493,6 +497,15 @@ class Device extends EventEmitter {
   }
 
   /**
+   * Get the {@link Edge} string the {@link Device} is currently connected to,
+   * or 'offline' if not connected.
+   */
+  edge(): string {
+    this._throwUnlessSetup('edge');
+    return typeof this._edge === 'string' ? this._edge : 'offline';
+  }
+
+  /**
    * Set a handler for the error event.
    * @deprecated Use {@link Device.on}.
    * @param handler
@@ -588,10 +601,20 @@ class Device extends EventEmitter {
       throw new InvalidArgumentError('Token is required for Device.setup()');
     }
 
+    Object.assign(this.options, options);
+
+    this._log.setDefaultLevel(
+      this.options.debug
+        ? Log.levels.DEBUG
+        : this.options.warnings
+          ? Log.levels.WARN
+          : Log.levels.SILENT,
+    );
+
     const regionURI = getChunderURI(
-      options.edge || this.options.edge,
-      options.region || this.options.region,
-      this._log.warn,
+      this.options.edge,
+      this.options.region,
+      this._log.warn.bind(this._log),
     );
 
     if (typeof Device._isUnifiedPlanDefault === 'undefined') {
@@ -627,15 +650,9 @@ class Device extends EventEmitter {
 
     this.isInitialized = true;
 
-    Object.assign(this.options, options);
-
     if (this.options.dscp) {
       (this.options.rtcConstraints as any).optional = [{ googDscp: true }];
     }
-
-    this._log.setDefaultLevel(this.options.debug ? Log.levels.DEBUG
-      : this.options.warnings ? Log.levels.WARN
-      : Log.levels.SILENT);
 
     const getOrSetSound = (key: Device.ToggleableSound, value?: boolean) => {
       if (!hasBeenWarnedSounds) {
@@ -845,9 +862,6 @@ class Device extends EventEmitter {
       ice_restart_enabled: this.options.enableIceRestart,
       platform: rtc.getMediaEngine(),
       sdk_version: C.RELEASE_VERSION,
-      selected_region: this.options.edge
-        ? edgeToRegion[this.options.edge as Edge]
-        : this.options.region,
     };
 
     function setIfDefined(propertyName: string, value: string | undefined) {
@@ -862,10 +876,22 @@ class Device extends EventEmitter {
       payload.direction = connection.direction;
     }
 
-    const stream: IPStream = this.stream;
-    if (stream) {
-      setIfDefined('gateway', stream.gateway);
-      setIfDefined('region', stream.region);
+    const gateway = this.stream && this.stream.gateway;
+    setIfDefined('gateway', gateway);
+
+    const region = this.stream && this.stream.region;
+
+    if (this.options.region) {
+      payload.selected_region = this.options.region;
+      setIfDefined('region', region);
+    }
+
+    if (this.options.edge) {
+      payload.selected_edge = this.options.edge;
+      setIfDefined(
+        'edge',
+        regionToEdge[region as Region] || region,
+      );
     }
 
     return payload;
@@ -1027,7 +1053,9 @@ class Device extends EventEmitter {
    * Called when a 'connected' event is received from the signaling stream.
    */
   private _onSignalingConnected = (payload: Record<string, any>) => {
-    this._region = getRegionShortcode(payload.region) || payload.region;
+    const region = getRegionShortcode(payload.region);
+    this._edge = regionToEdge[region as Region] || payload.region;
+    this._region = region || payload.region;
     this._sendPresence();
   }
 
@@ -1103,6 +1131,7 @@ class Device extends EventEmitter {
   private _onSignalingOffline = () => {
     this._log.info('Stream is offline');
     this._status = Device.Status.Offline;
+    this._edge = null;
     this._region = null;
     this.emit('offline', this);
   }
