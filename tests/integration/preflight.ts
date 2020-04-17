@@ -145,13 +145,13 @@ describe('Preflight Test', function() {
     });
   });
 
-  describe('when using non-default region options', () => {
+  describe('when using non-default edge options', () => {
     [
-      ['gll', 'us1'],
-      ['us1', 'us1'],
-      ['ie1', 'ie1'],
-    ].forEach(([selectedRegion, region]) => {
-      describe(selectedRegion, () => {
+      ['roaming', 'ashburn'],
+      ['ashburn', 'ashburn'],
+      ['dublin', 'dublin'],
+    ].forEach(([selectedEdge, edge]) => {
+      describe(selectedEdge, () => {
         let report: PreflightTest.Report | undefined;
 
         before(async () => {
@@ -160,7 +160,7 @@ describe('Preflight Test', function() {
             conn.accept();
           });
           preflight = Device.testPreflight(callerToken, {
-            region: selectedRegion,
+            edge: selectedEdge,
           });
           const waitForReport: Promise<PreflightTest.Report> =
             new Promise(resolve => {
@@ -182,8 +182,8 @@ describe('Preflight Test', function() {
         });
 
         it('should use region passed in', () => {
-          assert.equal(report?.selectedRegion, selectedRegion);
-          assert.equal(report?.region, region);
+          assert.equal(report?.selectedEdge, selectedEdge);
+          assert.equal(report?.edge, edge);
         });
       });
     });
