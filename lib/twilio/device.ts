@@ -868,7 +868,7 @@ class Device extends EventEmitter {
       sdk_version: C.RELEASE_VERSION,
     };
 
-    function setIfDefined(propertyName: string, value: string | undefined) {
+    function setIfDefined(propertyName: string, value: string | undefined | null) {
       if (value) { payload[propertyName] = value; }
     }
 
@@ -880,17 +880,11 @@ class Device extends EventEmitter {
       payload.direction = connection.direction;
     }
 
-    const gateway = this.stream && this.stream.gateway;
-    setIfDefined('gateway', gateway);
-
-    const region = this.stream && this.stream.region;
+    setIfDefined('gateway', this.stream && this.stream.gateway);
     setIfDefined('selected_region', this.options.region);
-    setIfDefined('region', region);
+    setIfDefined('region', this.stream && this.stream.region);
     setIfDefined('selected_edge', this.options.edge);
-    setIfDefined(
-      'edge',
-      regionToEdge[region as Region] || region,
-    );
+    setIfDefined('edge', this._edge || this._region);
 
     return payload;
   }
