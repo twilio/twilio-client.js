@@ -425,9 +425,9 @@ describe('Device', function() {
       });
     });
 
-    describe('.edge()', () => {
+    describe('.edge', () => {
       it(`should return 'offline' if not connected`, () => {
-        assert.equal(device.edge(), 'offline');
+        assert.equal(device.edge, 'offline');
       });
 
       // these unit tests will need to be changed for Phase 2 Regional
@@ -436,7 +436,7 @@ describe('Device', function() {
           const preferredEdge = regionToEdge[region as Region];
           it(`should return ${preferredEdge} for ${region}`, () => {
             pstream.emit('connected', { region: fullName });
-            assert.equal(device.edge(), preferredEdge);
+            assert.equal(device.edge, preferredEdge);
           });
         });
       });

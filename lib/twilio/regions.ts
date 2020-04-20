@@ -222,31 +222,6 @@ export const defaultEdge: Edge = Edge.Roaming;
 export const defaultChunderUri = 'chunderw-vpc-gll.twilio.com';
 
 /**
- * Get the URI associated with the passed shortcode.
- *
- * @private
- * @param region - The region shortcode. Defaults to gll.
- * @param [onDeprecated] - A callback containing the new region to be called when the passed region
- *   is deprecated.
- */
-export function getRegionURI(region?: string, onDeprecated?: (newRegion: string) => void): string {
-  if (region === undefined || region === defaultRegion) {
-    return `chunderw-vpc-gll.twilio.com`;
-  }
-
-  const newRegion = deprecatedRegions[region as DeprecatedRegion];
-  if (newRegion) {
-    region = newRegion;
-    if (onDeprecated) {
-      // Don't let this callback affect script execution.
-      setTimeout(() => onDeprecated(newRegion));
-    }
-  }
-
-  return `chunderw-vpc-gll-${region}.twilio.com`;
-}
-
-/**
  * Get the URI associated with the passed region or edge. If both are passed,
  * then we want to fail `Device` setup, so we throw an error.
  * As of CLIENT-7519, Regions are deprecated in favor of edges as part of

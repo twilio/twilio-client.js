@@ -500,7 +500,7 @@ class Device extends EventEmitter {
    * Get the {@link Edge} string the {@link Device} is currently connected to,
    * or 'offline' if not connected.
    */
-  edge(): string {
+  get edge(): string {
     this._throwUnlessSetup('edge');
     return typeof this._edge === 'string' ? this._edge : 'offline';
   }
@@ -860,7 +860,6 @@ class Device extends EventEmitter {
       aggressive_nomination: this.options.forceAggressiveIceNomination,
       browser_extension: this._isBrowserExtension,
       dscp: !!this.options.dscp,
-      edge: this.options.edge,
       ice_restart_enabled: this.options.enableIceRestart,
       platform: rtc.getMediaEngine(),
       sdk_version: C.RELEASE_VERSION,
@@ -882,19 +881,13 @@ class Device extends EventEmitter {
     setIfDefined('gateway', gateway);
 
     const region = this.stream && this.stream.region;
-
-    if (this.options.region) {
-      payload.selected_region = this.options.region;
-      setIfDefined('region', region);
-    }
-
-    if (this.options.edge) {
-      payload.selected_edge = this.options.edge;
-      setIfDefined(
-        'edge',
-        regionToEdge[region as Region] || region,
-      );
-    }
+    setIfDefined('selected_region', this.options.region);
+    setIfDefined('region', region);
+    setIfDefined('selected_edge', this.options.edge);
+    setIfDefined(
+      'edge',
+      regionToEdge[region as Region] || region,
+    );
 
     return payload;
   }
