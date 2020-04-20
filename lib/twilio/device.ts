@@ -833,6 +833,10 @@ class Device extends EventEmitter {
       dscp: !!this.options.dscp,
       ice_restart_enabled: this.options.enableIceRestart,
       platform: rtc.getMediaEngine(),
+      publisher_metadata: {
+        app_name: this.options.appName,
+        app_version: this.options.appVersion,
+      },
       sdk_version: C.RELEASE_VERSION,
       selected_region: this.options.region,
     };
@@ -1417,6 +1421,20 @@ namespace Device {
      * received while already on an active call. Default behavior is false.
      */
     allowIncomingWhileBusy?: boolean;
+
+    /**
+     * A name for the application that is instantiating the {@link Device}. This is used to improve logging
+     * in Insights by associating Insights data with a specific application, particularly in the case where
+     * one account may be connected to by multiple applications.
+     */
+    appName?: string;
+
+    /**
+     * A version for the application that is instantiating the {@link Device}. This is used to improve logging
+     * in Insights by associating Insights data with a specific version of the given application. This can help
+     * track down when application-level bugs were introduced.
+     */
+    appVersion?: string;
 
     /**
      * Audio Constraints to pass to getUserMedia when making or accepting a Call.
