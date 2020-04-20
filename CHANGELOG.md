@@ -5,7 +5,7 @@ New Features
 ---------
 
 * Deprecated the `Twilio.Device.Options.region` option for setting up a `Twilio.Device` as part of Phase 1 Regional Twilio.
-Instead of using `Twilio.Device.Options.region`, please use `Twilio.Device.Options.edge`. In a future breaking release, `Twilio.Device.Options.region` will be for a different option.
+Instead of using `Twilio.Device.Options.region`, please use `Twilio.Device.Options.edge`. In the next breaking release, `Twilio.Device.Options.region` will no longer work as intended.
 
 Possible edges are detailed in `lib/regions.ts:Edge`.
 

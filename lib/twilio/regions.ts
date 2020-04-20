@@ -259,8 +259,8 @@ export function getRegionURI(region?: string, onDeprecated?: (newRegion: string)
  *   warned when the passed parameters are deprecated.
  */
 export function getChunderURI(
-  edge: any,
-  region: any,
+  edge: string | undefined,
+  region: string | undefined,
   onDeprecated?: (message: string) => void,
 ): string {
   if (

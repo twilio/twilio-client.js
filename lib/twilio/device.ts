@@ -551,7 +551,9 @@ class Device extends EventEmitter {
       'At the moment, it represents the region that the signaling stack ' +
       'connects to. ' +
       'In a future breaking release, this value will change meaning as part ' +
-      'of Twilio Regional.',
+      'of Twilio Regional.' +
+      '`Twilio.Device.edge` can alternatively be used to get the `edge` that ' +
+      'the device is connected to.',
     );
     this._throwUnlessSetup('region');
     return typeof this._region === 'string' ? this._region : 'offline';
