@@ -500,9 +500,12 @@ class Device extends EventEmitter {
    * Get the {@link Edge} string the {@link Device} is currently connected to,
    * or 'offline' if not connected.
    */
-  get edge(): string {
-    this._throwUnlessSetup('edge');
-    return typeof this._edge === 'string' ? this._edge : 'offline';
+  get edge(): string | null {
+    return this.isInitialized
+      ? typeof this._edge === 'string'
+        ? this._edge
+        : 'offline'
+      : null;
   }
 
   /**
