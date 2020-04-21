@@ -7,12 +7,19 @@ import WSTransport, { WSTransportState } from '../../lib/twilio/wstransport';
 describe('WSTransport', () => {
   const wsManager = new WebSocketManager();
   const WebSocket = wsManager.MockWebSocket;
+
+  const URIS = [
+    'wss://foo.com/signal',
+    'wss://bar.com/signal',
+    'wss://baz.com/signal'
+  ];
+
   let socket: any;
   let transport: WSTransport;
 
   beforeEach(() => {
     wsManager.reset();
-    transport = new WSTransport('wss://foo.bar/signal', { WebSocket });
+    transport = new WSTransport(URIS, { WebSocket });
   });
 
   describe('constructor', () => {
@@ -95,14 +102,14 @@ describe('WSTransport', () => {
         const BadWebSocket = () => { throw new Error('Die'); }
 
         it('should close the WSTransport', () => {
-          transport = new WSTransport('wss://foo.bar/signal', { WebSocket: BadWebSocket });
+          transport = new WSTransport(['wss://foo.bar/signal'], { WebSocket: BadWebSocket });
           transport.on('error', () => { });
           transport.open();
           assert.equal(transport.state, WSTransportState.Closed);
         });
 
         it('should call onerror', (done) => {
-          transport = new WSTransport('wss://foo.bar/signal', { WebSocket: BadWebSocket });
+          transport = new WSTransport(['wss://foo.bar/signal'], { WebSocket: BadWebSocket });
           transport.on('error', () => done());
           transport.open();
         });
@@ -364,6 +371,52 @@ describe('WSTransport', () => {
       assert.equal((transport as any).emit.args[0][1].code, 31005);
       assert.equal((transport as any).emit.args[1][0], 'close');
     });
+
+    it('should emit an error if the socket was closed abnormally (with code 1015)', async () => {
+      transport.emit = sinon.spy();
+      socket.dispatchEvent({ type: 'close', code: 1015 });
+      assert.equal((transport as any).emit.callCount, 2);
+      assert.equal((transport as any).emit.args[0][0], 'error');
+      assert.equal((transport as any).emit.args[0][1].code, 31005);
+      assert.equal((transport as any).emit.args[1][0], 'close');
+    });
+
+    it('should not move uri index if error is not fallback-able', async () => {
+      transport.emit = sinon.spy();
+      assert.equal(transport.uri, URIS[0]);
+      socket.dispatchEvent({ type: 'close', code: 123 });
+      assert.equal(transport.uri, URIS[0]);
+    });
+
+    it('should move uri to next index if error is 1006', async () => {
+      transport.emit = sinon.spy();
+      assert.equal(transport.uri, URIS[0]);
+      socket.dispatchEvent({ type: 'close', code: 1006 });
+      assert.equal(transport.uri, URIS[1]);
+    });
+
+    it('should move uri to next index if error is 1015', async () => {
+      transport.emit = sinon.spy();
+      assert.equal(transport.uri, URIS[0]);
+      socket.dispatchEvent({ type: 'close', code: 1015 });
+      assert.equal(transport.uri, URIS[1]);
+    });
+
+    it('should loop through all uris', async () => {
+      transport.emit = sinon.spy();
+      assert.equal(transport.uri, URIS[0]);
+      transport['_uriIndex'] = 1;
+      socket.dispatchEvent({ type: 'close', code: 1015 });
+      assert.equal(transport.uri, URIS[2]);
+    });
+
+    it('should loop back to the first element', async () => {
+      transport.emit = sinon.spy();
+      assert.equal(transport.uri, URIS[0]);
+      transport['_uriIndex'] = 2;
+      socket.dispatchEvent({ type: 'close', code: 1015 });
+      assert.equal(transport.uri, URIS[0]);
+    });
   });
 
   describe('after backoff', () => {
@@ -389,4 +442,42 @@ describe('WSTransport', () => {
       assert.equal((transport as any)._connect.callCount, 1);
     });
   });
+
+  describe('on timed out', () => {
+    let clock: any;
+
+    beforeEach(() => {
+      clock = sinon.useFakeTimers(Date.now());
+      wsManager.reset();
+      transport = new WSTransport(URIS, { WebSocket });
+    });
+
+    afterEach(() => {
+      clock.restore();
+    });
+
+    it('should not move uri index before timing out', () => {
+      transport.open();
+      clock.tick(3000);
+      assert.equal(transport.uri, URIS[0]);
+    });
+
+    it('should move uri index after timing out', () => {
+      transport.open();
+      clock.tick(5000);
+      assert.equal(transport.uri, URIS[1]);
+    });
+
+    it('should use connectTimeoutMs parameter', () => {
+      wsManager.reset();
+      transport = new WSTransport(URIS, { WebSocket, connectTimeoutMs: 20000 });
+      transport.open();
+      clock.tick(3000);
+      assert.equal(transport.uri, URIS[0]);
+      clock.tick(2000);
+      assert.equal(transport.uri, URIS[0]);
+      clock.tick(15000);
+      assert.equal(transport.uri, URIS[1]);
+    });
+  })
 });

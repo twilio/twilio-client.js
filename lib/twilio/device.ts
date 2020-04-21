@@ -18,7 +18,7 @@ import {
 } from './errors';
 import Log from './log';
 import {
-  getChunderURI,
+  getChunderURIs,
   getRegionShortcode,
   Region,
   regionToEdge,
@@ -261,6 +261,11 @@ class Device extends EventEmitter {
    * The currently active {@link Connection}, if there is one.
    */
   private _activeConnection: Connection | null = null;
+
+  /**
+   * The list of chunder URIs that will be passed to PStream
+   */
+  private _chunderURIs: string[] = [];
 
   /**
    * An audio input MediaStream to pass to new {@link Connection} instances.
@@ -616,11 +621,13 @@ class Device extends EventEmitter {
           : Log.levels.SILENT,
     );
 
-    const regionURI = getChunderURI(
-      this.options.edge,
-      this.options.region,
-      this._log.warn.bind(this._log),
-    );
+    this._chunderURIs = this.options.chunderw
+      ? [`wss://${this.options.chunderw}/signal`]
+      : getChunderURIs(
+          this.options.edge,
+          this.options.region,
+          this._log.warn.bind(this._log),
+        ).map((uri: string) => `wss://${uri}/signal`);
 
     if (typeof Device._isUnifiedPlanDefault === 'undefined') {
       Device._isUnifiedPlanDefault = typeof window !== 'undefined'
@@ -677,8 +684,6 @@ class Device extends EventEmitter {
         .forEach((eventName: Device.SoundName) => {
       this.sounds[eventName] = getOrSetSound.bind(null, eventName);
     });
-
-    this.options.chunderw = `wss://${this.options.chunderw || regionURI}/signal`;
 
     const defaultSounds: Record<string, ISoundDefinition> = {
       disconnect: { filename: 'disconnect', maxDuration: 3000 },
@@ -887,8 +892,6 @@ class Device extends EventEmitter {
     setIfDefined('gateway', this.stream && this.stream.gateway);
     setIfDefined('selected_region', this.options.region);
     setIfDefined('region', this.stream && this.stream.region);
-    setIfDefined('selected_edge', this.options.edge);
-    setIfDefined('edge', this._edge || this._region);
 
     return payload;
   }
@@ -974,6 +977,13 @@ class Device extends EventEmitter {
         this.soundcache.get(Device.SoundName.Outgoing).play();
       }
 
+      const data: any = { edge: this._edge || this._region };
+      const selectedEdge = this.options.edge;
+      if (selectedEdge) {
+        data['selected_edge'] = Array.isArray(selectedEdge) ? selectedEdge : [selectedEdge];
+      }
+
+      this._publisher.info('settings', 'edge', data, connection);
       this._asyncEmit('connect', connection);
     });
 
@@ -1196,7 +1206,7 @@ class Device extends EventEmitter {
    */
   private _setupStream(token: string) {
     this._log.info('Setting up VSP');
-    this.stream = this.options.pStreamFactory(token, this.options.chunderw, {
+    this.stream = this.options.pStreamFactory(token, this._chunderURIs, {
       backoffMaxMs: this.options.backoffMaxMs,
     });
 
@@ -1512,7 +1522,7 @@ namespace Device {
      * client relative to available edges. You may not specify both `edge` and
      * `region` in the Device options.
      */
-    edge?: string;
+    edge?: string[] | string;
 
     /**
      * Whether to automatically restart ICE when media connection fails
