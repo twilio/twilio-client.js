@@ -232,18 +232,11 @@ function createChunderRegionUri(region: string): string {
 }
 
 /**
- * The default chunder URI to connect to, should map to edge `roaming`.
- * @constant
- * @private
- */
-export const defaultChunderEdgeURI: string = 'voice.roaming.twilio.com';
-
-/**
  * String template for an edge chunder URI
  * @param edge - The edge.
  */
 function createChunderEdgeUri(edge: string): string {
-  return `voice.${edge}.twilio.com`;
+  return `voice-js.${edge}.twilio.com`;
 }
 
 /**

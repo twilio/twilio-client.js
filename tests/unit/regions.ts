@@ -170,7 +170,7 @@ describe('regions', () => {
 
         it('should transform the uri properly', () => {
           const uri = getChunderURI('foo', undefined, onDeprecated);
-          assert.equal(uri, 'voice.foo.twilio.com');
+          assert.equal(uri, 'voice-js.foo.twilio.com');
         });
       });
 

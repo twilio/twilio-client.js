@@ -5,10 +5,12 @@ New Features
 ---------
 
 * Deprecated the `Twilio.Device.Options.region` option for setting up a `Twilio.Device` as part of Phase 1 Regional Twilio.
-Instead of using `Twilio.Device.Options.region`, please use `Twilio.Device.Options.edge`. In the next breaking release, `Twilio.Device.Options.region` will no longer work as intended.
-Please see documentation TODO mhuynh.
+  Instead of using `Twilio.Device.Options.region`, please use `Twilio.Device.Options.edge`.
+  In the next breaking release, `Twilio.Device.Options.region` will no longer work as intended.
 
-The edge that the client connected to can be read from `Twilio.Device` using the getter-function `Twilio.Device.edge`.
+  Please see documentation TODO mhuynh.
+
+  The edge that the client connected to can be read from `Twilio.Device` using the getter-function `Twilio.Device.edge`.
 
 * Added `appName` and `appVersion` fields to Device.options. Pass these strings on Device setup, and they will be passed to Insights. This can
   be used to help debug which of your applications and/or versions an issue began occurring in.
