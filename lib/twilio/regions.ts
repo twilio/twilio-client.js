@@ -6,7 +6,6 @@ import { InvalidArgumentError } from './errors';
 
 /**
  * Valid deprecated regions.
- *
  * @private
  */
 export enum DeprecatedRegion {
@@ -21,6 +20,7 @@ export enum DeprecatedRegion {
 
 /**
  * Valid edges.
+ * @private
  */
 export enum Edge {
   /**
@@ -215,11 +215,36 @@ export const defaultRegion: string = 'gll';
 export const defaultEdge: Edge = Edge.Roaming;
 
 /**
- * The default chunder URI to connect to, should map to `gll` or `roaming`.
+ * The default chunder URI to connect to, should map to region `gll`.
  * @constant
  * @private
  */
-export const defaultChunderUri = 'chunderw-vpc-gll.twilio.com';
+export const defaultChunderRegionURI: string = 'chunderw-vpc-gll.twilio.com';
+
+/**
+ * String template for a region chunder URI
+ * @param region - The region.
+ */
+function createChunderRegionUri(region: string): string {
+  return region === defaultRegion
+    ? defaultChunderRegionURI
+    : `chunderw-vpc-gll-${region}.twilio.com`;
+}
+
+/**
+ * The default chunder URI to connect to, should map to edge `roaming`.
+ * @constant
+ * @private
+ */
+export const defaultChunderEdgeURI: string = 'voice.roaming.twilio.com';
+
+/**
+ * String template for an edge chunder URI
+ * @param edge - The edge.
+ */
+function createChunderEdgeUri(edge: string): string {
+  return `voice.${edge}.twilio.com`;
+}
 
 /**
  * Get the URI associated with the passed region or edge. If both are passed,
@@ -249,7 +274,7 @@ export function getChunderURI(
 
   const deprecatedMessages: string[] = [];
 
-  let chunderRegion: string | undefined;
+  let uri: string = defaultChunderRegionURI;
 
   if (region && edge) {
     throw new InvalidArgumentError(
@@ -257,7 +282,7 @@ export function getChunderURI(
       'unsupported.',
     );
   } else if (region) {
-    chunderRegion = region;
+    let chunderRegion = region;
 
     // TODO mhuynh direct to documentation regarding Twilio regional phase 1
     deprecatedMessages.push(
@@ -279,19 +304,19 @@ export function getChunderURI(
         `"${preferredEdge}".`,
       );
     }
+
+    uri = createChunderRegionUri(chunderRegion);
   } else if (edge) {
-    chunderRegion = (Object.values(Edge) as string[]).includes(edge)
-      ? edgeToRegion[edge as Edge]
-      : edge;
+    uri = (Object.values(Edge) as string[]).includes(edge)
+      ? createChunderRegionUri(edgeToRegion[edge as Edge])
+      : createChunderEdgeUri(edge);
   }
 
   if (onDeprecated && deprecatedMessages.length) {
     setTimeout(() => onDeprecated(deprecatedMessages.join('\n')));
   }
 
-  return !chunderRegion || chunderRegion === defaultRegion
-    ? defaultChunderUri
-    : `chunderw-vpc-gll-${chunderRegion}.twilio.com`;
+  return uri;
 }
 
 /**

@@ -20,6 +20,22 @@ describe('regions', () => {
       onDeprecated = sinon.spy();
     });
 
+    describe('with invalid parameter typings', async () => {
+      [
+        [null, undefined],
+        [undefined, null],
+        [null, null],
+      ].forEach(([edge, region]) => {
+        describe(`edge "${edge}" and region "${region}"`, () => {
+          it('should throw', () => {
+            assert.throws(() => {
+              getChunderURI(edge as any, region as any);
+            });
+          });
+        });
+      });
+    });
+
     it('should work with or without the deprecation handler', async () => {
       const uri = [
         getChunderURI(undefined, undefined, onDeprecated),
@@ -154,7 +170,7 @@ describe('regions', () => {
 
         it('should transform the uri properly', () => {
           const uri = getChunderURI('foo', undefined, onDeprecated);
-          assert.equal(uri, 'chunderw-vpc-gll-foo.twilio.com');
+          assert.equal(uri, 'voice.foo.twilio.com');
         });
       });
 

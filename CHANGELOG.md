@@ -6,34 +6,6 @@ New Features
 
 * Deprecated the `Twilio.Device.Options.region` option for setting up a `Twilio.Device` as part of Phase 1 Regional Twilio.
 Instead of using `Twilio.Device.Options.region`, please use `Twilio.Device.Options.edge`. In the next breaking release, `Twilio.Device.Options.region` will no longer work as intended.
-
-Possible edges are detailed in `lib/regions.ts:Edge`.
-
-```ts
-enum Edge {
-  /**
-   * Public edges
-   */
-  Sydney = 'sydney',
-  SaoPaolo = 'sao-paolo',
-  Dublin = 'dublin',
-  Frankfurt = 'frankfurt',
-  Tokyo = 'tokyo',
-  Singapore = 'singapore',
-  Ashburn = 'ashburn',
-  Umatilla = 'umatilla',
-  Roaming = 'roaming',
-  /**
-   * Interconnect edges
-   */
-  AshburnIx = 'ashburn-ix',
-  SanJoseIx = 'san-jose-ix',
-  LondonIx = 'london-ix',
-  FrankfurtIx = 'frankfurt-ix',
-  SingaporeIx = 'singapore-ix',
-}
-```
-
 Please see documentation TODO mhuynh.
 
 Bug Fixes
