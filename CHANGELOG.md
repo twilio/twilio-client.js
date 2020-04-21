@@ -8,7 +8,7 @@ New Features
   Instead of using `Twilio.Device.Options.region`, please use `Twilio.Device.Options.edge`.
   In the next breaking release, `Twilio.Device.Options.region` will no longer work as intended.
 
-  Please see documentation TODO mhuynh.
+  Please see documentation on [edges](https://www.twilio.com/docs/voice/voip-sdk/edges).
 
   The edge that the client connected to can be read from `Twilio.Device` using the getter-function `Twilio.Device.edge`.
 

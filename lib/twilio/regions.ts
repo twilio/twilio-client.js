@@ -277,9 +277,9 @@ export function getChunderURI(
   } else if (region) {
     let chunderRegion = region;
 
-    // TODO mhuynh direct to documentation regarding Twilio regional phase 1
     deprecatedMessages.push(
-      'Regions are deprecated in favor of edges. Please see TODO.',
+      'Regions are deprecated in favor of edges. Please see this page for ' +
+      'documentation: https://www.twilio.com/docs/voice/voip-sdk/edges.',
     );
 
     const isDeprecatedRegion: boolean =

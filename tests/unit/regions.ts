@@ -109,7 +109,7 @@ describe('regions', () => {
           getChunderURI(undefined, 'foo', onDeprecated);
           await new Promise(resolve => setTimeout(() => {
             assert(onDeprecated.calledOnce);
-            assert.equal(onDeprecated.args[0][0].match(new RegExp('edge', 'g')).length, 1);
+            assert.equal(onDeprecated.args[0][0].match(new RegExp('edge', 'g')).length, 2);
             assert.equal(onDeprecated.args[0][0].match(new RegExp('please use', 'g')), null);
             resolve();
           }));
@@ -126,7 +126,7 @@ describe('regions', () => {
           getChunderURI(undefined, 'gll', onDeprecated);
           await new Promise(resolve => setTimeout(() => {
             assert(onDeprecated.calledOnce);
-            assert.equal(onDeprecated.args[0][0].match(new RegExp('edge', 'g')).length, 2);
+            assert.equal(onDeprecated.args[0][0].match(new RegExp('edge', 'g')).length, 3);
             assert.equal(onDeprecated.args[0][0].match(new RegExp(`please use \`edge\` "roaming"`, 'g')).length, 1);
             resolve();
           }));
