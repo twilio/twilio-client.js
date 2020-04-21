@@ -8,10 +8,24 @@ New Features
 Instead of using `Twilio.Device.Options.region`, please use `Twilio.Device.Options.edge`. In the next breaking release, `Twilio.Device.Options.region` will no longer work as intended.
 Please see documentation TODO mhuynh.
 
+The edge that the client connected to can be read from `Twilio.Device` using the getter-function `Twilio.Device.edge`.
+
+* Added `appName` and `appVersion` fields to Device.options. Pass these strings on Device setup, and they will be passed to Insights. This can
+  be used to help debug which of your applications and/or versions an issue began occurring in.
+  #### Example
+
+  ```ts
+  const device = new Device(token, {
+    appName: 'agent-softphone',
+    appVersion: '1.2.3',
+  });
+  ```
+
 Bug Fixes
 ---------
 
-* Fixed an issue where `rtcSample.rtt` raised by `Connection.on('sample', rtcSample => ...)` was reported in seconds instead of milliseconds in Firefox. If your application is converting `rtcSample.rtt` to milliseconds in Firefox, please update your application to account for this change.
+* Fixed an issue where `rtcSample.rtt` raised by `Connection.on('sample', rtcSample => ...)` was reported in seconds instead of milliseconds in Firefox. If your application is converting `rtcSample.rtt` to milliseconds in Firefox, please update your application to account for this change. (CLIENT-7014)
+* Fixed an issue where an Angular project will not build when the SDK is used as a module. (CLIENT-7544)
 * Fixed an issue where certain device event handlers, when an exception is thrown, causes some connection event handlers to stop working. This causes potential side effects such as incoming ringtone not being able to stop after receiving a call.
   #### Example
   In the following example, `connection.on('accept')` will not trigger if `device.on('connect')` throws an error. With this fix, `connection.on('accept')` handler should now receive the event.

@@ -4,7 +4,8 @@
 import { EventEmitter } from 'events';
 import Connection from './twilio/connection';
 import Device from './twilio/device';
-import { PStream } from './twilio/pstream';
+
+const PStream = require('./twilio/pstream');
 
 let instance: Device | null | undefined;
 Object.defineProperty(Device, 'instance', {
