@@ -685,6 +685,10 @@ class Device extends EventEmitter {
     this._publisher = (this.options.Publisher || Publisher)('twilio-js-sdk', token, {
       defaultPayload: this._createDefaultPayload,
       host: this.options.eventgw,
+      metadata: {
+        app_name: this.options.appName,
+        app_version: this.options.appVersion,
+      },
     } as any);
 
     if (this.options.publishEvents === false) {
@@ -833,10 +837,6 @@ class Device extends EventEmitter {
       dscp: !!this.options.dscp,
       ice_restart_enabled: this.options.enableIceRestart,
       platform: rtc.getMediaEngine(),
-      publisher_metadata: {
-        app_name: this.options.appName,
-        app_version: this.options.appVersion,
-      },
       sdk_version: C.RELEASE_VERSION,
       selected_region: this.options.region,
     };

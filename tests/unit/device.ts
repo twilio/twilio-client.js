@@ -254,13 +254,6 @@ describe('Device', function() {
           (window as any).addEventListener = original;
           sinon.assert.calledWith(spy, 'beforeunload');
         });
-
-        it('should pass publisher_metadata', () => {
-          device = new Device();
-          device.setup(token, Object.assign(setupOptions, { appName: 'foo', appVersion: '1.2.3' }));
-          assert.equal(device['_createDefaultPayload']().publisher_metadata.app_name, 'foo');
-          assert.equal(device['_createDefaultPayload']().publisher_metadata.app_version, '1.2.3');
-        });
       });
     });
 
