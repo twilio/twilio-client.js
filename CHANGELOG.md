@@ -4,15 +4,19 @@
 New Features
 ---------
 
-* Deprecated the `Twilio.Device.Options.region` option for setting up a `Twilio.Device` as part of Phase 1 Regional Twilio.
-  Instead of using `Twilio.Device.Options.region`, please use `Twilio.Device.Options.edge`.
-  In the next breaking release, `Twilio.Device.Options.region` will no longer work as intended.
+* ### Twilio Regional
+  This release includes support for the first phase of the new **Twilio Regional**.
 
-  Please see documentation on [edges](https://www.twilio.com/docs/voice/voip-sdk/edges).
+  **Twilio Regional** brings the possibility to specify a home region where all data will reside and edge connectivity which the Voice SDKs will use to connect to the home region.
 
-  The edge that the client connected to can be read from `Twilio.Device` using the getter-function `Twilio.Device.edge`.
+  This first phase includes edge connectivity and the new parameter `Twilio.Device.Options.edge`.
+  This new parameter supersedes the now deprecated `Twilio.Device.Options.region`.
+  See `Twilio.Device.Options.edge` for migration instructions.
+  The edge that the client connected to can be read from `Twilio.Device` using the read-only property `Twilio.Device.edge`.
 
-* Added `appName` and `appVersion` fields to Device.options. Pass these strings on Device setup, and they will be passed to Insights. This can
+  Please see documentation on [edges](https://www.twilio.com/docs/voice/client/edges).
+
+* Added `appName` and `appVersion` fields to Device.options. Pass these strings on Device setup, and they will be passed to [Insights](https://www.twilio.com/console/voice/insights). This can
   be used to help debug which of your applications and/or versions an issue began occurring in.
   #### Example
 
