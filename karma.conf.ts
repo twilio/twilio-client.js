@@ -9,6 +9,8 @@ if (fs.existsSync(__dirname + '/config.yaml')) {
   process.env.API_KEY_SID = process.env.API_KEY_SID || creds.api_key_sid;
   process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || creds.api_key_secret;
   process.env.APPLICATION_SID = process.env.APPLICATION_SID || creds.app_sid;
+  process.env.APPLICATION_SID_STIR = process.env.APPLICATION_SID_STIR || creds.app_sid_stir;
+  process.env.CALLER_ID = process.env.CALLER_ID || creds.caller_id;
   process.env.AUTH_TOKEN = process.env.AUTH_TOKEN || creds.auth_token;
 }
 

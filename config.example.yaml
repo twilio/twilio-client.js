@@ -12,5 +12,7 @@ prod:
   account_sid: ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   auth_token: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   app_sid: APxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  app_sid_stir: APxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  caller_id: +xxxxxxxxxx
   api_key_secret: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   api_key_sid: SKxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
