@@ -1212,7 +1212,7 @@ describe('Connection', function() {
           pstream.emit('cancel', { callsid: 'CA123' });
           sinon.assert.called(cleanupStub);
           sinon.assert.called(closeStub);
-          sinon.assert.calledWithExactly(publishStub, 'connection', 'cancelled-by-remote', null, conn);
+          sinon.assert.calledWithExactly(publishStub, 'connection', 'cancel', null, conn);
         });
       });
 

@@ -1111,7 +1111,7 @@ class Connection extends EventEmitter {
         this.pstream.removeListener('cancel', this._onCancel);
       });
 
-      this._publisher.info('connection', 'cancelled-by-remote', null, this);
+      this._publisher.info('connection', 'cancel', null, this);
       this._cleanupEventListeners();
       this.mediaStream.close();
     }
