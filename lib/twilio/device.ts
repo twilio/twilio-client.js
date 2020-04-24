@@ -22,7 +22,11 @@ import {
   getRegionShortcode,
   getRegionURI,
 } from './regions';
-import { Exception, queryToJson } from './util';
+import {
+  isBrowserDeprecated,
+  isUnifiedPlanDefault,
+  queryToJson
+} from './util';
 
 const C = require('./constants');
 const Publisher = require('./eventpublisher');
@@ -30,7 +34,6 @@ const PStream = require('./pstream');
 const rtc = require('./rtc');
 const getUserMedia = require('./rtc/getusermedia');
 const Sound = require('./sound');
-const { isUnifiedPlanDefault } = require('./util');
 
 /**
  * @private
@@ -574,6 +577,14 @@ class Device extends EventEmitter {
         For more information, see <https://www.twilio.com/docs/api/client/twilio-js>. \
         If you have any questions about this announcement, please contact \
         Twilio Support at <help@twilio.com>.`);
+    }
+
+    if (isBrowserDeprecated()) {
+      this._log.warn(
+        'This browser is deprecated and will not be able to connect to Twilio in the next breaking release. ' +
+        'Please see this documentation for a list of supported browsers ' +
+        'https://www.twilio.com/docs/voice/client/javascript#supported-browsers'
+      );
     }
 
     if (!token) {
