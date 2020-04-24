@@ -7,7 +7,7 @@ New Features
 * ### Twilio Regional
   This release includes support for the first phase of the new **Twilio Regional**.
 
-  **Twilio Regional** brings the possibility to specify a home region where all data will reside and edge connectivity which the Voice SDKs will use to connect to the home region.
+  **Twilio Regional** allows developers to specify a region where data is processed and stored and specify an edge indicating where the SDK connects into Twilio.
 
   This first phase includes edge connectivity and the new parameter `Twilio.Device.Options.edge`.
   This new parameter supersedes the now deprecated `Twilio.Device.Options.region`.
