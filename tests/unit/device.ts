@@ -426,8 +426,8 @@ describe('Device', function() {
     });
 
     describe('.edge', () => {
-      it(`should return 'offline' if not connected`, () => {
-        assert.equal(device.edge, 'offline');
+      it(`should return 'null' if not connected`, () => {
+        assert.equal(device.edge, null);
       });
 
       // these unit tests will need to be changed for Phase 2 Regional

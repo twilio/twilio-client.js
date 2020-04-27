@@ -279,7 +279,7 @@ class Device extends EventEmitter {
   private _connectionSinkIds: string[] = ['default'];
 
   /**
-   * The edge the {@link Device} is connected to.
+   * The name of the edge the {@link Device} is connected to.
    */
   private _edge: string | null = null;
 
@@ -502,15 +502,11 @@ class Device extends EventEmitter {
   }
 
   /**
-   * Get the {@link Edge} string the {@link Device} is currently connected to,
-   * or 'offline' if not connected.
+   * Returns the {@link Edge} value the {@link Device} is currently connected
+   * to. The value will be `null` when the {@link Device} is offline.
    */
   get edge(): string | null {
-    return this.isInitialized
-      ? typeof this._edge === 'string'
-        ? this._edge
-        : 'offline'
-      : null;
+    return this._edge;
   }
 
   /**
@@ -555,13 +551,8 @@ class Device extends EventEmitter {
    */
   region(): string {
     this._log.warn(
-      'The value that `Twilio.Device.region` returns is deprecated. ' +
-      'At the moment, it represents the region that the signaling stack ' +
-      'connects to. ' +
-      'In a future breaking release, this value will change meaning as part ' +
-      'of Twilio Regional.' +
-      '`Twilio.Device.edge` can alternatively be used to get the `edge` that ' +
-      'the device is connected to.',
+      '`Device.region` is deprecated and will be removed in the next major ' +
+      'release. Please use `Device.edge` instead.',
     );
     this._throwUnlessSetup('region');
     return typeof this._region === 'string' ? this._region : 'offline';
@@ -1520,7 +1511,8 @@ namespace Device {
      * will use to connect to Twilio infrastructure. The default value is
      * "roaming" which automatically selects an edge based on the latency of the
      * client relative to available edges. You may not specify both `edge` and
-     * `region` in the Device options.
+     * `region` in the Device options. Specifying both `edge` and `region` will
+     * result in an `InvalidArgumentException`.
      */
     edge?: string[] | string;
 
@@ -1566,6 +1558,29 @@ namespace Device {
      * CLIENT-7519 This parameter is deprecated in favor of the `edge`
      * parameter. You may not specify both `edge` and `region` in the Device
      * options.
+     *
+     * This parameter will be removed in the next major version release.
+     *
+     * The following table lists the new edge names to region name mappings.
+     * Instead of passing the `region` value in `options.region`, please pass the
+     * following `edge` value in `options.edge`.
+     *
+     * | Region Value | Edge Value   |
+     * |:-------------|:-------------|
+     * | au1          | sydney       |
+     * | br1          | sao-paolo    |
+     * | ie1          | dublin       |
+     * | de1          | frankfurt    |
+     * | jp1          | tokyo        |
+     * | sg1          | singapore    |
+     * | us1          | ashburn      |
+     * | us2          | umatilla     |
+     * | gll          | roaming      |
+     * | us1-ix       | ashburn-ix   |
+     * | us2-ix       | san-jose-ix  |
+     * | ie1-ix       | london-ix    |
+     * | de1-ix       | frankfurt-ix |
+     * | sg1-ix       | singapore-ix |
      */
     region?: string;
 

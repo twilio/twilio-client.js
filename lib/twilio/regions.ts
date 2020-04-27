@@ -257,13 +257,15 @@ export function getChunderURIs(
   region: string | undefined,
   onDeprecated?: (message: string) => void,
 ): string[] {
-  if (
-    (!!region && typeof region !== 'string') ||
-    (!!edge && typeof edge !== 'string' && !Array.isArray(edge))
-  ) {
+  if (!!region && typeof region !== 'string') {
     throw new InvalidArgumentError(
-      'If "edge" is supplied, it must be a string or an array of valid edges.' +
-      'If "region" is supplied, it must be a string of valid region.',
+      'If `region` is provided, it must be of type `string`.',
+    );
+  }
+
+  if (!!edge && typeof edge !== 'string' && !Array.isArray(edge)) {
+    throw new InvalidArgumentError(
+      'If `edge` is provided, it must be of type `string` or an array of strings.',
     );
   }
 
@@ -277,15 +279,15 @@ export function getChunderURIs(
 
   if (region && edge) {
     throw new InvalidArgumentError(
-      'Defining both a `region` and an `edge` in `Twilio.Device.Options` is ' +
-      'unsupported.',
+      'You cannot specify `region` when `edge` is specified in' +
+      '`Twilio.Device.Options`.',
     );
   } else if (region) {
     let chunderRegion = region;
 
-    // TODO mhuynh direct to documentation regarding Twilio regional phase 1
     deprecatedMessages.push(
-      'Regions are deprecated in favor of edges. Please see TODO.',
+      'Regions are deprecated in favor of edges. Please see this page for ' +
+      'documentation: https://www.twilio.com/docs/voice/client/edges.',
     );
 
     const isDeprecatedRegion: boolean =

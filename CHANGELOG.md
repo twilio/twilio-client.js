@@ -4,15 +4,19 @@
 New Features
 ---------
 
-* Deprecated the `Twilio.Device.Options.region` option for setting up a `Twilio.Device` as part of Phase 1 Regional Twilio.
-  Instead of using `Twilio.Device.Options.region`, please use `Twilio.Device.Options.edge`.
-  In the next breaking release, `Twilio.Device.Options.region` will no longer work as intended.
+* ### Twilio Regional
+  This release includes support for the first phase of the new **Twilio Regional**.
 
-  Please see documentation TODO mhuynh.
+  **Twilio Regional** allows developers to specify a region where data is processed and stored and specify an edge indicating where the SDK connects into Twilio.
 
-  The edge that the client connected to can be read from `Twilio.Device` using the getter-function `Twilio.Device.edge`.
+  This first phase includes edge connectivity and the new parameter `Twilio.Device.Options.edge`.
+  This new parameter supersedes the now deprecated `Twilio.Device.Options.region`.
+  See `Twilio.Device.Options.edge` for migration instructions.
+  The edge that the client connected to can be read from `Twilio.Device` using the read-only property `Twilio.Device.edge`.
 
-* Added `appName` and `appVersion` fields to Device.options. Pass these strings on Device setup, and they will be passed to Insights. This can
+  Please see documentation on [edges](https://www.twilio.com/docs/voice/client/edges).
+
+* Added `appName` and `appVersion` fields to Device.options. Pass these strings on Device setup, and they will be passed to [Insights](https://www.twilio.com/console/voice/insights). This can
   be used to help debug which of your applications and/or versions an issue began occurring in.
   #### Example
 
@@ -27,6 +31,7 @@ Bug Fixes
 ---------
 
 * Fixed an issue where `rtcSample.rtt` raised by `Connection.on('sample', rtcSample => ...)` was reported in seconds instead of milliseconds in Firefox. If your application is converting `rtcSample.rtt` to milliseconds in Firefox, please update your application to account for this change. (CLIENT-7014)
+* Fixed an issue where a call doesn't get disconnected after the signaling server emits a `cancel` event. (CLIENT-7576)
 * Fixed an issue where an Angular project will not build when the SDK is used as a module. (CLIENT-7544)
 * Fixed an issue where certain device event handlers, when an exception is thrown, causes some connection event handlers to stop working. This causes potential side effects such as incoming ringtone not being able to stop after receiving a call.
   #### Example
