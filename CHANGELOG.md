@@ -21,7 +21,8 @@ New Features
   const device = new Device(token, { edge: 'ashburn' });
   ```
 
-  **Edge Fallback**  
+  ### Edge Fallback
+
   The new parameter `Twilio.Device.Options.edge`, can also be used to provide auto fallback functionality. This is enabled if the `edge` parameter is provided as an array with more than one edge value, sorted by priority order where the first element has the highest priority and the last element has the lowest priority.
 
   If the `edge` parameter is provided as an array, adding `roaming` as one of the values will cause `device.setup()` to throw an exception. Please see [edges](https://www.twilio.com/docs/voice/client/edges) for other valid edge values.
