@@ -14,7 +14,22 @@ New Features
   See `Twilio.Device.Options.edge` for migration instructions.
   The edge that the client connected to can be read from `Twilio.Device` using the read-only property `Twilio.Device.edge`.
 
-  Please see documentation on [edges](https://www.twilio.com/docs/voice/client/edges).
+  Please see documentation on [edges](https://www.twilio.com/docs/voice/client/edges) for more details.
+
+  **Example**  
+  ```ts
+  const device = new Device(token, { edge: 'ashburn' });
+  ```
+
+  **Edge Fallback**  
+  The new parameter `Twilio.Device.Options.edge`, can also be used to provide auto fallback functionality. This is enabled if the `edge` parameter is provided as an array with more than one edge value, sorted by priority order where the first element has the highest priority and the last element has the lowest priority.
+
+  If the `edge` parameter is provided as an array, adding `roaming` as one of the values will cause `device.setup()` to throw an exception. Please see [edges](https://www.twilio.com/docs/voice/client/edges) for other valid edge values.
+
+  **Example**
+  ```ts
+  const device = new Device(token, { edge: ['ashburn', 'sydney', 'dublin'] });
+  ```
 
 * Added `appName` and `appVersion` fields to Device.options. Pass these strings on Device setup, and they will be passed to [Insights](https://www.twilio.com/console/voice/insights). This can
   be used to help debug which of your applications and/or versions an issue began occurring in.
