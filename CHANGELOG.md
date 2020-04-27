@@ -15,6 +15,16 @@ Features
   });
   ```
 
+Additions
+---------
+
+* Microsoft Legacy Edge is now deprecated. Running `device.setup()` on this browser will result with a console warning below.
+  ```
+  This browser is deprecated and will not be able to connect to Twilio in the next breaking release.
+  Please see this documentation for a list of supported browsers
+  https://www.twilio.com/docs/voice/client/javascript#supported-browsers
+  ```
+
 Bug Fixes
 ---------
 
