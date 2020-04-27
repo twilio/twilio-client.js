@@ -26,6 +26,8 @@ New Features
 
   If the `edge` parameter is provided as an array, adding `roaming` as one of the values will cause `device.setup()` to throw an exception. Please see [edges](https://www.twilio.com/docs/voice/client/edges) for other valid edge values.
 
+  The fallback behavior is only applicable if edge parameter is supplied as an array. During initialization, the SDK will use the first edge value in the edges array. If the SDK encounters a WebSocket error code of [1006 or 1015](https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent), the SDK will attempt to reconnect using the next value in the edges array with an initial delay of 1+random(5) seconds and will cycle through all the edge values until a connection is established. An exponential backoff will be applied in between connection attempts with a maximum delay of 20 seconds. This maximum delay can be changed using `Twilio.Device.Options.backoffMaxMs`;
+
   **Example**
   ```ts
   const device = new Device(token, { edge: ['ashburn', 'sydney', 'dublin'] });
