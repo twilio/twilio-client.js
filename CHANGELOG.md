@@ -1,20 +1,6 @@
 1.11.0 (In Progress)
 ===================
 
-Features
---------
-
-* Added `appName` and `appVersion` fields to Device.options. Pass these strings on Device setup, and they will be passed to Insights. This can
-  be used to help debug which of your applications and/or versions an issue began occurring in.
-  #### Example
-
-  ```ts
-  const device = new Device(token, {
-    appName: 'agent-softphone',
-    appVersion: '1.2.3',
-  });
-  ```
-
 Bug Fixes
 ---------
 
