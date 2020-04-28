@@ -7,6 +7,11 @@ Bug Fixes
 * Fixed an issue where `rtcSample.rtt` raised by `Connection.on('sample', rtcSample => ...)` was reported in seconds instead of milliseconds in Firefox. If your application is converting `rtcSample.rtt` to milliseconds in Firefox, please update your application to account for this change. (CLIENT-7014)
 * Fixed an issue where a call doesn't get disconnected after the signaling server emits a `cancel` event. (CLIENT-7576)
 
+Additions
+---------
+
+* Added tests for Signaling payloads. (CLIENT-4533)
+
 1.10.2 (Apr 22, 2020)
 ===================
 
