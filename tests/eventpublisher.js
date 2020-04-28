@@ -8,7 +8,11 @@ describe('EventPublisher', () => {
   before(() => {
     const options = {
       defaultPayload: createDefaultFakePayload,
-      request: fakeRequest
+      request: fakeRequest,
+      metadata: {
+        app_name: 'foo',
+        app_version: '1.2.3'
+      }
     };
 
     publisher = new EventPublisher('test', 'sometoken', options);
@@ -27,6 +31,8 @@ describe('EventPublisher', () => {
       assert.equal(publisher.isEnabled, true);
       assert.equal(publisher.productName, 'test');
       assert.equal(publisher.token, 'sometoken');
+      assert.equal(publisher.metadata.app_name, 'foo');
+      assert.equal(publisher.metadata.app_version, '1.2.3');
     });
   });
 
@@ -147,6 +153,10 @@ function checkPostParams(i, publisher, connection) {
       level: 'DEBUG',
       payload_type: 'application/json',
       private: false,
+      publisher_metadata: {
+        app_name: 'foo',
+        app_version: '1.2.3',
+      },
       payload: {
         client_name: 'foo',
         platform: 'bar',

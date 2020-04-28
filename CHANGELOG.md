@@ -1,25 +1,44 @@
 1.11.0 (In Progress)
 ===================
 
-New Feature
-------------
-
-### Preflight Test
-The SDK now supports a preflight test API which can help determine Voice calling readiness. The API creates a test call and will provide information to help troubleshoot call related issues. This new API is a static member of the [Device](https://www.twilio.com/docs/voice/client/javascript/device#twilio-device) class and can be used like the example below. Please see [API Docs](PREFLIGHT.md) for more details about this new API.
-
-```ts
-// Initiate the test
-const preflight = Device.testPreflight(token, options);
-
-// Subscribe to events
-preflight.on('completed', (report) => console.log(report));
-preflight.on('failed', (error) => console.log(error));
-```
-
-Improvements
+New Features
 ---------
 
-* Added tests to validate signaling payloads. (CLIENT-4533)
+* ### Twilio Regional
+  This release includes support for the first phase of the new **Twilio Regional**.
+
+  **Twilio Regional** allows developers to specify a region where data is processed and stored and specify an edge indicating where the SDK connects into Twilio.
+
+  This first phase includes edge connectivity and the new parameter `Twilio.Device.Options.edge`.
+  This new parameter supersedes the now deprecated `Twilio.Device.Options.region`.
+  See `Twilio.Device.Options.edge` for migration instructions.
+  The edge that the client connected to can be read from `Twilio.Device` using the read-only property `Twilio.Device.edge`.
+
+  Please see documentation on [edges](https://www.twilio.com/docs/voice/client/edges).
+
+* ### Preflight Test
+  The SDK now supports a preflight test API which can help determine Voice calling readiness. The API creates a test call and will provide information to help troubleshoot call related issues. This new API is a static member of the [Device](https://www.twilio.com/docs/voice/client/javascript/device#twilio-device) class and can be used like the example below. Please see [API Docs](PREFLIGHT.md) for more details about this new API.
+
+  ```ts
+  // Initiate the test
+  const preflight = Device.testPreflight(token, options);
+
+  // Subscribe to events
+  preflight.on('completed', (report) => console.log(report));
+  preflight.on('failed', (error) => console.log(error));
+  ```
+
+* Added `appName` and `appVersion` fields to Device.options. Pass these strings on Device setup, and they will be passed to [Insights](https://www.twilio.com/console/voice/insights). This can
+  be used to help debug which of your applications and/or versions an issue began occurring in.
+  #### Example
+
+  ```ts
+  const device = new Device(token, {
+    appName: 'agent-softphone',
+    appVersion: '1.2.3',
+  });
+  ```
+
 * [Connection.on('warning')](https://www.twilio.com/docs/voice/client/javascript/connection#onwarning-handlerwarningname) now provides data associated with the warning. This data can provide more details about the warning such as thresholds and WebRTC samples collected that caused the warning. The example below is a warning for high jitter. Please see [Voice Insights SDK Events Reference](https://www.twilio.com/docs/voice/insights/call-quality-events-twilio-client-sdk#warning-events) for a list of possible warnings.
 
   ```ts
@@ -57,10 +76,97 @@ Improvements
   }
   ```
 
+1.10.3 (In Progress)
+===================
+
 Bug Fixes
 ---------
 
-* Fixed an issue where `rtcSample.rtt` raised by `Connection.on('sample', rtcSample => ...)` was reported in seconds instead of milliseconds in Firefox. If your application is converting `rtcSample.rtt` to milliseconds in Firefox, please update your application to account for this change.
+* Fixed an issue where `rtcSample.rtt` raised by `Connection.on('sample', rtcSample => ...)` was reported in seconds instead of milliseconds in Firefox. If your application is converting `rtcSample.rtt` to milliseconds in Firefox, please update your application to account for this change. (CLIENT-7014)
+* Fixed an issue where a call doesn't get disconnected after the signaling server emits a `cancel` event. (CLIENT-7576)
+
+Additions
+---------
+
+* Added tests for Signaling payloads. (CLIENT-4533)
+
+1.10.2 (Apr 22, 2020)
+===================
+
+Bug Fixes
+---------
+
+* Fixed an issue where an Angular project will not build when the SDK is used as a module. (CLIENT-7544)
+* Fixed an issue where certain device event handlers, when an exception is thrown, causes some connection event handlers to stop working. This causes potential side effects such as incoming ringtone not being able to stop after receiving a call.
+  #### Example
+  In the following example, `connection.on('accept')` will not trigger if `device.on('connect')` throws an error. With this fix, `connection.on('accept')` handler should now receive the event.
+
+  ```ts
+  connection.on('accept', () => {
+    console.log('This is my "accept" handler.');
+  });
+
+  device.on('connect', () => {
+    throw 'Something went wrong.';
+  });
+  ```
+
+  #### Events affected
+  The following are the events affected and should be fixed with this release.
+
+  | Device Events           | Affected Connection Events  |
+  |:------------------------|:----------------------------|
+  | device.on('connect')    | connection.on('accept')     |
+  | device.on('error')      | connection.on('error')      |
+  | device.on('cancel')     | connection.on('cancel')     |
+  | device.on('disconnect') | connection.on('disconnect') |
+
+  #### More information about NodeJS Events
+  As mentioned in our public [documentation](https://www.twilio.com/docs/voice/client/javascript/connection#handler-methods), the [Device](https://www.twilio.com/docs/voice/client/javascript/device) and [Connection](https://www.twilio.com/docs/voice/client/javascript/connection) objects are [EventEmitters](https://nodejs.org/api/events.html). This release doesn't change the default behavior of `EventEmitters`, where if one of the handlers on the ***same*** `EventEmitter` object throws an exception, the rest of the event handlers will not receive the event. Consider the following example.
+
+  ```ts
+  const myEmitter = new EventEmitter();
+
+  // Subscribe some event handlers
+  myEmitter.on('testevent', () => console.log('This is my handler 1'));
+  myEmitter.on('testevent', () => {
+    console.log('This is my handler 2');
+    throw 'Something went wrong';
+  });
+  myEmitter.on('testevent', () => console.log('This is my handler 3'));
+
+  // Emit an event
+  myEmitter.emit('testevent');
+  ```
+  In the above example, `testevent` has three handlers and are on the ***same*** EventEmitter object `myEmitter`. If one of the handlers, in this case handler number 2, throws an error, the rest of the event handlers will not receive the event. In this case, handler 3 will not receive `testevent`. This is a normal behavior on `EventEmitters` and this SDK release doesn't change this behavior. This release only fixes the issue where if the events are comming from two different `EventEmitter` objects - `Connection` and `Device`;
+
+1.10.1 (Apr 6, 2020)
+===================
+
+Improvements
+---------
+
+* Typescript declarations are now included with our NPM package. (CLIENT-7427, GH-36)
+
+  In the following example, `Device`, `Connection`, and their functions should have the correct typings.
+
+  ```
+  import { Device, Connection } from 'twilio-client';
+
+  const token = ...;
+  const deviceOptions = ...;
+  const device: Device = new Device(token, deviceOptions);
+
+  const connection: Connection = device.connect(...);
+  ...
+  connection.disconnect();
+  ```
+
+Bug Fixes
+---------
+
+* Fixed an issue where `Device.on('incoming')` event is not raised when the incoming sound is stopped right after playing it. This is a timing issue which can happen if multiple incoming connections comes in almost at the same time. (CLIENT-7482, GH-129)
+* Fixed an issue causing Android chrome to throw the error `This browser does not support audio output selection`. We now check if this is supported on the browser before attempting to update the output device. (CLIENT-7373, GH-124)
 
 1.10.0 (Feb 19, 2020)
 ===================

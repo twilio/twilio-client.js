@@ -3,6 +3,7 @@
   "version": "1.11.0-dev",
   "description": "Javascript SDK for Twilio Client",
   "main": "./es5/twilio.js",
+  "types": "./es5/twilio.d.ts",
   "license": "Apache-2.0",
   "keywords": [
     "twilio",

@@ -516,8 +516,11 @@ class AudioHelper extends EventEmitter {
         || Array.from(this.availableOutputDevices.values())[0];
 
       [this.speakerDevices, this.ringtoneDevices].forEach(outputDevices => {
-        if (!outputDevices.get().size && this.availableOutputDevices.size) {
-          outputDevices.set(defaultDevice.deviceId);
+        if (!outputDevices.get().size && this.availableOutputDevices.size && this.isOutputSelectionSupported) {
+          outputDevices.set(defaultDevice.deviceId)
+            .catch((reason) => {
+              this._log.warn(`Unable to set audio output devices. ${reason}`);
+            });
         }
       });
     });

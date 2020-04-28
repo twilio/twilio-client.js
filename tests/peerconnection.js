@@ -1928,6 +1928,16 @@ describe('PeerConnection', () => {
       toTest = METHOD.bind(context);
     });
 
+    it('Should return null if pc is null', () => {
+      const transport = METHOD.call({ version: {} });
+      assert.equal(transport, null);
+    });
+
+    it('Should return null if version is null', () => {
+      const transport = METHOD.call({});
+      assert.equal(transport, null);
+    });
+
     it('Should return null if getSenders is not supported', () => {
       const transport = toTest();
       assert.equal(transport, null);
