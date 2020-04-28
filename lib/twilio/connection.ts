@@ -1106,9 +1106,15 @@ class Connection extends EventEmitter {
     // (rrowland) Is this check necessary? Verify, and if so move to pstream / VSP module.
     const callsid = payload.callsid;
     if (this.parameters.CallSid === callsid) {
-      this._status = Connection.State.Closed;
-      this.emit('cancel');
-      this.pstream.removeListener('cancel', this._onCancel);
+      this.once('disconnect', () => {
+        this._status = Connection.State.Closed;
+        this.emit('cancel');
+        this.pstream.removeListener('cancel', this._onCancel);
+      });
+
+      this._publisher.info('connection', 'cancel', null, this);
+      this._cleanupEventListeners();
+      this.mediaStream.close();
     }
   }
 

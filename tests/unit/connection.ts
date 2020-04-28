@@ -55,7 +55,7 @@ describe('Connection', function() {
 
     audioHelper = createEmitterStub(require('../../lib/twilio/audiohelper').default);
     getUserMedia = sinon.spy(() => Promise.resolve(new MediaStream()));
-    pstream = createEmitterStub(require('../../lib/twilio/pstream').PStream);
+    pstream = createEmitterStub(require('../../lib/twilio/pstream'));
     publisher = createEmitterStub(require('../../lib/twilio/eventpublisher'));
     publisher.postMetrics = sinon.spy(() => Promise.resolve());
 
@@ -1173,13 +1173,31 @@ describe('Connection', function() {
     });
 
     describe('pstream.cancel event', () => {
-      context('when the callsid matches', () => {
-        beforeEach(() => {
-          conn = new Connection(config, Object.assign({
-            callParameters: { CallSid: 'CA123' }
-          }, options));
-        });
+      let conn: any;
+      let cleanupStub: any;
+      let closeStub: any;
+      let publishStub: any;
 
+      beforeEach(() => {
+        cleanupStub = sinon.stub();
+        closeStub = sinon.stub();
+        publishStub = sinon.stub();
+
+        conn = new Connection(config, Object.assign({
+          callParameters: { CallSid: 'CA123' }
+        }, options));
+
+        conn._cleanupEventListeners = cleanupStub;
+        conn.mediaStream.close = () => {
+          closeStub();
+          conn.emit('disconnect');
+        };
+        conn._publisher = {
+          info: publishStub
+        };
+      });
+
+      context('when the callsid matches', () => {
         it('should transition to closed', () => {
           pstream.emit('cancel', { callsid: 'CA123' });
           assert.equal(conn.status(), Connection.State.Closed);
@@ -1188,6 +1206,13 @@ describe('Connection', function() {
         it('should emit a cancel event', (done) => {
           conn.on('cancel', () => done());
           pstream.emit('cancel', { callsid: 'CA123' });
+        });
+
+        it('should disconnect the call', () => {
+          pstream.emit('cancel', { callsid: 'CA123' });
+          sinon.assert.called(cleanupStub);
+          sinon.assert.called(closeStub);
+          sinon.assert.calledWithExactly(publishStub, 'connection', 'cancel', null, conn);
         });
       });
 

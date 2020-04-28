@@ -1,8 +1,12 @@
 import { levels as LogLevels } from 'loglevel';
 import Connection from '../../lib/twilio/connection';
 import Device from '../../lib/twilio/device';
-import { regionShortcodes } from '../../lib/twilio/regions';
 import { GeneralErrors } from '../../lib/twilio/errors';
+import {
+  Region,
+  regionShortcodes,
+  regionToEdge,
+} from '../../lib/twilio/regions';
 
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
@@ -39,7 +43,7 @@ describe('Device', function() {
     return activeConnection = createEmitterStub(require('../../lib/twilio/connection').default);
   };
   const pStreamFactory = () =>
-    pstream = createEmitterStub(require('../../lib/twilio/pstream').PStream);
+    pstream = createEmitterStub(require('../../lib/twilio/pstream'));
   const Publisher = () =>
     publisher = createEmitterStub(require('../../lib/twilio/eventpublisher'));
   const soundFactory = (name: Device.SoundName) =>
@@ -225,6 +229,11 @@ describe('Device', function() {
         it('should throw if token is undefined', () => {
           device = new Device();
           assert.throws(() => (device.setup as any)(), /Token is required/);
+        });
+
+        it('should throw if both `edge` and `region` are defined in options', () => {
+          device = new Device();
+          assert.throws(() => device.setup(token, { edge: 'foo', region: 'bar' }));
         });
 
         it('should set device.isInitialized to true', () => {
@@ -416,7 +425,40 @@ describe('Device', function() {
       });
     });
 
+    describe('.edge', () => {
+      it(`should return 'null' if not connected`, () => {
+        assert.equal(device.edge, null);
+      });
+
+      // these unit tests will need to be changed for Phase 2 Regional
+      context('when the region is mapped to a known edge', () => {
+        Object.entries(regionShortcodes).forEach(([fullName, region]: [string, string]) => {
+          const preferredEdge = regionToEdge[region as Region];
+          it(`should return ${preferredEdge} for ${region}`, () => {
+            pstream.emit('connected', { region: fullName });
+            assert.equal(device.edge, preferredEdge);
+          });
+        });
+      });
+
+      context('when the region is not mapped to a known edge', () => {
+        ['FOO_BAR', ''].forEach((name: string) => {
+          it(`should return the region string directly if it's '${name}'`, () => {
+            pstream.emit('connected', { region: name });
+            assert.equal(device.region(), name);
+          });
+        });
+      });
+    });
+
     describe('.region()', () => {
+      it(`should log.warn a deprecation warning`, () => {
+        const spy = sinon.spy();
+        device['_log'].warn = spy;
+        device.region();
+        assert(spy.calledOnce);
+      });
+
       it(`should return 'offline' if not connected`, () => {
         assert.equal(device.region(), 'offline');
       });
@@ -757,6 +799,44 @@ describe('Device', function() {
       });
     });
 
+    describe('on event subscriptions coming from connection', () => {
+      let connection: any;
+
+      beforeEach((done: Function) => {
+        device.once(Device.EventName.Incoming, () => {
+          device.connections[0].parameters = { };
+          connection = device.connections[0];
+          done();
+        });
+        pstream.emit('invite', {
+          callsid: 'CA1234',
+          sdp: 'foobar',
+        });
+      });
+
+      it('should emit device:connect asynchronously', () => {
+        const stub = sinon.stub();
+        device.on('connect', stub);
+        connection.emit('accept');
+
+        sinon.assert.notCalled(stub);
+        clock.tick(1);
+        sinon.assert.calledOnce(stub);
+      });
+
+      ['error', 'cancel', 'disconnect'].forEach(event => {
+        it(`should emit device:${event} asynchronously`, () => {
+          const stub = sinon.stub();
+          device.on(event, stub);
+          connection.emit(event);
+
+          sinon.assert.notCalled(stub);
+          clock.tick(1);
+          sinon.assert.calledOnce(stub);
+        });
+      });
+    });
+
     context('with a pending incoming call', () => {
       beforeEach((done: Function) => {
         device.once(Device.EventName.Incoming, () => {
@@ -785,6 +865,8 @@ describe('Device', function() {
 
         it('should emit Device.connect', () => {
           device.connections[0].emit('accept');
+          clock.tick(1);
+
           sinon.assert.calledOnce(device.emit as any);
           sinon.assert.calledWith(device.emit as any, 'connect');
         });
@@ -806,6 +888,8 @@ describe('Device', function() {
 
         it('should emit Device.error', () => {
           device.connections[0].emit('error');
+          clock.tick(1);
+
           sinon.assert.calledOnce(device.emit as any);
           sinon.assert.calledWith(device.emit as any, 'error');
         });
@@ -832,6 +916,8 @@ describe('Device', function() {
           });
 
           device.connections[0].emit('cancel');
+          clock.tick(1);
+
           sinon.assert.calledOnce(device.emit as any);
           sinon.assert.calledWith(device.emit as any, 'cancel');
         });
@@ -840,6 +926,8 @@ describe('Device', function() {
       describe('on connection.disconnect', () => {
         it('should emit Device.disconnect', () => {
           device.connections[0].emit('disconnect');
+          clock.tick(1);
+
           sinon.assert.calledOnce(device.emit as any);
           sinon.assert.calledWith(device.emit as any, 'disconnect');
         });

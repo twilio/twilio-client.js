@@ -71,6 +71,7 @@ module.exports = function(config: any) {
       },
     },
     files: [
+      'lib/twilio.ts',
       'lib/twilio/**/*.+(ts|js)',
       'tests/integration/*.ts',
     ],
@@ -99,7 +100,7 @@ module.exports = function(config: any) {
     logLevel: config.LOG_INFO,
     port: 9876,
     preprocessors: {
-      'lib/twilio/**/*.+(ts|js)': 'karma-typescript',
+      'lib/**/*.+(ts|js)': 'karma-typescript',
       'tests/integration/*.ts': 'karma-typescript',
     },
     reporters: ['spec', 'karma-typescript'],

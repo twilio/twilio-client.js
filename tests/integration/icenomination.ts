@@ -143,16 +143,16 @@ maybeSkip('ICE Nomination', function() {
           assert(duration < CONNECTION_DELAY_THRESHOLD);
         });
       });
-  
-      it('should have a significant dtls handshake delay when using high-delay region and aggressive nomination is false', async () => {
+
+      // These two tests are flaky. Disable for now. We need to re-run/update them once media server deploys a fix.
+      it.skip('should have a significant dtls handshake delay when using high-delay region and aggressive nomination is false', async () => {
         deviceOptions.region = highDelayRegion;
         await setupDevices();
         await getConnectionDuration(direction).then(duration => {
           assert(duration > CONNECTION_DELAY_THRESHOLD);
         });
       });
-  
-      it('should not have a significant dtls handshake delay when using high-delay region and aggressive nomination is true', async () => {
+      it.skip('should not have a significant dtls handshake delay when using high-delay region and aggressive nomination is true', async () => {
         deviceOptions.region = highDelayRegion;
         deviceOptions.forceAggressiveIceNomination = true;
         await setupDevices();
