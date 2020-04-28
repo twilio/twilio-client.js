@@ -229,13 +229,13 @@ describe('StatsMonitor', () => {
         thresholds[STAT_NAME].maxDuration = 2;
         monitor = new StatsMonitor({ getRTCStats, thresholds });
         monitor.enable({});
-  
+
         monitor.on('warning', warning => {
           assert.equal(warning.name, STAT_NAME);
           assert.equal(warning.value, thresholds[STAT_NAME].maxDuration);
           done();
         });
-  
+
         clock.tick(SAMPLE_COUNT_RAISE * 1000);
       });
 
@@ -244,12 +244,12 @@ describe('StatsMonitor', () => {
         thresholds[STAT_NAME].maxDuration = 2;
         monitor = new StatsMonitor({ getRTCStats, thresholds });
         monitor.enable({});
-  
+
         monitor.on('warning', (warning) => {
           console.log(warning);
           onWarning();
         });
-  
+
         clock.tick(1000);
         stats[STAT_NAME]--;
 
@@ -279,42 +279,42 @@ describe('StatsMonitor', () => {
           stats[STAT_NAME] = thresholds[STAT_NAME][item.thresholdName] + item.outOfBoundModifier;
           monitor = new StatsMonitor({ getRTCStats, thresholds });
           monitor.enable({});
-    
+
           monitor.on('warning', warning => {
             assert.equal(warning.name, STAT_NAME);
             assert.equal(warning.values.length, SAMPLE_COUNT_RAISE);
             warning.values.forEach((v: number) => assert.equal(stats[STAT_NAME], v));
             done();
           });
-    
+
           clock.tick(SAMPLE_COUNT_RAISE * 1000);
         });
-  
+
         it(`Should NOT raise warning when '${item.thresholdName}' threshold is NOT reached`, () => {
           const onWarning = sinon.stub();
           stats[STAT_NAME] = thresholds[STAT_NAME][item.thresholdName];
           monitor = new StatsMonitor({ getRTCStats, thresholds });
           monitor.enable({});
-    
+
           monitor.on('warning', onWarning);
-    
+
           clock.tick(SAMPLE_COUNT_RAISE * 1000);
           clock.restore();
-    
+
           return wait().then(() => sinon.assert.notCalled(onWarning));
         });
-  
+
         it(`Should NOT raise warning when '${item.thresholdName}' raise count is NOT reached`, () => {
           const onWarning = sinon.stub();
           stats[STAT_NAME] = thresholds[STAT_NAME][item.thresholdName] + item.outOfBoundModifier;
           monitor = new StatsMonitor({ getRTCStats, thresholds });
           monitor.enable({});
-    
+
           monitor.on('warning', onWarning);
-    
+
           clock.tick((SAMPLE_COUNT_RAISE - 1) * 1000);
           clock.restore();
-    
+
           return wait().then(() => sinon.assert.notCalled(onWarning));
         });
 
@@ -324,12 +324,12 @@ describe('StatsMonitor', () => {
           stats[STAT_NAME] = thresholds[STAT_NAME][item.thresholdName] + item.outOfBoundModifier;
           monitor = new StatsMonitor({ getRTCStats, thresholds });
           monitor.enable({});
-    
+
           monitor.on('warning', onWarning);
-    
+
           clock.tick((SAMPLE_COUNT_RAISE - 1) * 1000);
           clock.restore();
-    
+
           return wait().then(() => sinon.assert.calledOnce(onWarning));
         });
 
@@ -340,12 +340,12 @@ describe('StatsMonitor', () => {
           stats[STAT_NAME] = thresholds[STAT_NAME][item.thresholdName] + item.outOfBoundModifier;
           monitor = new StatsMonitor({ getRTCStats, thresholds });
           monitor.enable({});
-    
+
           monitor.on('warning', onWarning);
-    
+
           clock.tick(4000);
           clock.restore();
-    
+
           return wait().then(() => sinon.assert.notCalled(onWarning));
         });
       });
@@ -356,7 +356,7 @@ describe('StatsMonitor', () => {
     it(`Should emit 'error'`, () => {
       const onSample = sinon.stub();
       const onError = sinon.stub();
-      
+
       getRTCStats = () => Promise.reject({});
       monitor = new StatsMonitor({ getRTCStats });
       monitor.on('sample', onSample);

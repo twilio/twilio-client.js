@@ -1,9 +1,9 @@
 const assert = require('assert');
-const EventEmitter = require('events').EventEmitter;
-const EventTarget = require('../lib/twilio/shims/eventtarget');
 const sinon = require('sinon');
 
 const PStream = require('../lib/twilio/pstream');
+const { RELEASE_VERSION } = require('../lib/twilio/constants');
+const TransportFactory = require('./mock/WSTransport');
 
 describe('PStream', () => {
   let pstream;
@@ -30,10 +30,24 @@ describe('PStream', () => {
     });
 
     it('should send a LISTEN with the token', () => {
-      pstream.transport.send = sinon.spy();
       pstream.transport.emit('open');
       assert.equal(pstream.transport.send.callCount, 1);
-      assert.equal(JSON.parse(pstream.transport.send.args[0][0]).type, 'listen');
+      assert.deepEqual(JSON.parse(pstream.transport.send.args[0][0]), {
+        payload: {
+          browserinfo: {
+            browser: {
+              platform: navigator.platform,
+              userAgent: navigator.userAgent,
+            },
+            p: 'browser',
+            plugin: 'rtc',
+            v: RELEASE_VERSION,
+          },
+          token: 'foo',
+        },
+        type: 'listen',
+        version: '1.5'
+      });
     });
 
 
@@ -154,22 +168,25 @@ describe('PStream', () => {
       assert.equal(pstream.token, 'foobar');
     });
 
-    it('should call ._publish', () => {
-      pstream._publish = sinon.spy();
+    it('should send a LISTEN with the new token', () => {
       pstream.setToken('foobar');
-      assert.equal(pstream._publish.callCount, 1);
-    });
-  });
-
-  describe('register', () => {
-    it('should return undefined', () => {
-      assert.equal(pstream.register(), undefined);
-    });
-
-    it('should call ._publish', () => {
-      pstream._publish = sinon.spy();
-      pstream.register();
-      assert.equal(pstream._publish.callCount, 1);
+      assert.equal(pstream.transport.send.callCount, 1);
+      assert.deepEqual(JSON.parse(pstream.transport.send.args[0][0]), {
+        payload: {
+          browserinfo: {
+            browser: {
+              platform: navigator.platform,
+              userAgent: navigator.userAgent,
+            },
+            p: 'browser',
+            plugin: 'rtc',
+            v: RELEASE_VERSION,
+          },
+          token: 'foobar',
+        },
+        type: 'listen',
+        version: '1.5'
+      });
     });
   });
 
@@ -179,7 +196,6 @@ describe('PStream', () => {
     });
 
     it('should close the transport', () => {
-      pstream.transport.close = sinon.spy();
       pstream.destroy();
       assert.equal(pstream.transport.close.callCount, 1);
     });
@@ -191,7 +207,6 @@ describe('PStream', () => {
     });
 
     it('should call transport.send', () => {
-      pstream.transport.send = sinon.spy();
       pstream.publish();
       assert.equal(pstream.transport.send.callCount, 1);
     });
@@ -231,26 +246,93 @@ describe('PStream', () => {
     });
   });
 
-  describe('reinvite', () => {
-    const callsid = 'foo';
-    const sdp = 'bar';
+  [
+    ['register', [
+      {
+        args: [{ audio: true }],
+        payload: { media: { audio: true } },
+        scenario: 'called with media capabilities'
+      }
+    ]],
+    ['invite', [
+      {
+        args: ['bar', 'foo', ''],
+        payload: { callsid: 'foo', sdp: 'bar', twilio: {} },
+        scenario: 'called with empty params'
+      },
+      {
+        args: ['bar', 'foo', 'baz=zee&foo=2'],
+        payload: { callsid: 'foo', sdp: 'bar', twilio: { params: 'baz=zee&foo=2' } },
+        scenario: 'called with non-empty params'
+      }
+    ]],
+    ['answer', [
+      {
+        args: ['bar', 'foo'],
+        payload: { callsid: 'foo', sdp: 'bar' },
+        scenario: 'called with sdp and callsid'
+      }
+    ]],
+    ['dtmf', [
+      {
+        args: ['foo', '123'],
+        payload: { callsid: 'foo', dtmf: '123' },
+        scenario: 'called without callsid and dtmf digits'
+      }
+    ]],
+    ['hangup', [
+      {
+        args: ['foo'],
+        payload: { callsid: 'foo' },
+        scenario: 'called without a message'
+      },
+      {
+        args: ['foo', 'bar'],
+        payload: { callsid: 'foo', message: 'bar' },
+        scenario: 'called with a message'
+      }
+    ]],
+    ['reject', [
+      {
+        args: ['foo'],
+        payload: { callsid: 'foo' },
+        scenario: 'called with callsid'
+      }
+    ]],
+    ['reinvite', [
+      {
+        args: ['bar', 'foo'],
+        payload: { callsid: 'foo', sdp: 'bar' },
+        scenario: 'called with sdp and callsid'
+      }
+    ]]
+  ].forEach(([method, scenarios]) => {
+    describe(method, () => {
+      const shouldRetry = method !== 'reinvite';
+      scenarios.forEach(({ args, payload, scenario }) => {
+        context(scenario, () => {
+          it('should return undefined', () => {
+            assert.equal(pstream[method](...args), undefined);
+          });
 
-    it('should publish without retry', () => {
-      const stub = sinon.stub(pstream, '_publish');
-      pstream.reinvite(sdp, callsid);
-      assert(stub.calledWithExactly('reinvite', { sdp, callsid }, false));
-      stub.restore();
+          it(`should publish with${shouldRetry ? '' : 'out'} retry`, () => {
+            const stub = sinon.stub(pstream, '_publish');
+            pstream[method](...args);
+            assert(stub.calledWithExactly(method, payload, shouldRetry));
+            stub.restore();
+          });
+
+          it(`should send a ${method.toUpperCase()}`, () => {
+            pstream[method](...args);
+            assert.equal(pstream.transport.send.callCount, 1);
+            assert.deepEqual(JSON.parse(pstream.transport.send.args[0][0]), {
+              payload,
+              type: method,
+              version: '1.5'
+            });
+          });
+        });
+      });
     });
   });
 });
-
-class TransportFactory extends EventEmitter {
-  constructor() {
-    super();
-    this._socket = new EventTarget();
-  }
-
-  close() { }
-  open() { }
-  send() { }
-}

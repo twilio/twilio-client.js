@@ -3,10 +3,37 @@ const assert = require('assert');
 const getStats = require('../lib/twilio/rtc/stats');
 const standardPayload = require('./payloads/rtcstatsreport.json');
 const edgePayload = require('./payloads/rtcstatsreport-edge.json');
+const ffPayload = require('./payloads/rtcstatsreport-ff.json');
 const legacyPayload = require('./payloads/rtcstatsresponse.json');
 const MockRTCStatsReport = require('../lib/twilio/rtc/mockrtcstatsreport');
 
 describe('getStats', () => {
+  context('In Firefox', () => {
+    let stats;
+
+    before(() => {
+      const statsReport = MockRTCStatsReport.fromArray(ffPayload);
+      const peerConnection = {
+        getStats() { return Promise.resolve(statsReport); }
+      };
+
+      return getStats(peerConnection).then(_stats => { stats = _stats; });
+    });
+
+    it('should correctly transform a FF RTCStatsReport', () => {
+      assert.deepEqual(stats, {
+        bytesReceived: 143792,
+        bytesSent: 144996,
+        jitter: 3,
+        packetsLost: 0,
+        packetsReceived: 836,
+        packetsSent: 843,
+        rtt: 81,
+        timestamp: 1583785892295
+      });
+    });
+  });
+
   context('In standard browsers', () => {
     let stats;
 
