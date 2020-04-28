@@ -1,4 +1,4 @@
-1.10.3 (In Progress)
+1.11.0 (In Progress)
 ===================
 
 New Features
@@ -26,6 +26,9 @@ New Features
     appVersion: '1.2.3',
   });
   ```
+
+1.10.3 (In Progress)
+===================
 
 Bug Fixes
 ---------
