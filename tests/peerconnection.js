@@ -489,7 +489,7 @@ describe('PeerConnection', () => {
         status: 'closed',
         onerror: sinon.stub(),
         pstream: {
-          publish: sinon.stub()
+          answer: sinon.stub()
         }
       };
       toTest = METHOD.bind(
@@ -538,8 +538,8 @@ describe('PeerConnection', () => {
       context.status = false;
       toTest();
       assert(context._initializeMediaStream.calledWithExactly(eConstraints, eIceServers));
-      assert(context.pstream.publish.calledWithExactly('answer', {callsid: eCallSid, sdp: sdp1}));
-      assert(context.pstream.publish.calledOn(context.pstream));
+      assert(context.pstream.answer.calledWithExactly(sdp1, eCallSid));
+      assert(context.pstream.answer.calledOn(context.pstream));
       assert(version.processSDP.calledOnce);
       assert(version.processSDP.calledWithExactly(undefined, undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
       assert(version.getSDP.calledWithExactly());
@@ -565,7 +565,7 @@ describe('PeerConnection', () => {
       assert.equal(rVal.info.twilioError.code, 53402);
 
       assert(version.processSDP.calledWithExactly(undefined, undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
-      assert.equal(context.pstream.publish.called, false);
+      assert.equal(context.pstream.answer.called, false);
       assert.equal(version.getSDP.called, false);
       assert.equal(callback.called, false);
       sinon.assert.notCalled(context._setupRTCDtlsTransportListener);
@@ -583,7 +583,7 @@ describe('PeerConnection', () => {
       assert.equal(rVal.info.twilioError.code, 53402);
 
       assert(version.processSDP.calledWithExactly(undefined, undefined, eSDP, {audio: true}, sinon.match.func, sinon.match.func));
-      assert.equal(context.pstream.publish.called, false);
+      assert.equal(context.pstream.answer.called, false);
       assert.equal(version.getSDP.called, false);
       sinon.assert.notCalled(context._setEncodingParameters);
       assert.equal(callback.called, false);
@@ -808,7 +808,7 @@ describe('PeerConnection', () => {
           once: sinon.stub(),
           on: sinon.stub(),
           removeListener: sinon.stub(),
-          publish: sinon.stub()
+          invite: sinon.stub()
         },
         device: {
           token: null
@@ -848,12 +848,12 @@ describe('PeerConnection', () => {
       assert(version.createOffer.calledOnce);
       assert(version.createOffer.calledWithExactly(undefined, undefined, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(callback.called, false);
-      assert.equal(context.pstream.publish.called, false);
+      assert.equal(context.pstream.invite.called, false);
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
       sinon.assert.notCalled(context._setupRTCDtlsTransportListener);
     });
 
-    it('Should call onOfferSuccess and pstream publish when createOffer calls success callback and status is not closed', () => {
+    it('Should call onOfferSuccess and pstream invite when createOffer calls success callback and status is not closed', () => {
       context.status = 'not closed';
       version.createOffer.callsArg(3);
       toTest();
@@ -861,14 +861,8 @@ describe('PeerConnection', () => {
       assert(version.createOffer.calledOnce);
       assert(version.createOffer.calledWithExactly(undefined, undefined, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(callback.called, false);
-      assert(context.pstream.publish.calledOnce);
-      assert(context.pstream.publish.calledWithExactly('invite', {
-        sdp: eSDP,
-        callsid: eCallSid,
-        twilio: {
-          params: eParams
-        }
-      }));
+      assert(context.pstream.invite.calledOnce);
+      assert(context.pstream.invite.calledWithExactly(eSDP, eCallSid, eParams));
       assert(version.getSDP.calledOnce);
       assert(version.getSDP.calledWithExactly());
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
@@ -884,14 +878,8 @@ describe('PeerConnection', () => {
       assert(version.createOffer.calledOnce);
       assert(version.createOffer.calledWithExactly(undefined, undefined, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(callback.called, false);
-      assert(context.pstream.publish.calledOnce);
-      assert(context.pstream.publish.calledWithExactly('invite', {
-        sdp: eSDP,
-        callsid: eCallSid,
-        twilio: {
-          params: eParams
-        }
-      }));
+      assert(context.pstream.invite.calledOnce);
+      assert(context.pstream.invite.calledWithExactly(eSDP, eCallSid, eParams));
       assert(version.getSDP.calledOnce);
       assert(version.getSDP.calledWithExactly());
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
@@ -1301,7 +1289,7 @@ describe('PeerConnection', () => {
         sinon.assert.callCount(context._onMediaConnectionStateChange, 1);
         sinon.assert.calledWith(context._onMediaConnectionStateChange, currentState);
       });
-  
+
       it(`Should call _onMediaConnectionStateChange when pc.connectionState transitions to "${currentState}" state`, () => {
         version.pc.connectionState = currentState;
         toTest();
@@ -1938,6 +1926,16 @@ describe('PeerConnection', () => {
         }
       };
       toTest = METHOD.bind(context);
+    });
+
+    it('Should return null if pc is null', () => {
+      const transport = METHOD.call({ version: {} });
+      assert.equal(transport, null);
+    });
+
+    it('Should return null if version is null', () => {
+      const transport = METHOD.call({});
+      assert.equal(transport, null);
     });
 
     it('Should return null if getSenders is not supported', () => {

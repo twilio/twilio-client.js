@@ -488,9 +488,9 @@ describe('Connection', function() {
           (conn as any)['_status'] = state;
         });
 
-        it('should call pstream.publish with hangup', () => {
+        it('should call pstream.hangup', () => {
           conn.disconnect();
-          sinon.assert.calledWith(pstream.publish, 'hangup');
+          sinon.assert.calledWith(pstream.hangup, conn.outboundConnectionId);
         });
 
         it('should call mediaStream.close', () => {
@@ -509,9 +509,9 @@ describe('Connection', function() {
           (conn as any)['_status'] = state;
         });
 
-        it('should not call pstream.publish', () => {
+        it('should not call pstream.hangup', () => {
           conn.disconnect();
-          sinon.assert.notCalled(pstream.publish);
+          sinon.assert.notCalled(pstream.hangup);
         });
 
         it('should not call mediaStream.close', () => {
@@ -689,10 +689,10 @@ describe('Connection', function() {
 
   describe('.reject()', () => {
     context('when state is pending', () => {
-      it('should call pstream.publish with reject', () => {
+      it('should call pstream.reject', () => {
         conn.reject();
-        sinon.assert.calledOnce(pstream.publish);
-        sinon.assert.calledWith(pstream.publish, 'reject', { callsid: conn.parameters.CallSid });
+        sinon.assert.calledOnce(pstream.reject);
+        sinon.assert.calledWith(pstream.reject, conn.parameters.CallSid);
       });
 
       it('should call mediaStream.reject', () => {
@@ -727,9 +727,9 @@ describe('Connection', function() {
           (conn as any)['_status'] = state;
         });
 
-        it('should not call pstream.publish', () => {
+        it('should not call pstream.reject', () => {
           conn.reject();
-          sinon.assert.notCalled(pstream.publish);
+          sinon.assert.notCalled(pstream.reject);
         });
 
         it('should not call mediaStream.reject', () => {
@@ -834,12 +834,9 @@ describe('Connection', function() {
       sinon.assert.callCount(soundcache.get(Device.SoundName.DtmfH).play, 1);
     });
 
-    it('should call pstream.publish if connected', () => {
+    it('should call pstream.dtmf if connected', () => {
       conn.sendDigits('123');
-      sinon.assert.calledWith(pstream.publish, 'dtmf', {
-        callsid: conn.parameters.CallSid,
-        dtmf: '123',
-      });
+      sinon.assert.calledWith(pstream.dtmf, conn.parameters.CallSid, '123');
     });
 
     it('should emit error if pstream is disconnected', (done) => {
@@ -991,10 +988,9 @@ describe('Connection', function() {
               (conn as any)['_status'] = state;
             });
 
-            it('should call pstream.publish with hangup', () => {
+            it('should call pstream.hangup with error message', () => {
               mediaStream.onerror(Object.assign({ disconnect: true }, baseError));
-              sinon.assert.calledWith(pstream.publish, 'hangup');
-              assert.equal(pstream.publish.args[0][1].message, 'foo');
+              sinon.assert.calledWith(pstream.hangup, conn.outboundConnectionId, 'foo');
             });
 
             it('should call mediaStream.close', () => {
@@ -1013,9 +1009,9 @@ describe('Connection', function() {
               (conn as any)['_status'] = state;
             });
 
-            it('should not call pstream.publish', () => {
+            it('should not call pstream.hangup', () => {
               mediaStream.onerror(Object.assign({ disconnect: true }, baseError));
-              sinon.assert.notCalled(pstream.publish);
+              sinon.assert.notCalled(pstream.hangup);
             });
 
             it('should not call mediaStream.close', () => {
@@ -1177,13 +1173,31 @@ describe('Connection', function() {
     });
 
     describe('pstream.cancel event', () => {
-      context('when the callsid matches', () => {
-        beforeEach(() => {
-          conn = new Connection(config, Object.assign({
-            callParameters: { CallSid: 'CA123' }
-          }, options));
-        });
+      let conn: any;
+      let cleanupStub: any;
+      let closeStub: any;
+      let publishStub: any;
 
+      beforeEach(() => {
+        cleanupStub = sinon.stub();
+        closeStub = sinon.stub();
+        publishStub = sinon.stub();
+
+        conn = new Connection(config, Object.assign({
+          callParameters: { CallSid: 'CA123' }
+        }, options));
+
+        conn._cleanupEventListeners = cleanupStub;
+        conn.mediaStream.close = () => {
+          closeStub();
+          conn.emit('disconnect');
+        };
+        conn._publisher = {
+          info: publishStub
+        };
+      });
+
+      context('when the callsid matches', () => {
         it('should transition to closed', () => {
           pstream.emit('cancel', { callsid: 'CA123' });
           assert.equal(conn.status(), Connection.State.Closed);
@@ -1192,6 +1206,13 @@ describe('Connection', function() {
         it('should emit a cancel event', (done) => {
           conn.on('cancel', () => done());
           pstream.emit('cancel', { callsid: 'CA123' });
+        });
+
+        it('should disconnect the call', () => {
+          pstream.emit('cancel', { callsid: 'CA123' });
+          sinon.assert.called(cleanupStub);
+          sinon.assert.called(closeStub);
+          sinon.assert.calledWithExactly(publishStub, 'connection', 'cancel', null, conn);
         });
       });
 
@@ -1225,9 +1246,9 @@ describe('Connection', function() {
           sinon.assert.calledWith(publisher.info, 'connection', 'disconnected-by-remote');
         });
 
-        it('should not call pstream.publish with hangup', () => {
+        it('should not call pstream.hangup', () => {
           pstream.emit('hangup', { callsid: 'CA123' });
-          sinon.assert.notCalled(pstream.publish);
+          sinon.assert.notCalled(pstream.hangup);
         });
 
         it('should throw an error if the payload contains an error', () => {
@@ -1266,9 +1287,9 @@ describe('Connection', function() {
           sinon.assert.notCalled(publisher.info);
         });
 
-        it('should not call pstream.publish with hangup', () => {
+        it('should not call pstream.hangup', () => {
           pstream.emit('hangup', { callsid: 'CA123' });
-          sinon.assert.notCalled(pstream.publish);
+          sinon.assert.notCalled(pstream.hangup);
         });
       });
     });
