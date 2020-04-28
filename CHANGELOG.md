@@ -1,10 +1,22 @@
 1.11.0 (In Progress)
 ===================
 
-Features
---------
+New Features
+---------
 
-* Added `appName` and `appVersion` fields to Device.options. Pass these strings on Device setup, and they will be passed to Insights. This can
+* ### Twilio Regional
+  This release includes support for the first phase of the new **Twilio Regional**.
+
+  **Twilio Regional** allows developers to specify a region where data is processed and stored and specify an edge indicating where the SDK connects into Twilio.
+
+  This first phase includes edge connectivity and the new parameter `Twilio.Device.Options.edge`.
+  This new parameter supersedes the now deprecated `Twilio.Device.Options.region`.
+  See `Twilio.Device.Options.edge` for migration instructions.
+  The edge that the client connected to can be read from `Twilio.Device` using the read-only property `Twilio.Device.edge`.
+
+  Please see documentation on [edges](https://www.twilio.com/docs/voice/client/edges).
+
+* Added `appName` and `appVersion` fields to Device.options. Pass these strings on Device setup, and they will be passed to [Insights](https://www.twilio.com/console/voice/insights). This can
   be used to help debug which of your applications and/or versions an issue began occurring in.
   #### Example
 

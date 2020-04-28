@@ -291,8 +291,8 @@ export default class WSTransport extends EventEmitter {
         message: event.reason ||
           'Websocket connection to Twilio\'s signaling servers were ' +
           'unexpectedly ended. If this is happening consistently, there may ' +
-          'be an issue resolving the hostname provided. If a region is being ' +
-          'specified in Device setup, ensure it\'s a valid region.',
+          'be an issue resolving the hostname provided. If a region or an ' +
+          'edge is being specified in Device setup, ensure it is valid.',
         twilioError: new SignalingErrors.ConnectionError(),
       });
     }
