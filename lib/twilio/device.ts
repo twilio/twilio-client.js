@@ -581,7 +581,8 @@ class Device extends EventEmitter {
 
     if (isLegacyEdge()) {
       this._log.warn(
-        'This browser is deprecated and will not be able to connect to Twilio in the next breaking release. ' +
+        'Microsoft Edge Legacy (https://support.microsoft.com/en-us/help/4533505/what-is-microsoft-edge-legacy) ' +
+        'is deprecated and will not be able to connect to Twilio to make or receive calls after September 1st, 2020. ' +
         'Please see this documentation for a list of supported browsers ' +
         'https://www.twilio.com/docs/voice/client/javascript#supported-browsers',
       );

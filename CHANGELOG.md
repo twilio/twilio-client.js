@@ -11,9 +11,10 @@ Additions
 ---------
 
 * Added tests for Signaling payloads. (CLIENT-4533)
-* Microsoft Legacy Edge is now deprecated. Running `device.setup()` on this browser will result with the console warning below.
+* [Microsoft Edge Legacy](https://support.microsoft.com/en-us/help/4533505/what-is-microsoft-edge-legacy) is now deprecated. Running `device.setup()` on this browser will result with the console warning below.
   ```
-  This browser is deprecated and will not be able to connect to Twilio in the next breaking release.
+  Microsoft Edge Legacy (https://support.microsoft.com/en-us/help/4533505/what-is-microsoft-edge-legacy)
+  is deprecated and will not be able to connect to Twilio to make or receive calls after September 1st, 2020.
   Please see this documentation for a list of supported browsers
   https://www.twilio.com/docs/voice/client/javascript#supported-browsers
   ```
