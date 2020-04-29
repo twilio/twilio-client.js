@@ -23,7 +23,7 @@ import {
   getRegionURI,
 } from './regions';
 import {
-  isBrowserDeprecated,
+  isLegacyEdge,
   isUnifiedPlanDefault,
   queryToJson,
 } from './util';
@@ -579,7 +579,7 @@ class Device extends EventEmitter {
         Twilio Support at <help@twilio.com>.`);
     }
 
-    if (isBrowserDeprecated()) {
+    if (isLegacyEdge()) {
       this._log.warn(
         'This browser is deprecated and will not be able to connect to Twilio in the next breaking release. ' +
         'Please see this documentation for a list of supported browsers ' +
