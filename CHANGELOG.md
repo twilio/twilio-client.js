@@ -21,17 +21,13 @@ New Features
   const device = new Device(token, { edge: 'ashburn' });
   ```
 
-  ### Edge Fallback
+  ### Edge Fallback Support
 
-  The new parameter `Twilio.Device.Options.edge`, can also be used to provide auto fallback functionality. This is enabled if the `edge` parameter is provided as an array with more than one edge value, sorted by priority order where the first element has the highest priority and the last element has the lowest priority.
-
-  If the `edge` parameter is provided as an array, adding `roaming` as one of the values will cause `device.setup()` to throw an exception. Please see [edges](https://www.twilio.com/docs/voice/client/edges) for other valid edge values.
-
-  The fallback behavior is only applicable if edge parameter is supplied as an array. During initialization, the SDK will use the first edge value in the edges array. If the SDK encounters a WebSocket error code of [1006 or 1015](https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent), the SDK will attempt to reconnect using the next value in the edges array with an initial delay of 1+random(5) seconds and will cycle through all the edge values until a connection is established. An exponential backoff will be applied in between connection attempts with a maximum delay of 20 seconds. This maximum delay can be changed using `Twilio.Device.Options.backoffMaxMs`;
+  Deployments designed to connect to multiple Twilio regions can take advantage of the new edge fallback mechanism. To enable the edge fallback, specify an array of edge names to `Twilio.Device.Options.edge`. When enabled and a connection failure is encountered, the SDK will reattempt the connection to the next region in the list. For more details about how the fallback works, see `Twilio.Device.Options.edge` documentation.
 
   **Example**
   ```ts
-  const device = new Device(token, { edge: ['ashburn', 'sydney', 'dublin'] });
+  const device = new Device(token, { edge: ['ashburn-ix', 'san-jose-ix' ] });
   ```
 
 * Added `appName` and `appVersion` fields to Device.options. Pass these strings on Device setup, and they will be passed to [Insights](https://www.twilio.com/console/voice/insights). This can
