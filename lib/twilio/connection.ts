@@ -576,49 +576,52 @@ class Connection extends EventEmitter {
       this.options.beforeAccept(this);
     }
 
-    const inputStream = typeof this.options.getInputStream === 'function' && this.options.getInputStream();
+    const inputStream: any = typeof this.options.getInputStream === 'function' && this.options.getInputStream();
 
-    const promise = inputStream
-      ? this.mediaStream.setInputTracksFromStream(inputStream)
-      : this.mediaStream.openWithConstraints(audioConstraints);
+    inputStream.addEventListener('addtrack', () => {
+      console.log('xxxxxxxxxxxx track added');
+      const promise = inputStream
+        ? this.mediaStream.setInputTracksFromStream(inputStream)
+        : this.mediaStream.openWithConstraints(audioConstraints);
 
-    promise.then(() => {
-      this._publisher.info('get-user-media', 'succeeded', {
-        data: { audioConstraints },
-      }, this);
-
-      connect();
-    }, (error: Record<string, any>) => {
-      let message;
-      let code;
-
-      if (error.code === 31208
-        || ['PermissionDeniedError', 'NotAllowedError'].indexOf(error.name) !== -1) {
-        code = 31208;
-        message = 'User denied access to microphone, or the web browser did not allow microphone '
-          + 'access at this address.';
-        this._publisher.error('get-user-media', 'denied', {
-          data: {
-            audioConstraints,
-            error,
-          },
+      promise.then(() => {
+        this._publisher.info('get-user-media', 'succeeded', {
+          data: { audioConstraints },
         }, this);
-      } else {
-        code = 31201;
-        message = `Error occurred while accessing microphone: ${error.name}${error.message
-          ? ` (${error.message})`
-          : ''}`;
 
-        this._publisher.error('get-user-media', 'failed', {
-          data: {
-            audioConstraints,
-            error,
-          },
-        }, this);
-      }
+        connect();
+      }, (error: Record<string, any>) => {
+        let message;
+        let code;
 
-      this._disconnect();
-      this.emit('error', { message, code });
+        if (error.code === 31208
+          || ['PermissionDeniedError', 'NotAllowedError'].indexOf(error.name) !== -1) {
+          code = 31208;
+          message = 'User denied access to microphone, or the web browser did not allow microphone '
+            + 'access at this address.';
+          this._publisher.error('get-user-media', 'denied', {
+            data: {
+              audioConstraints,
+              error,
+            },
+          }, this);
+        } else {
+          code = 31201;
+          message = `Error occurred while accessing microphone: ${error.name}${error.message
+            ? ` (${error.message})`
+            : ''}`;
+
+          this._publisher.error('get-user-media', 'failed', {
+            data: {
+              audioConstraints,
+              error,
+            },
+          }, this);
+        }
+
+        this._disconnect();
+        this.emit('error', { message, code });
+      });
     });
   }
 

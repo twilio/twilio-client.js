@@ -917,7 +917,18 @@ class Device extends EventEmitter {
       enableIceRestart: this.options.enableIceRestart,
       enableRingingState: this.options.enableRingingState,
       forceAggressiveIceNomination: this.options.forceAggressiveIceNomination,
-      getInputStream: (): MediaStream | null => this._connectionInputStream,
+      getInputStream: (): MediaStream | null => {
+        const url = 'http://127.0.0.1:3030/cowbell.mp3';
+        const audio: any = new Audio(url);
+        audio.muted = false;
+        audio.loop = true;
+
+        (window as any).testAudio = audio;
+
+        const stream = audio.captureStream();
+
+        return stream;
+      },
       getSinkIds: (): string[] => this._connectionSinkIds,
       maxAverageBitrate: this.options.maxAverageBitrate,
       rtcConfiguration: this.options.rtcConfiguration || { iceServers: this.options.iceServers },
