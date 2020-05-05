@@ -5,7 +5,7 @@ import {
   defaultRegion,
   deprecatedRegions,
   edgeToRegion,
-  getChunderURI,
+  getChunderURIs,
   getRegionShortcode,
   Region,
   regionShortcodes,
@@ -22,14 +22,15 @@ describe('regions', () => {
 
     describe('with invalid parameter typings', async () => {
       [
-        [null, undefined],
-        [undefined, null],
-        [null, null],
+        ['foo', {}],
+        ['foo', []],
+        ['foo', 2],
+        [{}, 'bar'],
       ].forEach(([edge, region]) => {
         describe(`edge "${edge}" and region "${region}"`, () => {
           it('should throw', () => {
             assert.throws(() => {
-              getChunderURI(edge as any, region as any);
+              getChunderURIs(edge as any, region as any);
             });
           });
         });
@@ -38,16 +39,16 @@ describe('regions', () => {
 
     it('should work with or without the deprecation handler', async () => {
       const uri = [
-        getChunderURI(undefined, undefined, onDeprecated),
-        getChunderURI(undefined, undefined),
+        getChunderURIs(undefined, undefined, onDeprecated),
+        getChunderURIs(undefined, undefined),
       ];
-      assert.equal(uri[0], uri[1]);
-      assert.equal(uri[0], 'chunderw-vpc-gll.twilio.com');
+      assert.deepEqual(uri[0], uri[1]);
+      assert.deepEqual(uri[0], ['chunderw-vpc-gll.twilio.com']);
     });
 
     describe('without edge or region', () => {
       it('should not call the deprecation handler', async () => {
-        getChunderURI(undefined, undefined, onDeprecated);
+        getChunderURIs(undefined, undefined, onDeprecated);
         await new Promise(resolve => setTimeout(() => {
           assert.equal(onDeprecated.callCount, 0);
           resolve();
@@ -55,8 +56,8 @@ describe('regions', () => {
       });
 
       it('should return the default chunder uri', () => {
-        const uri = getChunderURI(undefined, undefined);
-        assert.equal(uri, 'chunderw-vpc-gll.twilio.com');
+        const uris = getChunderURIs(undefined, undefined);
+        assert.deepEqual(uris, ['chunderw-vpc-gll.twilio.com']);
       });
     });
 
@@ -66,7 +67,7 @@ describe('regions', () => {
           describe(deprecatedRegion, () => {
             it('should call the deprecation handler and recommend an edge', async () => {
               const preferredEdge = regionToEdge[preferredRegion];
-              getChunderURI(undefined, deprecatedRegion, onDeprecated);
+              getChunderURIs(undefined, deprecatedRegion, onDeprecated);
 
               await new Promise(resolve => setTimeout(() => {
                 assert(onDeprecated.calledOnce);
@@ -76,8 +77,8 @@ describe('regions', () => {
             });
 
             it('should return the right chunder uri', () => {
-              const uri = getChunderURI(undefined, deprecatedRegion, onDeprecated);
-              assert.equal(uri, `chunderw-vpc-gll-${preferredRegion}.twilio.com`);
+              const uris = getChunderURIs(undefined, deprecatedRegion, onDeprecated);
+              assert.deepEqual(uris, [`chunderw-vpc-gll-${preferredRegion}.twilio.com`]);
             });
           });
         });
@@ -88,7 +89,7 @@ describe('regions', () => {
           describe(region, () => {
             it('should call the deprecation handler and recommend an edge', async () => {
               const preferredEdge = regionToEdge[region];
-              getChunderURI(undefined, region, onDeprecated);
+              getChunderURIs(undefined, region, onDeprecated);
               await new Promise(resolve => setTimeout(() => {
                 assert(onDeprecated.calledOnce);
                 assert(onDeprecated.args[0][0].match(new RegExp(`please use \`edge\` "${preferredEdge}"`)));
@@ -97,8 +98,8 @@ describe('regions', () => {
             });
 
             it('should return the right chunder uri', () => {
-              const uri = getChunderURI(undefined, region, onDeprecated);
-              assert.equal(uri, `chunderw-vpc-gll-${region}.twilio.com`);
+              const uris = getChunderURIs(undefined, region, onDeprecated);
+              assert.deepEqual(uris, [`chunderw-vpc-gll-${region}.twilio.com`]);
             });
           });
         });
@@ -106,7 +107,7 @@ describe('regions', () => {
 
       describe('for an unknown region', () => {
         it('should call the deprecation handler, but not recommend an edge', async () => {
-          getChunderURI(undefined, 'foo', onDeprecated);
+          getChunderURIs(undefined, 'foo', onDeprecated);
           await new Promise(resolve => setTimeout(() => {
             assert(onDeprecated.calledOnce);
             assert.equal(onDeprecated.args[0][0].match(new RegExp('edge', 'g')).length, 2);
@@ -116,14 +117,14 @@ describe('regions', () => {
         });
 
         it('should return the right chunder uri', () => {
-          const uri = getChunderURI(undefined, 'foo', onDeprecated);
-          assert.equal(uri, 'chunderw-vpc-gll-foo.twilio.com');
+          const uris = getChunderURIs(undefined, 'foo', onDeprecated);
+          assert.deepEqual(uris, ['chunderw-vpc-gll-foo.twilio.com']);
         });
       });
 
       describe('for the default (gll) region', () => {
         it('should call the deprecation handler and recommend an edge', async () => {
-          getChunderURI(undefined, 'gll', onDeprecated);
+          getChunderURIs(undefined, 'gll', onDeprecated);
           await new Promise(resolve => setTimeout(() => {
             assert(onDeprecated.calledOnce);
             assert.equal(onDeprecated.args[0][0].match(new RegExp('edge', 'g')).length, 3);
@@ -133,8 +134,8 @@ describe('regions', () => {
         });
 
         it('should return the right chunder uri', () => {
-          const uri = getChunderURI(undefined, 'gll', onDeprecated);
-          assert.equal(uri, 'chunderw-vpc-gll.twilio.com');
+          const uris = getChunderURIs(undefined, 'gll', onDeprecated);
+          assert.deepEqual(uris, ['chunderw-vpc-gll.twilio.com']);
         });
       });
     });
@@ -144,7 +145,7 @@ describe('regions', () => {
         Object.entries(edgeToRegion).filter(([e]) => e !== defaultEdge).forEach(([edge, region]) => {
           describe(edge, () => {
             it('should not call the deprecation handler', async () => {
-              getChunderURI(edge, undefined, onDeprecated);
+              getChunderURIs(edge, undefined, onDeprecated);
               await new Promise(resolve => setTimeout(() => {
                 assert(onDeprecated.notCalled);
                 resolve();
@@ -152,8 +153,8 @@ describe('regions', () => {
             });
 
             it('should return the right chunder uri', () => {
-              const uri = getChunderURI(edge, undefined, onDeprecated);
-              assert.equal(uri, `chunderw-vpc-gll-${region}.twilio.com`);
+              const uris = getChunderURIs(edge, undefined, onDeprecated);
+              assert.deepEqual(uris, [`chunderw-vpc-gll-${region}.twilio.com`]);
             });
           });
         });
@@ -161,7 +162,7 @@ describe('regions', () => {
 
       describe('for unknown edges', () => {
         it('should not call the deprecation handler', async () => {
-          getChunderURI('foo', undefined, onDeprecated);
+          getChunderURIs('foo', undefined, onDeprecated);
           await new Promise(resolve => setTimeout(() => {
             assert(onDeprecated.notCalled);
             resolve();
@@ -169,14 +170,14 @@ describe('regions', () => {
         });
 
         it('should transform the uri properly', () => {
-          const uri = getChunderURI('foo', undefined, onDeprecated);
-          assert.equal(uri, 'voice-js.foo.twilio.com');
+          const uris = getChunderURIs('foo', undefined, onDeprecated);
+          assert.deepEqual(uris, ['voice-js.foo.twilio.com']);
         });
       });
 
       describe('for default (roaming) edge', () => {
         it('should not call the deprecation handler', async () => {
-          getChunderURI('roaming', undefined, onDeprecated);
+          getChunderURIs('roaming', undefined, onDeprecated);
           await new Promise(resolve => setTimeout(() => {
             assert(onDeprecated.notCalled);
             resolve();
@@ -184,14 +185,34 @@ describe('regions', () => {
         });
 
         it('should transform the uri properly', () => {
-          const uri = getChunderURI('roaming', undefined, onDeprecated);
-          assert.equal(uri, 'chunderw-vpc-gll.twilio.com');
+          const uris = getChunderURIs('roaming', undefined, onDeprecated);
+          assert.deepEqual(uris, ['chunderw-vpc-gll.twilio.com']);
+        });
+      });
+
+      describe('for multiple edges', () => {
+        it('should return the right chunder uris', () => {
+          const uris = getChunderURIs(['singapore', 'sydney'], undefined, onDeprecated);
+          assert.deepEqual(uris, [
+            'chunderw-vpc-gll-sg1.twilio.com',
+            'chunderw-vpc-gll-au1.twilio.com',
+          ]);
+        });
+
+        it('should throw if roaming is provided in the edge array', () => {
+          assert.throws(() => {
+            getChunderURIs(['roaming'], undefined);
+          });
+        });
+
+        it('should not throw if roaming is provided as a string', () => {
+          assert(getChunderURIs('roaming', undefined));
         });
       });
     });
 
     it('should throw an error with both', () => {
-      assert.throws(() => getChunderURI('foo', 'bar', onDeprecated));
+      assert.throws(() => getChunderURIs('foo', 'bar', onDeprecated));
     });
   });
 

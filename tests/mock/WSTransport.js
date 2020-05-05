@@ -11,6 +11,9 @@ function MockWSTransport() {
   stub.emit.callThrough();
   stub.on.callThrough();
   stub.removeListener.callThrough();
+
+  stub._uris = ['foo'];
+  stub._uriIndex = 0;
   return stub;
 }
 
