@@ -274,7 +274,6 @@ export function getChunderURIs(
   }
 
   const deprecatedMessages: string[] = [];
-
   let uris: string[];
 
   if (region && edge) {
