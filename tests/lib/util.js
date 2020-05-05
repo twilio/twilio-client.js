@@ -213,7 +213,7 @@ function runDockerCommand(cmd) {
     const xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function() {
       if (this.readyState == 4 && this.status == 200) {
-        resolve();
+        resolve(this.responseText);
       }
     };
     xmlhttp.open('GET', `${DOCKER_PROXY_SERVER_URL}/${cmd}`, true);
