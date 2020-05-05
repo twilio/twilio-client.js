@@ -27,7 +27,7 @@ New Features
   });
   ```
 
-1.10.3 (In Progress)
+1.10.3 (Apr 29, 2020)
 ===================
 
 Bug Fixes
