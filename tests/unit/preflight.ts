@@ -17,6 +17,7 @@ describe('PreflightTest', () => {
   let deviceContext: any;
   let options: any;
   let testSamples: any;
+  let edgeStub: any;
 
   const getDeviceFactory = (context: any) => {
     const factory = function(this: any, token: string, options: PreflightTest.Options) {
@@ -70,8 +71,10 @@ describe('PreflightTest', () => {
       connect: sinon.stub().returns(connection),
       destroy: sinon.stub(),
       region: sinon.stub().returns('foobar-region'),
-      edge: sinon.stub().returns('foobar-edge'),
+      edge: null,
     };
+    edgeStub = sinon.stub().returns('foobar-edge');
+    sinon.stub(deviceContext, 'edge').get(edgeStub);
     deviceFactory = getDeviceFactory(deviceContext)
 
     options = {
@@ -104,6 +107,7 @@ describe('PreflightTest', () => {
         debug: false,
         edge: options.edge,
       });
+      sinon.assert.calledOnce(edgeStub);
     });
   });
 

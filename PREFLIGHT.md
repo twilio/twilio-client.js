@@ -19,7 +19,7 @@ The `options` parameter is a JavaScript object containing configuration settings
 |:---------|:--------|:------------|
 | `codecPreferences` | `['pcmu', 'opus']` | An ordered list of preferred codecs. |
 | `debug` | `false` | Can be `true` or `false`. Set this property to true to enable debug logging in your browser console. |
-| `region` | `gll` | Specifies which Twilio Data Center to use when initiating the test call. Please see this [page](https://www.twilio.com/docs/voice/client/regions#twilio-js-regions) for the list of available regions. |
+| `edge` | `roaming` | Specifies which Twilio `edge` to use when initiating the test call. Please see documentation on [edges](https://www.twilio.com/docs/voice/client/edges). |
 
 Events
 ------

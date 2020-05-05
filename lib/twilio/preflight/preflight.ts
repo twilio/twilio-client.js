@@ -261,7 +261,7 @@ export class PreflightTest extends EventEmitter {
   private _onDeviceReady(): void {
     this._connection = this._device.connect();
     this._setupConnectionHandlers(this._connection);
-    this._edge = this._device.edge();
+    this._edge = this._device.edge || undefined;
 
     this._device.once('disconnect', () => {
       this._device.once('offline', () => this._onCompleted());
