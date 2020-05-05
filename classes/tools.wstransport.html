@@ -88,6 +88,12 @@
 							</ul>
 						</section>
 						<section class="tsd-index-section tsd-is-external">
+							<h3>Accessors</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-external"><a href="tools.wstransport.html#uri" class="tsd-kind-icon">uri</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section tsd-is-external">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external"><a href="tools.wstransport.html#addlistener" class="tsd-kind-icon">add<wbr>Listener</a></li>
@@ -120,19 +126,19 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-external">
-						<li class="tsd-signature tsd-kind-icon">new WSTransport<span class="tsd-signature-symbol">(</span>uri<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/tools.iwstransportconstructoroptions.html" class="tsd-signature-type">IWSTransportConstructorOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="tools.wstransport.html" class="tsd-signature-type">WSTransport</a></li>
+						<li class="tsd-signature tsd-kind-icon">new WSTransport<span class="tsd-signature-symbol">(</span>uris<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span>, options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/tools.iwstransportconstructoroptions.html" class="tsd-signature-type">IWSTransportConstructorOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="tools.wstransport.html" class="tsd-signature-type">WSTransport</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ca7f57a/lib/twilio/wstransport.ts#L115">twilio/wstransport.ts:115</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1702359/lib/twilio/wstransport.ts#L130">twilio/wstransport.ts:130</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>uri: <span class="tsd-signature-type">string</span></h5>
+									<h5>uris: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
 								</li>
 								<li>
 									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> options: <a href="../interfaces/tools.iwstransportconstructoroptions.html" class="tsd-signature-type">IWSTransportConstructorOptions</a><span class="tsd-signature-symbol"> =&nbsp;{ }</span></h5>
@@ -151,7 +157,7 @@
 					<div class="tsd-signature tsd-kind-icon">state<span class="tsd-signature-symbol">:</span> <a href="../enums/tools.wstransportstate.html" class="tsd-signature-type">WSTransportState</a><span class="tsd-signature-symbol"> =&nbsp;WSTransportState.Closed</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ca7f57a/lib/twilio/wstransport.ts#L67">twilio/wstransport.ts:67</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1702359/lib/twilio/wstransport.ts#L72">twilio/wstransport.ts:72</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -162,6 +168,19 @@
 					<aside class="tsd-sources">
 						<p>Inherited from EventEmitter.defaultMaxListeners</p>
 						<ul>
+						</ul>
+					</aside>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group tsd-is-external">
+				<h2>Accessors</h2>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class tsd-is-external">
+					<a name="uri" class="tsd-anchor"></a>
+					<h3>uri</h3>
+					<div class="tsd-signature tsd-kind-icon">uri<span class="tsd-signature-symbol">:</span> </div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1702359/lib/twilio/wstransport.ts#L402">twilio/wstransport.ts:402</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -223,7 +242,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ca7f57a/lib/twilio/wstransport.ts#L154">twilio/wstransport.ts:154</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1702359/lib/twilio/wstransport.ts#L181">twilio/wstransport.ts:181</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -486,7 +505,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ca7f57a/lib/twilio/wstransport.ts#L162">twilio/wstransport.ts:162</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1702359/lib/twilio/wstransport.ts#L189">twilio/wstransport.ts:189</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -686,7 +705,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ca7f57a/lib/twilio/wstransport.ts#L180">twilio/wstransport.ts:180</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/1702359/lib/twilio/wstransport.ts#L207">twilio/wstransport.ts:207</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -811,6 +830,9 @@
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static tsd-is-external">
 								<a href="tools.wstransport.html#defaultmaxlisteners" class="tsd-kind-icon">default<wbr>Max<wbr>Listeners</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-external">
+								<a href="tools.wstransport.html#uri" class="tsd-kind-icon">uri</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited tsd-is-external">
 								<a href="tools.wstransport.html#addlistener" class="tsd-kind-icon">add<wbr>Listener</a>
