@@ -17,6 +17,7 @@ The `options` parameter is a JavaScript object containing configuration settings
 
 | Property | Default | Description |
 |:---------|:--------|:------------|
+| `callSetupTimeoutMs` | `10000` | Ammount of time to wait for setting up the call before failing the test. Call setup is measured from the start of the test until PreflightTest.status has transitioned to PreflightTest.Status.Connected. |
 | `codecPreferences` | `['pcmu', 'opus']` | An ordered list of preferred codecs. |
 | `debug` | `false` | Can be `true` or `false`. Set this property to true to enable debug logging in your browser console. |
 

@@ -63,6 +63,11 @@ export declare interface PreflightTest {
  */
 export class PreflightTest extends EventEmitter {
   /**
+   * Timer for call setup
+   */
+  private _callSetupTimeoutTimer: number;
+
+  /**
    * Callsid generated for this test call
    */
   private _callSid: string | undefined;
@@ -96,6 +101,7 @@ export class PreflightTest extends EventEmitter {
    * The options passed to {@link PreflightTest} constructor
    */
   private _options: PreflightTest.Options = {
+    callSetupTimeoutMs: 10000,
     codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
     debug: false,
   };
@@ -160,6 +166,13 @@ export class PreflightTest extends EventEmitter {
     this._device.on('error', (error: Device.Error) => {
       this._onDeviceError(error);
     });
+
+    this._callSetupTimeoutTimer = setTimeout(() => {
+      this._onDeviceError({
+        code: 31901,
+        message: 'WebSocket - Connection Timeout',
+      });
+    }, this._options.callSetupTimeoutMs);
   }
 
   /**
@@ -230,6 +243,7 @@ export class PreflightTest extends EventEmitter {
    * Called when the test has been completed
    */
   private _onCompleted(): void {
+    clearTimeout(this._callSetupTimeoutTimer);
     this._releaseHandlers();
     this._endTime = Date.now();
     this._status = PreflightTest.Status.Completed;
@@ -264,6 +278,7 @@ export class PreflightTest extends EventEmitter {
    * @param error
    */
   private _onFailed(error: Device.Error | DOMError): void {
+    clearTimeout(this._callSetupTimeoutTimer);
     this._releaseHandlers();
     this._endTime = Date.now();
     this._status = PreflightTest.Status.Failed;
@@ -292,6 +307,8 @@ export class PreflightTest extends EventEmitter {
     });
 
     connection.once('accept', () => {
+      clearTimeout(this._callSetupTimeoutTimer);
+
       this._callSid = connection.mediaStream.callSid;
       this._status = PreflightTest.Status.Connected;
       this.emit(PreflightTest.Events.Connected);
@@ -453,6 +470,14 @@ export namespace PreflightTest {
    * Options passed to {@link PreflightTest} constructor.
    */
   export interface Options {
+    /**
+     * Ammount of time to wait for setting up the call before failing the test.
+     * Call setup is measured from the start of the test until
+     * [[PreflightTest.status]] has transitioned to [[PreflightTest.Status.Connected]].
+     * @default 10000
+     */
+    callSetupTimeoutMs?: number;
+
     /**
      * An ordered array of codec names that will be used during the test call,
      * from most to least preferred.
