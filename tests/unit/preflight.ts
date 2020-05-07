@@ -200,9 +200,36 @@ describe('PreflightTest', () => {
 
       assert.equal(preflight.callSid, CALL_SID);
     });
+
+    it('should clear singaling timeout timer', () => {
+      const onFailed = sinon.stub();
+      const preflight = new PreflightTest('foo', options);
+
+      preflight.on('failed', onFailed);
+      device.emit('ready');
+
+      clock.tick(15000);
+
+      sinon.assert.notCalled(onFailed);
+    });
   });
 
   describe('on completed and destroy device', () => {
+    it('should clear signaling timeout timer', () => {
+      const onFailed = sinon.stub();
+      const preflight = new PreflightTest('foo', options);
+      preflight.on('failed', onFailed);
+
+      device.emit('ready');
+      clock.tick(5000);
+      device.emit('disconnect');
+      clock.tick(1000);
+      device.emit('offline');
+
+      clock.tick(15000);
+      sinon.assert.notCalled(onFailed);
+    });
+
     it('should end call after device disconnects', () => {
       const onCompleted = sinon.stub();
       const preflight = new PreflightTest('foo', options);
@@ -325,6 +352,46 @@ describe('PreflightTest', () => {
   });
 
   describe('on failed', () => {
+    it('should clear signaling timeout timer', () => {
+      const onFailed = sinon.stub();
+      const preflight = new PreflightTest('foo', options);
+
+      preflight.on('failed', onFailed);
+      device.emit('ready');
+      clock.tick(5000);
+
+      preflight.stop();
+      device.emit('offline');
+
+      clock.tick(15000);
+
+      sinon.assert.calledOnce(onFailed);
+    });
+
+    it('should timeout after 10s by default', () => {
+      const onFailed = sinon.stub();
+      const preflight = new PreflightTest('foo', options);
+      preflight.on('failed', onFailed);
+
+      clock.tick(9999);
+      sinon.assert.notCalled(onFailed);
+      clock.tick(1);
+      sinon.assert.calledOnce(onFailed);
+      sinon.assert.calledWithExactly(onFailed, { code: 31901, message: "WebSocket - Connection Timeout" });
+    });
+
+    it('should use timeout param', () => {
+      const onFailed = sinon.stub();
+      const preflight = new PreflightTest('foo', Object.assign({ signalingTimeoutMs: 3000 }, options));
+      preflight.on('failed', onFailed);
+
+      clock.tick(2999);
+      sinon.assert.notCalled(onFailed);
+      clock.tick(1);
+      sinon.assert.calledOnce(onFailed);
+      sinon.assert.calledWithExactly(onFailed, { code: 31901, message: "WebSocket - Connection Timeout" });
+    });
+
     it('should emit failed if Device failed to initialized', () => {
       deviceContext.setup = () => {
         throw 'foo';

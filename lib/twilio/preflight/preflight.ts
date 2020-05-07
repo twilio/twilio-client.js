@@ -104,6 +104,7 @@ export class PreflightTest extends EventEmitter {
     codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
     debug: false,
     edge: 'roaming',
+    signalingTimeoutMs: 10000,
   };
 
   /**
@@ -115,6 +116,11 @@ export class PreflightTest extends EventEmitter {
    * WebRTC samples collected during this test
    */
   private _samples: RTCSample[];
+
+  /**
+   * Timer for setting up signaling connection
+   */
+  private _signalingTimeoutTimer: number;
 
   /**
    * Start of test timestamp
@@ -167,6 +173,13 @@ export class PreflightTest extends EventEmitter {
     this._device.on('error', (error: Device.Error) => {
       this._onDeviceError(error);
     });
+
+    this._signalingTimeoutTimer = setTimeout(() => {
+      this._onDeviceError({
+        code: 31901,
+        message: 'WebSocket - Connection Timeout',
+      });
+    }, this._options.signalingTimeoutMs);
   }
 
   /**
@@ -239,6 +252,8 @@ export class PreflightTest extends EventEmitter {
    * Called when the test has been completed
    */
   private _onCompleted(): void {
+    clearTimeout(this._signalingTimeoutTimer);
+
     this._releaseHandlers();
     this._endTime = Date.now();
     this._status = PreflightTest.Status.Completed;
@@ -259,6 +274,8 @@ export class PreflightTest extends EventEmitter {
    * Called on {@link Device} ready event
    */
   private _onDeviceReady(): void {
+    clearTimeout(this._signalingTimeoutTimer);
+
     this._connection = this._device.connect();
     this._setupConnectionHandlers(this._connection);
     this._edge = this._device.edge || undefined;
@@ -274,6 +291,7 @@ export class PreflightTest extends EventEmitter {
    * @param error
    */
   private _onFailed(error: Device.Error | DOMError): void {
+    clearTimeout(this._signalingTimeoutTimer);
     this._releaseHandlers();
     this._endTime = Date.now();
     this._status = PreflightTest.Status.Failed;
@@ -483,6 +501,12 @@ export namespace PreflightTest {
      * for the list of available edges.
      */
     edge?: string;
+    
+    /**
+     * Amount of time to wait for setting up signaling connection.
+     * @default 10000
+     */
+    signalingTimeoutMs?: number;
   }
 
   /**
