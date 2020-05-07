@@ -184,13 +184,12 @@ describe('PreflightTest', () => {
       assert.equal(preflight.callSid, CALL_SID);
     });
 
-    it('should clear callSetupTimeoutTimer', () => {
+    it('should clear singaling timeout timer', () => {
       const onFailed = sinon.stub();
       const preflight = new PreflightTest('foo', options);
 
       preflight.on('failed', onFailed);
       device.emit('ready');
-      connection.emit('accept');
 
       clock.tick(15000);
 
@@ -199,7 +198,7 @@ describe('PreflightTest', () => {
   });
 
   describe('on completed and destroy device', () => {
-    it('should clear callSetupTimeoutTimer', () => {
+    it('should clear signaling timeout timer', () => {
       const onFailed = sinon.stub();
       const preflight = new PreflightTest('foo', options);
       preflight.on('failed', onFailed);
@@ -219,7 +218,6 @@ describe('PreflightTest', () => {
       const preflight = new PreflightTest('foo', options);
       preflight.on('completed', onCompleted);
       device.emit('ready');
-      connection.emit('accept');
       clock.tick(14000);
       device.emit('disconnect');
       clock.tick(1000);
@@ -234,7 +232,6 @@ describe('PreflightTest', () => {
       const preflight = new PreflightTest('foo', options);
       preflight.on('completed', onCompleted);
       device.emit('ready');
-      connection.emit('accept');
       clock.tick(14000);
       device.emit('disconnect');
       clock.tick(1000);
@@ -336,13 +333,12 @@ describe('PreflightTest', () => {
   });
 
   describe('on failed', () => {
-    it('should clear callSetupTimeoutTimer', () => {
+    it('should clear signaling timeout timer', () => {
       const onFailed = sinon.stub();
       const preflight = new PreflightTest('foo', options);
 
       preflight.on('failed', onFailed);
       device.emit('ready');
-      connection.emit('accept');
       clock.tick(5000);
 
       preflight.stop();
@@ -358,8 +354,6 @@ describe('PreflightTest', () => {
       const preflight = new PreflightTest('foo', options);
       preflight.on('failed', onFailed);
 
-      device.emit('ready');
-
       clock.tick(9999);
       sinon.assert.notCalled(onFailed);
       clock.tick(1);
@@ -369,10 +363,8 @@ describe('PreflightTest', () => {
 
     it('should use timeout param', () => {
       const onFailed = sinon.stub();
-      const preflight = new PreflightTest('foo', Object.assign({ callSetupTimeoutMs: 3000 }, options));
+      const preflight = new PreflightTest('foo', Object.assign({ signalingTimeoutMs: 3000 }, options));
       preflight.on('failed', onFailed);
-
-      device.emit('ready');
 
       clock.tick(2999);
       sinon.assert.notCalled(onFailed);
