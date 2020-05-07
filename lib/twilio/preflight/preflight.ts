@@ -501,7 +501,7 @@ export namespace PreflightTest {
      * for the list of available edges.
      */
     edge?: string;
-    
+
     /**
      * Amount of time to wait for setting up signaling connection.
      * @default 10000
