@@ -181,7 +181,7 @@ describe('Preflight Test', function() {
           destroyReceiver();
         });
 
-        it('should use region passed in', () => {
+        it('should use edge passed in', () => {
           assert.equal(report?.selectedEdge, selectedEdge);
           assert.equal(report?.edge, edge);
         });

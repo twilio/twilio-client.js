@@ -127,14 +127,14 @@ Raised when `PreflightTest.status` has transitioned to `completed`. During this 
   "samples": [...],
 
   /**
-   * The region passed to `Device.testPreflight`.
+   * The edge passed to `Device.testPreflight`.
    */
-  "selectedRegion": "gll",
+  "selectedEdge": "roaming",
 
   /**
-   * The region that the test call was connected to.
+   * The edge that the test call was connected to.
    */
-  "region": "us1",
+  "edge": "ashburn",
 
   /**
    * Warnings detected during the test.

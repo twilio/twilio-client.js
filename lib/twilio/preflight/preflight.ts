@@ -479,7 +479,7 @@ export namespace PreflightTest {
     /**
      * Specifies which Twilio Data Center to use when initiating the test call.
      * Please see this
-     * [page](TODO)
+     * [page](https://www.twilio.com/docs/voice/client/edges)
      * for the list of available edges.
      */
     edge?: string;
