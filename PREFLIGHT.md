@@ -19,6 +19,7 @@ The `options` parameter is a JavaScript object containing configuration settings
 |:---------|:--------|:------------|
 | `codecPreferences` | `['pcmu', 'opus']` | An ordered list of preferred codecs. |
 | `debug` | `false` | Can be `true` or `false`. Set this property to true to enable debug logging in your browser console. |
+| `signalingTimeoutMs` | `10000` | Ammount of time to wait for setting up signaling connection. |
 
 Events
 ------
