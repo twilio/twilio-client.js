@@ -17,6 +17,7 @@ describe('PreflightTest', () => {
   let deviceContext: any;
   let options: any;
   let testSamples: any;
+  let edgeStub: any;
 
   const getDeviceFactory = (context: any) => {
     const factory = function(this: any, token: string, options: PreflightTest.Options) {
@@ -69,7 +70,11 @@ describe('PreflightTest', () => {
       setup: sinon.stub(),
       connect: sinon.stub().returns(connection),
       destroy: sinon.stub(),
+      region: sinon.stub().returns('foobar-region'),
+      edge: null,
     };
+    edgeStub = sinon.stub().returns('foobar-edge');
+    sinon.stub(deviceContext, 'edge').get(edgeStub);
     deviceFactory = getDeviceFactory(deviceContext)
 
     options = {
@@ -89,8 +94,20 @@ describe('PreflightTest', () => {
       const preflight = new PreflightTest('foo', options);
       sinon.assert.calledWith(deviceContext.setup, 'foo', {
         codecPreferences: options.codecPreferences,
-        debug: false
+        debug: false,
+        edge: 'roaming',
       });
+    });
+
+    it('should pass edge to device', () => {
+      options.edge = 'ashburn';
+      const preflight = new PreflightTest('foo', options);
+      sinon.assert.calledWith(deviceContext.setup, 'foo', {
+        codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
+        debug: false,
+        edge: options.edge,
+      });
+      sinon.assert.calledOnce(edgeStub);
     });
   });
 
@@ -167,7 +184,7 @@ describe('PreflightTest', () => {
     it('should emit connected', () => {
       const onConnected = sinon.stub();
       const preflight = new PreflightTest('foo', options);
-      
+
       preflight.on('connected', onConnected);
       device.emit('ready');
 
@@ -252,6 +269,7 @@ describe('PreflightTest', () => {
         // This is derived from testSamples
         const expected = {
           callSid: CALL_SID,
+          edge: 'foobar-edge',
           networkTiming: {
             dtls: {
               duration: 1000,
@@ -270,6 +288,7 @@ describe('PreflightTest', () => {
             }
           },
           samples: testSamples,
+          selectedEdge: 'roaming',
           stats: {
             jitter: {
               average: 8,

@@ -19,6 +19,7 @@ The `options` parameter is a JavaScript object containing configuration settings
 |:---------|:--------|:------------|
 | `codecPreferences` | `['pcmu', 'opus']` | An ordered list of preferred codecs. |
 | `debug` | `false` | Can be `true` or `false`. Set this property to true to enable debug logging in your browser console. |
+| `edge` | `roaming` | Specifies which Twilio `edge` to use when initiating the test call. Please see documentation on [edges](https://www.twilio.com/docs/voice/client/edges). |
 | `signalingTimeoutMs` | `10000` | Ammount of time to wait for setting up signaling connection. |
 
 Events
@@ -34,7 +35,7 @@ Raised when `PreflightTest.status` has transitioned to `completed`. During this 
   "callSid": "CAa6a7a187a9cba2714d6fdccf472cc7b1",
 
   /**
-   * Network related time measurements which includes millisecond timestamps 
+   * Network related time measurements which includes millisecond timestamps
    * and duration for each type of connection.
    */
   "networkTiming": {
@@ -125,6 +126,16 @@ Raised when `PreflightTest.status` has transitioned to `completed`. During this 
    * https://www.twilio.com/docs/voice/client/javascript/connection#sample
    */
   "samples": [...],
+
+  /**
+   * The edge passed to `Device.testPreflight`.
+   */
+  "selectedEdge": "roaming",
+
+  /**
+   * The edge that the test call was connected to.
+   */
+  "edge": "ashburn",
 
   /**
    * Warnings detected during the test.
