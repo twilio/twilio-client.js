@@ -22,6 +22,11 @@ describe('WSTransport', () => {
     transport = new WSTransport(URIS, { WebSocket });
   });
 
+  afterEach(() => {
+    clearTimeout(transport['_connectTimeout']);
+    clearTimeout(transport['_heartbeatTimeout']);
+  });
+
   describe('constructor', () => {
     it('returns an instance of WSTransport', () => {
       assert(transport instanceof WSTransport);
@@ -48,6 +53,10 @@ describe('WSTransport', () => {
       beforeEach(() => {
         transport.open();
         socket = wsManager.instances[0];
+      });
+
+      it('sets previous state', () => {
+        assert.equal(transport['_previousState'], WSTransportState.Closed);
       });
 
       it('returns undefined', () => {
@@ -289,6 +298,12 @@ describe('WSTransport', () => {
       assert.equal(transport.state, WSTransportState.Open);
     });
 
+    it('sets previous state to connecting', () => {
+      transport.open();
+      socket.dispatchEvent({ type: WSTransportState.Open });
+      assert.equal(transport['_previousState'], WSTransportState.Connecting);
+    });
+
     it('should emit open', () => {
       transport.emit = sinon.spy();
       socket.dispatchEvent({ type: WSTransportState.Open });
@@ -324,6 +339,13 @@ describe('WSTransport', () => {
     it('should set state to connecting', () => {
       socket.dispatchEvent({ type: 'close' });
       assert.equal(transport.state, WSTransportState.Connecting);
+    });
+
+    it('sets previous state to open', () => {
+      transport.open();
+      socket.dispatchEvent({ type: WSTransportState.Open });
+      transport.close();
+      assert.equal(transport['_previousState'], WSTransportState.Open);
     });
 
     it('should attempt to reconnect by setting a backoff', () => {
@@ -417,6 +439,58 @@ describe('WSTransport', () => {
       socket.dispatchEvent({ type: 'close', code: 1015 });
       assert.equal(transport.uri, URIS[0]);
     });
+
+    describe('when transitioning to the next state with fallback counter', () => {
+      const closeEvent = { type: 'close', code: 1006 };
+
+      beforeEach(() => {
+        transport.emit = sinon.spy();
+        transport['_closeSocket'] = sinon.spy();
+      });
+
+      ['connecting', 'closed', 'open'].forEach((prevState: WSTransportState) => {
+        it(`should not move uri to next index if error is fallback-able, state is open, and previous state is ${prevState}`, async () => {
+          transport.state = WSTransportState.Open;
+          transport['_previousState'] = prevState;
+          assert.equal(transport.uri, URIS[0]);
+          socket.dispatchEvent(closeEvent);
+          assert.equal(transport.uri, URIS[0]);
+          socket.dispatchEvent(closeEvent);
+          assert.equal(transport.uri, URIS[1]);
+        });
+      });
+
+      ['connecting', 'closed', 'open'].forEach((currentState: WSTransportState) => {
+        it(`should not move uri to next index if error is fallback-able, previous state is open, and current state is ${currentState}`, async () => {
+          transport.state = currentState;
+          transport['_previousState'] = WSTransportState.Open;
+          assert.equal(transport.uri, URIS[0]);
+          socket.dispatchEvent(closeEvent);
+          assert.equal(transport.uri, URIS[0]);
+          socket.dispatchEvent(closeEvent);
+          assert.equal(transport.uri, URIS[1]);
+        });
+      });
+
+      context('negative states', () => {
+        [
+          [WSTransportState.Connecting, WSTransportState.Connecting],
+          [WSTransportState.Connecting, WSTransportState.Closed],
+          [WSTransportState.Closed, WSTransportState.Connecting],
+          [WSTransportState.Closed, WSTransportState.Closed],
+        ].forEach(([prevState, currentState]) => {
+          it(`should move uri to next index if error is fallback-able, previous state is ${prevState}, and current state is ${currentState}`, async () => {
+            transport.state = currentState;
+            transport['_previousState'] = prevState;
+            assert.equal(transport.uri, URIS[0]);
+            socket.dispatchEvent(closeEvent);
+            assert.equal(transport.uri, URIS[1]);
+            socket.dispatchEvent(closeEvent);
+            assert.equal(transport.uri, URIS[2]);
+          });
+        })
+      });
+    });
   });
 
   describe('after backoff', () => {
@@ -479,5 +553,5 @@ describe('WSTransport', () => {
       clock.tick(15000);
       assert.equal(transport.uri, URIS[1]);
     });
-  })
+  });
 });

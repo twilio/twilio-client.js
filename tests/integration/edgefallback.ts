@@ -86,7 +86,7 @@ describe('Edge Fallback', function() {
     assert.equal(device.stream.transport.uri, 'wss://chunderw-vpc-gll-au1.twilio.com/signal');
   });
 
-  it('should fallback to the next edge if the transport error is fallback-able while connected', async () => {
+  it('should not fallback to the next edge if the transport error is fallback-able while connected', async () => {
     const timeout = 100000;
     device.setup(token, Object.assign({}, defaultOptions, { edge: ['sydney', 'singapore'] }));
     await deviceReady();
@@ -96,7 +96,6 @@ describe('Edge Fallback', function() {
     // Trigger network error
     await runDockerCommand('disconnectFromAllNetworks');
 
-    // Check the reconnect and make sure the uri used is a fallback
     await waitFor(new Promise((resolve) => {
       device.on('error', (error: any) => {
         if (error.code === 31005) {
@@ -104,7 +103,7 @@ describe('Edge Fallback', function() {
         }
       });
     }), timeout);
-    assert.equal(device.stream.transport.uri, 'wss://chunderw-vpc-gll-sg1.twilio.com/signal');
+    assert.equal(device.stream.transport.uri, 'wss://chunderw-vpc-gll-au1.twilio.com/signal');
 
     await runDockerCommand('resetNetwork');
     await pause(5000);

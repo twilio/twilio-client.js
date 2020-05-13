@@ -7,7 +7,6 @@ import { EventEmitter } from 'events';
 import * as WebSocket from 'ws';
 import { SignalingErrors } from './errors';
 import Log from './log';
-import { isSafari as checkIfSafari } from './util';
 
 // tslint:disable-next-line
 const Backoff = require('backoff');
@@ -90,6 +89,11 @@ export default class WSTransport extends EventEmitter {
    * Time in milliseconds before websocket times out when attempting to connect
    */
   private _connectTimeoutMs?: number;
+
+  /**
+   * Keeps track of fallbackable errors happened in this connection
+   */
+  private _fallbackableErrorCount: number = 0;
 
   /**
    * The current connection timeout. If it times out, we've failed to connect
@@ -344,17 +348,20 @@ export default class WSTransport extends EventEmitter {
       });
 
       let shouldFallback = true;
-      const isSafari = checkIfSafari(window.navigator);
+      this._fallbackableErrorCount++;
 
-      // Only in Safari, on network interruption, websocket drops right away with 1006
+      // Only in Safari and certain Firefox versions, on network interruption, websocket drops right away with 1006
       // Let's check current state if it's open, meaning we should not fallback
       // because we're coming from a previously connected session
-      if ((isSafari && this.state === WSTransportState.Open) ||
+      if ((this.state === WSTransportState.Open ||
 
         // But on other browsers, websocket doesn't drop
         // but our heartbeat catches it, setting the internal state to "Connecting".
         // With this, we should check the previous state instead.
-        (!isSafari && this._previousState === WSTransportState.Open)) {
+        this._previousState === WSTransportState.Open) &&
+
+        // We also need to make sure this is the first fallbackable error
+        this._fallbackableErrorCount === 1) {
           shouldFallback = false;
       }
 
@@ -400,6 +407,7 @@ export default class WSTransport extends EventEmitter {
   private _onSocketOpen = (): void => {
     this._log.info('WebSocket opened successfully.');
     this._timeOpened = Date.now();
+    this._fallbackableErrorCount = 0;
     this._setState(WSTransportState.Open);
     clearTimeout(this._connectTimeout);
 
