@@ -199,10 +199,8 @@ describe('regions', () => {
           ]);
         });
 
-        it('should throw if roaming is provided in the edge array', () => {
-          assert.throws(() => {
-            getChunderURIs(['roaming'], undefined);
-          });
+        it('should not throw if roaming is provided in the edge array', () => {
+          assert(getChunderURIs(['roaming'], undefined));
         });
 
         it('should not throw if roaming is provided as a string', () => {
