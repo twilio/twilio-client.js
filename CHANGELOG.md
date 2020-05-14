@@ -1,4 +1,47 @@
-1.10.3 (In Progress)
+1.11.0 (In Progress)
+===================
+
+New Features
+---------
+
+* ### Twilio Regional
+  This release includes support for the first phase of the new **Twilio Regional**.
+
+  **Twilio Regional** allows developers to specify a region where data is processed and stored and specify an edge indicating where the SDK connects into Twilio.
+
+  This first phase includes edge connectivity and the new parameter `Twilio.Device.Options.edge`.
+  This new parameter supersedes the now deprecated `Twilio.Device.Options.region`.
+  See `Twilio.Device.Options.edge` for migration instructions.
+  The edge that the client connected to can be read from `Twilio.Device` using the read-only property `Twilio.Device.edge`.
+
+  Please see documentation on [edges](https://www.twilio.com/docs/voice/client/edges) for more details.
+
+  **Example**  
+  ```ts
+  const device = new Device(token, { edge: 'ashburn' });
+  ```
+
+  ### Edge Fallback Support
+
+  Deployments designed to connect to multiple Twilio regions can take advantage of the new edge fallback mechanism. To enable the edge fallback, specify an array of edge names to `Twilio.Device.Options.edge`. When enabled and a connection failure is encountered, the SDK will reattempt the connection to the next region in the list. For more details about how the fallback works, see `Twilio.Device.Options.edge` documentation.
+
+  **Example**
+  ```ts
+  const device = new Device(token, { edge: ['ashburn-ix', 'san-jose-ix' ] });
+  ```
+
+* Added `appName` and `appVersion` fields to Device.options. Pass these strings on Device setup, and they will be passed to [Insights](https://www.twilio.com/console/voice/insights). This can
+  be used to help debug which of your applications and/or versions an issue began occurring in.
+  #### Example
+
+  ```ts
+  const device = new Device(token, {
+    appName: 'agent-softphone',
+    appVersion: '1.2.3',
+  });
+  ```
+
+1.10.3 (Apr 29, 2020)
 ===================
 
 Bug Fixes

@@ -8,7 +8,7 @@ const TransportFactory = require('./mock/WSTransport');
 describe('PStream', () => {
   let pstream;
   beforeEach(() => {
-    pstream = new PStream('foo', 'wss://foo.bar/signal', {
+    pstream = new PStream('foo', ['wss://foo.bar/signal'], {
       TransportFactory
     });
   });
@@ -27,6 +27,7 @@ describe('PStream', () => {
     it('should set status to connected', () => {
       pstream.transport.emit('open');
       assert.equal(pstream.status, 'connected');
+      assert.equal(pstream.uri, 'foo');
     });
 
     it('should send a LISTEN with the token', () => {
