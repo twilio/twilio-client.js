@@ -107,7 +107,7 @@ describe('Edge Fallback', function() {
     // Trigger network error
     await runDockerCommand('disconnectFromAllNetworks');
 
-    let usedUri: string;
+    let usedUri: string = '';
     await waitFor(new Promise((resolve) => {
       device.stream.transport.__WebSocket = device.stream.transport._WebSocket;
       device.stream.transport._WebSocket = function(uri: string) {
