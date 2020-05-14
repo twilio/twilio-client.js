@@ -91,11 +91,6 @@ export default class WSTransport extends EventEmitter {
   private _connectTimeoutMs?: number;
 
   /**
-   * Keeps track of fallbackable errors happened in this connection
-   */
-  private _fallbackableErrorCount: number = 0;
-
-  /**
    * The current connection timeout. If it times out, we've failed to connect
    * and should try again.
    *
@@ -113,6 +108,12 @@ export default class WSTransport extends EventEmitter {
    * Previous state of the connection
    */
   private _previousState: WSTransportState;
+
+  /**
+   * Whether we should attempt to fallback if we receive an applicable error
+   * when trying to connect to a signaling endpoint.
+   */
+  private _shouldFallback: boolean = false;
 
   /**
    * The currently connecting or open WebSocket.
@@ -233,6 +234,23 @@ export default class WSTransport extends EventEmitter {
   }
 
   /**
+   * Check if this connection was previously connected
+   */
+  private _checkWasConnected(): boolean {
+    return (
+      // Only in Safari and certain Firefox versions, on network interruption, websocket drops right away with 1006
+      // Let's check current state if it's open, meaning we should not fallback
+      // because we're coming from a previously connected session
+      this.state === WSTransportState.Open ||
+
+      // But on other browsers, websocket doesn't drop
+      // but our heartbeat catches it, setting the internal state to "Connecting".
+      // With this, we should check the previous state instead.
+      this._previousState === WSTransportState.Open
+    );
+  }
+
+  /**
    * Close the WebSocket, and don't try to reconnect.
    */
   private _close(): void {
@@ -347,27 +365,13 @@ export default class WSTransport extends EventEmitter {
         twilioError: new SignalingErrors.ConnectionError(),
       });
 
-      let shouldFallback = true;
-      this._fallbackableErrorCount++;
-
-      // Only in Safari and certain Firefox versions, on network interruption, websocket drops right away with 1006
-      // Let's check current state if it's open, meaning we should not fallback
-      // because we're coming from a previously connected session
-      if ((this.state === WSTransportState.Open ||
-
-        // But on other browsers, websocket doesn't drop
-        // but our heartbeat catches it, setting the internal state to "Connecting".
-        // With this, we should check the previous state instead.
-        this._previousState === WSTransportState.Open) &&
-
-        // We also need to make sure this is the first fallbackable error
-        this._fallbackableErrorCount === 1) {
-          shouldFallback = false;
-      }
-
-      if (shouldFallback) {
+      // Only fallback if this is not the first error
+      // and if we were not connected previously
+      if (this._shouldFallback || !this._checkWasConnected()) {
         this._moveUriIndex();
       }
+
+      this._shouldFallback = true;
     }
     this._closeSocket();
   }
@@ -407,7 +411,7 @@ export default class WSTransport extends EventEmitter {
   private _onSocketOpen = (): void => {
     this._log.info('WebSocket opened successfully.');
     this._timeOpened = Date.now();
-    this._fallbackableErrorCount = 0;
+    this._shouldFallback = false;
     this._setState(WSTransportState.Open);
     clearTimeout(this._connectTimeout);
 
@@ -423,6 +427,7 @@ export default class WSTransport extends EventEmitter {
     clearTimeout(this._heartbeatTimeout);
     this._heartbeatTimeout = setTimeout(() => {
       this._log.info(`No messages received in ${HEARTBEAT_TIMEOUT / 1000} seconds. Reconnecting...`);
+      this._shouldFallback = true;
       this._closeSocket();
     }, HEARTBEAT_TIMEOUT);
   }
