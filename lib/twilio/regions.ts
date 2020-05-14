@@ -269,10 +269,6 @@ export function getChunderURIs(
     );
   }
 
-  if (Array.isArray(edge) && edge.includes('roaming')) {
-    throw new InvalidArgumentError('Specifying "roaming" in the edge array option is not allowed.');
-  }
-
   const deprecatedMessages: string[] = [];
   let uris: string[];
 
