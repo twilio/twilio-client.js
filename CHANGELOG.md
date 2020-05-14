@@ -41,6 +41,14 @@ New Features
   });
   ```
 
+* [Microsoft Edge Legacy](https://support.microsoft.com/en-us/help/4533505/what-is-microsoft-edge-legacy) is now deprecated. Running `device.setup()` on this browser will result with the console warning below.
+  ```
+  Microsoft Edge Legacy (https://support.microsoft.com/en-us/help/4533505/what-is-microsoft-edge-legacy)
+  is deprecated and will not be able to connect to Twilio to make or receive calls after September 1st, 2020.
+  Please see this documentation for a list of supported browsers
+  https://www.twilio.com/docs/voice/client/javascript#supported-browsers
+  ```
+
 1.10.3 (Apr 29, 2020)
 ===================
 

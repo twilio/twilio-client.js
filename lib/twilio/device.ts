@@ -23,7 +23,11 @@ import {
   Region,
   regionToEdge,
 } from './regions';
-import { Exception, queryToJson } from './util';
+import {
+  isLegacyEdge,
+  isUnifiedPlanDefault,
+  queryToJson,
+} from './util';
 
 const C = require('./constants');
 const Publisher = require('./eventpublisher');
@@ -31,7 +35,6 @@ const PStream = require('./pstream');
 const rtc = require('./rtc');
 const getUserMedia = require('./rtc/getusermedia');
 const Sound = require('./sound');
-const { isUnifiedPlanDefault } = require('./util');
 
 /**
  * @private
@@ -596,6 +599,15 @@ class Device extends EventEmitter {
         For more information, see <https://www.twilio.com/docs/api/client/twilio-js>. \
         If you have any questions about this announcement, please contact \
         Twilio Support at <help@twilio.com>.`);
+    }
+
+    if (isLegacyEdge()) {
+      this._log.warn(
+        'Microsoft Edge Legacy (https://support.microsoft.com/en-us/help/4533505/what-is-microsoft-edge-legacy) ' +
+        'is deprecated and will not be able to connect to Twilio to make or receive calls after September 1st, 2020. ' +
+        'Please see this documentation for a list of supported browsers ' +
+        'https://www.twilio.com/docs/voice/client/javascript#supported-browsers',
+      );
     }
 
     if (!token) {
