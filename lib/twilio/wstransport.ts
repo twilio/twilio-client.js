@@ -234,23 +234,6 @@ export default class WSTransport extends EventEmitter {
   }
 
   /**
-   * Check if this connection was previously connected
-   */
-  private _checkWasConnected(): boolean {
-    return (
-      // Only in Safari and certain Firefox versions, on network interruption, websocket drops right away with 1006
-      // Let's check current state if it's open, meaning we should not fallback
-      // because we're coming from a previously connected session
-      this.state === WSTransportState.Open ||
-
-      // But on other browsers, websocket doesn't drop
-      // but our heartbeat catches it, setting the internal state to "Connecting".
-      // With this, we should check the previous state instead.
-      this._previousState === WSTransportState.Open
-    );
-  }
-
-  /**
    * Close the WebSocket, and don't try to reconnect.
    */
   private _close(): void {
@@ -365,9 +348,21 @@ export default class WSTransport extends EventEmitter {
         twilioError: new SignalingErrors.ConnectionError(),
       });
 
+      const wasConnected = (
+        // Only in Safari and certain Firefox versions, on network interruption, websocket drops right away with 1006
+        // Let's check current state if it's open, meaning we should not fallback
+        // because we're coming from a previously connected session
+        this.state === WSTransportState.Open ||
+
+        // But on other browsers, websocket doesn't drop
+        // but our heartbeat catches it, setting the internal state to "Connecting".
+        // With this, we should check the previous state instead.
+        this._previousState === WSTransportState.Open
+      );
+
       // Only fallback if this is not the first error
       // and if we were not connected previously
-      if (this._shouldFallback || !this._checkWasConnected()) {
+      if (this._shouldFallback || !wasConnected) {
         this._moveUriIndex();
       }
 
