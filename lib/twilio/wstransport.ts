@@ -105,6 +105,17 @@ export default class WSTransport extends EventEmitter {
   private _log: Log = Log.getInstance();
 
   /**
+   * Previous state of the connection
+   */
+  private _previousState: WSTransportState;
+
+  /**
+   * Whether we should attempt to fallback if we receive an applicable error
+   * when trying to connect to a signaling endpoint.
+   */
+  private _shouldFallback: boolean = false;
+
+  /**
    * The currently connecting or open WebSocket.
    */
   private _socket?: WebSocket;
@@ -226,7 +237,7 @@ export default class WSTransport extends EventEmitter {
    * Close the WebSocket, and don't try to reconnect.
    */
   private _close(): void {
-    this.state = WSTransportState.Closed;
+    this._setState(WSTransportState.Closed);
     this._closeSocket();
   }
 
@@ -279,7 +290,7 @@ export default class WSTransport extends EventEmitter {
 
     this._closeSocket();
 
-    this.state = WSTransportState.Connecting;
+    this._setState(WSTransportState.Connecting);
     let socket = null;
     try {
       socket = new this._WebSocket(this._uris[this._uriIndex]);
@@ -337,7 +348,25 @@ export default class WSTransport extends EventEmitter {
         twilioError: new SignalingErrors.ConnectionError(),
       });
 
-      this._moveUriIndex();
+      const wasConnected = (
+        // Only in Safari and certain Firefox versions, on network interruption, websocket drops right away with 1006
+        // Let's check current state if it's open, meaning we should not fallback
+        // because we're coming from a previously connected session
+        this.state === WSTransportState.Open ||
+
+        // But on other browsers, websocket doesn't drop
+        // but our heartbeat catches it, setting the internal state to "Connecting".
+        // With this, we should check the previous state instead.
+        this._previousState === WSTransportState.Open
+      );
+
+      // Only fallback if this is not the first error
+      // and if we were not connected previously
+      if (this._shouldFallback || !wasConnected) {
+        this._moveUriIndex();
+      }
+
+      this._shouldFallback = true;
     }
     this._closeSocket();
   }
@@ -377,7 +406,8 @@ export default class WSTransport extends EventEmitter {
   private _onSocketOpen = (): void => {
     this._log.info('WebSocket opened successfully.');
     this._timeOpened = Date.now();
-    this.state = WSTransportState.Open;
+    this._shouldFallback = false;
+    this._setState(WSTransportState.Open);
     clearTimeout(this._connectTimeout);
 
     this._setHeartbeatTimeout();
@@ -392,8 +422,17 @@ export default class WSTransport extends EventEmitter {
     clearTimeout(this._heartbeatTimeout);
     this._heartbeatTimeout = setTimeout(() => {
       this._log.info(`No messages received in ${HEARTBEAT_TIMEOUT / 1000} seconds. Reconnecting...`);
+      this._shouldFallback = true;
       this._closeSocket();
     }, HEARTBEAT_TIMEOUT);
+  }
+
+  /**
+   * Set the current and previous state
+   */
+  private _setState(state: WSTransportState): void {
+    this._previousState = this.state;
+    this.state = state;
   }
 
   /**

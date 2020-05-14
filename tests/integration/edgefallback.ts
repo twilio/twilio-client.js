@@ -78,33 +78,46 @@ describe('Edge Fallback', function() {
     const invalidToken = (JSON.parse(res) as any).token;
     device.updateToken(invalidToken);
 
-    // Check at least two reconnects and make sure the uri did not use a fallback
-    await waitFor(expectEvent('error', device), EVENT_TIMEOUT);
-    assert.equal(device.stream.transport.uri, 'wss://chunderw-vpc-gll-au1.twilio.com/signal');
+    const usedUris: string[] = [];
+    const timeout = 100000;
+    await waitFor(new Promise((resolve) => {
+      device.stream.transport.__WebSocket = device.stream.transport._WebSocket;
+      device.stream.transport._WebSocket = function(uri: string) {
+        usedUris.push(uri);
+        // Check at least two reconnects and make sure the uri did not use a fallback
+        if (usedUris.length >= 2) {
+          setTimeout(resolve);
+        }
+        return new device.stream.transport.__WebSocket(uri);
+      };
+    }), timeout);
 
-    await waitFor(expectEvent('error', device), EVENT_TIMEOUT);
-    assert.equal(device.stream.transport.uri, 'wss://chunderw-vpc-gll-au1.twilio.com/signal');
+    assert.equal(usedUris[0], 'wss://chunderw-vpc-gll-au1.twilio.com/signal');
+    assert.equal(usedUris[1], 'wss://chunderw-vpc-gll-au1.twilio.com/signal');
   });
 
-  it('should fallback to the next edge if the transport error is fallback-able while connected', async () => {
-    const timeout = 100000;
+  it('should not fallback to the next edge if the transport error is fallback-able while connected', async function() {
+    this.timeout(MAX_TIMEOUT);
+    const connectTimeout = 120000;
     device.setup(token, Object.assign({}, defaultOptions, { edge: ['sydney', 'singapore'] }));
     await deviceReady();
     assert.equal(device.stream.transport.uri, 'wss://chunderw-vpc-gll-au1.twilio.com/signal');
-    device.stream.transport['_connectTimeoutMs'] = timeout;
+    device.stream.transport['_connectTimeoutMs'] = connectTimeout;
 
     // Trigger network error
     await runDockerCommand('disconnectFromAllNetworks');
 
-    // Check the reconnect and make sure the uri used is a fallback
+    let usedUri: string = '';
     await waitFor(new Promise((resolve) => {
-      device.on('error', (error: any) => {
-        if (error.code === 31005) {
-          resolve();
-        }
-      });
-    }), timeout);
-    assert.equal(device.stream.transport.uri, 'wss://chunderw-vpc-gll-sg1.twilio.com/signal');
+      device.stream.transport.__WebSocket = device.stream.transport._WebSocket;
+      device.stream.transport._WebSocket = function(uri: string) {
+        usedUri = uri;
+        setTimeout(resolve);
+        return new device.stream.transport.__WebSocket(uri);
+      };
+    }), connectTimeout);
+
+    assert.equal(usedUri, 'wss://chunderw-vpc-gll-au1.twilio.com/signal');
 
     await runDockerCommand('resetNetwork');
     await pause(5000);
