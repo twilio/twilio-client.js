@@ -14,13 +14,28 @@ import {
 
 // Application errors that can be avoided by good app logic
 export class InvalidArgumentError extends Error {
-  type: 'InvalidArgumentError';
+  constructor(message?: string) {
+    super(message);
+    this.name = 'InvalidArgumentError';
+  }
 }
 export class InvalidStateError extends Error {
-  type: 'InvalidStateError';
+  constructor(message?: string) {
+    super(message);
+    this.name = 'InvalidStateError';
+  }
 }
 export class NotSupportedError extends Error {
-  type: 'NotSupportedError';
+  constructor(message?: string) {
+    super(message);
+    this.name = 'NotSupportedError';
+  }
+}
+export class InputStreamNotSupportedError extends Error {
+  constructor(message?: string) {
+    super(message);
+    this.name = 'InputStreamNotSupportedError';
+  }
 }
 
 // This should only be used to look up error codes returned by a server

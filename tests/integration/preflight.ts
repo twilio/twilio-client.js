@@ -92,7 +92,10 @@ describe('Preflight Test', function() {
     it('should emit warning event', () => {
       const name = 'constant-audio-input-level';
       setTimeout(() => {
-        callerConnection.emit('warning', name, {});
+        callerConnection['_monitor'].emit('warning', {
+          name: 'audioInputLevel',
+          threshold: { name: 'maxDuration' }
+        });
       }, 5);
 
       return waitFor(expectEvent('warning', preflight).then(warning => {

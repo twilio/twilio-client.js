@@ -20,6 +20,7 @@ The `options` parameter is a JavaScript object containing configuration settings
 | `codecPreferences` | `['pcmu', 'opus']` | An ordered list of preferred codecs. |
 | `debug` | `false` | Can be `true` or `false`. Set this property to true to enable debug logging in your browser console. |
 | `edge` | `roaming` | Specifies which Twilio `edge` to use when initiating the test call. Please see documentation on [edges](https://www.twilio.com/docs/voice/client/edges). |
+| `ignoreMicInput` | `false` | If set to `true`, the test call will ignore microphone input and will use a default audio file. If set to `false`, the test call will capture the audio from the microphone. Setting this to `true` is only supported on Chrome and will throw an `InputStreamNotSupportedError` on other browsers |
 | `signalingTimeoutMs` | `10000` | Ammount of time to wait for setting up signaling connection. |
 
 Events

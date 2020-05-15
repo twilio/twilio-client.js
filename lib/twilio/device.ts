@@ -104,6 +104,11 @@ export interface IExtendedDeviceOptions extends Device.Options {
   ignoreBrowserSupport?: boolean;
 
   /**
+   * Input stream to use instead of reading from mic
+   */
+  inputStream?: MediaStream;
+
+  /**
    * Whether to disable audio flag in MediaPresence (rrowland: Do we need this?)
    */
   noRegister?: boolean;
@@ -959,7 +964,7 @@ class Device extends EventEmitter {
       enableIceRestart: this.options.enableIceRestart,
       enableRingingState: this.options.enableRingingState,
       forceAggressiveIceNomination: this.options.forceAggressiveIceNomination,
-      getInputStream: (): MediaStream | null => this._connectionInputStream,
+      getInputStream: (): MediaStream | null => this.options.inputStream || this._connectionInputStream,
       getSinkIds: (): string[] => this._connectionSinkIds,
       maxAverageBitrate: this.options.maxAverageBitrate,
       rtcConfiguration: this.options.rtcConfiguration || { iceServers: this.options.iceServers },

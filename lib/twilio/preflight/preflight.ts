@@ -7,10 +7,15 @@
 import { EventEmitter } from 'events';
 import Connection from '../connection';
 import Device from '../device';
+import { InputStreamNotSupportedError } from '../errors';
 import { RTCSampleTotals } from '../rtc/sample';
 import RTCSample from '../rtc/sample';
 import RTCWarning from '../rtc/warning';
+import StatsMonitor from '../statsMonitor';
 import { NetworkTiming, TimeMeasurement } from './timing';
+
+const C = require('../constants');
+const ECHO_TEST_DURATION = 15000;
 
 export declare interface PreflightTest {
   /**
@@ -78,6 +83,12 @@ export class PreflightTest extends EventEmitter {
   private _device: Device;
 
   /**
+   * The timer when doing an echo test
+   * The echo test is used when ignoreMicInput is set to true
+   */
+  private _echoTimer: NodeJS.Timer;
+
+  /**
    * The edge that the `Twilio.Device` connected to.
    */
   private _edge: string | undefined;
@@ -100,10 +111,11 @@ export class PreflightTest extends EventEmitter {
   /**
    * The options passed to {@link PreflightTest} constructor
    */
-  private _options: PreflightTest.Options = {
+  private _options: PreflightTest.ExtendedOptions = {
     codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
     debug: false,
     edge: 'roaming',
+    ignoreMicInput: false,
     signalingTimeoutMs: 10000,
   };
 
@@ -152,34 +164,13 @@ export class PreflightTest extends EventEmitter {
     this._warnings = [];
     this._startTime = Date.now();
 
-    try {
-      this._device = new (options.deviceFactory || Device)(token, {
-        codecPreferences: this._options.codecPreferences,
-        debug: this._options.debug,
-        edge: this._options.edge,
-      });
-    } catch (error) {
-      // We want to return before failing so the consumer can capture the event
-      setTimeout(() => {
-        this._onFailed(error);
-      });
-      return;
+    if (!this._options.ignoreMicInput) {
+      this._initDevice(token, this._options);
+    } else {
+      this._getStreamFromFile().then((inputStream: MediaStream) => {
+        this._initDevice(token, { inputStream, ...this._options });
+      }).catch((error) => this._onFailed(error));
     }
-
-    this._device.on('ready', () => {
-      this._onDeviceReady();
-    });
-
-    this._device.on('error', (error: Device.Error) => {
-      this._onDeviceError(error);
-    });
-
-    this._signalingTimeoutTimer = setTimeout(() => {
-      this._onDeviceError({
-        code: 31901,
-        message: 'WebSocket - Connection Timeout',
-      });
-    }, this._options.signalingTimeoutMs);
   }
 
   /**
@@ -190,8 +181,20 @@ export class PreflightTest extends EventEmitter {
       code: 31008,
       message: 'Call cancelled',
     };
-    this._device.once('offline', () => this._onFailed(error));
-    this._device.destroy();
+    if (this._device) {
+      this._device.once('offline', () => this._onFailed(error));
+      this._device.destroy();
+    } else {
+      this._onFailed(error);
+    }
+  }
+
+  /**
+   * Emit a warning
+   */
+  private _emitWarning(name: string, data: RTCWarning): void {
+    this._warnings.push({ name, data });
+    this.emit(PreflightTest.Events.Warning, name, data);
   }
 
   /**
@@ -249,9 +252,77 @@ export class PreflightTest extends EventEmitter {
   }
 
   /**
+   * Returns a MediaStream from a media file
+   */
+  private _getStreamFromFile(): Promise<MediaStream> {
+    return new Promise((resolve, reject) => {
+      if (typeof Audio.prototype.captureStream !== 'function') {
+        return reject(new InputStreamNotSupportedError(
+          'Getting a MediaStream from an audio file is not supported by this browser.' +
+          'Please set PreflightTest.Options.ignoreMicInput to false',
+        ));
+      }
+
+      const url = `${C.SOUNDS_BASE_URL}/cowbell.mp3?cache=${C.RELEASE_VERSION}`;
+      const audio: any = new Audio(url);
+      audio.muted = true;
+      audio.loop = true;
+
+      audio.addEventListener('canplaythrough', () => audio.play());
+      if (typeof audio.setAttribute === 'function') {
+        audio.setAttribute('crossorigin', 'anonymous');
+      }
+
+      const inputStream = audio.captureStream();
+      inputStream.addEventListener('addtrack', () => resolve(inputStream));
+    });
+  }
+
+  /**
+   * Initialize the device
+   */
+  private _initDevice(token: string, options: PreflightTest.ExtendedOptions): void {
+    try {
+      this._device = new (options.deviceFactory || Device)(token, {
+        codecPreferences: options.codecPreferences,
+        debug: options.debug,
+        edge: options.edge,
+        inputStream: options.inputStream,
+        // Silence the sounds if we're not using the mic
+        sounds: options.ignoreMicInput ? {
+          disconnect: 'http://empty.mp3',
+          outgoing: 'http://empty.mp3',
+        } : undefined,
+      });
+    } catch (error) {
+      // We want to return before failing so the consumer can capture the event
+      setTimeout(() => {
+        this._onFailed(error);
+      });
+      return;
+    }
+
+    this._device.on('ready', () => {
+      this._onDeviceReady();
+    });
+
+    this._device.on('error', (error: Device.Error) => {
+      this._onDeviceError(error);
+    });
+
+    this._signalingTimeoutTimer = setTimeout(() => {
+      this._onDeviceError({
+        code: 31901,
+        message: 'WebSocket - Connection Timeout',
+      });
+    }, options.signalingTimeoutMs);
+  }
+
+  /**
    * Called when the test has been completed
    */
   private _onCompleted(): void {
+    clearTimeout(this._echoTimer);
     clearTimeout(this._signalingTimeoutTimer);
 
     this._releaseHandlers();
@@ -274,15 +345,34 @@ export class PreflightTest extends EventEmitter {
    * Called on {@link Device} ready event
    */
   private _onDeviceReady(): void {
+    clearTimeout(this._echoTimer);
     clearTimeout(this._signalingTimeoutTimer);
 
     this._connection = this._device.connect();
     this._setupConnectionHandlers(this._connection);
+
     this._edge = this._device.edge || undefined;
+    if (this._options.ignoreMicInput) {
+      this._echoTimer = setTimeout(() => this._device.disconnectAll(), ECHO_TEST_DURATION);
+    }
 
     this._device.once('disconnect', () => {
       this._device.once('offline', () => this._onCompleted());
       this._device.destroy();
+    });
+
+    // Connection doesn't currently exposes this
+    // Accessing the internals for now for preflight
+    const monitor = this._connection['_monitor'] as StatsMonitor;
+    monitor['_thresholds'].audioInputLevel!.maxDuration = 5;
+    monitor['_thresholds'].audioOutputLevel!.maxDuration = 5;
+    monitor.on('warning', (data: RTCWarning) => {
+      let name = data.name;
+      const threshold = data.threshold!.name;
+      if (threshold === 'maxDuration' && (name === 'audioInputLevel' || name === 'audioOutputLevel')) {
+        name = `constant-${name.split(/(?=[A-Z])/).join('-').toLowerCase()}`;
+        this._emitWarning(name, data);
+      }
     });
   }
 
@@ -291,6 +381,7 @@ export class PreflightTest extends EventEmitter {
    * @param error
    */
   private _onFailed(error: Device.Error | DOMError): void {
+    clearTimeout(this._echoTimer);
     clearTimeout(this._signalingTimeoutTimer);
     this._releaseHandlers();
     this._endTime = Date.now();
@@ -315,11 +406,17 @@ export class PreflightTest extends EventEmitter {
    */
   private _setupConnectionHandlers(connection: Connection): void {
     connection.on('warning', (name: string, data: RTCWarning) => {
-      this._warnings.push({ name, data });
-      this.emit(PreflightTest.Events.Warning, name, data);
+      // Constant audio warnings are handled by StatsMonitor
+      if (name.includes('constant-audio')) {
+        return;
+      }
+      this._emitWarning(name, data);
     });
 
     connection.once('accept', () => {
+      if (this._options.ignoreMicInput) {
+        connection.mediaStream._masterAudio.muted = true;
+      }
       this._callSid = connection.mediaStream.callSid;
       this._status = PreflightTest.Status.Connected;
       this.emit(PreflightTest.Events.Connected);
@@ -475,6 +572,11 @@ export namespace PreflightTest {
      * Device class to use.
      */
     deviceFactory?: new (token: string, options: Device.Options) => Device;
+
+    /**
+     * Input stream to use instead of reading from mic
+     */
+    inputStream?: MediaStream;
   }
 
   /**
@@ -501,6 +603,13 @@ export namespace PreflightTest {
      * for the list of available edges.
      */
     edge?: string;
+
+    /**
+     * If set to `true`, the test call will ignore microphone input and will use a default audio file.
+     * If set to `false`, the test call will capture the audio from the microphone.
+     * Setting this to `true` is only supported on Chrome and will throw a fatal error on other browsers
+     */
+    ignoreMicInput?: boolean;
 
     /**
      * Amount of time to wait for setting up signaling connection.
