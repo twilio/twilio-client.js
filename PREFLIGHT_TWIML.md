@@ -31,7 +31,7 @@ Using the [TwiML Bin](https://www.twilio.com/console/twiml-bins) page, let's cre
 
 <Response>
   <Say>Record a message in 3, 2, 1</Say>
-  <Record maxLength="3" action="https://my-record-twiml-url"></Record>
+  <Record maxLength="5" action="https://my-record-twiml-url"></Record>
   <Say>Did not detect a message to record</Say>
 </Response>
 ```
