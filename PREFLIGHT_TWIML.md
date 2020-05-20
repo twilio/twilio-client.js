@@ -17,6 +17,8 @@ Create a new TwiML Bin with the plus button on that screen and use `Playback` as
 <Response>
   <Say>You said:</Say>
   <Play loop="1">{{RecordingUrl}}</Play>
+  <Say>Now waiting for a few seconds to gather audio performance metrics.</Say>
+  <Pause length="3">
   <Say>Hanging up now.</Say>
 </Response>
 ```
