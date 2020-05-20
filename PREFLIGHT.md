@@ -36,6 +36,11 @@ Raised when `PreflightTest.status` has transitioned to `completed`. During this 
   "callSid": "CAa6a7a187a9cba2714d6fdccf472cc7b1",
 
   /**
+   * The quality of the call determined by different mos ranges.
+   */
+  "callQuality": "excellent",
+
+  /**
    * Network related time measurements which includes millisecond timestamps
    * and duration for each type of connection.
    */

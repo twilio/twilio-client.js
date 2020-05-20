@@ -12,6 +12,7 @@ import { RTCSampleTotals } from '../rtc/sample';
 import RTCSample from '../rtc/sample';
 import RTCWarning from '../rtc/warning';
 import StatsMonitor from '../statsMonitor';
+import CallQuality from './callQuality';
 import { NetworkTiming, TimeMeasurement } from './timing';
 
 const C = require('../constants');
@@ -198,25 +199,50 @@ export class PreflightTest extends EventEmitter {
   }
 
   /**
+   * Returns call quality base on the RTC Stats
+   */
+  private _getCallQuality(mos: number): CallQuality {
+    if (mos > 4.2) {
+      return CallQuality.Excellent;
+    } else if (mos >= 4.1 && mos <= 4.2) {
+      return CallQuality.Great;
+    } else if (mos >= 3.7 && mos <= 4) {
+      return CallQuality.Good;
+    } else if (mos >= 3.1 && mos <= 3.6) {
+      return CallQuality.Fair;
+    } else {
+      return CallQuality.Degraded;
+    }
+  }
+
+  /**
    * Returns the report for this test.
    */
   private _getReport(): PreflightTest.Report {
+    const stats = this._getRTCStats();
     const testTiming: TimeMeasurement = { start: this._startTime };
     if (this._endTime) {
       testTiming.end = this._endTime;
       testTiming.duration  = this._endTime - this._startTime;
     }
-    return {
+
+    const report: PreflightTest.Report = {
       callSid: this._callSid,
       edge: this._edge,
       networkTiming: this._networkTiming,
       samples: this._samples,
       selectedEdge: this._options.edge,
-      stats: this._getRTCStats(),
+      stats,
       testTiming,
       totals: this._getRTCSampleTotals(),
       warnings: this._warnings,
     };
+
+    if (stats) {
+      report.callQuality = this._getCallQuality(stats.mos.average);
+    }
+
+    return report;
   }
 
   /**
@@ -677,6 +703,11 @@ export namespace PreflightTest {
    * Represents the report generated from a {@link PreflightTest}.
    */
   export interface Report {
+    /**
+     * The quality of the call determined by different mos ranges.
+     */
+    callQuality?: CallQuality;
+
     /**
      * CallSid generaged during the test.
      */
