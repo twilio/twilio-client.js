@@ -2,7 +2,7 @@
 ===================
 
 New Features
----------
+------------
 
 * ### Twilio Regional
   This release includes support for the first phase of the new **Twilio Regional**.

@@ -31,12 +31,6 @@ export class NotSupportedError extends Error {
     this.name = 'NotSupportedError';
   }
 }
-export class InputStreamNotSupportedError extends Error {
-  constructor(message?: string) {
-    super(message);
-    this.name = 'InputStreamNotSupportedError';
-  }
-}
 
 // This should only be used to look up error codes returned by a server
 // using the same repo of error codes.

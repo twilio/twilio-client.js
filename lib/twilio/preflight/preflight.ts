@@ -7,7 +7,7 @@
 import { EventEmitter } from 'events';
 import Connection from '../connection';
 import Device from '../device';
-import { InputStreamNotSupportedError } from '../errors';
+import { NotSupportedError } from '../errors';
 import { RTCSampleTotals } from '../rtc/sample';
 import RTCSample from '../rtc/sample';
 import RTCWarning from '../rtc/warning';
@@ -15,7 +15,7 @@ import StatsMonitor from '../statsMonitor';
 import { NetworkTiming, TimeMeasurement } from './timing';
 
 const C = require('../constants');
-const ECHO_TEST_DURATION = 15000;
+const ECHO_TEST_DURATION = 20000;
 
 export declare interface PreflightTest {
   /**
@@ -164,13 +164,11 @@ export class PreflightTest extends EventEmitter {
     this._warnings = [];
     this._startTime = Date.now();
 
-    if (!this._options.ignoreMicInput) {
-      this._initDevice(token, this._options);
-    } else {
-      this._getStreamFromFile().then((inputStream: MediaStream) => {
-        this._initDevice(token, { inputStream, ...this._options });
-      }).catch((error) => this._onFailed(error));
-    }
+    this._initDevice(token, {
+      ...this._options,
+      fileInputStream: this._options.ignoreMicInput ?
+        this._getStreamFromFile() : undefined,
+    });
   }
 
   /**
@@ -254,28 +252,25 @@ export class PreflightTest extends EventEmitter {
   /**
    * Returns a MediaStream from a media file
    */
-  private _getStreamFromFile(): Promise<MediaStream> {
-    return new Promise((resolve, reject) => {
-      if (typeof Audio.prototype.captureStream !== 'function') {
-        return reject(new InputStreamNotSupportedError(
-          'Getting a MediaStream from an audio file is not supported by this browser.' +
-          'Please set PreflightTest.Options.ignoreMicInput to false',
-        ));
-      }
+  private _getStreamFromFile(): MediaStream {
+    const audioContext = ((this._options.deviceFactory || Device) as any)['_initAudioContext']();
+    if (!audioContext) {
+      throw new NotSupportedError('AudioContext is not supported by this browser.');
+    }
 
-      const url = `${C.SOUNDS_BASE_URL}/cowbell.mp3?cache=${C.RELEASE_VERSION}`;
-      const audio: any = new Audio(url);
-      audio.muted = true;
-      audio.loop = true;
+    const url = `${C.SOUNDS_BASE_URL}/cowbell.mp3?cache=${C.RELEASE_VERSION}`;
+    const audioEl: any = new Audio(url);
 
-      audio.addEventListener('canplaythrough', () => audio.play());
-      if (typeof audio.setAttribute === 'function') {
-        audio.setAttribute('crossorigin', 'anonymous');
-      }
+    audioEl.addEventListener('canplaythrough', () => audioEl.play());
+    if (typeof audioEl.setAttribute === 'function') {
+      audioEl.setAttribute('crossorigin', 'anonymous');
+    }
 
-      const inputStream = audio.captureStream();
-      inputStream.addEventListener('addtrack', () => resolve(inputStream));
-    });
+    const src = audioContext.createMediaElementSource(audioEl);
+    const dest = audioContext.createMediaStreamDestination();
+    src.connect(dest);
+
+    return dest.stream;
   }
 
   /**
@@ -287,7 +282,7 @@ export class PreflightTest extends EventEmitter {
         codecPreferences: options.codecPreferences,
         debug: options.debug,
         edge: options.edge,
-        inputStream: options.inputStream,
+        fileInputStream: options.fileInputStream,
         // Silence the sounds if we're not using the mic
         sounds: options.ignoreMicInput ? {
           disconnect: 'http://empty.mp3',
@@ -316,6 +311,26 @@ export class PreflightTest extends EventEmitter {
         message: 'WebSocket - Connection Timeout',
       });
     }, options.signalingTimeoutMs);
+  }
+
+  /**
+   * Mute the output audio for a given connection without affecting audio levels
+   */
+  private _muteAudioOutput(connection: Connection): void {
+    // Muting just the output audio is not a public API
+    // Let's access internals for preflight
+    if (connection.mediaStream) {
+      const stream = connection.mediaStream;
+      if (stream._masterAudio) {
+        stream._masterAudio.muted = true;
+      }
+      stream.__fallbackOnAddTrack = stream._fallbackOnAddTrack;
+      stream._fallbackOnAddTrack = (...args: any[]) => {
+        const rval = stream.__fallbackOnAddTrack(...args);
+        stream.outputs.get('default').audio.muted = true;
+        return rval;
+      };
+    }
   }
 
   /**
@@ -415,7 +430,7 @@ export class PreflightTest extends EventEmitter {
 
     connection.once('accept', () => {
       if (this._options.ignoreMicInput) {
-        connection.mediaStream._masterAudio.muted = true;
+        this._muteAudioOutput(connection);
       }
       this._callSid = connection.mediaStream.callSid;
       this._status = PreflightTest.Status.Connected;
@@ -574,9 +589,9 @@ export namespace PreflightTest {
     deviceFactory?: new (token: string, options: Device.Options) => Device;
 
     /**
-     * Input stream to use instead of reading from mic
+     * File input stream to use instead of reading from mic
      */
-    inputStream?: MediaStream;
+    fileInputStream?: MediaStream;
   }
 
   /**

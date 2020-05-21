@@ -92,6 +92,11 @@ export interface IExtendedDeviceOptions extends Device.Options {
   eventgw?: string;
 
   /**
+   * File input stream to use instead of reading from mic
+   */
+  fileInputStream?: MediaStream;
+
+  /**
    * A list of specific ICE servers to use. Overridden by {@link Device.Options.rtcConfiguration}.
    * @deprecated
    */
@@ -102,11 +107,6 @@ export interface IExtendedDeviceOptions extends Device.Options {
    * ORTC are supported.
    */
   ignoreBrowserSupport?: boolean;
-
-  /**
-   * Input stream to use instead of reading from mic
-   */
-  inputStream?: MediaStream;
 
   /**
    * Whether to disable audio flag in MediaPresence (rrowland: Do we need this?)
@@ -246,6 +246,20 @@ class Device extends EventEmitter {
    * Whether or not the browser uses unified-plan SDP by default.
    */
   private static _isUnifiedPlanDefault: boolean | undefined;
+
+  /**
+   * Initialize the AudioContext for the {@link Device} class and returns it
+   */
+  private static _initAudioContext(): AudioContext | undefined {
+    if (!Device._audioContext) {
+      if (typeof AudioContext !== 'undefined') {
+        Device._audioContext = new AudioContext();
+      } else if (typeof webkitAudioContext !== 'undefined') {
+        Device._audioContext = new webkitAudioContext();
+      }
+    }
+    return Device._audioContext;
+  }
 
   /**
    * The AudioHelper instance associated with this {@link Device}.
@@ -638,13 +652,7 @@ class Device extends EventEmitter {
       : false;
     }
 
-    if (!Device._audioContext) {
-      if (typeof AudioContext !== 'undefined') {
-        Device._audioContext = new AudioContext();
-      } else if (typeof webkitAudioContext !== 'undefined') {
-        Device._audioContext = new webkitAudioContext();
-      }
-    }
+    Device._initAudioContext();
 
     if (Device._audioContext && options.fakeLocalDTMF) {
       if (!Device._dialtonePlayer) {
@@ -964,7 +972,7 @@ class Device extends EventEmitter {
       enableIceRestart: this.options.enableIceRestart,
       enableRingingState: this.options.enableRingingState,
       forceAggressiveIceNomination: this.options.forceAggressiveIceNomination,
-      getInputStream: (): MediaStream | null => this.options.inputStream || this._connectionInputStream,
+      getInputStream: (): MediaStream | null => this.options.fileInputStream || this._connectionInputStream,
       getSinkIds: (): string[] => this._connectionSinkIds,
       maxAverageBitrate: this.options.maxAverageBitrate,
       rtcConfiguration: this.options.rtcConfiguration || { iceServers: this.options.iceServers },
