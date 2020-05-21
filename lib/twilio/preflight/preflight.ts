@@ -231,12 +231,20 @@ export class PreflightTest extends EventEmitter {
    * Returns RTC related stats captured during the test call
    */
   private _getRTCStats(): PreflightTest.RTCStats | undefined {
-    if (!this._samples || !this._samples.length) {
+    const firstMosSampleIdx = this._samples.findIndex(
+      sample => typeof sample.mos === 'number' && sample.mos > 0,
+    );
+
+    const samples = firstMosSampleIdx >= 0
+      ? this._samples.slice(firstMosSampleIdx)
+      : [];
+
+    if (!samples || !samples.length) {
       return;
     }
 
     return ['jitter', 'mos', 'rtt'].reduce((statObj, stat) => {
-      const values = this._samples.map(s => s[stat]);
+      const values = samples.map(s => s[stat]);
       return {
         ...statObj,
         [stat]: {
@@ -326,10 +334,6 @@ export class PreflightTest extends EventEmitter {
     });
 
     connection.on('sample', (sample) => {
-      // This is the first sample and no mos yet
-      if (typeof sample.mos !== 'number' && !this._samples.length) {
-        return;
-      }
       this._latestSample = sample;
       this._samples.push(sample);
       this.emit(PreflightTest.Events.Sample, sample);

@@ -17,6 +17,8 @@ Create a new TwiML Bin with the plus button on that screen and use `Playback` as
 <Response>
   <Say>You said:</Say>
   <Play loop="1">{{RecordingUrl}}</Play>
+  <Say>Now waiting for a few seconds to gather audio performance metrics.</Say>
+  <Pause length="3">
   <Say>Hanging up now.</Say>
 </Response>
 ```
@@ -31,7 +33,7 @@ Using the [TwiML Bin](https://www.twilio.com/console/twiml-bins) page, let's cre
 
 <Response>
   <Say>Record a message in 3, 2, 1</Say>
-  <Record maxLength="3" action="https://my-record-twiml-url"></Record>
+  <Record maxLength="5" action="https://my-record-twiml-url"></Record>
   <Say>Did not detect a message to record</Say>
 </Response>
 ```

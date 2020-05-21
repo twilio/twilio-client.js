@@ -43,7 +43,7 @@ export default interface RTCSample {
   /**
    * Mean opinion score, 1.0 through roughly 4.5
    */
-  mos: number;
+  mos: number | null;
 
   /**
    * Number of packets lost in last second.

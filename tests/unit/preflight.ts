@@ -5,6 +5,7 @@ import { SinonFakeTimers } from 'sinon';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { inherits } from 'util';
+import RTCSample from '../../lib/twilio/rtc/sample';
 
 describe('PreflightTest', () => {
   const CALL_SID = 'foo-bar';
@@ -127,40 +128,6 @@ describe('PreflightTest', () => {
         sinon.assert.calledWithExactly(onSample, data);
         assert.deepEqual(preflight.latestSample, data)
       }
-    });
-
-    it('should not emit samples if mos is not available', () => {
-      const onSample = sinon.stub();
-      const preflight = new PreflightTest('foo', options);
-      preflight.on('sample', onSample);
-      device.emit('ready');
-
-      const count = 10;
-      const sample = {foo: 'foo', bar: 'bar'};
-      for (let i = 1; i <= count; i++) {
-        const data = {...sample, count: i};
-        connection.emit('sample', data);
-        assert.equal(preflight.latestSample, undefined);
-      }
-      sinon.assert.notCalled(onSample);
-    });
-
-    it('should emit samples after mos is available, then becomes unavailable', () => {
-      const onSample = sinon.stub();
-      const preflight = new PreflightTest('foo', options);
-      preflight.on('sample', onSample);
-      device.emit('ready');
-
-      connection.emit('sample', { mos: 4 });
-
-      const count = 10;
-      const sample = {foo: 'foo', bar: 'bar'};
-      for (let i = 1; i <= count; i++) {
-        const data = {...sample, count: i};
-        connection.emit('sample', data);
-        assert.deepEqual(preflight.latestSample, data);
-      }
-      sinon.assert.callCount(onSample, 11);
     });
   });
 
@@ -463,6 +430,100 @@ describe('PreflightTest', () => {
 
       assert.equal(device.eventNames().length, 0);
       assert.equal(connection.eventNames().length, 0);
+    });
+  });
+
+  describe('_getRTCStats', () => {
+    describe('should trim leading null mos valued samples', () => {
+      const createSample = ({
+        jitter,
+        mos,
+        rtt,
+      }: {
+        jitter: any,
+        mos: any,
+        rtt: any,
+      }): RTCSample => ({
+        audioInputLevel: 0,
+        audioOutputLevel: 0,
+        bytesReceived: 0,
+        bytesSent: 0,
+        codecName: 'foobar-codec',
+        jitter,
+        mos,
+        packetsLost: 0,
+        packetsLostFraction: 0,
+        packetsReceived: 0,
+        packetsSent: 0,
+        rtt,
+        timestamp: 0,
+        totals: {
+          bytesReceived: 0,
+          bytesSent: 0,
+          packetsLost: 0,
+          packetsLostFraction: 0,
+          packetsReceived: 0,
+          packetsSent: 0,
+        },
+      });
+
+      it('should return an object if there are mos samples', () => {
+        const preflight = new PreflightTest('foo', options);
+
+        device.emit('ready');
+        [{
+          jitter: 100, mos: null, rtt: 1,
+        }, {
+          jitter: 0, mos: null, rtt: 0,
+        }, {
+          jitter: 0, mos: null, rtt: 0,
+        }, {
+          jitter: 1, mos: 5, rtt: 0.01,
+        }, {
+          jitter: 2, mos: 4, rtt: 0.03,
+        }, {
+          jitter: 3, mos: 3, rtt: 0.02,
+        }].map(createSample).forEach(
+          (sample: RTCSample) => connection.emit('sample', sample),
+        );
+
+        const rtcStats = preflight['_getRTCStats']();
+        assert.deepEqual(rtcStats, {
+          jitter: {
+            average: 2,
+            max: 3,
+            min: 1,
+          },
+          mos: {
+            average: 4,
+            max: 5,
+            min: 3,
+          },
+          rtt: {
+            average: 0.02,
+            max: 0.03,
+            min: 0.01,
+          },
+        });
+      });
+
+      it('should return undefined if there are no mos samples', () => {
+        const preflight = new PreflightTest('foo', options);
+
+        device.emit('ready');
+        [{
+          jitter: 100, mos: null, rtt: 1,
+        }, {
+          jitter: 0, mos: null, rtt: 0,
+        }, {
+          jitter: 0, mos: null, rtt: 0,
+        }].map(createSample).forEach(
+          (sample: RTCSample) => connection.emit('sample', sample),
+        );
+
+        const rtcStats = preflight['_getRTCStats']();
+        assert.equal(rtcStats, undefined);
+      });
     });
   });
 });
