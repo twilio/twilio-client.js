@@ -18,11 +18,16 @@ import {
 } from './errors';
 import Log from './log';
 import {
-  defaultRegion,
+  getChunderURIs,
   getRegionShortcode,
-  getRegionURI,
+  Region,
+  regionToEdge,
 } from './regions';
-import { Exception, queryToJson } from './util';
+import {
+  isLegacyEdge,
+  isUnifiedPlanDefault,
+  queryToJson,
+} from './util';
 
 const C = require('./constants');
 const Publisher = require('./eventpublisher');
@@ -30,7 +35,6 @@ const PStream = require('./pstream');
 const rtc = require('./rtc');
 const getUserMedia = require('./rtc/getusermedia');
 const Sound = require('./sound');
-const { isUnifiedPlanDefault } = require('./util');
 
 /**
  * @private
@@ -262,6 +266,11 @@ class Device extends EventEmitter {
   private _activeConnection: Connection | null = null;
 
   /**
+   * The list of chunder URIs that will be passed to PStream
+   */
+  private _chunderURIs: string[] = [];
+
+  /**
    * An audio input MediaStream to pass to new {@link Connection} instances.
    */
   private _connectionInputStream: MediaStream | null = null;
@@ -271,6 +280,11 @@ class Device extends EventEmitter {
    * new {@link Connection} instances.
    */
   private _connectionSinkIds: string[] = ['default'];
+
+  /**
+   * The name of the edge the {@link Device} is connected to.
+   */
+  private _edge: string | null = null;
 
   /**
    * Whether each sound is enabled.
@@ -328,7 +342,6 @@ class Device extends EventEmitter {
     iceServers: [],
     noRegister: false,
     pStreamFactory: PStream,
-    region: defaultRegion,
     rtcConstraints: { },
     soundFactory: Sound,
     sounds: { },
@@ -492,6 +505,14 @@ class Device extends EventEmitter {
   }
 
   /**
+   * Returns the {@link Edge} value the {@link Device} is currently connected
+   * to. The value will be `null` when the {@link Device} is offline.
+   */
+  get edge(): string | null {
+    return this._edge;
+  }
+
+  /**
    * Set a handler for the error event.
    * @deprecated Use {@link Device.on}.
    * @param handler
@@ -532,6 +553,10 @@ class Device extends EventEmitter {
    * if not connected.
    */
   region(): string {
+    this._log.warn(
+      '`Device.region` is deprecated and will be removed in the next major ' +
+      'release. Please use `Device.edge` instead.',
+    );
     this._throwUnlessSetup('region');
     return typeof this._region === 'string' ? this._region : 'offline';
   }
@@ -576,9 +601,36 @@ class Device extends EventEmitter {
         Twilio Support at <help@twilio.com>.`);
     }
 
+    if (isLegacyEdge()) {
+      this._log.warn(
+        'Microsoft Edge Legacy (https://support.microsoft.com/en-us/help/4533505/what-is-microsoft-edge-legacy) ' +
+        'is deprecated and will not be able to connect to Twilio to make or receive calls after September 1st, 2020. ' +
+        'Please see this documentation for a list of supported browsers ' +
+        'https://www.twilio.com/docs/voice/client/javascript#supported-browsers',
+      );
+    }
+
     if (!token) {
       throw new InvalidArgumentError('Token is required for Device.setup()');
     }
+
+    Object.assign(this.options, options);
+
+    this._log.setDefaultLevel(
+      this.options.debug
+        ? Log.levels.DEBUG
+        : this.options.warnings
+          ? Log.levels.WARN
+          : Log.levels.SILENT,
+    );
+
+    this._chunderURIs = this.options.chunderw
+      ? [`wss://${this.options.chunderw}/signal`]
+      : getChunderURIs(
+          this.options.edge,
+          this.options.region,
+          this._log.warn.bind(this._log),
+        ).map((uri: string) => `wss://${uri}/signal`);
 
     if (typeof Device._isUnifiedPlanDefault === 'undefined') {
       Device._isUnifiedPlanDefault = typeof window !== 'undefined'
@@ -613,15 +665,9 @@ class Device extends EventEmitter {
 
     this.isInitialized = true;
 
-    Object.assign(this.options, options);
-
     if (this.options.dscp) {
       (this.options.rtcConstraints as any).optional = [{ googDscp: true }];
     }
-
-    this._log.setDefaultLevel(this.options.debug ? Log.levels.DEBUG
-      : this.options.warnings ? Log.levels.WARN
-      : Log.levels.SILENT);
 
     const getOrSetSound = (key: Device.ToggleableSound, value?: boolean) => {
       if (!hasBeenWarnedSounds) {
@@ -641,12 +687,6 @@ class Device extends EventEmitter {
         .forEach((eventName: Device.SoundName) => {
       this.sounds[eventName] = getOrSetSound.bind(null, eventName);
     });
-
-    const regionURI = getRegionURI(this.options.region, newRegion => this._log.warn(
-      `Region ${this.options.region} is deprecated, please use ${newRegion}.`,
-    ));
-
-    this.options.chunderw = `wss://${this.options.chunderw || regionURI}/signal`;
 
     const defaultSounds: Record<string, ISoundDefinition> = {
       disconnect: { filename: 'disconnect', maxDuration: 3000 },
@@ -685,6 +725,10 @@ class Device extends EventEmitter {
     this._publisher = (this.options.Publisher || Publisher)('twilio-js-sdk', token, {
       defaultPayload: this._createDefaultPayload,
       host: this.options.eventgw,
+      metadata: {
+        app_name: this.options.appName,
+        app_version: this.options.appVersion,
+      },
     } as any);
 
     if (this.options.publishEvents === false) {
@@ -834,10 +878,9 @@ class Device extends EventEmitter {
       ice_restart_enabled: this.options.enableIceRestart,
       platform: rtc.getMediaEngine(),
       sdk_version: C.RELEASE_VERSION,
-      selected_region: this.options.region,
     };
 
-    function setIfDefined(propertyName: string, value: string | undefined) {
+    function setIfDefined(propertyName: string, value: string | undefined | null) {
       if (value) { payload[propertyName] = value; }
     }
 
@@ -849,11 +892,9 @@ class Device extends EventEmitter {
       payload.direction = connection.direction;
     }
 
-    const stream: IPStream = this.stream;
-    if (stream) {
-      setIfDefined('gateway', stream.gateway);
-      setIfDefined('region', stream.region);
-    }
+    setIfDefined('gateway', this.stream && this.stream.gateway);
+    setIfDefined('selected_region', this.options.region);
+    setIfDefined('region', this.stream && this.stream.region);
 
     return payload;
   }
@@ -939,6 +980,13 @@ class Device extends EventEmitter {
         this.soundcache.get(Device.SoundName.Outgoing).play();
       }
 
+      const data: any = { edge: this._edge || this._region };
+      const selectedEdge = this.options.edge;
+      if (selectedEdge) {
+        data['selected_edge'] = Array.isArray(selectedEdge) ? selectedEdge : [selectedEdge];
+      }
+
+      this._publisher.info('settings', 'edge', data, connection);
       this._asyncEmit('connect', connection);
     });
 
@@ -1014,7 +1062,9 @@ class Device extends EventEmitter {
    * Called when a 'connected' event is received from the signaling stream.
    */
   private _onSignalingConnected = (payload: Record<string, any>) => {
-    this._region = getRegionShortcode(payload.region) || payload.region;
+    const region = getRegionShortcode(payload.region);
+    this._edge = regionToEdge[region as Region] || payload.region;
+    this._region = region || payload.region;
     this._sendPresence();
   }
 
@@ -1090,6 +1140,7 @@ class Device extends EventEmitter {
   private _onSignalingOffline = () => {
     this._log.info('Stream is offline');
     this._status = Device.Status.Offline;
+    this._edge = null;
     this._region = null;
     this.emit('offline', this);
   }
@@ -1158,7 +1209,7 @@ class Device extends EventEmitter {
    */
   private _setupStream(token: string) {
     this._log.info('Setting up VSP');
-    this.stream = this.options.pStreamFactory(token, this.options.chunderw, {
+    this.stream = this.options.pStreamFactory(token, this._chunderURIs, {
       backoffMaxMs: this.options.backoffMaxMs,
     });
 
@@ -1419,6 +1470,20 @@ namespace Device {
     allowIncomingWhileBusy?: boolean;
 
     /**
+     * A name for the application that is instantiating the {@link Device}. This is used to improve logging
+     * in Insights by associating Insights data with a specific application, particularly in the case where
+     * one account may be connected to by multiple applications.
+     */
+    appName?: string;
+
+    /**
+     * A version for the application that is instantiating the {@link Device}. This is used to improve logging
+     * in Insights by associating Insights data with a specific version of the given application. This can help
+     * track down when application-level bugs were introduced.
+     */
+    appVersion?: string;
+
+    /**
      * Audio Constraints to pass to getUserMedia when making or accepting a Call.
      * This is placed directly under `audio` of the MediaStreamConstraints object.
      */
@@ -1452,6 +1517,16 @@ namespace Device {
      * Whether to use googDscp in RTC constraints.
      */
     dscp?: boolean;
+
+    /**
+     * The edge value corresponds to the geographic location that the client
+     * will use to connect to Twilio infrastructure. The default value is
+     * "roaming" which automatically selects an edge based on the latency of the
+     * client relative to available edges. You may not specify both `edge` and
+     * `region` in the Device options. Specifying both `edge` and `region` will
+     * result in an `InvalidArgumentException`.
+     */
+    edge?: string[] | string;
 
     /**
      * Whether to automatically restart ICE when media connection fails
@@ -1489,6 +1564,35 @@ namespace Device {
 
     /**
      * The region code of the region to connect to.
+     *
+     * @deprecated
+     *
+     * CLIENT-7519 This parameter is deprecated in favor of the `edge`
+     * parameter. You may not specify both `edge` and `region` in the Device
+     * options.
+     *
+     * This parameter will be removed in the next major version release.
+     *
+     * The following table lists the new edge names to region name mappings.
+     * Instead of passing the `region` value in `options.region`, please pass the
+     * following `edge` value in `options.edge`.
+     *
+     * | Region Value | Edge Value   |
+     * |:-------------|:-------------|
+     * | au1          | sydney       |
+     * | br1          | sao-paolo    |
+     * | ie1          | dublin       |
+     * | de1          | frankfurt    |
+     * | jp1          | tokyo        |
+     * | sg1          | singapore    |
+     * | us1          | ashburn      |
+     * | us2          | umatilla     |
+     * | gll          | roaming      |
+     * | us1-ix       | ashburn-ix   |
+     * | us2-ix       | san-jose-ix  |
+     * | ie1-ix       | london-ix    |
+     * | de1-ix       | frankfurt-ix |
+     * | sg1-ix       | singapore-ix |
      */
     region?: string;
 

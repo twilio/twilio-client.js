@@ -1,3 +1,42 @@
+1.11.0 (May 21, 2020)
+===================
+
+New Features
+---------
+
+### Twilio Edge Locations
+
+This release includes support for the expansion of Twilio’s Global Infrastructure via [Edge Locations](https://www.twilio.com/docs/global-infrastructure/edge-locations) which allows connectivity control into and out of Twilio’s platform. The Voice Client JS SDK uses these Edges to connect to Twilio’s infrastructure via the new parameter `Twilio.Device.Options.edge`. This new parameter supersedes the now deprecated `Twilio.Device.Options.region`. See `Twilio.Device.Options.edge` API documentation for migration instructions.
+
+#### Example
+```ts
+const device = new Device(token, { edge: 'ashburn' });
+```
+
+### Twilio Edge Fallback Support (Beta)
+
+Deployments designed to connect to multiple Twilio Edge locations can take advantage of the new fallback mechanism. To enable the edge fallback, specify an array of edge names via `Twilio.Device.Options.edge`. When enabled and a connection failure is encountered, the SDK will reattempt the connection to the next region in the list. For more details about how the fallback works, see `Twilio.Device.Options.edge` documentation.
+
+#### Example
+```ts
+const device = new Device(token, { edge: ['ashburn-ix', 'san-jose-ix', 'roaming' ] });
+```
+
+### Application Name and Version Logging Support
+
+This release also introduces two new `Device` options: `appName` and `appVersion`. The values will be logged to Insights. These can be used to correlate other insights events with the application generating them. This is useful for debugging purposes in cases where multiple versions are deployed e.g. When performing A/B testing.
+
+Deprecations
+--------
+
+[Microsoft Edge Legacy](https://support.microsoft.com/en-us/help/4533505/what-is-microsoft-edge-legacy) is now deprecated. Running `device.setup()` on this browser will result with the console warning below.
+  ```
+  Microsoft Edge Legacy (https://support.microsoft.com/en-us/help/4533505/what-is-microsoft-edge-legacy)
+  is deprecated and will not be able to connect to Twilio to make or receive calls after September 1st, 2020.
+  Please see this documentation for a list of supported browsers
+  https://www.twilio.com/docs/voice/client/javascript#supported-browsers
+  ```
+
 1.10.3 (Apr 29, 2020)
 ===================
 

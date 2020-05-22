@@ -1,8 +1,12 @@
 import { levels as LogLevels } from 'loglevel';
 import Connection from '../../lib/twilio/connection';
 import Device from '../../lib/twilio/device';
-import { regionShortcodes } from '../../lib/twilio/regions';
 import { GeneralErrors } from '../../lib/twilio/errors';
+import {
+  Region,
+  regionShortcodes,
+  regionToEdge,
+} from '../../lib/twilio/regions';
 
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
@@ -227,6 +231,11 @@ describe('Device', function() {
           assert.throws(() => (device.setup as any)(), /Token is required/);
         });
 
+        it('should throw if both `edge` and `region` are defined in options', () => {
+          device = new Device();
+          assert.throws(() => device.setup(token, { edge: 'foo', region: 'bar' }));
+        });
+
         it('should set device.isInitialized to true', () => {
           assert.equal(device.isInitialized, true);
         });
@@ -416,7 +425,40 @@ describe('Device', function() {
       });
     });
 
+    describe('.edge', () => {
+      it(`should return 'null' if not connected`, () => {
+        assert.equal(device.edge, null);
+      });
+
+      // these unit tests will need to be changed for Phase 2 Regional
+      context('when the region is mapped to a known edge', () => {
+        Object.entries(regionShortcodes).forEach(([fullName, region]: [string, string]) => {
+          const preferredEdge = regionToEdge[region as Region];
+          it(`should return ${preferredEdge} for ${region}`, () => {
+            pstream.emit('connected', { region: fullName });
+            assert.equal(device.edge, preferredEdge);
+          });
+        });
+      });
+
+      context('when the region is not mapped to a known edge', () => {
+        ['FOO_BAR', ''].forEach((name: string) => {
+          it(`should return the region string directly if it's '${name}'`, () => {
+            pstream.emit('connected', { region: name });
+            assert.equal(device.region(), name);
+          });
+        });
+      });
+    });
+
     describe('.region()', () => {
+      it(`should log.warn a deprecation warning`, () => {
+        const spy = sinon.spy();
+        device['_log'].warn = spy;
+        device.region();
+        assert(spy.calledOnce);
+      });
+
       it(`should return 'offline' if not connected`, () => {
         assert.equal(device.region(), 'offline');
       });
@@ -471,12 +513,74 @@ describe('Device', function() {
     });
 
     describe('.setup()', () => {
+      let device: any;
+      let options: any;
+      let pStreamFactory: any;
+
+      beforeEach(() => {
+        pStreamFactory = sinon.stub().returns({
+          addListener: sinon.stub()
+        });
+
+        device = new Device();
+        options = Object.assign({}, setupOptions, { pStreamFactory });
+      });
+
       it('should call updateToken with the passed token', () => {
         const spy = sinon.spy(device.updateToken);
         device.updateToken = spy;
         device.setup(token);
         sinon.assert.calledOnce(spy);
         sinon.assert.calledWith(spy, token);
+      });
+
+      it('should use chunderw regardless', () => {
+        options.chunderw = 'foo';
+        device.setup(token, options);
+
+        sinon.assert.calledOnce(pStreamFactory);
+        sinon.assert.calledWithExactly(pStreamFactory,
+          token, ['wss://foo/signal'],
+          { backoffMaxMs: undefined });
+      });
+
+      it('should use default chunder uri if no region or edge is passed in', () => {
+        device.setup(token, options);
+
+        sinon.assert.calledOnce(pStreamFactory);
+        sinon.assert.calledWithExactly(pStreamFactory,
+          token, ['wss://chunderw-vpc-gll.twilio.com/signal'],
+          { backoffMaxMs: undefined });
+      });
+
+      it('should use correct region', () => {
+        options.region = 'sg1';
+        device.setup(token, options);
+
+        sinon.assert.calledOnce(pStreamFactory);
+        sinon.assert.calledWithExactly(pStreamFactory,
+          token, ['wss://chunderw-vpc-gll-sg1.twilio.com/signal'],
+          { backoffMaxMs: undefined });
+      });
+
+      it('should use correct edge if only one is supplied', () => {
+        options.edge = 'singapore';
+        device.setup(token, options);
+
+        sinon.assert.calledOnce(pStreamFactory);
+        sinon.assert.calledWithExactly(pStreamFactory,
+          token, ['wss://chunderw-vpc-gll-sg1.twilio.com/signal'],
+          { backoffMaxMs: undefined });
+      });
+
+      it('should use correct edges if more than one is supplied', () => {
+        options.edge = ['singapore', 'sydney'];
+        device.setup(token, options);
+
+        sinon.assert.calledOnce(pStreamFactory);
+        sinon.assert.calledWithExactly(pStreamFactory,
+          token, ['wss://chunderw-vpc-gll-sg1.twilio.com/signal', 'wss://chunderw-vpc-gll-au1.twilio.com/signal'],
+          { backoffMaxMs: undefined });
       });
     });
 
