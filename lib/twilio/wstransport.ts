@@ -53,6 +53,11 @@ export interface IWSTransportConstructorOptions {
   backoffMaxMs?: number;
 
   /**
+   * Time in milliseconds before websocket times out when attempting to connect
+   */
+  connectTimeoutMs?: number;
+
+  /**
    * A WebSocket factory to use instead of WebSocket.
    */
   WebSocket?: any;
@@ -82,6 +87,11 @@ export default class WSTransport extends EventEmitter {
   private _connectTimeout?: any;
 
   /**
+   * Time in milliseconds before websocket times out when attempting to connect
+   */
+  private _connectTimeoutMs?: number;
+
+  /**
    * The current connection timeout. If it times out, we've failed to connect
    * and should try again.
    *
@@ -96,6 +106,17 @@ export default class WSTransport extends EventEmitter {
   private _log: Log = Log.getInstance();
 
   /**
+   * Previous state of the connection
+   */
+  private _previousState: WSTransportState;
+
+  /**
+   * Whether we should attempt to fallback if we receive an applicable error
+   * when trying to connect to a signaling endpoint.
+   */
+  private _shouldFallback: boolean = false;
+
+  /**
    * The currently connecting or open WebSocket.
    */
   private _socket?: WebSocket;
@@ -106,9 +127,14 @@ export default class WSTransport extends EventEmitter {
   private _timeOpened?: number;
 
   /**
-   * The URI of the endpoint being connected to.
+   * The current uri index that the transport is connected to.
    */
-  private readonly _uri: string;
+  private _uriIndex: number = 0;
+
+  /**
+   * List of URI of the endpoints to connect to.
+   */
+  private readonly _uris: string[];
 
   /**
    * The constructor to use for WebSocket
@@ -117,22 +143,34 @@ export default class WSTransport extends EventEmitter {
 
   /**
    * @constructor
-   * @param uri - The URI of the endpoint to connect to.
+   * @param uris - List of URI of the endpoints to connect to.
    * @param [options] - Constructor options.
    */
-  constructor(uri: string, options: IWSTransportConstructorOptions = { }) {
+  constructor(uris: string[], options: IWSTransportConstructorOptions = { }) {
     super();
 
-    this._backoff = Backoff.exponential({
+    this._connectTimeoutMs = options.connectTimeoutMs || CONNECT_TIMEOUT;
+
+    let initialDelay = 100;
+    if (uris && uris.length > 1) {
+      // We only want a random initial delay if there are any fallback edges
+      // Initial delay between 1s and 5s both inclusive
+      initialDelay = Math.floor(Math.random() * (5000 - 1000 + 1)) + 1000;
+    }
+
+    const backoffConfig = {
       factor: 2.0,
-      initialDelay: 100,
+      initialDelay,
       maxDelay: typeof options.backoffMaxMs === 'number'
         ? Math.max(options.backoffMaxMs, 3000)
         : 20000,
       randomisationFactor: 0.40,
-    });
+    };
 
-    this._uri = uri;
+    this._log.info('Initializing transport backoff using config: ', backoffConfig);
+    this._backoff = Backoff.exponential(backoffConfig);
+
+    this._uris = uris;
     this._WebSocket = options.WebSocket || WebSocket;
 
     // Called when a backoff timer is started.
@@ -200,7 +238,7 @@ export default class WSTransport extends EventEmitter {
    * Close the WebSocket, and don't try to reconnect.
    */
   private _close(): void {
-    this.state = WSTransportState.Closed;
+    this._setState(WSTransportState.Closed);
     this._closeSocket();
   }
 
@@ -253,16 +291,16 @@ export default class WSTransport extends EventEmitter {
 
     this._closeSocket();
 
-    this.state = WSTransportState.Connecting;
+    this._setState(WSTransportState.Connecting);
     let socket = null;
     try {
-      socket = new this._WebSocket(this._uri);
+      socket = new this._WebSocket(this._uris[this._uriIndex]);
     } catch (e) {
       this._log.info('Could not connect to endpoint:', e.message);
       this._close();
       this.emit('error', {
         code: 31000,
-        message: e.message || `Could not connect to ${this._uri}`,
+        message: e.message || `Could not connect to ${this._uris[this._uriIndex]}`,
         twilioError: new SignalingErrors.ConnectionDisconnected(),
       });
       return;
@@ -271,8 +309,9 @@ export default class WSTransport extends EventEmitter {
     delete this._timeOpened;
     this._connectTimeout = setTimeout(() => {
       this._log.info('WebSocket connection attempt timed out.');
+      this._moveUriIndex();
       this._closeSocket();
-    }, CONNECT_TIMEOUT);
+    }, this._connectTimeoutMs);
 
     socket.addEventListener('close', this._onSocketClose as any);
     socket.addEventListener('error', this._onSocketError as any);
@@ -282,11 +321,24 @@ export default class WSTransport extends EventEmitter {
   }
 
   /**
+   * Move the uri index to the next index
+   * If the index is at the end, the index goes back to the first one.
+   */
+  private _moveUriIndex = (): void => {
+    this._uriIndex++;
+    if (this._uriIndex >= this._uris.length) {
+      this._uriIndex = 0;
+    }
+  }
+
+  /**
    * Called in response to WebSocket#close event.
    */
   private _onSocketClose = (event: CloseEvent): void => {
-    this._log.info(`Received websocket close event code: ${event.code}`);
-    if (event.code === 1006) {
+    this._log.info(`Received websocket close event code: ${event.code}. Reason: ${event.reason}`);
+    // 1006: Abnormal close. When the server is unreacheable
+    // 1015: TLS Handshake error
+    if (event.code === 1006 || event.code === 1015) {
       this.emit('error', {
         code: 31005,
         message: event.reason ||
@@ -296,6 +348,26 @@ export default class WSTransport extends EventEmitter {
           'edge is being specified in Device setup, ensure it is valid.',
         twilioError: new SignalingErrors.ConnectionError(),
       });
+
+      const wasConnected = (
+        // Only in Safari and certain Firefox versions, on network interruption, websocket drops right away with 1006
+        // Let's check current state if it's open, meaning we should not fallback
+        // because we're coming from a previously connected session
+        this.state === WSTransportState.Open ||
+
+        // But on other browsers, websocket doesn't drop
+        // but our heartbeat catches it, setting the internal state to "Connecting".
+        // With this, we should check the previous state instead.
+        this._previousState === WSTransportState.Open
+      );
+
+      // Only fallback if this is not the first error
+      // and if we were not connected previously
+      if (this._shouldFallback || !wasConnected) {
+        this._moveUriIndex();
+      }
+
+      this._shouldFallback = true;
     }
     this._closeSocket();
   }
@@ -335,7 +407,8 @@ export default class WSTransport extends EventEmitter {
   private _onSocketOpen = (): void => {
     this._log.info('WebSocket opened successfully.');
     this._timeOpened = Date.now();
-    this.state = WSTransportState.Open;
+    this._shouldFallback = false;
+    this._setState(WSTransportState.Open);
     clearTimeout(this._connectTimeout);
 
     this._setHeartbeatTimeout();
@@ -350,7 +423,23 @@ export default class WSTransport extends EventEmitter {
     clearTimeout(this._heartbeatTimeout);
     this._heartbeatTimeout = setTimeout(() => {
       this._log.info(`No messages received in ${HEARTBEAT_TIMEOUT / 1000} seconds. Reconnecting...`);
+      this._shouldFallback = true;
       this._closeSocket();
     }, HEARTBEAT_TIMEOUT);
+  }
+
+  /**
+   * Set the current and previous state
+   */
+  private _setState(state: WSTransportState): void {
+    this._previousState = this.state;
+    this.state = state;
+  }
+
+  /**
+   * The uri the transport is currently connected to
+   */
+  get uri(): string {
+    return this._uris[this._uriIndex];
   }
 }
