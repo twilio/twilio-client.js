@@ -25,14 +25,14 @@ We recommend using `npm` to add the Client SDK as a dependency.
 npm install twilio-client --save
 ```
 
-Using this method, you can `import` twilio-client.js like so:
+Using this method, you can `import` twilio-client.js using ES Module or TypeScript syntax:
 
 ```js
 import { Device } from 'twilio-client';
 
 ```
 
-Or using `require`:
+Or using CommonJS:
 
 ```js
 const Device = require('twilio-client').Device;
