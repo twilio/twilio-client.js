@@ -112,11 +112,6 @@ export interface IExtendedDeviceOptions extends Device.Options {
   ignoreBrowserSupport?: boolean;
 
   /**
-   * Input stream to use instead of reading from mic
-   */
-  inputStream?: MediaStream;
-
-  /**
    * Whether to disable audio flag in MediaPresence (rrowland: Do we need this?)
    */
   noRegister?: boolean;

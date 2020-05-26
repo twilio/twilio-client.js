@@ -428,78 +428,6 @@ describe('PreflightTest', () => {
       monitor.emit('warning', data);
       sinon.assert.notCalled(onWarning);
     });
-
-    it('should ignore constant audio warnings from connection', () => {
-      const onWarning = sinon.stub();
-      preflight.on('warning', onWarning);
-      device.emit('ready');
-
-      const data = {foo: 'foo', bar: 'bar'};
-
-      connection.emit('warning', 'constant-audio', data);
-
-      sinon.assert.notCalled(onWarning);
-    });
-
-    it('should set thresholds', () => {
-      device.emit('ready');
-      assert.equal(monitor._thresholds.audioInputLevel.maxDuration, 5);
-      assert.equal(monitor._thresholds.audioOutputLevel.maxDuration, 5);
-    });
-
-    it('should emit audioInputLevel warnings from monitor', () => {
-      const onWarning = sinon.stub();
-      preflight.on('warning', onWarning);
-      device.emit('ready');
-
-      const data = {
-        name: 'audioInputLevel',
-        threshold: { name: 'maxDuration' }
-      };
-      monitor.emit('warning', data);
-      sinon.assert.calledOnce(onWarning);
-      sinon.assert.calledWithExactly(onWarning, 'constant-audio-input-level', data);
-    });
-
-    it('should emit audioOutputLevel warnings from monitor', () => {
-      const onWarning = sinon.stub();
-      preflight.on('warning', onWarning);
-      device.emit('ready');
-
-      const data = {
-        name: 'audioOutputLevel',
-        threshold: { name: 'maxDuration' }
-      };
-      monitor.emit('warning', data);
-      sinon.assert.calledOnce(onWarning);
-      sinon.assert.calledWithExactly(onWarning, 'constant-audio-output-level', data);
-    });
-
-    it('should not emit warnings from monitor if threshold is not maxDuration', () => {
-      const onWarning = sinon.stub();
-      preflight.on('warning', onWarning);
-      device.emit('ready');
-
-      const data = {
-        name: 'audioOutputLevel',
-        threshold: { name: 'foo' }
-      };
-      monitor.emit('warning', data);
-      sinon.assert.notCalled(onWarning);
-    });
-
-    it('should not emit warnings from monitor if warning name is not audioInputLevel or audioOutputLevel', () => {
-      const onWarning = sinon.stub();
-      preflight.on('warning', onWarning);
-      device.emit('ready');
-
-      const data = {
-        name: 'foo',
-        threshold: { name: 'maxDuration' }
-      };
-      monitor.emit('warning', data);
-      sinon.assert.notCalled(onWarning);
-    });
   });
 
   describe('on connected', () => {
@@ -726,23 +654,6 @@ describe('PreflightTest', () => {
       assert.equal(preflight.status, PreflightTest.Status.Failed);
       sinon.assert.calledOnce(onFailed);
       sinon.assert.calledWithExactly(onFailed, 'foo');
-    });
-
-    it('should emit failed if Device is null and stop is called', () => {
-      const onFailed = sinon.stub();
-      const preflight = new PreflightTest('foo', {...options, ignoreMicInput: true });
-      preflight.on('failed', onFailed);
-      device.emit('ready');
-
-      preflight.stop();
-
-      assert.equal(preflight.status, PreflightTest.Status.Failed);
-      sinon.assert.notCalled(deviceContext.destroy);
-      sinon.assert.calledOnce(onFailed);
-      sinon.assert.calledWithExactly(onFailed, {
-        code: 31008,
-        message: 'Call cancelled',
-      });
     });
 
     it('should emit failed when test is stopped and destroy device', () => {
