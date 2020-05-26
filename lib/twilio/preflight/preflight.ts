@@ -7,7 +7,7 @@
 import { EventEmitter } from 'events';
 import Connection from '../connection';
 import Device from '../device';
-import { InputStreamNotSupportedError } from '../errors';
+import { NotSupportedError } from '../errors';
 import { RTCSampleTotals } from '../rtc/sample';
 import RTCSample from '../rtc/sample';
 import RTCWarning from '../rtc/warning';
@@ -15,8 +15,7 @@ import StatsMonitor from '../statsMonitor';
 import CallQuality from './callQuality';
 import { NetworkTiming, TimeMeasurement } from './timing';
 
-const C = require('../constants');
-const ECHO_TEST_DURATION = 15000;
+const { COWBELL_AUDIO_URL, ECHO_TEST_DURATION } = require('../constants');
 
 export declare interface PreflightTest {
   /**
@@ -85,7 +84,7 @@ export class PreflightTest extends EventEmitter {
 
   /**
    * The timer when doing an echo test
-   * The echo test is used when ignoreMicInput is set to true
+   * The echo test is used when fakeMicInput is set to true
    */
   private _echoTimer: NodeJS.Timer;
 
@@ -116,7 +115,7 @@ export class PreflightTest extends EventEmitter {
     codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
     debug: false,
     edge: 'roaming',
-    ignoreMicInput: false,
+    fakeMicInput: false,
     signalingTimeoutMs: 10000,
   };
 
@@ -165,13 +164,11 @@ export class PreflightTest extends EventEmitter {
     this._warnings = [];
     this._startTime = Date.now();
 
-    if (!this._options.ignoreMicInput) {
-      this._initDevice(token, this._options);
-    } else {
-      this._getStreamFromFile().then((inputStream: MediaStream) => {
-        this._initDevice(token, { inputStream, ...this._options });
-      }).catch((error) => this._onFailed(error));
-    }
+    this._initDevice(token, {
+      ...this._options,
+      fileInputStream: this._options.fakeMicInput ?
+        this._getStreamFromFile() : undefined,
+    });
   }
 
   /**
@@ -260,12 +257,20 @@ export class PreflightTest extends EventEmitter {
    * Returns RTC related stats captured during the test call
    */
   private _getRTCStats(): PreflightTest.RTCStats | undefined {
-    if (!this._samples || !this._samples.length) {
+    const firstMosSampleIdx = this._samples.findIndex(
+      sample => typeof sample.mos === 'number' && sample.mos > 0,
+    );
+
+    const samples = firstMosSampleIdx >= 0
+      ? this._samples.slice(firstMosSampleIdx)
+      : [];
+
+    if (!samples || !samples.length) {
       return;
     }
 
     return ['jitter', 'mos', 'rtt'].reduce((statObj, stat) => {
-      const values = this._samples.map(s => s[stat]);
+      const values = samples.map(s => s[stat]);
       return {
         ...statObj,
         [stat]: {
@@ -280,28 +285,24 @@ export class PreflightTest extends EventEmitter {
   /**
    * Returns a MediaStream from a media file
    */
-  private _getStreamFromFile(): Promise<MediaStream> {
-    return new Promise((resolve, reject) => {
-      if (typeof Audio.prototype.captureStream !== 'function') {
-        return reject(new InputStreamNotSupportedError(
-          'Getting a MediaStream from an audio file is not supported by this browser.' +
-          'Please set PreflightTest.Options.ignoreMicInput to false',
-        ));
-      }
+  private _getStreamFromFile(): MediaStream {
+    const audioContext = this._options.audioContext;
+    if (!audioContext) {
+      throw new NotSupportedError('Cannot fake input audio stream: AudioContext is not supported by this browser.');
+    }
 
-      const url = `${C.SOUNDS_BASE_URL}/cowbell.mp3?cache=${C.RELEASE_VERSION}`;
-      const audio: any = new Audio(url);
-      audio.muted = true;
-      audio.loop = true;
+    const audioEl: any = new Audio(COWBELL_AUDIO_URL);
 
-      audio.addEventListener('canplaythrough', () => audio.play());
-      if (typeof audio.setAttribute === 'function') {
-        audio.setAttribute('crossorigin', 'anonymous');
-      }
+    audioEl.addEventListener('canplaythrough', () => audioEl.play());
+    if (typeof audioEl.setAttribute === 'function') {
+      audioEl.setAttribute('crossorigin', 'anonymous');
+    }
 
-      const inputStream = audio.captureStream();
-      inputStream.addEventListener('addtrack', () => resolve(inputStream));
-    });
+    const src = audioContext.createMediaElementSource(audioEl);
+    const dest = audioContext.createMediaStreamDestination();
+    src.connect(dest);
+
+    return dest.stream;
   }
 
   /**
@@ -313,12 +314,7 @@ export class PreflightTest extends EventEmitter {
         codecPreferences: options.codecPreferences,
         debug: options.debug,
         edge: options.edge,
-        inputStream: options.inputStream,
-        // Silence the sounds if we're not using the mic
-        sounds: options.ignoreMicInput ? {
-          disconnect: 'http://empty.mp3',
-          outgoing: 'http://empty.mp3',
-        } : undefined,
+        fileInputStream: options.fileInputStream,
       });
     } catch (error) {
       // We want to return before failing so the consumer can capture the event
@@ -342,6 +338,26 @@ export class PreflightTest extends EventEmitter {
         message: 'WebSocket - Connection Timeout',
       });
     }, options.signalingTimeoutMs);
+  }
+
+  /**
+   * Mute the output audio for a given connection without affecting audio levels
+   */
+  private _muteAudioOutput(connection: Connection): void {
+    // Muting just the output audio is not a public API
+    // Let's access internals for preflight
+    if (connection.mediaStream) {
+      const stream = connection.mediaStream;
+      if (stream._masterAudio) {
+        stream._masterAudio.muted = true;
+      }
+      stream.__fallbackOnAddTrack = stream._fallbackOnAddTrack;
+      stream._fallbackOnAddTrack = (...args: any[]) => {
+        const rval = stream.__fallbackOnAddTrack(...args);
+        stream.outputs.get('default').audio.muted = true;
+        return rval;
+      };
+    }
   }
 
   /**
@@ -378,8 +394,15 @@ export class PreflightTest extends EventEmitter {
     this._setupConnectionHandlers(this._connection);
 
     this._edge = this._device.edge || undefined;
-    if (this._options.ignoreMicInput) {
+    if (this._options.fakeMicInput) {
       this._echoTimer = setTimeout(() => this._device.disconnectAll(), ECHO_TEST_DURATION);
+
+      // Mute sounds
+      const audio = this._device.audio as any;
+      if (audio) {
+        audio.disconnect(false);
+        audio.outgoing(false);
+      }
     }
 
     this._device.once('disconnect', () => {
@@ -440,8 +463,8 @@ export class PreflightTest extends EventEmitter {
     });
 
     connection.once('accept', () => {
-      if (this._options.ignoreMicInput) {
-        connection.mediaStream._masterAudio.muted = true;
+      if (this._options.fakeMicInput) {
+        this._muteAudioOutput(connection);
       }
       this._callSid = connection.mediaStream.callSid;
       this._status = PreflightTest.Status.Connected;
@@ -449,10 +472,6 @@ export class PreflightTest extends EventEmitter {
     });
 
     connection.on('sample', (sample) => {
-      // This is the first sample and no mos yet
-      if (typeof sample.mos !== 'number' && !this._samples.length) {
-        return;
-      }
       this._latestSample = sample;
       this._samples.push(sample);
       this.emit(PreflightTest.Events.Sample, sample);
@@ -595,14 +614,19 @@ export namespace PreflightTest {
    */
   export interface ExtendedOptions extends Options {
     /**
+     * The AudioContext instance to use
+     */
+    audioContext?: AudioContext;
+
+    /**
      * Device class to use.
      */
     deviceFactory?: new (token: string, options: Device.Options) => Device;
 
     /**
-     * Input stream to use instead of reading from mic
+     * File input stream to use instead of reading from mic
      */
-    inputStream?: MediaStream;
+    fileInputStream?: MediaStream;
   }
 
   /**
@@ -635,7 +659,7 @@ export namespace PreflightTest {
      * If set to `false`, the test call will capture the audio from the microphone.
      * Setting this to `true` is only supported on Chrome and will throw a fatal error on other browsers
      */
-    ignoreMicInput?: boolean;
+    fakeMicInput?: boolean;
 
     /**
      * Amount of time to wait for setting up signaling connection.

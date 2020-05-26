@@ -513,12 +513,74 @@ describe('Device', function() {
     });
 
     describe('.setup()', () => {
+      let device: any;
+      let options: any;
+      let pStreamFactory: any;
+
+      beforeEach(() => {
+        pStreamFactory = sinon.stub().returns({
+          addListener: sinon.stub()
+        });
+
+        device = new Device();
+        options = Object.assign({}, setupOptions, { pStreamFactory });
+      });
+
       it('should call updateToken with the passed token', () => {
         const spy = sinon.spy(device.updateToken);
         device.updateToken = spy;
         device.setup(token);
         sinon.assert.calledOnce(spy);
         sinon.assert.calledWith(spy, token);
+      });
+
+      it('should use chunderw regardless', () => {
+        options.chunderw = 'foo';
+        device.setup(token, options);
+
+        sinon.assert.calledOnce(pStreamFactory);
+        sinon.assert.calledWithExactly(pStreamFactory,
+          token, ['wss://foo/signal'],
+          { backoffMaxMs: undefined });
+      });
+
+      it('should use default chunder uri if no region or edge is passed in', () => {
+        device.setup(token, options);
+
+        sinon.assert.calledOnce(pStreamFactory);
+        sinon.assert.calledWithExactly(pStreamFactory,
+          token, ['wss://chunderw-vpc-gll.twilio.com/signal'],
+          { backoffMaxMs: undefined });
+      });
+
+      it('should use correct region', () => {
+        options.region = 'sg1';
+        device.setup(token, options);
+
+        sinon.assert.calledOnce(pStreamFactory);
+        sinon.assert.calledWithExactly(pStreamFactory,
+          token, ['wss://chunderw-vpc-gll-sg1.twilio.com/signal'],
+          { backoffMaxMs: undefined });
+      });
+
+      it('should use correct edge if only one is supplied', () => {
+        options.edge = 'singapore';
+        device.setup(token, options);
+
+        sinon.assert.calledOnce(pStreamFactory);
+        sinon.assert.calledWithExactly(pStreamFactory,
+          token, ['wss://chunderw-vpc-gll-sg1.twilio.com/signal'],
+          { backoffMaxMs: undefined });
+      });
+
+      it('should use correct edges if more than one is supplied', () => {
+        options.edge = ['singapore', 'sydney'];
+        device.setup(token, options);
+
+        sinon.assert.calledOnce(pStreamFactory);
+        sinon.assert.calledWithExactly(pStreamFactory,
+          token, ['wss://chunderw-vpc-gll-sg1.twilio.com/signal', 'wss://chunderw-vpc-gll-au1.twilio.com/signal'],
+          { backoffMaxMs: undefined });
       });
     });
 

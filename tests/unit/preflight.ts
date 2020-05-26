@@ -5,7 +5,7 @@ import { SinonFakeTimers } from 'sinon';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { inherits } from 'util';
-import { before } from 'mocha';
+import RTCSample from '../../lib/twilio/rtc/sample';
 
 describe('PreflightTest', () => {
   const CALL_SID = 'foo-bar';
@@ -69,20 +69,30 @@ describe('PreflightTest', () => {
       audioOutputLevel: { maxDuration: 10 }
     };
 
+    const outputs = new Map();
+    outputs.set('default', { audio: {} })
     connectionContext = {
       _monitor: monitor,
       mediaStream: {
         callSid: CALL_SID,
         _masterAudio: {},
+        _fallbackOnAddTrack: () => {
+
+        },
         onpcconnectionstatechange: sinon.stub(),
         oniceconnectionstatechange: sinon.stub(),
         ondtlstransportstatechange: sinon.stub(),
+        outputs,
       }
     };
     connection = new EventEmitter();
     Object.assign(connection, connectionContext);
 
     deviceContext = {
+      audio: {
+        disconnect: sinon.stub(),
+        outgoing: sinon.stub(),
+      },
       setup: sinon.stub(),
       connect: sinon.stub().returns(connection),
       destroy: sinon.stub(),
@@ -112,8 +122,7 @@ describe('PreflightTest', () => {
         codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
         debug: false,
         edge: 'roaming',
-        inputStream: undefined,
-        sounds: undefined,
+        fileInputStream: undefined,
       });
     });
 
@@ -124,8 +133,7 @@ describe('PreflightTest', () => {
         codecPreferences: options.codecPreferences,
         debug: false,
         edge: 'roaming',
-        inputStream: undefined,
-        sounds: undefined,
+        fileInputStream: undefined,
       });
     });
 
@@ -136,8 +144,7 @@ describe('PreflightTest', () => {
         codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
         debug: true,
         edge: 'roaming',
-        inputStream: undefined,
-        sounds: undefined,
+        fileInputStream: undefined,
       });
     });
 
@@ -148,14 +155,13 @@ describe('PreflightTest', () => {
         codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
         debug: false,
         edge: options.edge,
-        inputStream: undefined,
-        sounds: undefined,
+        fileInputStream: undefined,
       });
       sinon.assert.calledOnce(edgeStub);
     });
   });
 
-  describe('ignoreMicInput', () => {
+  describe('fakeMicInput', () => {
     let preflight: PreflightTest;
     let originalAudio: any;
     let audioInstance: any;
@@ -165,10 +171,7 @@ describe('PreflightTest', () => {
     beforeEach(() => {
       originalAudio = root.Audio;
       stream = {
-        name: 'foo',
-        addEventListener: (name: string, handler: Function) => {
-          handler();
-        }
+        name: 'foo'
       };
       root.Audio = function() {
         this.addEventListener = (name: string, handler: Function) => {
@@ -178,91 +181,91 @@ describe('PreflightTest', () => {
         this.setAttribute = sinon.stub();
         audioInstance = this;
       };
-      root.Audio.prototype.captureStream = function() {
-        return stream;
-      };
+      options.audioContext = {
+        createMediaElementSource: () => ({connect: sinon.stub()}),
+        createMediaStreamDestination: () => ({stream}),
+      }
     });
 
     afterEach(() => {
       root.Audio = originalAudio;
     });
 
-    it('should set ignoreMicInput to false by default', () => {
+    it('should throw if no AudioContext is found', () => {
+      options.audioContext = null;
+      assert.throws(() => { new PreflightTest('foo', {...options, fakeMicInput: true }) });
+    });
+
+    it('should set fakeMicInput to false by default', () => {
       preflight = new PreflightTest('foo', options);
       sinon.assert.calledWith(deviceContext.setup, 'foo', {
         codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
         debug: false,
         edge: 'roaming',
-        inputStream: undefined,
-        sounds: undefined,
+        fileInputStream: undefined,
       });
     });
 
-    it('should pass file input and mute sounds if ignoreMicInput is true', () => {
-      preflight = new PreflightTest('foo', {...options, ignoreMicInput: true });
+    it('should pass file input if fakeMicInput is true', () => {
+      preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
       return wait().then(() => {
         sinon.assert.calledWith(deviceContext.setup, 'foo', {
           codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
           debug: false,
           edge: 'roaming',
-          inputStream: stream,
-          sounds: { disconnect: "http://empty.mp3", outgoing: "http://empty.mp3" },
+          fileInputStream: stream,
         });
       });
     });
 
-    it('should fail with InputStreamNotSupportedError', (done) => {
-      root.Audio.prototype.captureStream = null;
-      preflight = new PreflightTest('foo', {...options, ignoreMicInput: true });
-      preflight.on('failed', (error) => {
-        assert(error.name, 'InputStreamNotSupportedError');
-        done();
-      });
-    });
-
-    it('should set muted and loop to true', () => {
-      preflight = new PreflightTest('foo', {...options, ignoreMicInput: true });
-      assert(audioInstance.muted);
-      assert(audioInstance.loop);
-    });
-
     it('should call play', () => {
-      preflight = new PreflightTest('foo', {...options, ignoreMicInput: true });
+      preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
       sinon.assert.calledOnce(audioInstance.play);
     });
 
     it('should set cross origin', () => {
-      preflight = new PreflightTest('foo', {...options, ignoreMicInput: true });
+      preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
       sinon.assert.calledOnce(audioInstance.setAttribute);
       sinon.assert.calledWithExactly(audioInstance.setAttribute, 'crossorigin', 'anonymous');
     });
 
+    it('should mute device sounds', () => {
+      preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
+      return wait().then(() => {
+        device.emit('ready');
+        sinon.assert.calledOnce(deviceContext.audio.disconnect);
+        sinon.assert.calledOnce(deviceContext.audio.outgoing);
+        sinon.assert.calledWithExactly(deviceContext.audio.disconnect, false);
+        sinon.assert.calledWithExactly(deviceContext.audio.outgoing, false);
+      });
+    });
+
     it('should end test after echo duration', () => {
-      preflight = new PreflightTest('foo', {...options, ignoreMicInput: true });
+      preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
       return wait().then(() => {
         device.emit('ready');
 
-        clock.tick(14000);
+        clock.tick(19000);
         sinon.assert.notCalled(deviceContext.disconnectAll);
         clock.tick(1000);
         sinon.assert.calledOnce(deviceContext.disconnectAll);
       });
     });
 
-    it('should not start timer if ignoreMicInput is false', () => {
+    it('should not start timer if fakeMicInput is false', () => {
       preflight = new PreflightTest('foo', options);
       return wait().then(() => {
         device.emit('ready');
 
-        clock.tick(14000);
+        clock.tick(19000);
         sinon.assert.notCalled(deviceContext.disconnectAll);
-        clock.tick(1000);
+        clock.tick(20000);
         sinon.assert.notCalled(deviceContext.disconnectAll);
       });
     });
 
     it('should clear echo timer on completed', () => {
-      preflight = new PreflightTest('foo', {...options, ignoreMicInput: true });
+      preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
 
       return wait().then(() => {
         device.emit('ready');
@@ -271,42 +274,46 @@ describe('PreflightTest', () => {
         clock.tick(1000);
         device.emit('offline');
 
-        clock.tick(15000);
+        clock.tick(20000);
         sinon.assert.notCalled(deviceContext.disconnectAll);
       });
     });
 
     it('should clear echo timer on failed', () => {
-      preflight = new PreflightTest('foo', {...options, ignoreMicInput: true });
+      preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
 
       return wait().then(() => {
         device.emit('ready');
         clock.tick(5000);
         preflight.stop();
         device.emit('offline');
-        clock.tick(15000);
+        clock.tick(20000);
         sinon.assert.notCalled(deviceContext.disconnectAll);
       });
     });
 
-    it('should mute media stream if ignoreMicInput is true', () => {
-      preflight = new PreflightTest('foo', {...options, ignoreMicInput: true });
+    it('should mute media stream if fakeMicInput is true', () => {
+      preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
 
       return wait().then(() => {
         device.emit('ready');
         connection.emit('accept');
+        connectionContext.mediaStream._fallbackOnAddTrack();
 
+        assert(connectionContext.mediaStream.outputs.get('default').audio.muted);
         assert(connectionContext.mediaStream._masterAudio.muted);
       });
     });
 
-    it('should not mute media stream if ignoreMicInput is false', () => {
+    it('should not mute media stream if fakeMicInput is false', () => {
       preflight = new PreflightTest('foo', options);
 
       return wait().then(() => {
         device.emit('ready');
         connection.emit('accept');
+        connectionContext.mediaStream._fallbackOnAddTrack();
 
+        assert(!connectionContext.mediaStream.outputs.get('default').audio.muted);
         assert(!connectionContext.mediaStream._masterAudio.muted);
       });
     });
@@ -329,40 +336,6 @@ describe('PreflightTest', () => {
         assert.deepEqual(preflight.latestSample, data)
       }
     });
-
-    it('should not emit samples if mos is not available', () => {
-      const onSample = sinon.stub();
-      const preflight = new PreflightTest('foo', options);
-      preflight.on('sample', onSample);
-      device.emit('ready');
-
-      const count = 10;
-      const sample = {foo: 'foo', bar: 'bar'};
-      for (let i = 1; i <= count; i++) {
-        const data = {...sample, count: i};
-        connection.emit('sample', data);
-        assert.equal(preflight.latestSample, undefined);
-      }
-      sinon.assert.notCalled(onSample);
-    });
-
-    it('should emit samples after mos is available, then becomes unavailable', () => {
-      const onSample = sinon.stub();
-      const preflight = new PreflightTest('foo', options);
-      preflight.on('sample', onSample);
-      device.emit('ready');
-
-      connection.emit('sample', { mos: 4 });
-
-      const count = 10;
-      const sample = {foo: 'foo', bar: 'bar'};
-      for (let i = 1; i <= count; i++) {
-        const data = {...sample, count: i};
-        connection.emit('sample', data);
-        assert.deepEqual(preflight.latestSample, data);
-      }
-      sinon.assert.callCount(onSample, 11);
-    });
   });
 
   describe('on warning', () => {
@@ -382,6 +355,78 @@ describe('PreflightTest', () => {
 
       sinon.assert.calledOnce(onWarning);
       sinon.assert.calledWithExactly(onWarning, 'foo', data);
+    });
+
+    it('should ignore constant audio warnings from connection', () => {
+      const onWarning = sinon.stub();
+      preflight.on('warning', onWarning);
+      device.emit('ready');
+
+      const data = {foo: 'foo', bar: 'bar'};
+
+      connection.emit('warning', 'constant-audio', data);
+
+      sinon.assert.notCalled(onWarning);
+    });
+
+    it('should set thresholds', () => {
+      device.emit('ready');
+      assert.equal(monitor._thresholds.audioInputLevel.maxDuration, 5);
+      assert.equal(monitor._thresholds.audioOutputLevel.maxDuration, 5);
+    });
+
+    it('should emit audioInputLevel warnings from monitor', () => {
+      const onWarning = sinon.stub();
+      preflight.on('warning', onWarning);
+      device.emit('ready');
+
+      const data = {
+        name: 'audioInputLevel',
+        threshold: { name: 'maxDuration' }
+      };
+      monitor.emit('warning', data);
+      sinon.assert.calledOnce(onWarning);
+      sinon.assert.calledWithExactly(onWarning, 'constant-audio-input-level', data);
+    });
+
+    it('should emit audioOutputLevel warnings from monitor', () => {
+      const onWarning = sinon.stub();
+      preflight.on('warning', onWarning);
+      device.emit('ready');
+
+      const data = {
+        name: 'audioOutputLevel',
+        threshold: { name: 'maxDuration' }
+      };
+      monitor.emit('warning', data);
+      sinon.assert.calledOnce(onWarning);
+      sinon.assert.calledWithExactly(onWarning, 'constant-audio-output-level', data);
+    });
+
+    it('should not emit warnings from monitor if threshold is not maxDuration', () => {
+      const onWarning = sinon.stub();
+      preflight.on('warning', onWarning);
+      device.emit('ready');
+
+      const data = {
+        name: 'audioOutputLevel',
+        threshold: { name: 'foo' }
+      };
+      monitor.emit('warning', data);
+      sinon.assert.notCalled(onWarning);
+    });
+
+    it('should not emit warnings from monitor if warning name is not audioInputLevel or audioOutputLevel', () => {
+      const onWarning = sinon.stub();
+      preflight.on('warning', onWarning);
+      device.emit('ready');
+
+      const data = {
+        name: 'foo',
+        threshold: { name: 'maxDuration' }
+      };
+      monitor.emit('warning', data);
+      sinon.assert.notCalled(onWarning);
     });
 
     it('should ignore constant audio warnings from connection', () => {
@@ -757,6 +802,100 @@ describe('PreflightTest', () => {
 
       assert.equal(device.eventNames().length, 0);
       assert.equal(connection.eventNames().length, 0);
+    });
+  });
+
+  describe('_getRTCStats', () => {
+    describe('should trim leading null mos valued samples', () => {
+      const createSample = ({
+        jitter,
+        mos,
+        rtt,
+      }: {
+        jitter: any,
+        mos: any,
+        rtt: any,
+      }): RTCSample => ({
+        audioInputLevel: 0,
+        audioOutputLevel: 0,
+        bytesReceived: 0,
+        bytesSent: 0,
+        codecName: 'foobar-codec',
+        jitter,
+        mos,
+        packetsLost: 0,
+        packetsLostFraction: 0,
+        packetsReceived: 0,
+        packetsSent: 0,
+        rtt,
+        timestamp: 0,
+        totals: {
+          bytesReceived: 0,
+          bytesSent: 0,
+          packetsLost: 0,
+          packetsLostFraction: 0,
+          packetsReceived: 0,
+          packetsSent: 0,
+        },
+      });
+
+      it('should return an object if there are mos samples', () => {
+        const preflight = new PreflightTest('foo', options);
+
+        device.emit('ready');
+        [{
+          jitter: 100, mos: null, rtt: 1,
+        }, {
+          jitter: 0, mos: null, rtt: 0,
+        }, {
+          jitter: 0, mos: null, rtt: 0,
+        }, {
+          jitter: 1, mos: 5, rtt: 0.01,
+        }, {
+          jitter: 2, mos: 4, rtt: 0.03,
+        }, {
+          jitter: 3, mos: 3, rtt: 0.02,
+        }].map(createSample).forEach(
+          (sample: RTCSample) => connection.emit('sample', sample),
+        );
+
+        const rtcStats = preflight['_getRTCStats']();
+        assert.deepEqual(rtcStats, {
+          jitter: {
+            average: 2,
+            max: 3,
+            min: 1,
+          },
+          mos: {
+            average: 4,
+            max: 5,
+            min: 3,
+          },
+          rtt: {
+            average: 0.02,
+            max: 0.03,
+            min: 0.01,
+          },
+        });
+      });
+
+      it('should return undefined if there are no mos samples', () => {
+        const preflight = new PreflightTest('foo', options);
+
+        device.emit('ready');
+        [{
+          jitter: 100, mos: null, rtt: 1,
+        }, {
+          jitter: 0, mos: null, rtt: 0,
+        }, {
+          jitter: 0, mos: null, rtt: 0,
+        }].map(createSample).forEach(
+          (sample: RTCSample) => connection.emit('sample', sample),
+        );
+
+        const rtcStats = preflight['_getRTCStats']();
+        assert.equal(rtcStats, undefined);
+      });
     });
   });
 });

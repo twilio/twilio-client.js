@@ -1,7 +1,7 @@
 TwiML App - Record and Play
 ===========================
 
-If `PreflightTest.Options.ignoreMicInput` is set to `false`, `Device.testPreflight(token, options)` API requires a [token](https://www.twilio.com/docs/iam/access-tokens) with a TwiML app that can record an audio from a microphone and the ability to play the recorded audio back to the browser. In order to achieve this, we need two TwiML endpoints: one to capture and record the audio, and another one to play the recorded audio.
+If `PreflightTest.Options.fakeMicInput` is set to `false`, `Device.testPreflight(token, options)` API requires a [token](https://www.twilio.com/docs/iam/access-tokens) with a TwiML app that can record an audio from a microphone and the ability to play the recorded audio back to the browser. In order to achieve this, we need two TwiML endpoints: one to capture and record the audio, and another one to play the recorded audio.
 
 TwiML Bins
 ----------
@@ -17,6 +17,8 @@ Create a new TwiML Bin with the plus button on that screen and use `Playback` as
 <Response>
   <Say>You said:</Say>
   <Play loop="1">{{RecordingUrl}}</Play>
+  <Say>Now waiting for a few seconds to gather audio performance metrics.</Say>
+  <Pause length="3">
   <Say>Hanging up now.</Say>
 </Response>
 ```
@@ -31,7 +33,7 @@ Using the [TwiML Bin](https://www.twilio.com/console/twiml-bins) page, let's cre
 
 <Response>
   <Say>Record a message in 3, 2, 1</Say>
-  <Record maxLength="3" action="https://my-record-twiml-url"></Record>
+  <Record maxLength="5" action="https://my-record-twiml-url"></Record>
   <Say>Did not detect a message to record</Say>
 </Response>
 ```
@@ -49,7 +51,7 @@ On that same page, open the TwiML app that you just created by clicking on it an
 TwiML App - Echo
 ================
 
-If `PreflightTest.Options.ignoreMicInput` is set to `true`, `Device.testPreflight(token, options)` API requires a [token](https://www.twilio.com/docs/iam/access-tokens) with a single TwiML app that can capture and play an audio. Following the [previous steps](#twiml-bins), create a TwiML Bin using the following template, and name it `Echo`.
+If `PreflightTest.Options.fakeMicInput` is set to `true`, `Device.testPreflight(token, options)` API requires a [token](https://www.twilio.com/docs/iam/access-tokens) with a single TwiML app that can capture and play an audio. Following the [previous steps](#twiml-bins), create a TwiML Bin using the following template, and name it `Echo`.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>

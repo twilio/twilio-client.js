@@ -21,12 +21,16 @@ import {
 import Log from './log';
 import { PreflightTest } from './preflight/preflight';
 import {
-  getChunderURI,
+  getChunderURIs,
   getRegionShortcode,
   Region,
   regionToEdge,
 } from './regions';
-import { Exception, queryToJson } from './util';
+import {
+  isLegacyEdge,
+  isUnifiedPlanDefault,
+  queryToJson,
+} from './util';
 
 const C = require('./constants');
 const Publisher = require('./eventpublisher');
@@ -34,7 +38,6 @@ const PStream = require('./pstream');
 const rtc = require('./rtc');
 const getUserMedia = require('./rtc/getusermedia');
 const Sound = require('./sound');
-const { isUnifiedPlanDefault } = require('./util');
 
 /**
  * @private
@@ -90,6 +93,11 @@ export interface IExtendedDeviceOptions extends Device.Options {
    * Hostname of the event gateway to connect to.
    */
   eventgw?: string;
+
+  /**
+   * File input stream to use instead of reading from mic
+   */
+  fileInputStream?: MediaStream;
 
   /**
    * A list of specific ICE servers to use. Overridden by {@link Device.Options.rtcConfiguration}.
@@ -216,7 +224,7 @@ class Device extends EventEmitter {
    * @param options
    */
   static testPreflight(token: string, options?: PreflightTest.Options): PreflightTest {
-    return new PreflightTest(token, options || {});
+    return new PreflightTest(token, { audioContext: Device._getOrCreateAudioContext(), ...options });
   }
 
   /**
@@ -246,6 +254,21 @@ class Device extends EventEmitter {
    * Whether or not the browser uses unified-plan SDP by default.
    */
   private static _isUnifiedPlanDefault: boolean | undefined;
+
+  /**
+   * Initializes the AudioContext instance shared across the Client SDK,
+   * or returns the existing instance if one has already been initialized.
+   */
+  private static _getOrCreateAudioContext(): AudioContext | undefined {
+    if (!Device._audioContext) {
+      if (typeof AudioContext !== 'undefined') {
+        Device._audioContext = new AudioContext();
+      } else if (typeof webkitAudioContext !== 'undefined') {
+        Device._audioContext = new webkitAudioContext();
+      }
+    }
+    return Device._audioContext;
+  }
 
   /**
    * The AudioHelper instance associated with this {@link Device}.
@@ -278,6 +301,11 @@ class Device extends EventEmitter {
    * The currently active {@link Connection}, if there is one.
    */
   private _activeConnection: Connection | null = null;
+
+  /**
+   * The list of chunder URIs that will be passed to PStream
+   */
+  private _chunderURIs: string[] = [];
 
   /**
    * An audio input MediaStream to pass to new {@link Connection} instances.
@@ -610,6 +638,15 @@ class Device extends EventEmitter {
         Twilio Support at <help@twilio.com>.`);
     }
 
+    if (isLegacyEdge()) {
+      this._log.warn(
+        'Microsoft Edge Legacy (https://support.microsoft.com/en-us/help/4533505/what-is-microsoft-edge-legacy) ' +
+        'is deprecated and will not be able to connect to Twilio to make or receive calls after September 1st, 2020. ' +
+        'Please see this documentation for a list of supported browsers ' +
+        'https://www.twilio.com/docs/voice/client/javascript#supported-browsers',
+      );
+    }
+
     if (!token) {
       throw new InvalidArgumentError('Token is required for Device.setup()');
     }
@@ -624,11 +661,13 @@ class Device extends EventEmitter {
           : Log.levels.SILENT,
     );
 
-    const regionURI = getChunderURI(
-      this.options.edge,
-      this.options.region,
-      this._log.warn.bind(this._log),
-    );
+    this._chunderURIs = this.options.chunderw
+      ? [`wss://${this.options.chunderw}/signal`]
+      : getChunderURIs(
+          this.options.edge,
+          this.options.region,
+          this._log.warn.bind(this._log),
+        ).map((uri: string) => `wss://${uri}/signal`);
 
     if (typeof Device._isUnifiedPlanDefault === 'undefined') {
       Device._isUnifiedPlanDefault = typeof window !== 'undefined'
@@ -638,13 +677,7 @@ class Device extends EventEmitter {
       : false;
     }
 
-    if (!Device._audioContext) {
-      if (typeof AudioContext !== 'undefined') {
-        Device._audioContext = new AudioContext();
-      } else if (typeof webkitAudioContext !== 'undefined') {
-        Device._audioContext = new webkitAudioContext();
-      }
-    }
+    Device._getOrCreateAudioContext();
 
     if (Device._audioContext && options.fakeLocalDTMF) {
       if (!Device._dialtonePlayer) {
@@ -685,8 +718,6 @@ class Device extends EventEmitter {
         .forEach((eventName: Device.SoundName) => {
       this.sounds[eventName] = getOrSetSound.bind(null, eventName);
     });
-
-    this.options.chunderw = `wss://${this.options.chunderw || regionURI}/signal`;
 
     const defaultSounds: Record<string, ISoundDefinition> = {
       disconnect: { filename: 'disconnect', maxDuration: 3000 },
@@ -899,8 +930,6 @@ class Device extends EventEmitter {
     setIfDefined('gateway', this.stream && this.stream.gateway);
     setIfDefined('selected_region', this.options.region);
     setIfDefined('region', this.stream && this.stream.region);
-    setIfDefined('selected_edge', this.options.edge);
-    setIfDefined('edge', this._edge || this._region);
 
     return payload;
   }
@@ -964,7 +993,7 @@ class Device extends EventEmitter {
       enableIceRestart: this.options.enableIceRestart,
       enableRingingState: this.options.enableRingingState,
       forceAggressiveIceNomination: this.options.forceAggressiveIceNomination,
-      getInputStream: (): MediaStream | null => this.options.inputStream || this._connectionInputStream,
+      getInputStream: (): MediaStream | null => this.options.fileInputStream || this._connectionInputStream,
       getSinkIds: (): string[] => this._connectionSinkIds,
       maxAverageBitrate: this.options.maxAverageBitrate,
       rtcConfiguration: this.options.rtcConfiguration || { iceServers: this.options.iceServers },
@@ -986,6 +1015,13 @@ class Device extends EventEmitter {
         this.soundcache.get(Device.SoundName.Outgoing).play();
       }
 
+      const data: any = { edge: this._edge || this._region };
+      const selectedEdge = this.options.edge;
+      if (selectedEdge) {
+        data['selected_edge'] = Array.isArray(selectedEdge) ? selectedEdge : [selectedEdge];
+      }
+
+      this._publisher.info('settings', 'edge', data, connection);
       this._asyncEmit('connect', connection);
     });
 
@@ -1208,7 +1244,7 @@ class Device extends EventEmitter {
    */
   private _setupStream(token: string) {
     this._log.info('Setting up VSP');
-    this.stream = this.options.pStreamFactory(token, this.options.chunderw, {
+    this.stream = this.options.pStreamFactory(token, this._chunderURIs, {
       backoffMaxMs: this.options.backoffMaxMs,
     });
 
@@ -1556,7 +1592,7 @@ namespace Device {
      * `region` in the Device options. Specifying both `edge` and `region` will
      * result in an `InvalidArgumentException`.
      */
-    edge?: string;
+    edge?: string[] | string;
 
     /**
      * Whether to automatically restart ICE when media connection fails
