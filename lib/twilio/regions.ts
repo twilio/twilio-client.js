@@ -247,31 +247,31 @@ function createChunderEdgeUri(edge: string): string {
  * Phase 1 Regional.
  *
  * @private
- * @param edge - The edge.
+ * @param edge - A string or an array of edge values
  * @param region - The region shortcode.
  * @param [onDeprecated] - A callback containing the deprecation message to be
  *   warned when the passed parameters are deprecated.
+ * @returns An array of chunder URIs
  */
-export function getChunderURI(
-  edge: string | undefined,
+export function getChunderURIs(
+  edge: string[] | string | undefined,
   region: string | undefined,
   onDeprecated?: (message: string) => void,
-): string {
-  if (typeof region !== 'string' && typeof region !== 'undefined') {
+): string[] {
+  if (!!region && typeof region !== 'string') {
     throw new InvalidArgumentError(
-      'If `region` is defined, it must of type `string`.',
+      'If `region` is provided, it must be of type `string`.',
     );
   }
 
-  if (typeof edge !== 'string' && typeof edge !== 'undefined') {
+  if (!!edge && typeof edge !== 'string' && !Array.isArray(edge)) {
     throw new InvalidArgumentError(
-      'If `edge` is defined, it must of type `string`.',
+      'If `edge` is provided, it must be of type `string` or an array of strings.',
     );
   }
 
   const deprecatedMessages: string[] = [];
-
-  let uri: string = defaultChunderRegionURI;
+  let uris: string[];
 
   if (region && edge) {
     throw new InvalidArgumentError(
@@ -302,18 +302,23 @@ export function getChunderURI(
       );
     }
 
-    uri = createChunderRegionUri(chunderRegion);
+    uris = [createChunderRegionUri(chunderRegion)];
   } else if (edge) {
-    uri = (Object.values(Edge) as string[]).includes(edge)
-      ? createChunderRegionUri(edgeToRegion[edge as Edge])
-      : createChunderEdgeUri(edge);
+    const edgeValues = Object.values(Edge) as string[];
+    const edgeParams = Array.isArray(edge) ? edge : [edge];
+
+    uris = edgeParams.map((param: Edge) => edgeValues.includes(param)
+      ? createChunderRegionUri(edgeToRegion[param])
+      : createChunderEdgeUri(param));
+  } else {
+    uris = [defaultChunderRegionURI];
   }
 
   if (onDeprecated && deprecatedMessages.length) {
     setTimeout(() => onDeprecated(deprecatedMessages.join('\n')));
   }
 
-  return uri;
+  return uris;
 }
 
 /**

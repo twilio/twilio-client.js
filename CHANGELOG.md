@@ -1,23 +1,10 @@
-1.11.0 (In Progress)
+1.12.0 (In Progress)
 ===================
 
 New Features
 ------------
 
-* ### Twilio Regional
-  This release includes support for the first phase of the new **Twilio Regional**.
-
-  **Twilio Regional** allows developers to specify a region where data is processed and stored and specify an edge indicating where the SDK connects into Twilio.
-
-  This first phase includes edge connectivity and the new parameter `Twilio.Device.Options.edge`.
-  This new parameter supersedes the now deprecated `Twilio.Device.Options.region`.
-  See `Twilio.Device.Options.edge` for migration instructions.
-  The edge that the client connected to can be read from `Twilio.Device` using the read-only property `Twilio.Device.edge`.
-
-  Please see documentation on [edges](https://www.twilio.com/docs/voice/client/edges).
-
-* ### Preflight Test
-  The SDK now supports a preflight test API which can help determine Voice calling readiness. The API creates a test call and will provide information to help troubleshoot call related issues. This new API is a static member of the [Device](https://www.twilio.com/docs/voice/client/javascript/device#twilio-device) class and can be used like the example below. Please see [API Docs](PREFLIGHT.md) for more details about this new API.
+* The SDK now supports a preflight test API which can help determine Voice calling readiness. The API creates a test call and will provide information to help troubleshoot call related issues. This new API is a static member of the [Device](https://www.twilio.com/docs/voice/client/javascript/device#twilio-device) class and can be used like the example below. Please see [API Docs](PREFLIGHT.md) for more details about this new API.
 
   ```ts
   // Initiate the test
@@ -26,17 +13,6 @@ New Features
   // Subscribe to events
   preflight.on('completed', (report) => console.log(report));
   preflight.on('failed', (error) => console.log(error));
-  ```
-
-* Added `appName` and `appVersion` fields to Device.options. Pass these strings on Device setup, and they will be passed to [Insights](https://www.twilio.com/console/voice/insights). This can
-  be used to help debug which of your applications and/or versions an issue began occurring in.
-  #### Example
-
-  ```ts
-  const device = new Device(token, {
-    appName: 'agent-softphone',
-    appVersion: '1.2.3',
-  });
   ```
 
 * [Connection.on('warning')](https://www.twilio.com/docs/voice/client/javascript/connection#onwarning-handlerwarningname) now provides data associated with the warning. This data can provide more details about the warning such as thresholds and WebRTC samples collected that caused the warning. The example below is a warning for high jitter. Please see [Voice Insights SDK Events Reference](https://www.twilio.com/docs/voice/insights/call-quality-events-twilio-client-sdk#warning-events) for a list of possible warnings.
@@ -76,7 +52,46 @@ New Features
   }
   ```
 
-1.10.3 (In Progress)
+1.11.0 (May 21, 2020)
+===================
+
+New Features
+---------
+
+### Twilio Edge Locations
+
+This release includes support for the expansion of Twilio’s Global Infrastructure via [Edge Locations](https://www.twilio.com/docs/global-infrastructure/edge-locations) which allows connectivity control into and out of Twilio’s platform. The Voice Client JS SDK uses these Edges to connect to Twilio’s infrastructure via the new parameter `Twilio.Device.Options.edge`. This new parameter supersedes the now deprecated `Twilio.Device.Options.region`. See `Twilio.Device.Options.edge` API documentation for migration instructions.
+
+#### Example
+```ts
+const device = new Device(token, { edge: 'ashburn' });
+```
+
+### Twilio Edge Fallback Support (Beta)
+
+Deployments designed to connect to multiple Twilio Edge locations can take advantage of the new fallback mechanism. To enable the edge fallback, specify an array of edge names via `Twilio.Device.Options.edge`. When enabled and a connection failure is encountered, the SDK will reattempt the connection to the next region in the list. For more details about how the fallback works, see `Twilio.Device.Options.edge` documentation.
+
+#### Example
+```ts
+const device = new Device(token, { edge: ['ashburn-ix', 'san-jose-ix', 'roaming' ] });
+```
+
+### Application Name and Version Logging Support
+
+This release also introduces two new `Device` options: `appName` and `appVersion`. The values will be logged to Insights. These can be used to correlate other insights events with the application generating them. This is useful for debugging purposes in cases where multiple versions are deployed e.g. When performing A/B testing.
+
+Deprecations
+--------
+
+[Microsoft Edge Legacy](https://support.microsoft.com/en-us/help/4533505/what-is-microsoft-edge-legacy) is now deprecated. Running `device.setup()` on this browser will result with the console warning below.
+  ```
+  Microsoft Edge Legacy (https://support.microsoft.com/en-us/help/4533505/what-is-microsoft-edge-legacy)
+  is deprecated and will not be able to connect to Twilio to make or receive calls after September 1st, 2020.
+  Please see this documentation for a list of supported browsers
+  https://www.twilio.com/docs/voice/client/javascript#supported-browsers
+  ```
+
+1.10.3 (Apr 29, 2020)
 ===================
 
 Bug Fixes

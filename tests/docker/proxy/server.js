@@ -1,9 +1,11 @@
 /* eslint-disable no-console */
 'use strict';
-
-const DEFAULT_SERVER_PORT = 3032;
+const env = require('../../env.js');
 const fetchRequest = require('./fetchRequest');
 const isDocker = require('is-docker')();
+const Twilio = require('twilio');
+
+const DEFAULT_SERVER_PORT = 3032;
 const version = 1.00;
 
 /**
@@ -62,6 +64,8 @@ class DockerProxyServer {
       { endpoint: '/connectToDefaultNetwork', handleRequest: '_connectToDefaultNetwork' },
       { endpoint: '/getAllNetworks', handleRequest: '_getAllNetworks' },
       { endpoint: '/getCurrentNetworks', handleRequest: '_getCurrentNetworks' },
+      { endpoint: '/getCapabilityToken', handleRequest: '_getCapabilityToken' },
+      { endpoint: '/getInvalidCapabilityToken', handleRequest: '_getInvalidCapabilityToken' },
     ].forEach((route) => {
       app.get(route.endpoint, async (req, res, next) => {
         try {
@@ -184,6 +188,31 @@ class DockerProxyServer {
         Id: currentContainer.NetworkSettings.Networks[networkName].NetworkID
       };
     });
+  }
+
+  async _generateCapabilityToken(shouldInvalidate) {
+    const outgoingScope = new Twilio.jwt.ClientCapability.OutgoingClientScope({
+      applicationSid: env.appSid
+    });
+
+    // For generating a token with an invalid account sid for testing
+    const accountSid = shouldInvalidate ? 'foo' : env.accountSid;
+
+    const token = new Twilio.jwt.ClientCapability({
+      accountSid,
+      authToken: env.authToken,
+    });
+
+    token.addScope(outgoingScope);
+    return { token: token.toJwt() };
+  }
+
+  async _getCapabilityToken() {
+    return this._generateCapabilityToken();
+  }
+
+  async _getInvalidCapabilityToken() {
+    return this._generateCapabilityToken(true);
   }
 
   async _disconnectFromAllNetworks() {
