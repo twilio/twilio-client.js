@@ -586,7 +586,7 @@ export namespace PreflightTest {
     /**
      * The AudioContext instance to use
      */
-    audioContext?: AudioContext,
+    audioContext?: AudioContext;
 
     /**
      * Device class to use.
