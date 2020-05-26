@@ -89,6 +89,10 @@ describe('PreflightTest', () => {
     Object.assign(connection, connectionContext);
 
     deviceContext = {
+      audio: {
+        disconnect: sinon.stub(),
+        outgoing: sinon.stub(),
+      },
       setup: sinon.stub(),
       connect: sinon.stub().returns(connection),
       destroy: sinon.stub(),
@@ -119,7 +123,6 @@ describe('PreflightTest', () => {
         debug: false,
         edge: 'roaming',
         fileInputStream: undefined,
-        sounds: undefined,
       });
     });
 
@@ -131,7 +134,6 @@ describe('PreflightTest', () => {
         debug: false,
         edge: 'roaming',
         fileInputStream: undefined,
-        sounds: undefined,
       });
     });
 
@@ -143,7 +145,6 @@ describe('PreflightTest', () => {
         debug: true,
         edge: 'roaming',
         fileInputStream: undefined,
-        sounds: undefined,
       });
     });
 
@@ -155,7 +156,6 @@ describe('PreflightTest', () => {
         debug: false,
         edge: options.edge,
         fileInputStream: undefined,
-        sounds: undefined,
       });
       sinon.assert.calledOnce(edgeStub);
     });
@@ -181,10 +181,10 @@ describe('PreflightTest', () => {
         this.setAttribute = sinon.stub();
         audioInstance = this;
       };
-      options.deviceFactory._getOrCreateAudioContext = () => ({
+      options.audioContext = {
         createMediaElementSource: () => ({connect: sinon.stub()}),
         createMediaStreamDestination: () => ({stream}),
-      });
+      }
     });
 
     afterEach(() => {
@@ -192,7 +192,7 @@ describe('PreflightTest', () => {
     });
 
     it('should throw if no AudioContext is found', () => {
-      options.deviceFactory._getOrCreateAudioContext = () => null;
+      options.audioContext = null;
       assert.throws(() => { new PreflightTest('foo', {...options, fakeMicInput: true }) });
     });
 
@@ -203,11 +203,10 @@ describe('PreflightTest', () => {
         debug: false,
         edge: 'roaming',
         fileInputStream: undefined,
-        sounds: undefined,
       });
     });
 
-    it('should pass file input and mute sounds if fakeMicInput is true', () => {
+    it('should pass file input if fakeMicInput is true', () => {
       preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
       return wait().then(() => {
         sinon.assert.calledWith(deviceContext.setup, 'foo', {
@@ -215,7 +214,6 @@ describe('PreflightTest', () => {
           debug: false,
           edge: 'roaming',
           fileInputStream: stream,
-          sounds: { disconnect: "http://empty.mp3", outgoing: "http://empty.mp3" },
         });
       });
     });
@@ -229,6 +227,17 @@ describe('PreflightTest', () => {
       preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
       sinon.assert.calledOnce(audioInstance.setAttribute);
       sinon.assert.calledWithExactly(audioInstance.setAttribute, 'crossorigin', 'anonymous');
+    });
+
+    it('should mute device sounds', () => {
+      preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
+      return wait().then(() => {
+        device.emit('ready');
+        sinon.assert.calledOnce(deviceContext.audio.disconnect);
+        sinon.assert.calledOnce(deviceContext.audio.outgoing);
+        sinon.assert.calledWithExactly(deviceContext.audio.disconnect, false);
+        sinon.assert.calledWithExactly(deviceContext.audio.outgoing, false);
+      });
     });
 
     it('should end test after echo duration', () => {
