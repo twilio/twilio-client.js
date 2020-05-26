@@ -161,7 +161,7 @@ describe('PreflightTest', () => {
     });
   });
 
-  describe('ignoreMicInput', () => {
+  describe('fakeMicInput', () => {
     let preflight: PreflightTest;
     let originalAudio: any;
     let audioInstance: any;
@@ -181,7 +181,7 @@ describe('PreflightTest', () => {
         this.setAttribute = sinon.stub();
         audioInstance = this;
       };
-      options.deviceFactory._initAudioContext = () => ({
+      options.deviceFactory._getOrCreateAudioContext = () => ({
         createMediaElementSource: () => ({connect: sinon.stub()}),
         createMediaStreamDestination: () => ({stream}),
       });
@@ -192,11 +192,11 @@ describe('PreflightTest', () => {
     });
 
     it('should throw if no AudioContext is found', () => {
-      options.deviceFactory._initAudioContext = () => null;
-      assert.throws(() => { new PreflightTest('foo', {...options, ignoreMicInput: true }) });
+      options.deviceFactory._getOrCreateAudioContext = () => null;
+      assert.throws(() => { new PreflightTest('foo', {...options, fakeMicInput: true }) });
     });
 
-    it('should set ignoreMicInput to false by default', () => {
+    it('should set fakeMicInput to false by default', () => {
       preflight = new PreflightTest('foo', options);
       sinon.assert.calledWith(deviceContext.setup, 'foo', {
         codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
@@ -207,8 +207,8 @@ describe('PreflightTest', () => {
       });
     });
 
-    it('should pass file input and mute sounds if ignoreMicInput is true', () => {
-      preflight = new PreflightTest('foo', {...options, ignoreMicInput: true });
+    it('should pass file input and mute sounds if fakeMicInput is true', () => {
+      preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
       return wait().then(() => {
         sinon.assert.calledWith(deviceContext.setup, 'foo', {
           codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
@@ -221,18 +221,18 @@ describe('PreflightTest', () => {
     });
 
     it('should call play', () => {
-      preflight = new PreflightTest('foo', {...options, ignoreMicInput: true });
+      preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
       sinon.assert.calledOnce(audioInstance.play);
     });
 
     it('should set cross origin', () => {
-      preflight = new PreflightTest('foo', {...options, ignoreMicInput: true });
+      preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
       sinon.assert.calledOnce(audioInstance.setAttribute);
       sinon.assert.calledWithExactly(audioInstance.setAttribute, 'crossorigin', 'anonymous');
     });
 
     it('should end test after echo duration', () => {
-      preflight = new PreflightTest('foo', {...options, ignoreMicInput: true });
+      preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
       return wait().then(() => {
         device.emit('ready');
 
@@ -243,7 +243,7 @@ describe('PreflightTest', () => {
       });
     });
 
-    it('should not start timer if ignoreMicInput is false', () => {
+    it('should not start timer if fakeMicInput is false', () => {
       preflight = new PreflightTest('foo', options);
       return wait().then(() => {
         device.emit('ready');
@@ -256,7 +256,7 @@ describe('PreflightTest', () => {
     });
 
     it('should clear echo timer on completed', () => {
-      preflight = new PreflightTest('foo', {...options, ignoreMicInput: true });
+      preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
 
       return wait().then(() => {
         device.emit('ready');
@@ -271,7 +271,7 @@ describe('PreflightTest', () => {
     });
 
     it('should clear echo timer on failed', () => {
-      preflight = new PreflightTest('foo', {...options, ignoreMicInput: true });
+      preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
 
       return wait().then(() => {
         device.emit('ready');
@@ -283,8 +283,8 @@ describe('PreflightTest', () => {
       });
     });
 
-    it('should mute media stream if ignoreMicInput is true', () => {
-      preflight = new PreflightTest('foo', {...options, ignoreMicInput: true });
+    it('should mute media stream if fakeMicInput is true', () => {
+      preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
 
       return wait().then(() => {
         device.emit('ready');
@@ -296,7 +296,7 @@ describe('PreflightTest', () => {
       });
     });
 
-    it('should not mute media stream if ignoreMicInput is false', () => {
+    it('should not mute media stream if fakeMicInput is false', () => {
       preflight = new PreflightTest('foo', options);
 
       return wait().then(() => {

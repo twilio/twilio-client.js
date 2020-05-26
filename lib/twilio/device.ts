@@ -216,7 +216,7 @@ class Device extends EventEmitter {
    * @param options
    */
   static testPreflight(token: string, options?: PreflightTest.Options): PreflightTest {
-    return new PreflightTest(token, options || {});
+    return new PreflightTest(token, { audioContext: Device._getOrCreateAudioContext(), ...options });
   }
 
   /**
@@ -248,9 +248,10 @@ class Device extends EventEmitter {
   private static _isUnifiedPlanDefault: boolean | undefined;
 
   /**
-   * Initialize the AudioContext for the {@link Device} class and returns it
+   * Initializes the AudioContext instance shared across the Client SDK,
+   * or returns the existing instance if one has already been initialized.
    */
-  private static _initAudioContext(): AudioContext | undefined {
+  private static _getOrCreateAudioContext(): AudioContext | undefined {
     if (!Device._audioContext) {
       if (typeof AudioContext !== 'undefined') {
         Device._audioContext = new AudioContext();
@@ -652,7 +653,7 @@ class Device extends EventEmitter {
       : false;
     }
 
-    Device._initAudioContext();
+    Device._getOrCreateAudioContext();
 
     if (Device._audioContext && options.fakeLocalDTMF) {
       if (!Device._dialtonePlayer) {

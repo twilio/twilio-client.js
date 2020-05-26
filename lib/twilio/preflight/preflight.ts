@@ -14,8 +14,7 @@ import RTCWarning from '../rtc/warning';
 import StatsMonitor from '../statsMonitor';
 import { NetworkTiming, TimeMeasurement } from './timing';
 
-const C = require('../constants');
-const ECHO_TEST_DURATION = 20000;
+const { COWBELL_AUDIO_URL, ECHO_TEST_DURATION } = require('../constants');
 
 export declare interface PreflightTest {
   /**
@@ -84,7 +83,7 @@ export class PreflightTest extends EventEmitter {
 
   /**
    * The timer when doing an echo test
-   * The echo test is used when ignoreMicInput is set to true
+   * The echo test is used when fakeMicInput is set to true
    */
   private _echoTimer: NodeJS.Timer;
 
@@ -115,7 +114,7 @@ export class PreflightTest extends EventEmitter {
     codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
     debug: false,
     edge: 'roaming',
-    ignoreMicInput: false,
+    fakeMicInput: false,
     signalingTimeoutMs: 10000,
   };
 
@@ -166,7 +165,7 @@ export class PreflightTest extends EventEmitter {
 
     this._initDevice(token, {
       ...this._options,
-      fileInputStream: this._options.ignoreMicInput ?
+      fileInputStream: this._options.fakeMicInput ?
         this._getStreamFromFile() : undefined,
     });
   }
@@ -253,13 +252,12 @@ export class PreflightTest extends EventEmitter {
    * Returns a MediaStream from a media file
    */
   private _getStreamFromFile(): MediaStream {
-    const audioContext = ((this._options.deviceFactory || Device) as any)['_initAudioContext']();
+    const audioContext = this._options.audioContext;
     if (!audioContext) {
-      throw new NotSupportedError('AudioContext is not supported by this browser.');
+      throw new NotSupportedError('Cannot fake input audio stream: AudioContext is not supported by this browser.');
     }
 
-    const url = `${C.SOUNDS_BASE_URL}/cowbell.mp3?cache=${C.RELEASE_VERSION}`;
-    const audioEl: any = new Audio(url);
+    const audioEl: any = new Audio(COWBELL_AUDIO_URL);
 
     audioEl.addEventListener('canplaythrough', () => audioEl.play());
     if (typeof audioEl.setAttribute === 'function') {
@@ -283,11 +281,6 @@ export class PreflightTest extends EventEmitter {
         debug: options.debug,
         edge: options.edge,
         fileInputStream: options.fileInputStream,
-        // Silence the sounds if we're not using the mic
-        sounds: options.ignoreMicInput ? {
-          disconnect: 'http://empty.mp3',
-          outgoing: 'http://empty.mp3',
-        } : undefined,
       });
     } catch (error) {
       // We want to return before failing so the consumer can capture the event
@@ -367,8 +360,15 @@ export class PreflightTest extends EventEmitter {
     this._setupConnectionHandlers(this._connection);
 
     this._edge = this._device.edge || undefined;
-    if (this._options.ignoreMicInput) {
+    if (this._options.fakeMicInput) {
       this._echoTimer = setTimeout(() => this._device.disconnectAll(), ECHO_TEST_DURATION);
+
+      // Mute sounds
+      const audio = this._device.audio as any;
+      if (audio) {
+        audio.disconnect(false);
+        audio.outgoing(false);
+      }
     }
 
     this._device.once('disconnect', () => {
@@ -429,7 +429,7 @@ export class PreflightTest extends EventEmitter {
     });
 
     connection.once('accept', () => {
-      if (this._options.ignoreMicInput) {
+      if (this._options.fakeMicInput) {
         this._muteAudioOutput(connection);
       }
       this._callSid = connection.mediaStream.callSid;
@@ -584,6 +584,11 @@ export namespace PreflightTest {
    */
   export interface ExtendedOptions extends Options {
     /**
+     * The AudioContext instance to use
+     */
+    audioContext?: AudioContext,
+
+    /**
      * Device class to use.
      */
     deviceFactory?: new (token: string, options: Device.Options) => Device;
@@ -624,7 +629,7 @@ export namespace PreflightTest {
      * If set to `false`, the test call will capture the audio from the microphone.
      * Setting this to `true` is only supported on Chrome and will throw a fatal error on other browsers
      */
-    ignoreMicInput?: boolean;
+    fakeMicInput?: boolean;
 
     /**
      * Amount of time to wait for setting up signaling connection.
