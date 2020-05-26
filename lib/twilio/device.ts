@@ -95,6 +95,11 @@ export interface IExtendedDeviceOptions extends Device.Options {
   eventgw?: string;
 
   /**
+   * File input stream to use instead of reading from mic
+   */
+  fileInputStream?: MediaStream;
+
+  /**
    * A list of specific ICE servers to use. Overridden by {@link Device.Options.rtcConfiguration}.
    * @deprecated
    */
@@ -214,7 +219,7 @@ class Device extends EventEmitter {
    * @param options
    */
   static testPreflight(token: string, options?: PreflightTest.Options): PreflightTest {
-    return new PreflightTest(token, options || {});
+    return new PreflightTest(token, { audioContext: Device._getOrCreateAudioContext(), ...options });
   }
 
   /**
@@ -244,6 +249,21 @@ class Device extends EventEmitter {
    * Whether or not the browser uses unified-plan SDP by default.
    */
   private static _isUnifiedPlanDefault: boolean | undefined;
+
+  /**
+   * Initializes the AudioContext instance shared across the Client SDK,
+   * or returns the existing instance if one has already been initialized.
+   */
+  private static _getOrCreateAudioContext(): AudioContext | undefined {
+    if (!Device._audioContext) {
+      if (typeof AudioContext !== 'undefined') {
+        Device._audioContext = new AudioContext();
+      } else if (typeof webkitAudioContext !== 'undefined') {
+        Device._audioContext = new webkitAudioContext();
+      }
+    }
+    return Device._audioContext;
+  }
 
   /**
    * The AudioHelper instance associated with this {@link Device}.
@@ -652,13 +672,7 @@ class Device extends EventEmitter {
       : false;
     }
 
-    if (!Device._audioContext) {
-      if (typeof AudioContext !== 'undefined') {
-        Device._audioContext = new AudioContext();
-      } else if (typeof webkitAudioContext !== 'undefined') {
-        Device._audioContext = new webkitAudioContext();
-      }
-    }
+    Device._getOrCreateAudioContext();
 
     if (Device._audioContext && options.fakeLocalDTMF) {
       if (!Device._dialtonePlayer) {
@@ -974,7 +988,7 @@ class Device extends EventEmitter {
       enableIceRestart: this.options.enableIceRestart,
       enableRingingState: this.options.enableRingingState,
       forceAggressiveIceNomination: this.options.forceAggressiveIceNomination,
-      getInputStream: (): MediaStream | null => this._connectionInputStream,
+      getInputStream: (): MediaStream | null => this.options.fileInputStream || this._connectionInputStream,
       getSinkIds: (): string[] => this._connectionSinkIds,
       maxAverageBitrate: this.options.maxAverageBitrate,
       rtcConfiguration: this.options.rtcConfiguration || { iceServers: this.options.iceServers },
