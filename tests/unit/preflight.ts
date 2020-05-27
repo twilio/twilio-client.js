@@ -518,6 +518,7 @@ describe('PreflightTest', () => {
       const onCompleted = (results: PreflightTest.Report) => {
         // This is derived from testSamples
         const expected = {
+          callQuality: 'excellent',
           callSid: CALL_SID,
           edge: 'foobar-edge',
           networkTiming: {
@@ -598,6 +599,66 @@ describe('PreflightTest', () => {
       device.emit('disconnect');
       clock.tick(1000);
       device.emit('offline');
+    });
+
+    describe('call quality', () => {
+      it('should not include callQuality if stats are missing', (done) => {
+        const preflight = new PreflightTest('foo', options);
+        const onCompleted = (results: PreflightTest.Report) => {
+          assert(!results.callQuality);
+          done();
+        };
+
+        preflight.on('completed', onCompleted);
+        device.emit('ready');
+
+        clock.tick(13000);
+        device.emit('disconnect');
+        clock.tick(1000);
+        device.emit('offline');
+      });
+
+      // Test data for different mos and expected quality
+      [
+        [4.900, 'excellent'],
+        [4.300, 'excellent'],
+        [4.200, 'great'],
+        [4.100, 'great'],
+        [4.000, 'good'],
+        [3.900, 'good'],
+        [3.800, 'good'],
+        [3.700, 'good'],
+        [3.600, 'fair'],
+        [3.500, 'fair'],
+        [3.200, 'fair'],
+        [3.100, 'fair'],
+        [3.000, 'degraded'],
+        [2.900, 'degraded'],
+      ].forEach(([averageMos, callQuality]) => {
+        it(`should report quality as ${callQuality} if average mos is ${averageMos}`, (done) => {
+          const preflight = new PreflightTest('foo', options);
+          const onCompleted = (results: PreflightTest.Report) => {
+            assert.equal(results.callQuality, callQuality);
+            done();
+          };
+
+          preflight.on('completed', onCompleted);
+          device.emit('ready');
+
+          for (let i = 0; i < 10; i++) {
+            connection.emit('sample', {
+              rtt: 1,
+              jitter: 1,
+              mos: averageMos,
+            });
+          }
+
+          clock.tick(13000);
+          device.emit('disconnect');
+          clock.tick(1000);
+          device.emit('offline');
+        });
+      })
     });
   });
 

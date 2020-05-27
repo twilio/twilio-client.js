@@ -6,7 +6,7 @@ import { PreflightTest } from '../../lib/twilio/preflight/preflight';
 import Connection from '../../lib/twilio/connection';
 
 const DURATION_PADDING = 1000;
-const EVENT_TIMEOUT = 20000;
+const EVENT_TIMEOUT = 30000;
 const MAX_TIMEOUT = 300000;
 
 describe('Preflight Test', function() {
@@ -108,9 +108,16 @@ describe('Preflight Test', function() {
     });
 
     it('should emit completed event', () => {
-      setTimeout(() => receiverDevice.disconnectAll(), 10000);
+      setTimeout(() => receiverDevice.disconnectAll(), 20000);
       return waitFor(expectEvent('completed', preflight).then((report: PreflightTest.Report) => {
         assert(!!report);
+        assert(!!report.callSid);
+        assert(!!report.callQuality);
+        assert(!!report.edge);
+        assert(!!report.networkTiming);
+        assert(!!report.stats);
+        assert(!!report.testTiming);
+        assert(!!report.totals);
         assert(!!report.samples.length);
         assert(!!report.warnings.length);
         assert.deepEqual(report, preflight.report);

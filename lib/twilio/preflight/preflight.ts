@@ -274,7 +274,7 @@ export class PreflightTest extends EventEmitter {
       return {
         ...statObj,
         [stat]: {
-          average: values.reduce((total, value) => total + value) / values.length,
+          average: Number((values.reduce((total, value) => total + value) / values.length).toPrecision(5)),
           max: Math.max(...values),
           min: Math.min(...values),
         },
