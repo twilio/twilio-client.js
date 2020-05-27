@@ -195,25 +195,50 @@ export class PreflightTest extends EventEmitter {
   }
 
   /**
+   * Returns call quality base on the RTC Stats
+   */
+  private _getCallQuality(mos: number): PreflightTest.CallQuality {
+    if (mos > 4.2) {
+      return PreflightTest.CallQuality.Excellent;
+    } else if (mos >= 4.1 && mos <= 4.2) {
+      return PreflightTest.CallQuality.Great;
+    } else if (mos >= 3.7 && mos <= 4) {
+      return PreflightTest.CallQuality.Good;
+    } else if (mos >= 3.1 && mos <= 3.6) {
+      return PreflightTest.CallQuality.Fair;
+    } else {
+      return PreflightTest.CallQuality.Degraded;
+    }
+  }
+
+  /**
    * Returns the report for this test.
    */
   private _getReport(): PreflightTest.Report {
+    const stats = this._getRTCStats();
     const testTiming: TimeMeasurement = { start: this._startTime };
     if (this._endTime) {
       testTiming.end = this._endTime;
       testTiming.duration  = this._endTime - this._startTime;
     }
-    return {
+
+    const report: PreflightTest.Report = {
       callSid: this._callSid,
       edge: this._edge,
       networkTiming: this._networkTiming,
       samples: this._samples,
       selectedEdge: this._options.edge,
-      stats: this._getRTCStats(),
+      stats,
       testTiming,
       totals: this._getRTCSampleTotals(),
       warnings: this._warnings,
     };
+
+    if (stats) {
+      report.callQuality = this._getCallQuality(stats.mos.average);
+    }
+
+    return report;
   }
 
   /**
@@ -248,7 +273,7 @@ export class PreflightTest extends EventEmitter {
       return {
         ...statObj,
         [stat]: {
-          average: values.reduce((total, value) => total + value) / values.length,
+          average: Number((values.reduce((total, value) => total + value) / values.length).toPrecision(5)),
           max: Math.max(...values),
           min: Math.min(...values),
         },
@@ -528,6 +553,37 @@ export class PreflightTest extends EventEmitter {
 
 export namespace PreflightTest {
   /**
+   * The quality of the call determined by different mos ranges.
+   * Mos is calculated base on the WebRTC stats - rtt, jitter, and packet lost.
+   */
+  export enum CallQuality {
+    /**
+     * If the average mos is over 4.2.
+     */
+    Excellent = 'excellent',
+
+    /**
+     * If the average mos is between 4.1 and 4.2 both inclusive.
+     */
+    Great = 'great',
+
+    /**
+     * If the average mos is between 3.7 and 4.0 both inclusive.
+     */
+    Good = 'good',
+
+    /**
+     * If the average mos is between 3.1 and 3.6 both inclusive.
+     */
+    Fair = 'fair',
+
+    /**
+     * If the average mos is 3.0 or below.
+     */
+    Degraded = 'degraded',
+  }
+
+  /**
    * Possible events that a [[PreflightTest]] might emit.
    */
   export enum Events {
@@ -701,6 +757,11 @@ export namespace PreflightTest {
    * Represents the report generated from a {@link PreflightTest}.
    */
   export interface Report {
+    /**
+     * The quality of the call determined by different mos ranges.
+     */
+    callQuality?: CallQuality;
+
     /**
      * CallSid generaged during the test.
      */
