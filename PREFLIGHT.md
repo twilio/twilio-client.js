@@ -36,7 +36,12 @@ Raised when `PreflightTest.status` has transitioned to `completed`. During this 
   "callSid": "CAa6a7a187a9cba2714d6fdccf472cc7b1",
 
   /**
-   * The quality of the call determined by different mos ranges.
+   * The quality of the call, determined by the MOS (Mean Opinion Score) of the audio stream. Possible values include
+   * excellent - If the average mos is over 4.2
+   * great - If the average mos is between 4.1 and 4.2 both inclusive
+   * good - If the average mos is between 3.7 and 4.0 both inclusive
+   * fair - If the average mos is between 3.1 and 3.6 both inclusive
+   * degraded - If the average mos is 3.0 or below
    */
   "callQuality": "excellent",
 
