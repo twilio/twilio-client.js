@@ -13,7 +13,7 @@ const preflightTest = Device.testPreflight(token, options);
 `Device.testPreflight(token, options)` requires a [Twilio Access Token](https://www.twilio.com/docs/iam/access-tokens) to initiate the test call. This access token will be passed directly to the [Device's constructor](https://www.twilio.com/docs/voice/client/javascript/device#setup) and will be used to connect to a TwiML app that you associated with your [Twilio Access Token](https://www.twilio.com/docs/iam/access-tokens). In order to get better results, the TwiML app should be able to record audio from a microphone and play it back to the browser. Please see [Preflight Test TwiML App](PREFLIGHT_TWIML.md) for details.
 
 ### Options
-The `options` parameter is a JavaScript object containing configuration settings. Available settings are listed below:
+The `PreflightTest.Options` parameter is a JavaScript object containing configuration settings. Available settings are listed below:
 
 | Property | Default | Description |
 |:---------|:--------|:------------|
@@ -29,7 +29,7 @@ Events
 The `PreflightTest` object that is returned by `Device.testPreflight(token, options)` is an [EventEmitter](https://nodejs.org/api/events.html#events_class_eventemitter), and as such its events can be subscribed to via `preflightTest.on(eventName, handler)`. The following is a list of all supported events that might get emitted throughout the duration of the test.
 
 #### .on('completed', handler(report))
-Raised when `PreflightTest.status` has transitioned to `completed`. During this time, the `report` is available and ready to be inspected. In some cases, this will not trigger if the test encounters a fatal error prior connecting to Twilio. Example report:
+Raised when `PreflightTest.status` has transitioned to `PreflightTest.Status.Completed`. During this time, the `report` is available and ready to be inspected. In some cases, this will not trigger if the test encounters a fatal error prior connecting to Twilio. Example report:
 
 ```js
 {
@@ -37,11 +37,11 @@ Raised when `PreflightTest.status` has transitioned to `completed`. During this 
 
   /**
    * The quality of the call, determined by the MOS (Mean Opinion Score) of the audio stream. Possible values include
-   * excellent - If the average mos is over 4.2
-   * great - If the average mos is between 4.1 and 4.2 both inclusive
-   * good - If the average mos is between 3.7 and 4.0 both inclusive
-   * fair - If the average mos is between 3.1 and 3.6 both inclusive
-   * degraded - If the average mos is 3.0 or below
+   * PreflightTest.CallQuality.Excellent - If the average mos is over 4.2
+   * PreflightTest.CallQuality.Great - If the average mos is between 4.1 and 4.2 both inclusive
+   * PreflightTest.CallQuality.Good - If the average mos is between 3.7 and 4.0 both inclusive
+   * PreflightTest.CallQuality.Fair - If the average mos is between 3.1 and 3.6 both inclusive
+   * PreflightTest.CallQuality.Degraded - If the average mos is 3.0 or below
    */
   "callQuality": "excellent",
 
@@ -157,10 +157,10 @@ Raised when `PreflightTest.status` has transitioned to `completed`. During this 
 ```
 
 #### .on('connected', handler())
-Raised when `PreflightTest.status` has transitioned to `connected`. This means, the connection to Twilio has been established.
+Raised when `PreflightTest.status` has transitioned to `PreflightTest.Status.Connected`. This means, the connection to Twilio has been established.
 
 #### .on('failed', handler(error))
-Raised when `PreflightTest.status` has transitioned to `failed`. This happens when establishing a connection to Twilio has failed or when a test call has encountered a fatal error. This is also raised if `PreflightTest.stop` is called while the test is in progress. The error emitted from this event is coming from [Device.on('error)](https://www.twilio.com/docs/voice/client/javascript/device#error) and uses the same error format.
+Raised when `PreflightTest.status` has transitioned to `PreflightTest.Status.Failed`. This happens when establishing a connection to Twilio has failed or when a test call has encountered a fatal error. This is also raised if `PreflightTest.stop` is called while the test is in progress. The error emitted from this event is coming from [Device.on('error)](https://www.twilio.com/docs/voice/client/javascript/device#error) and uses the same error format.
 
 #### .on('sample', handler(sample))
 This event is published every second and is raised when the [Connection](https://www.twilio.com/docs/voice/client/javascript/connection) gets a webrtc sample object. The `sample` object is coming from [Connection.on('sample')](https://www.twilio.com/docs/voice/client/javascript/connection#sample) and uses the same `sample` format.

@@ -4,6 +4,7 @@
 import { EventEmitter } from 'events';
 import Connection from './twilio/connection';
 import Device from './twilio/device';
+import { PreflightTest } from './twilio/preflight/preflight' ;
 
 const PStream = require('./twilio/pstream');
 
@@ -62,4 +63,4 @@ Object.getOwnPropertyNames(instance)
     });
   });
 
-export { Connection, Device, PStream };
+export { Connection, Device, PreflightTest, PStream };

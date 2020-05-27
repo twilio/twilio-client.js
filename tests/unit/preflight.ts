@@ -1,4 +1,3 @@
-import CallQuality from '../../lib/twilio/preflight/callQuality';
 import Connection from '../../lib/twilio/connection';
 import { PreflightTest } from '../../lib/twilio/preflight/preflight';
 import { EventEmitter } from 'events';
@@ -621,20 +620,20 @@ describe('PreflightTest', () => {
 
       // Test data for different mos and expected quality
       [
-        [4.900, CallQuality.Excellent],
-        [4.300, CallQuality.Excellent],
-        [4.200, CallQuality.Great],
-        [4.100, CallQuality.Great],
-        [4.000, CallQuality.Good],
-        [3.900, CallQuality.Good],
-        [3.800, CallQuality.Good],
-        [3.700, CallQuality.Good],
-        [3.600, CallQuality.Fair],
-        [3.500, CallQuality.Fair],
-        [3.200, CallQuality.Fair],
-        [3.100, CallQuality.Fair],
-        [3.000, CallQuality.Degraded],
-        [2.900, CallQuality.Degraded],
+        [4.900, PreflightTest.CallQuality.Excellent],
+        [4.300, PreflightTest.CallQuality.Excellent],
+        [4.200, PreflightTest.CallQuality.Great],
+        [4.100, PreflightTest.CallQuality.Great],
+        [4.000, PreflightTest.CallQuality.Good],
+        [3.900, PreflightTest.CallQuality.Good],
+        [3.800, PreflightTest.CallQuality.Good],
+        [3.700, PreflightTest.CallQuality.Good],
+        [3.600, PreflightTest.CallQuality.Fair],
+        [3.500, PreflightTest.CallQuality.Fair],
+        [3.200, PreflightTest.CallQuality.Fair],
+        [3.100, PreflightTest.CallQuality.Fair],
+        [3.000, PreflightTest.CallQuality.Degraded],
+        [2.900, PreflightTest.CallQuality.Degraded],
       ].forEach(([averageMos, callQuality]) => {
         it(`should report quality as ${callQuality} if average mos is ${averageMos}`, (done) => {
           const preflight = new PreflightTest('foo', options);

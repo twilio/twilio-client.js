@@ -12,7 +12,6 @@ import { RTCSampleTotals } from '../rtc/sample';
 import RTCSample from '../rtc/sample';
 import RTCWarning from '../rtc/warning';
 import StatsMonitor from '../statsMonitor';
-import CallQuality from './callQuality';
 import { NetworkTiming, TimeMeasurement } from './timing';
 
 const { COWBELL_AUDIO_URL, ECHO_TEST_DURATION } = require('../constants');
@@ -198,17 +197,17 @@ export class PreflightTest extends EventEmitter {
   /**
    * Returns call quality base on the RTC Stats
    */
-  private _getCallQuality(mos: number): CallQuality {
+  private _getCallQuality(mos: number): PreflightTest.CallQuality {
     if (mos > 4.2) {
-      return CallQuality.Excellent;
+      return PreflightTest.CallQuality.Excellent;
     } else if (mos >= 4.1 && mos <= 4.2) {
-      return CallQuality.Great;
+      return PreflightTest.CallQuality.Great;
     } else if (mos >= 3.7 && mos <= 4) {
-      return CallQuality.Good;
+      return PreflightTest.CallQuality.Good;
     } else if (mos >= 3.1 && mos <= 3.6) {
-      return CallQuality.Fair;
+      return PreflightTest.CallQuality.Fair;
     } else {
-      return CallQuality.Degraded;
+      return PreflightTest.CallQuality.Degraded;
     }
   }
 
@@ -553,6 +552,37 @@ export class PreflightTest extends EventEmitter {
 }
 
 export namespace PreflightTest {
+  /**
+   * The quality of the call determined by different mos ranges.
+   * Mos is calculated base on the WebRTC stats - rtt, jitter, and packet lost.
+   */
+  export enum CallQuality {
+    /**
+     * If the average mos is over 4.2.
+     */
+    Excellent = 'excellent',
+
+    /**
+     * If the average mos is between 4.1 and 4.2 both inclusive.
+     */
+    Great = 'great',
+
+    /**
+     * If the average mos is between 3.7 and 4.0 both inclusive.
+     */
+    Good = 'good',
+
+    /**
+     * If the average mos is between 3.1 and 3.6 both inclusive.
+     */
+    Fair = 'fair',
+
+    /**
+     * If the average mos is 3.0 or below.
+     */
+    Degraded = 'degraded',
+  }
+
   /**
    * Possible events that a [[PreflightTest]] might emit.
    */
