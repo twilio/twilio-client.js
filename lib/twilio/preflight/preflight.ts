@@ -10,6 +10,7 @@ import Device from '../device';
 import { NotSupportedError } from '../errors';
 import { RTCSampleTotals } from '../rtc/sample';
 import RTCSample from '../rtc/sample';
+import { getRTCIceCandidates } from '../rtc/stats';
 import RTCWarning from '../rtc/warning';
 import StatsMonitor from '../statsMonitor';
 import { NetworkTiming, TimeMeasurement } from './timing';
@@ -124,6 +125,11 @@ export class PreflightTest extends EventEmitter {
   private _report: PreflightTest.Report | undefined;
 
   /**
+   * The WebRTC ICE candidates information collected during the test
+   */
+  private _rtcIceCandidates: PreflightTest.RTCIceCandidates;
+
+  /**
    * WebRTC samples collected during this test
    */
   private _samples: RTCSample[];
@@ -222,12 +228,19 @@ export class PreflightTest extends EventEmitter {
       testTiming.duration  = this._endTime - this._startTime;
     }
 
+    const selectedIceCandidatePair = this._rtcIceCandidates.selectedIceCandidatePair;
+    const isTurnRequired = selectedIceCandidatePair.localCandidate.candidateType === 'relay'
+      || selectedIceCandidatePair.remoteCandidate.candidateType === 'relay';
+
     const report: PreflightTest.Report = {
       callSid: this._callSid,
       edge: this._edge,
+      iceCandidates: this._rtcIceCandidates.iceCandidates,
+      isTurnRequired,
       networkTiming: this._networkTiming,
       samples: this._samples,
       selectedEdge: this._options.edge,
+      selectedIceCandidatePair,
       stats,
       testTiming,
       totals: this._getRTCSampleTotals(),
@@ -314,6 +327,8 @@ export class PreflightTest extends EventEmitter {
         debug: options.debug,
         edge: options.edge,
         fileInputStream: options.fileInputStream,
+        iceServers: options.iceServers,
+        rtcConfiguration: options.rtcConfiguration,
       });
     } catch (error) {
       // We want to return before failing so the consumer can capture the event
@@ -470,7 +485,14 @@ export class PreflightTest extends EventEmitter {
       this.emit(PreflightTest.Events.Connected);
     });
 
-    connection.on('sample', (sample) => {
+    connection.on('sample', async (sample) => {
+      // RTC Stats are ready. We only need to get ICE candidate stats report once.
+      if (!this._latestSample) {
+        this._rtcIceCandidates = await (
+          this._options.getRTCIceCandidates || getRTCIceCandidates
+        )(connection.mediaStream.version.pc);
+      }
+
       this._latestSample = sample;
       this._samples.push(sample);
       this.emit(PreflightTest.Events.Sample, sample);
@@ -639,6 +661,12 @@ export namespace PreflightTest {
   }
 
   /**
+   * The WebRTC API's [RTCIceCandidateStats](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidateStats)
+   * dictionary which provides information related to an ICE candidate.
+   */
+  export type RTCIceCandidateStats = any;
+
+  /**
    * Options that may be passed to {@link PreflightTest} constructor for internal testing.
    * @internalapi
    */
@@ -657,6 +685,31 @@ export namespace PreflightTest {
      * File input stream to use instead of reading from mic
      */
     fileInputStream?: MediaStream;
+
+    /**
+     * The getRTCIceCandidates to use for testing.
+     */
+    getRTCIceCandidates?: Function;
+
+    /**
+     * An RTCConfiguration to pass to the RTCPeerConnection constructor during `Device.setup`.
+     */
+    rtcConfiguration?: RTCConfiguration;
+  }
+
+  /**
+   * A WebRTC stats report containing relevant information about selected and gathered ICE candidates
+   */
+  export interface RTCIceCandidates {
+    /**
+     * An array of ICE candidates gathered when connecting to media.
+     */
+    iceCandidates: RTCIceCandidateStats[];
+
+    /**
+     * The ICE candidate pair used to connect to media.
+     */
+    selectedIceCandidatePair: RTCSelectedIceCandidatePair;
   }
 
   /**
@@ -681,6 +734,7 @@ export namespace PreflightTest {
      * Please see this
      * [page](https://www.twilio.com/docs/voice/client/edges)
      * for the list of available edges.
+     * @default roaming
      */
     edge?: string;
 
@@ -688,14 +742,72 @@ export namespace PreflightTest {
      * If set to `true`, the test call will ignore microphone input and will use a default audio file.
      * If set to `false`, the test call will capture the audio from the microphone.
      * Setting this to `true` is only supported on Chrome and will throw a fatal error on other browsers
+     * @default false
      */
     fakeMicInput?: boolean;
+
+    /**
+     * An array of custom ICE servers to use to connect media. If you provide both STUN and TURN server configurations,
+     * the test will detect whether a TURN server is required to establish a connection.
+     *
+     * The following example demonstrates how to use [Twilio's Network Traversal Service](https://www.twilio.com/stun-turn)
+     * to generate STUN/TURN credentials and how to specify a specific [edge location](https://www.twilio.com/docs/global-infrastructure/edge-locations).
+     *
+     * ```ts
+     * import Client from 'twilio';
+     * import { Device } from 'twilio-client';
+     *
+     * // Generate the STUN and TURN server credentials with a ttl of 120 seconds
+     * const client = Client(twilioAccountSid, authToken);
+     * const token = await client.tokens.create({ ttl: 120 });
+     *
+     * let iceServers = token.iceServers;
+     *
+     * // By default, global will be used as the default edge location.
+     * // You can replace global with a specific edge name for each of the iceServer configuration.
+     * iceServers = iceServers.map(config => {
+     *   let { url, urls, ...rest } = config;
+     *   url = url.replace('global', 'ashburn');
+     *   urls = urls.replace('global', 'ashburn');
+     *
+     *   return { url, urls, ...rest };
+     * });
+     *
+     * // Use the TURN credentials using the iceServers parameter
+     * const preflightTest = Device.testPreflight(token, { iceServers });
+     *
+     * // Read from the report object to determine whether TURN is required to connect to media
+     * preflightTest.on('completed', (report) => {
+     *   console.log(report.isTurnRequired);
+     * });
+     * ```
+     *
+     * @default null
+     */
+    iceServers?: RTCIceServer[];
 
     /**
      * Amount of time to wait for setting up signaling connection.
      * @default 10000
      */
     signalingTimeoutMs?: number;
+  }
+
+  /**
+   * Represents the ICE candidate pair used to connect to media.
+   */
+  export interface RTCSelectedIceCandidatePair {
+    /**
+     * An [RTCIceCandidateStats](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidateStats)
+     * object which provides information related to the selected local ICE candidate.
+     */
+    localCandidate: RTCIceCandidateStats;
+
+    /**
+     * An [RTCIceCandidateStats](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidateStats)
+     * object which provides information related to the selected remote ICE candidate.
+     */
+    remoteCandidate: RTCIceCandidateStats;
   }
 
   /**
@@ -773,6 +885,18 @@ export namespace PreflightTest {
     edge?: string;
 
     /**
+     * An array of ICE candidates gathered when connecting to media.
+     */
+    iceCandidates: RTCIceCandidateStats[];
+
+    /**
+     * Whether a TURN server is required to connect to media.
+     * This is dependent on your ICE server configuration and is set to true if the selected ICE candidate is of type `relay`
+     * See `PreflightTest.Options.iceServers` for more details.
+     */
+    isTurnRequired: boolean;
+
+    /**
      * Network related time measurements.
      */
     networkTiming: NetworkTiming;
@@ -786,6 +910,11 @@ export namespace PreflightTest {
      * The edge passed to `Device.testPreflight`.
      */
     selectedEdge?: string;
+
+    /**
+     * The ICE candidate pair used to connect to media.
+     */
+    selectedIceCandidatePair: RTCSelectedIceCandidatePair;
 
     /**
      * RTC related stats captured during the test.
