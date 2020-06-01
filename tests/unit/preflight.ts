@@ -489,7 +489,10 @@ describe('PreflightTest', () => {
       device.emit('disconnect');
       clock.tick(1000);
       device.emit('offline');
-      assert(preflight.endTime! - preflight.startTime === 15000);
+      clock.tick(10);
+
+      // endTime - startTime = duration. Should be equal to the total clock ticks
+      assert(preflight.endTime! - preflight.startTime === 15010);
       sinon.assert.calledOnce(deviceContext.destroy);
       sinon.assert.called(onCompleted);
     });
@@ -503,7 +506,7 @@ describe('PreflightTest', () => {
       device.emit('disconnect');
       clock.tick(1000);
       device.emit('offline');
-
+      clock.tick(1000);
       assert.equal(device.eventNames().length, 0);
       assert.equal(connection.eventNames().length, 0);
     });
@@ -559,8 +562,8 @@ describe('PreflightTest', () => {
           },
           testTiming: {
             start: 0,
-            end: 15000,
-            duration: 15000
+            end: 15010,
+            duration: 15010
           },
           totals: testSamples[testSamples.length - 1].totals,
           warnings: [{name: 'foo', data: warningData}],
@@ -599,6 +602,7 @@ describe('PreflightTest', () => {
       device.emit('disconnect');
       clock.tick(1000);
       device.emit('offline');
+      clock.tick(1000);
     });
 
     describe('call quality', () => {
@@ -616,6 +620,7 @@ describe('PreflightTest', () => {
         device.emit('disconnect');
         clock.tick(1000);
         device.emit('offline');
+        clock.tick(1000);
       });
 
       // Test data for different mos and expected quality
@@ -657,6 +662,7 @@ describe('PreflightTest', () => {
           device.emit('disconnect');
           clock.tick(1000);
           device.emit('offline');
+          clock.tick(1000);
         });
       })
     });
@@ -725,6 +731,7 @@ describe('PreflightTest', () => {
 
       preflight.stop();
       device.emit('offline');
+      clock.tick(1000);
 
       assert.equal(preflight.status, PreflightTest.Status.Failed);
       sinon.assert.calledOnce(deviceContext.destroy);
@@ -761,6 +768,7 @@ describe('PreflightTest', () => {
 
       clock.tick(15000);
       device.emit('offline');
+      clock.tick(1000);
       assert.equal(preflight.status, PreflightTest.Status.Failed);
       sinon.assert.notCalled(onCompleted);
     });
@@ -771,9 +779,33 @@ describe('PreflightTest', () => {
 
       preflight.stop();
       device.emit('offline');
+      clock.tick(1000);
 
       assert.equal(device.eventNames().length, 0);
       assert.equal(connection.eventNames().length, 0);
+    });
+
+    it('should not emit completed event', () => {
+      const onCompleted = sinon.stub();
+      const onFailed = sinon.stub();
+      const preflight = new PreflightTest('foo', options);
+
+      preflight.on(PreflightTest.Events.Completed, onCompleted);
+      preflight.on(PreflightTest.Events.Failed, onFailed);
+
+      device.emit('ready');
+      clock.tick(1000);
+      device.emit('disconnect');
+      clock.tick(1000);
+      device.emit('offline');
+      clock.tick(1);
+      device.emit('error', { code: 123 });
+      clock.tick(1000);
+
+      return wait().then(() => {
+        sinon.assert.notCalled(onCompleted);
+        sinon.assert.calledOnce(onFailed);
+      });
     });
   });
 

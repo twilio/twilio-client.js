@@ -360,20 +360,6 @@ export class PreflightTest extends EventEmitter {
   }
 
   /**
-   * Called when the test has been completed
-   */
-  private _onCompleted(): void {
-    clearTimeout(this._echoTimer);
-    clearTimeout(this._signalingTimeoutTimer);
-
-    this._releaseHandlers();
-    this._endTime = Date.now();
-    this._status = PreflightTest.Status.Completed;
-    this._report = this._getReport();
-    this.emit(PreflightTest.Events.Completed, this._report);
-  }
-
-  /**
    * Called on {@link Device} error event
    * @param error
    */
@@ -405,7 +391,7 @@ export class PreflightTest extends EventEmitter {
     }
 
     this._device.once('disconnect', () => {
-      this._device.once('offline', () => this._onCompleted());
+      this._device.once('offline', () => this._onOffline());
       this._device.destroy();
     });
 
@@ -435,6 +421,30 @@ export class PreflightTest extends EventEmitter {
     this._endTime = Date.now();
     this._status = PreflightTest.Status.Failed;
     this.emit(PreflightTest.Events.Failed, error);
+  }
+
+  /**
+   * Called when the device goes offline.
+   * This indicates that the test has been completed, but we won't know if it failed or not.
+   * The onError event will be the indicator whether the test failed.
+   */
+  private _onOffline(): void {
+    // We need to make sure we always execute preflight.on('completed') last
+    // as client SDK sometimes emits 'offline' event before emitting fatal errors.
+    setTimeout(() => {
+      if (this._status === PreflightTest.Status.Failed) {
+        return;
+      }
+
+      clearTimeout(this._echoTimer);
+      clearTimeout(this._signalingTimeoutTimer);
+
+      this._releaseHandlers();
+      this._endTime = Date.now();
+      this._status = PreflightTest.Status.Completed;
+      this._report = this._getReport();
+      this.emit(PreflightTest.Events.Completed, this._report);
+    }, 10);
   }
 
   /**
