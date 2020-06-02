@@ -72,7 +72,7 @@ Events
 The `PreflightTest` object that is returned by `Device.testPreflight(token, options)` is an [EventEmitter](https://nodejs.org/api/events.html#events_class_eventemitter), and as such its events can be subscribed to via `preflightTest.on(eventName, handler)`. The following is a list of all supported events that might get emitted throughout the duration of the test.
 
 #### .on('completed', handler(report))
-Raised when `PreflightTest.status` has transitioned to `PreflightTest.Status.Completed`. During this time, the `report` is available and ready to be inspected. In some cases, this will not trigger if the test encounters a fatal error prior connecting to Twilio. Example report:
+Raised when `PreflightTest.status` has transitioned to `PreflightTest.Status.Completed`. During this time, the `report` is available and ready to be inspected. This will not trigger if a fatal error is encountered during the test. Example report:
 
 ```js
 {
