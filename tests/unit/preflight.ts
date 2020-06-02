@@ -16,6 +16,7 @@ describe('PreflightTest', () => {
   let device: any;
   let deviceFactory: any;
   let deviceContext: any;
+  let rtcIceCandidates: any;
   let options: any;
   let monitor: any;
   let testSamples: any;
@@ -76,9 +77,8 @@ describe('PreflightTest', () => {
       mediaStream: {
         callSid: CALL_SID,
         _masterAudio: {},
-        _fallbackOnAddTrack: () => {
-
-        },
+        _fallbackOnAddTrack: () => {},
+        version: { pc: {} },
         onpcconnectionstatechange: sinon.stub(),
         oniceconnectionstatechange: sinon.stub(),
         ondtlstransportstatechange: sinon.stub(),
@@ -102,10 +102,18 @@ describe('PreflightTest', () => {
     };
     edgeStub = sinon.stub().returns('foobar-edge');
     sinon.stub(deviceContext, 'edge').get(edgeStub);
-    deviceFactory = getDeviceFactory(deviceContext)
+    deviceFactory = getDeviceFactory(deviceContext);
+    rtcIceCandidates = {
+      iceCandidates: ['foo', 'bar'],
+      selectedIceCandidatePair: {
+        localCandidate: { candidateType: 'host' },
+        remoteCandidate: { candidateType: 'host' },
+      }
+    };
 
     options = {
-      deviceFactory
+      deviceFactory,
+      getRTCIceCandidates: () => Promise.resolve(rtcIceCandidates),
     };
 
     testSamples = getTestSamples();
@@ -123,6 +131,8 @@ describe('PreflightTest', () => {
         debug: false,
         edge: 'roaming',
         fileInputStream: undefined,
+        iceServers: undefined,
+        rtcConfiguration: undefined,
       });
     });
 
@@ -134,6 +144,8 @@ describe('PreflightTest', () => {
         debug: false,
         edge: 'roaming',
         fileInputStream: undefined,
+        iceServers: undefined,
+        rtcConfiguration: undefined,
       });
     });
 
@@ -145,6 +157,8 @@ describe('PreflightTest', () => {
         debug: true,
         edge: 'roaming',
         fileInputStream: undefined,
+        iceServers: undefined,
+        rtcConfiguration: undefined,
       });
     });
 
@@ -156,8 +170,36 @@ describe('PreflightTest', () => {
         debug: false,
         edge: options.edge,
         fileInputStream: undefined,
+        iceServers: undefined,
+        rtcConfiguration: undefined,
       });
       sinon.assert.calledOnce(edgeStub);
+    });
+
+    it('should pass iceServers to device', () => {
+      options.iceServers = 'foo';
+      const preflight = new PreflightTest('foo', options);
+      sinon.assert.calledWith(deviceContext.setup, 'foo', {
+        codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
+        debug: false,
+        edge: 'roaming',
+        fileInputStream: undefined,
+        iceServers: 'foo',
+        rtcConfiguration: undefined,
+      });
+    });
+
+    it('should pass rtcConfiguration to device', () => {
+      options.rtcConfiguration = {foo: 'foo', iceServers: 'bar'};
+      const preflight = new PreflightTest('foo', options);
+      sinon.assert.calledWith(deviceContext.setup, 'foo', {
+        codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
+        debug: false,
+        edge: 'roaming',
+        fileInputStream: undefined,
+        iceServers: undefined,
+        rtcConfiguration: {foo: 'foo', iceServers: 'bar'},
+      });
     });
   });
 
@@ -203,6 +245,8 @@ describe('PreflightTest', () => {
         debug: false,
         edge: 'roaming',
         fileInputStream: undefined,
+        iceServers: undefined,
+        rtcConfiguration: undefined,
       });
     });
 
@@ -214,6 +258,8 @@ describe('PreflightTest', () => {
           debug: false,
           edge: 'roaming',
           fileInputStream: stream,
+          iceServers: undefined,
+          rtcConfiguration: undefined,
         });
       });
     });
@@ -266,9 +312,9 @@ describe('PreflightTest', () => {
 
     it('should clear echo timer on completed', () => {
       preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
-
+      device.emit('ready');
+      connection.emit('sample', testSamples[0]);
       return wait().then(() => {
-        device.emit('ready');
         clock.tick(5000);
         device.emit('disconnect');
         clock.tick(1000);
@@ -320,7 +366,7 @@ describe('PreflightTest', () => {
   });
 
   describe('on sample', () => {
-    it('should emit samples', () => {
+    it('should emit samples', async () => {
       const onSample = sinon.stub();
       const preflight = new PreflightTest('foo', options);
       preflight.on('sample', onSample);
@@ -331,6 +377,7 @@ describe('PreflightTest', () => {
       for (let i = 1; i <= count; i++) {
         const data = {...sample, count: i};
         connection.emit('sample', data);
+        await wait();
         sinon.assert.callCount(onSample, i);
         sinon.assert.calledWithExactly(onSample, data);
         assert.deepEqual(preflight.latestSample, data)
@@ -465,9 +512,15 @@ describe('PreflightTest', () => {
   });
 
   describe('on completed and destroy device', () => {
+    let preflight: PreflightTest;
+
+    beforeEach(() => {
+      preflight = new PreflightTest('foo', options);
+      preflight['_rtcIceCandidates'] = rtcIceCandidates;
+    });
+
     it('should clear signaling timeout timer', () => {
       const onFailed = sinon.stub();
-      const preflight = new PreflightTest('foo', options);
       preflight.on('failed', onFailed);
 
       device.emit('ready');
@@ -482,7 +535,6 @@ describe('PreflightTest', () => {
 
     it('should end call after device disconnects', () => {
       const onCompleted = sinon.stub();
-      const preflight = new PreflightTest('foo', options);
       preflight.on('completed', onCompleted);
       device.emit('ready');
       clock.tick(14000);
@@ -496,7 +548,6 @@ describe('PreflightTest', () => {
 
     it('should release all handlers', () => {
       const onCompleted = sinon.stub();
-      const preflight = new PreflightTest('foo', options);
       preflight.on('completed', onCompleted);
       device.emit('ready');
       clock.tick(14000);
@@ -508,102 +559,110 @@ describe('PreflightTest', () => {
       assert.equal(connection.eventNames().length, 0);
     });
 
-    it('should provide report', (done) => {
-      clock.reset();
-      const warningData = {foo: 'foo', bar: 'bar'};
-      const preflight = new PreflightTest('foo', options);
+    it('should provide report', () => {
+      return new Promise(async (resolve) => {
+        clock.reset();
+        const warningData = {foo: 'foo', bar: 'bar'};
 
-      assert.equal(preflight.status, PreflightTest.Status.Connecting);
+        assert.equal(preflight.status, PreflightTest.Status.Connecting);
 
-      const onCompleted = (results: PreflightTest.Report) => {
-        // This is derived from testSamples
-        const expected = {
-          callQuality: 'excellent',
-          callSid: CALL_SID,
-          edge: 'foobar-edge',
-          networkTiming: {
-            dtls: {
-              duration: 1000,
-              end: 1000,
-              start: 0
+        const onCompleted = (results: PreflightTest.Report) => {
+          // This is derived from testSamples
+          const expected = {
+            callSid: CALL_SID,
+            edge: 'foobar-edge',
+            iceCandidates: [ 'foo', 'bar' ],
+            isTurnRequired: false,
+            networkTiming: {
+              peerConnection: {
+                start: 15,
+                end: 1015,
+                duration: 1000,
+              },
+              dtls: {
+                start: 15,
+                end: 1015,
+                duration: 1000,
+              },
+              ice: {
+                start: 15,
+                end: 1015,
+                duration: 1000,
+              }
             },
-            ice: {
-              duration: 1000,
-              end: 1000,
-              start: 0
+            samples: testSamples,
+            selectedEdge: 'roaming',
+            selectedIceCandidatePair: {
+              localCandidate: { candidateType: 'host' },
+              remoteCandidate: { candidateType: 'host' }
             },
-            peerConnection: {
-              duration: 1000,
-              end: 1000,
-              start: 0
-            }
-          },
-          samples: testSamples,
-          selectedEdge: 'roaming',
-          stats: {
-            jitter: {
-              average: 8,
-              max: 15,
-              min: 1
+            stats: {
+              jitter: {
+                average: 8,
+                max: 15,
+                min: 1
+              },
+              mos: {
+                average: 8,
+                max: 15,
+                min: 1
+              },
+              rtt: {
+                average: 8,
+                max: 15,
+                min: 1
+              }
             },
-            mos: {
-              average: 8,
-              max: 15,
-              min: 1
+            testTiming: {
+              start: 0,
+              end: 15015,
+              duration: 15015
             },
-            rtt: {
-              average: 8,
-              max: 15,
-              min: 1
-            }
-          },
-          testTiming: {
-            start: 0,
-            end: 15000,
-            duration: 15000
-          },
-          totals: testSamples[testSamples.length - 1].totals,
-          warnings: [{name: 'foo', data: warningData}],
+            totals: testSamples[testSamples.length - 1].totals,
+            warnings: [{name: 'foo', data: warningData}],
+            callQuality: 'excellent',
+          };
+          assert.equal(preflight.status, PreflightTest.Status.Completed);
+          assert.deepEqual(results, expected);
+          assert.deepEqual(preflight.report, expected);
+          resolve();
         };
-        assert.equal(preflight.status, PreflightTest.Status.Completed);
-        assert.deepEqual(results, expected);
-        assert.deepEqual(preflight.report, expected);
-        done();
-      };
 
-      preflight.on('completed', onCompleted);
-      device.emit('ready');
+        preflight.on('completed', onCompleted);
+        device.emit('ready');
 
-      // Populate samples
-      for (let i = 0; i < testSamples.length; i++) {
-        const sample = testSamples[i];
-        const data = {...sample};
-        connection.emit('sample', data);
-      }
-      // Populate warnings
-      connection.emit('warning', 'foo', warningData);
-      // Populate callsid
-      connection.emit('accept');
+        // Populate samples
+        for (let i = 0; i < testSamples.length; i++) {
+          const sample = testSamples[i];
+          const data = {...sample};
+          connection.emit('sample', data);
+          await wait();
+        }
+        // Populate warnings
+        connection.emit('warning', 'foo', warningData);
+        // Populate callsid
+        connection.emit('accept');
 
-      // Populate network timings
-      connection.mediaStream.onpcconnectionstatechange('connecting');
-      connection.mediaStream.ondtlstransportstatechange('connecting');
-      connection.mediaStream.oniceconnectionstatechange('checking');
-      clock.tick(1000);
+        // Populate network timings
+        connection.mediaStream.onpcconnectionstatechange('connecting');
+        connection.mediaStream.ondtlstransportstatechange('connecting');
+        connection.mediaStream.oniceconnectionstatechange('checking');
+        clock.tick(1000);
 
-      connection.mediaStream.onpcconnectionstatechange('connected');
-      connection.mediaStream.ondtlstransportstatechange('connected');
-      connection.mediaStream.oniceconnectionstatechange('connected');
+        connection.mediaStream.onpcconnectionstatechange('connected');
+        connection.mediaStream.ondtlstransportstatechange('connected');
+        connection.mediaStream.oniceconnectionstatechange('connected');
 
-      clock.tick(13000);
-      device.emit('disconnect');
-      clock.tick(1000);
-      device.emit('offline');
+        clock.tick(13000);
+        device.emit('disconnect');
+
+        clock.tick(1000);
+        device.emit('offline');
+      });
     });
 
     describe('call quality', () => {
       it('should not include callQuality if stats are missing', (done) => {
-        const preflight = new PreflightTest('foo', options);
         const onCompleted = (results: PreflightTest.Report) => {
           assert(!results.callQuality);
           done();
@@ -635,30 +694,103 @@ describe('PreflightTest', () => {
         [3.000, PreflightTest.CallQuality.Degraded],
         [2.900, PreflightTest.CallQuality.Degraded],
       ].forEach(([averageMos, callQuality]) => {
-        it(`should report quality as ${callQuality} if average mos is ${averageMos}`, (done) => {
-          const preflight = new PreflightTest('foo', options);
+        it(`should report quality as ${callQuality} if average mos is ${averageMos}`, () => {
+          return new Promise(async (resolve) => {
+            const onCompleted = (results: PreflightTest.Report) => {
+              assert.equal(results.callQuality, callQuality);
+              resolve();
+            };
+
+            preflight.on('completed', onCompleted);
+            device.emit('ready');
+
+            for (let i = 0; i < 10; i++) {
+              connection.emit('sample', {
+                rtt: 1,
+                jitter: 1,
+                mos: averageMos,
+              });
+              await wait();
+            }
+
+            clock.tick(13000);
+            device.emit('disconnect');
+            clock.tick(1000);
+            device.emit('offline');
+          });
+        });
+      })
+    });
+
+    describe('ice candidates', () => {
+      const passPreflight = async () => {
+        device.emit('ready');
+        connection.emit('sample', testSamples[0]);
+        await wait();
+        clock.tick(25000);
+        device.emit('disconnect');
+        clock.tick(1000);
+        device.emit('offline');
+      };
+
+      let candidateInfo: any;
+
+      beforeEach(() => {
+        candidateInfo = {
+          iceCandidates: ['foo', 'bar'],
+          selectedIceCandidatePair: {
+            localCandidate: { candidateType: 'host' },
+            remoteCandidate: { candidateType: 'host' },
+          }
+        };
+      });
+
+      it('should provide selectedIceCandidatePair and iceCandidates in the report', () => {
+        preflight = new PreflightTest('foo', {
+          ...options,
+          getRTCIceCandidates: () => Promise.resolve(candidateInfo),
+        });
+
+        return new Promise(async (resolve) => {
           const onCompleted = (results: PreflightTest.Report) => {
-            assert.equal(results.callQuality, callQuality);
-            done();
+            assert.deepEqual(results.iceCandidates, ['foo', 'bar']);
+            assert.deepEqual(results.selectedIceCandidatePair, {
+              localCandidate: { candidateType: 'host' },
+              remoteCandidate: { candidateType: 'host' },
+            });
+            resolve();
           };
 
           preflight.on('completed', onCompleted);
-          device.emit('ready');
-
-          for (let i = 0; i < 10; i++) {
-            connection.emit('sample', {
-              rtt: 1,
-              jitter: 1,
-              mos: averageMos,
-            });
-          }
-
-          clock.tick(13000);
-          device.emit('disconnect');
-          clock.tick(1000);
-          device.emit('offline');
+          passPreflight();
         });
-      })
+      });
+
+      [
+        ['relay', 'relay', true],
+        ['relay', 'host', true],
+        ['host', 'relay', true],
+        ['host', 'host', false],
+      ].forEach(([remoteCandidateType, localCandidateType, isTurnRequired]) => {
+        it(`should set isTurnRequired to ${isTurnRequired} if remote candidate is a ${remoteCandidateType} and local candidate is ${localCandidateType}`, () => {
+          candidateInfo.selectedIceCandidatePair.remoteCandidate.candidateType = remoteCandidateType;
+          candidateInfo.selectedIceCandidatePair.localCandidate.candidateType = localCandidateType;
+          preflight = new PreflightTest('foo', {
+            ...options,
+            getRTCIceCandidates: () => Promise.resolve(candidateInfo),
+          });
+
+          return new Promise(async (resolve) => {
+            const onCompleted = (results: PreflightTest.Report) => {
+              assert.equal(results.isTurnRequired, isTurnRequired);
+              resolve();
+            };
+
+            preflight.on('completed', onCompleted);
+            passPreflight();
+          });
+        });
+      });
     });
   });
 
@@ -811,7 +943,7 @@ describe('PreflightTest', () => {
         },
       });
 
-      it('should return an object if there are mos samples', () => {
+      it('should return an object if there are mos samples', async () => {
         const preflight = new PreflightTest('foo', options);
 
         device.emit('ready');
@@ -830,6 +962,8 @@ describe('PreflightTest', () => {
         }].map(createSample).forEach(
           (sample: RTCSample) => connection.emit('sample', sample),
         );
+
+        await wait();
 
         const rtcStats = preflight['_getRTCStats']();
         assert.deepEqual(rtcStats, {
@@ -851,7 +985,7 @@ describe('PreflightTest', () => {
         });
       });
 
-      it('should return undefined if there are no mos samples', () => {
+      it('should return undefined if there are no mos samples', async () => {
         const preflight = new PreflightTest('foo', options);
 
         device.emit('ready');
@@ -864,6 +998,8 @@ describe('PreflightTest', () => {
         }].map(createSample).forEach(
           (sample: RTCSample) => connection.emit('sample', sample),
         );
+
+        await wait();
 
         const rtcStats = preflight['_getRTCStats']();
         assert.equal(rtcStats, undefined);

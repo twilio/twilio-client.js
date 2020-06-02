@@ -1,4 +1,5 @@
 /**
+ * @packageDocumentation
  * @internalapi
  */
 import { EventEmitter } from 'events';
