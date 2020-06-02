@@ -4,7 +4,17 @@ Preflight Test
 The SDK supports a preflight test API which can help determine Voice calling readiness. The API creates a test call and will provide information to help troubleshoot call related issues. This new API is a static member of the [Device](https://www.twilio.com/docs/voice/client/javascript/device#twilio-device) class and can be used by calling `Device.testPreflight(token, options)`. For example:
 
 ```ts
+import { Device, PreflightTest } from 'twilio-client';
+
 const preflightTest = Device.testPreflight(token, options);
+
+preflightTest.on(PreflightTest.Events.Completed, (report) => {
+  console.log(report);
+});
+
+preflightTest.on(PreflightTest.Events.Failed, (error) => {
+  console.log(error);
+});
 ```
 
 ## Parameters
@@ -21,7 +31,40 @@ The `PreflightTest.Options` parameter is a JavaScript object containing configur
 | `debug` | `false` | Can be `true` or `false`. Set this property to true to enable debug logging in your browser console. |
 | `edge` | `roaming` | Specifies which Twilio `edge` to use when initiating the test call. Please see documentation on [edges](https://www.twilio.com/docs/voice/client/edges). |
 | `fakeMicInput` | `false` | If set to `true`, the test call will ignore microphone input and will use a default audio file. If set to `false`, the test call will capture the audio from the microphone. |
+| `iceServers` | `null` | An array of custom ICE servers to use to connect media. If you provide both STUN and TURN server configurations, the test will detect whether a TURN server is required to establish a connection. See [Using Twilio NTS for Generating STUN/TURN Credentials](#using-twilio-nts-for-generating-stunturn-credentials) |
 | `signalingTimeoutMs` | `10000` | Ammount of time to wait for setting up signaling connection. |
+
+### Using Twilio NTS for Generating STUN/TURN Credentials
+The following example demonstrates how to use [Twilio's Network Traversal Service](https://www.twilio.com/stun-turn) to generate STUN/TURN credentials and how to specify a specific [edge location](https://www.twilio.com/docs/global-infrastructure/edge-locations).
+
+```ts
+import Client from 'twilio';
+import { Device } from 'twilio-client';
+
+// Generate the STUN and TURN server credentials with a ttl of 120 seconds
+const client = Client(twilioAccountSid, authToken);
+const token = await client.tokens.create({ ttl: 120 });
+
+let iceServers = token.iceServers;
+
+// By default, global will be used as the default edge location.
+// You can replace global with a specific edge name for each of the iceServer configuration.
+iceServers = iceServers.map(config => {
+  let { url, urls, ...rest } = config;
+  url = url.replace('global', 'ashburn');
+  urls = urls.replace('global', 'ashburn');
+
+  return { url, urls, ...rest };
+});
+
+// Use the TURN credentials using the iceServers parameter
+const preflightTest = Device.testPreflight(token, { iceServers });
+
+// Read from the report object to determine whether TURN is required to connect to media
+preflightTest.on('completed', (report) => {
+  console.log(report.isTurnRequired);
+});
+```
 
 Events
 ------
@@ -44,6 +87,30 @@ Raised when `PreflightTest.status` has transitioned to `PreflightTest.Status.Com
    * PreflightTest.CallQuality.Degraded - If the average mos is 3.0 or below
    */
   "callQuality": "excellent",
+
+  /**
+   * An array of ICE candidates gathered when connecting to media.
+   * Each item is an RTCIceCandidateStats object which provides information related to an ICE candidate.
+   * See RTCIceCandidateStats for more details https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidateStats
+   */
+  "iceCandidates": [...]
+
+  /**
+   * The ICE candidate pair used to connect to media.
+   * Each item is an RTCIceCandidateStats object which provides information related to an ICE candidate.
+   * See RTCIceCandidateStats for more details https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidateStats
+   */
+  "selectedIceCandidatePair": {
+    "localCandidate": {...},
+    "remoteCandidate": {...}
+  }
+
+  /**
+   * Whether a TURN server is required to connect to media.
+   * This is dependent on your ICE server configuration and is set to true if the selected ICE candidate is of type `relay`
+   * See `PreflightTest.Options.iceServers` for more details.
+   */
+  "isTurnRequired": false,
 
   /**
    * Network related time measurements which includes millisecond timestamps
