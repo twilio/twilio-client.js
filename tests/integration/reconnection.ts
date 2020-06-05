@@ -170,7 +170,8 @@ describe('Reconnection', function() {
     });
   });
 
-  describe('When network disconnects', function() {
+  // TODO: Re-enable after CLIENT-7771
+  (isFirefox() ? describe.skip : describe)('When network disconnects', function() {
     this.timeout(USE_CASE_TIMEOUT);
 
     before(() => setupDevices());
