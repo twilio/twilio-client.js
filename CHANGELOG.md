@@ -1,5 +1,31 @@
+1.12.0 (In progress)
+====================
+
+New Features
+---------
+
+### CallerInfo
+
+* Added a `Connection.callerInfo` field that will hold useful information about the caller when the
+  caller is a PSTN number. Currently, one new field is available:
+    1. `CallerInfo.isVerified` -- A boolean indicating whether or not Twilio was able to verify
+        whether the caller is authorized to use the number that this call is from. If true, it
+        is safe to trust that the caller is who they claim to be. If this is false, it does not
+        mean that the call is fraudulent, only that Twilio was not able to verify authenticity.
+        Most legitimate calls at the time of implementation will not be verifiable as most
+        numbers are not set up to utilize the underlying STIR/SHAKEN protocol.
+
+#### Example
+```ts
+device.on('incoming', connection => {
+  if (connection.callerInfo && connection.callerInfo.isVerified) {
+    showVerifiedBadge();
+  }
+});
+```
+
 1.11.0 (May 21, 2020)
-===================
+=====================
 
 New Features
 ---------

@@ -5,6 +5,8 @@
 const processEnv = {
   ACCOUNT_SID: process.env.ACCOUNT_SID,
   APPLICATION_SID: process.env.APPLICATION_SID,
+  APPLICATION_SID_STIR: process.env.APPLICATION_SID_STIR,
+  CALLER_ID: process.env.CALLER_ID,
   API_KEY_SID: process.env.API_KEY_SID,
   API_KEY_SECRET: process.env.API_KEY_SECRET,
   AUTH_TOKEN: process.env.AUTH_TOKEN,
@@ -14,6 +16,8 @@ const processEnv = {
 const env = [
   ['ACCOUNT_SID',     'accountSid'],
   ['APPLICATION_SID', 'appSid'],
+  ['APPLICATION_SID_STIR', 'appSidStir'],
+  ['CALLER_ID', 'callerId'],
   ['API_KEY_SECRET',  'apiKeySecret'],
   ['API_KEY_SID',     'apiKeySid'],
   ['AUTH_TOKEN',      'authToken'],
@@ -28,6 +32,8 @@ const env = [
 [
   'accountSid',
   'appSid',
+  'appSidStir',
+  'callerId',
   'apiKeySid',
   'apiKeySecret',
   'authToken',

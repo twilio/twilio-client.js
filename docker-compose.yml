@@ -5,9 +5,11 @@ services:
     - ACCOUNT_SID=${ACCOUNT_SID}
     - AUTH_TOKEN=${AUTH_TOKEN}
     - APPLICATION_SID=${APPLICATION_SID}
+    - APPLICATION_SID_STIR=${APPLICATION_SID_STIR}
     - API_KEY_SECRET=${API_KEY_SECRET}
     - API_KEY_SID=${API_KEY_SID}
     - BVER=${BVER}
+    - CALLER_ID=${CALLER_ID}
     image: twilio-client:1.0.0
     build:
       args:
