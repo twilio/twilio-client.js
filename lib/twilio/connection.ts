@@ -95,8 +95,8 @@ class Connection extends EventEmitter {
   static toString = () => '[Twilio.Connection class]';
 
   /**
-   * Describes the phone number that is initiating the call.
-   * Null if this call is outbound from this Client, or if the caller is not from PSTN.
+   * Information about the calling phone number for incoming calls from PSTN
+   * only, otherwise returns `null`.
    */
   readonly callerInfo: Connection.CallerInfo | null;
 
@@ -1537,15 +1537,17 @@ namespace Connection {
   }
 
   /**
-   * Describes the phone number that initiated an incoming call.
+   * Represents information about the caller. Currently, this information
+   * is limited to STIR/SHAKEN status of incoming PSTN Calls, but may later
+   * be expanded to include CNAM, and other endpoint types.
    */
   export interface CallerInfo {
     /**
-     * Whether or not Twilio was able to verify whether the caller is authorized to use the number
-     * that this call is from. If true, it is safe to trust that the caller is who they claim to be.
-     * If this is false, it does not mean that the call is faked, only that we were not able to
-     * verify authenticity. Most legitimate calls at the time of implementation will not be
-     * verifiable.
+     * Whether or not the caller's phone number has been verified by
+     * Twilio using SHAKEN/STIR validation. True if the caller has
+     * been validated at 'A' level, false if the caller has been
+     * verified at any lower level, has failed validation or has not
+     * provided any SHAKEN/STIR information.
      */
     isVerified: boolean;
   }

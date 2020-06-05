@@ -6,16 +6,35 @@ New Features
 
 ### CallerInfo
 
-* Added a `Connection.callerInfo` field that will hold useful information about the caller when the
-  caller is a PSTN number. Currently, one new field is available:
-    1. `CallerInfo.isVerified` -- A boolean indicating whether or not Twilio was able to verify
-        whether the caller is authorized to use the number that this call is from. If true, it
-        is safe to trust that the caller is who they claim to be. If this is false, it does not
-        mean that the call is fraudulent, only that Twilio was not able to verify authenticity.
-        Most legitimate calls at the time of implementation will not be verifiable as most
-        numbers are not set up to utilize the underlying STIR/SHAKEN protocol.
+This release adds a `Connection.callerInfo` field, which returns information about
+the calling phone number for incoming calls from PSTN only, otherwise returns `null`.
+
+```ts
+class Connection {
+  // ...
+  callerInfo: CallerInfo | null;
+}
+```
+
+The CallerInfo interface represents information about the caller. Currently, this
+information is limited to STIR/SHAKEN status of incoming PSTN Calls, but may later
+be expanded to include CNAM, and other endpoint types.
+
+```ts
+interface CallerInfo {
+  isVerified: boolean;
+}
+```
+
+#### Attributes
+
+- `isVerified` - Whether or not the caller's phone number has been verified by Twilio using
+  SHAKEN/STIR validation. True if the caller has been validated at 'A' level, false if
+  the caller has been verified at any lower level, has failed validation or has not
+  provided any SHAKEN/STIR information.
 
 #### Example
+
 ```ts
 device.on('incoming', connection => {
   if (connection.callerInfo && connection.callerInfo.isVerified) {
