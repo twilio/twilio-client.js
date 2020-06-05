@@ -193,7 +193,7 @@ describe('Connection', function() {
         }
       });
 
-      it('should populate the .callerInfo fields appropriately when StirStatus is no-valifadation', () => {
+      it('should populate the .callerInfo fields appropriately when StirStatus is no-validation', () => {
         conn = new Connection(config, Object.assign(options, { callParameters: {
           StirStatus: 'TN-No-Validation',
           CallSid: 'CA123',
