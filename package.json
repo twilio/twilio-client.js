@@ -55,6 +55,7 @@
   },
   "pre-commit": [
     "lint",
+    "build:constants",
     "test:unit",
     "docs:ts"
   ],
