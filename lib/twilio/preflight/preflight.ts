@@ -719,10 +719,9 @@ export namespace PreflightTest {
     iceCandidates: RTCIceCandidateStats[];
 
     /**
-     * The ICE candidate pair used to connect to media.
-     * This is null if there's no candidate selected during ICE negotiation.
+     * The ICE candidate pair used to connect to media, if candidates were selected.
      */
-    selectedIceCandidatePair: RTCSelectedIceCandidatePair;
+    selectedIceCandidatePair?: RTCSelectedIceCandidatePair;
   }
 
   /**
