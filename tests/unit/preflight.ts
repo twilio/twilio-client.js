@@ -752,6 +752,43 @@ describe('PreflightTest', () => {
         };
       });
 
+      it('should not include selectedIceCandidatePair if no candidates are selected', () => {
+        candidateInfo.selectedIceCandidatePair = null;
+        preflight = new PreflightTest('foo', {
+          ...options,
+          getRTCIceCandidates: () => Promise.resolve(candidateInfo),
+        });
+
+        return new Promise(async (resolve) => {
+          const onCompleted = (results: PreflightTest.Report) => {
+            assert.deepEqual(results.iceCandidates, ['foo', 'bar']);
+            assert(!results.selectedIceCandidatePair);
+            resolve();
+          };
+
+          preflight.on('completed', onCompleted);
+          passPreflight();
+        });
+      });
+
+      it('should not include isTurnRequired if no candidates are selected', () => {
+        candidateInfo.selectedIceCandidatePair = null;
+        preflight = new PreflightTest('foo', {
+          ...options,
+          getRTCIceCandidates: () => Promise.resolve(candidateInfo),
+        });
+
+        return new Promise(async (resolve) => {
+          const onCompleted = (results: PreflightTest.Report) => {
+            assert(typeof results.isTurnRequired === 'undefined');
+            resolve();
+          };
+
+          preflight.on('completed', onCompleted);
+          passPreflight();
+        });
+      });
+
       it('should provide selectedIceCandidatePair and iceCandidates in the report', () => {
         preflight = new PreflightTest('foo', {
           ...options,
