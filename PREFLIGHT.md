@@ -107,8 +107,8 @@ Raised when `PreflightTest.status` has transitioned to `PreflightTest.Status.Com
 
   /**
    * Whether a TURN server is required to connect to media.
-   * This is dependent on your ICE server configuration and is set to true if the selected ICE candidate is of type `relay`.
-   * Also, this is undefined if there are no candidates selected during ICE negotiation.
+   * This is dependent on the selected ICE candidates, and will be true if either is of type "relay",
+   * false if both are of another type, or undefined if there are no selected ICE candidates.
    * See `PreflightTest.Options.iceServers` for more details.
    */
   "isTurnRequired": false,

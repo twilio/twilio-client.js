@@ -903,9 +903,9 @@ export namespace PreflightTest {
     iceCandidates: RTCIceCandidateStats[];
 
     /**
-     * A boolean value indicating whether a TURN server is required to connect to media.
-     * This is undefined if there's no candidate selected during ICE negotiation.
-     * This is dependent on your ICE server configuration and is set to true if the selected ICE candidate is of type `relay`
+     * Whether a TURN server is required to connect to media.
+     * This is dependent on the selected ICE candidates, and will be true if either is of type "relay",
+     * false if both are of another type, or undefined if there are no selected ICE candidates.
      * See `PreflightTest.Options.iceServers` for more details.
      */
     isTurnRequired?: boolean;
@@ -926,8 +926,7 @@ export namespace PreflightTest {
     selectedEdge?: string;
 
     /**
-     * The ICE candidate pair used to connect to media.
-     * This is null if there's no candidate selected during ICE negotiation.
+     * The ICE candidate pair used to connect to media, if candidates were selected.
      */
     selectedIceCandidatePair?: RTCSelectedIceCandidatePair;
 
