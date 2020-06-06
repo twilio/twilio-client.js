@@ -96,7 +96,7 @@ Raised when `PreflightTest.status` has transitioned to `PreflightTest.Status.Com
   "iceCandidates": [...]
 
   /**
-   * The ICE candidate pair used to connect to media.
+   * The ICE candidate pair used to connect to media, if available.
    * Each item is an RTCIceCandidateStats object which provides information related to an ICE candidate.
    * See RTCIceCandidateStats for more details https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidateStats
    */
@@ -107,7 +107,8 @@ Raised when `PreflightTest.status` has transitioned to `PreflightTest.Status.Com
 
   /**
    * Whether a TURN server is required to connect to media.
-   * This is dependent on your ICE server configuration and is set to true if the selected ICE candidate is of type `relay`
+   * This is dependent on your ICE server configuration and is set to true if the selected ICE candidate is of type `relay`.
+   * Also, this is undefined if there's no candidate selected during ICE negotiation.
    * See `PreflightTest.Options.iceServers` for more details.
    */
   "isTurnRequired": false,
