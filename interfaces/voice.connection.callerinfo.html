@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Error | twilio-client</title>
+	<title>CallerInfo | twilio-client</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -50,10 +50,10 @@
 					<a href="../classes/voice.connection.html">Connection</a>
 				</li>
 				<li>
-					<a href="voice.connection.error.html">Error</a>
+					<a href="voice.connection.callerinfo.html">CallerInfo</a>
 				</li>
 			</ul>
-			<h1>Interface Error</h1>
+			<h1>Interface CallerInfo</h1>
 		</div>
 	</div>
 </header>
@@ -64,7 +64,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">Error</span>
+						<span class="target">CallerInfo</span>
 					</li>
 				</ul>
 			</section>
@@ -75,11 +75,7 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.error.html#code" class="tsd-kind-icon">code</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.error.html#connection" class="tsd-kind-icon">connection</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.error.html#info" class="tsd-kind-icon">info</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.error.html#message-1" class="tsd-kind-icon">message</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.error.html#twilioerror" class="tsd-kind-icon">twilio<wbr>Error</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="voice.connection.callerinfo.html#isverified" class="tsd-kind-icon">is<wbr>Verified</a></li>
 							</ul>
 						</section>
 					</div>
@@ -88,63 +84,12 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="code" class="tsd-anchor"></a>
-					<h3>code</h3>
-					<div class="tsd-signature tsd-kind-icon">code<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
+					<a name="isverified" class="tsd-anchor"></a>
+					<h3>is<wbr>Verified</h3>
+					<div class="tsd-signature tsd-kind-icon">is<wbr>Verified<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/7cfd158/lib/twilio/connection.ts#L1516">twilio/connection.ts:1516</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="connection" class="tsd-anchor"></a>
-					<h3>connection</h3>
-					<div class="tsd-signature tsd-kind-icon">connection<span class="tsd-signature-symbol">:</span> <a href="../classes/voice.connection.html" class="tsd-signature-type">Connection</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/7cfd158/lib/twilio/connection.ts#L1521">twilio/connection.ts:1521</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="info" class="tsd-anchor"></a>
-					<h3>info</h3>
-					<div class="tsd-signature tsd-kind-icon">info<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/7cfd158/lib/twilio/connection.ts#L1526">twilio/connection.ts:1526</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-type-declaration">
-						<h4>Type declaration</h4>
-						<ul class="tsd-parameters">
-							<li class="tsd-parameter">
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> code<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span></h5>
-							</li>
-							<li class="tsd-parameter">
-								<h5><span class="tsd-flag ts-flagOptional">Optional</span> message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h5>
-							</li>
-						</ul>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="message-1" class="tsd-anchor"></a>
-					<h3>message</h3>
-					<div class="tsd-signature tsd-kind-icon">message<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/7cfd158/lib/twilio/connection.ts#L1531">twilio/connection.ts:1531</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="twilioerror" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> twilio<wbr>Error</h3>
-					<div class="tsd-signature tsd-kind-icon">twilio<wbr>Error<span class="tsd-signature-symbol">:</span> <a href="voice.twilioerror.html" class="tsd-signature-type">TwilioError</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/7cfd158/lib/twilio/connection.ts#L1536">twilio/connection.ts:1536</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/7cfd158/lib/twilio/connection.ts#L1552">twilio/connection.ts:1552</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -196,22 +141,10 @@
 						<a href="../classes/voice.connection.html" class="tsd-kind-icon">Connection</a>
 						<ul>
 							<li class="current tsd-kind-interface tsd-parent-kind-class">
-								<a href="voice.connection.error.html" class="tsd-kind-icon">Error</a>
+								<a href="voice.connection.callerinfo.html" class="tsd-kind-icon">Caller<wbr>Info</a>
 								<ul>
 									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="voice.connection.error.html#code" class="tsd-kind-icon">code</a>
-									</li>
-									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="voice.connection.error.html#connection" class="tsd-kind-icon">connection</a>
-									</li>
-									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="voice.connection.error.html#info" class="tsd-kind-icon">info</a>
-									</li>
-									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="voice.connection.error.html#message-1" class="tsd-kind-icon">message</a>
-									</li>
-									<li class=" tsd-kind-property tsd-parent-kind-interface">
-										<a href="voice.connection.error.html#twilioerror" class="tsd-kind-icon">twilio<wbr>Error</a>
+										<a href="voice.connection.callerinfo.html#isverified" class="tsd-kind-icon">is<wbr>Verified</a>
 									</li>
 								</ul>
 							</li>
