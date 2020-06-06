@@ -753,7 +753,7 @@ describe('PreflightTest', () => {
       });
 
       it('should not include selectedIceCandidatePair if no candidates are selected', () => {
-        candidateInfo.selectedIceCandidatePair = null;
+        candidateInfo.selectedIceCandidatePair = undefined;
         preflight = new PreflightTest('foo', {
           ...options,
           getRTCIceCandidates: () => Promise.resolve(candidateInfo),
