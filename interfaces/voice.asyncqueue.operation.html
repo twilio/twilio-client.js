@@ -60,6 +60,13 @@
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Represent an <a href="../classes/voice.asyncqueue.html">AsyncQueue</a> operation</p>
+					</div>
+				</div>
+			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
@@ -90,14 +97,19 @@
 					<div class="tsd-signature tsd-kind-icon">callback<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/7cfd158/lib/twilio/asyncQueue.ts#L75">twilio/asyncQueue.ts:75</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/378ad01/lib/twilio/asyncQueue.ts#L76">lib/twilio/asyncQueue.ts:76</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>An async callback that returns a promise. This will get called once it reaches the queue.</p>
+						</div>
+					</div>
 					<div class="tsd-type-declaration">
 						<h4>Type declaration</h4>
 						<ul class="tsd-parameters">
 							<li class="tsd-parameter-siganture">
-								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property tsd-is-not-exported">
+								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property">
 									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
 								</ul>
 								<ul class="tsd-descriptions">
@@ -115,9 +127,14 @@
 					<div class="tsd-signature tsd-kind-icon">deferred<span class="tsd-signature-symbol">:</span> <a href="../classes/voice.deferred.html" class="tsd-signature-type">Deferred</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/7cfd158/lib/twilio/asyncQueue.ts#L80">twilio/asyncQueue.ts:80</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/378ad01/lib/twilio/asyncQueue.ts#L81">lib/twilio/asyncQueue.ts:81</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>A deferred promise that gets resolved or rejected after executing the async callback</p>
+						</div>
+					</div>
 				</section>
 			</section>
 		</div>
@@ -132,27 +149,50 @@
 					</li>
 					<li class="current tsd-kind-external-module">
 						<a href="../modules/voice.html">Voice</a>
+						<ul>
+							<li class=" tsd-kind-module tsd-parent-kind-external-module">
+								<a href="../modules/voice.authorizationerrors.html">Authorization<wbr>Errors</a>
+							</li>
+							<li class=" tsd-kind-module tsd-parent-kind-external-module">
+								<a href="../modules/voice.clienterrors.html">Client<wbr>Errors</a>
+							</li>
+							<li class=" tsd-kind-module tsd-parent-kind-external-module">
+								<a href="../modules/voice.generalerrors.html">General<wbr>Errors</a>
+							</li>
+							<li class=" tsd-kind-module tsd-parent-kind-external-module">
+								<a href="../modules/voice.mediaerrors.html">Media<wbr>Errors</a>
+							</li>
+							<li class=" tsd-kind-module tsd-parent-kind-external-module">
+								<a href="../modules/voice.signalingerrors.html">Signaling<wbr>Errors</a>
+							</li>
+						</ul>
 					</li>
 					<li class="label tsd-is-external">
 						<span>Externals</span>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_twilio_.html">"twilio"</a>
+						<a href="../modules/_twilio_.html">&quot;twilio&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_twilio_constants_.html">"twilio/constants"</a>
+						<a href="../modules/_twilio_constants_.html">&quot;twilio/constants&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_twilio_errors_index_.html">"twilio/errors/index"</a>
+						<a href="../modules/_twilio_errors_index_.html">&quot;twilio/errors/index&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_twilio_shims_eventtarget_.html">"twilio/shims/eventtarget"</a>
+						<a href="../modules/_twilio_rtc_mockrtcstatsreport_.html">&quot;twilio/rtc/mockrtcstatsreport&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_twilio_shims_mediadevices_.html">"twilio/shims/mediadevices"</a>
+						<a href="../modules/_twilio_rtc_stats_.html">&quot;twilio/rtc/stats&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_twilio_util_.html">"twilio/util"</a>
+						<a href="../modules/_twilio_shims_eventtarget_.html">&quot;twilio/shims/eventtarget&quot;</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_twilio_shims_mediadevices_.html">&quot;twilio/shims/mediadevices&quot;</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_twilio_util_.html">&quot;twilio/util&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="../modules/tools.html">Tools</a>
