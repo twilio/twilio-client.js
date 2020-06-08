@@ -228,24 +228,26 @@ export class PreflightTest extends EventEmitter {
       testTiming.duration  = this._endTime - this._startTime;
     }
 
-    const selectedIceCandidatePair = this._rtcIceCandidates.selectedIceCandidatePair;
-    const isTurnRequired = selectedIceCandidatePair.localCandidate.candidateType === 'relay'
-      || selectedIceCandidatePair.remoteCandidate.candidateType === 'relay';
-
     const report: PreflightTest.Report = {
       callSid: this._callSid,
       edge: this._edge,
       iceCandidates: this._rtcIceCandidates.iceCandidates,
-      isTurnRequired,
       networkTiming: this._networkTiming,
       samples: this._samples,
       selectedEdge: this._options.edge,
-      selectedIceCandidatePair,
       stats,
       testTiming,
       totals: this._getRTCSampleTotals(),
       warnings: this._warnings,
     };
+
+    const selectedIceCandidatePair = this._rtcIceCandidates.selectedIceCandidatePair;
+
+    if (selectedIceCandidatePair) {
+      report.selectedIceCandidatePair = selectedIceCandidatePair;
+      report.isTurnRequired = selectedIceCandidatePair.localCandidate.candidateType === 'relay'
+      || selectedIceCandidatePair.remoteCandidate.candidateType === 'relay';
+    }
 
     if (stats) {
       report.callQuality = this._getCallQuality(stats.mos.average);
@@ -717,9 +719,9 @@ export namespace PreflightTest {
     iceCandidates: RTCIceCandidateStats[];
 
     /**
-     * The ICE candidate pair used to connect to media.
+     * The ICE candidate pair used to connect to media, if candidates were selected.
      */
-    selectedIceCandidatePair: RTCSelectedIceCandidatePair;
+    selectedIceCandidatePair?: RTCSelectedIceCandidatePair;
   }
 
   /**
@@ -901,10 +903,11 @@ export namespace PreflightTest {
 
     /**
      * Whether a TURN server is required to connect to media.
-     * This is dependent on your ICE server configuration and is set to true if the selected ICE candidate is of type `relay`
+     * This is dependent on the selected ICE candidates, and will be true if either is of type "relay",
+     * false if both are of another type, or undefined if there are no selected ICE candidates.
      * See `PreflightTest.Options.iceServers` for more details.
      */
-    isTurnRequired: boolean;
+    isTurnRequired?: boolean;
 
     /**
      * Network related time measurements.
@@ -922,9 +925,9 @@ export namespace PreflightTest {
     selectedEdge?: string;
 
     /**
-     * The ICE candidate pair used to connect to media.
+     * The ICE candidate pair used to connect to media, if candidates were selected.
      */
-    selectedIceCandidatePair: RTCSelectedIceCandidatePair;
+    selectedIceCandidatePair?: RTCSelectedIceCandidatePair;
 
     /**
      * RTC related stats captured during the test.
