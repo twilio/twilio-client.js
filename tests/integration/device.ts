@@ -79,6 +79,11 @@ describe('Device', function() {
         }, 3000);
       });
 
+      it('should set callerInfo to null on both connections', () => {
+        assert.equal(connection1!.callerInfo, null);
+        assert.equal(connection2!.callerInfo, null);
+      });
+
       it('should be using the PCMU codec for both connections', (done) => {
         let codec1: string | null | undefined = null;
 

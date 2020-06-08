@@ -1,7 +1,7 @@
-1.12.0 (In Progress)
+1.13.0 (In Progress)
 ===================
 
-New Features
+New Features - Preview
 ------------
 
 * The SDK now supports a preflight test API which can help determine Voice calling readiness. The API creates a test call and will provide information to help troubleshoot call related issues. This new API is a static member of the [Device](https://www.twilio.com/docs/voice/client/javascript/device#twilio-device) class and can be used like the example below. Please see [API Docs](PREFLIGHT.md) for more details about this new API.
@@ -52,8 +52,53 @@ New Features
   }
   ```
 
+1.12.0 (In progress)
+====================
+
+New Features
+---------
+
+### CallerInfo
+
+This release adds a `Connection.callerInfo` field, which returns information about
+the calling phone number for incoming calls from PSTN only, otherwise returns `null`.
+
+```ts
+class Connection {
+  // ...
+  callerInfo: CallerInfo | null;
+}
+```
+
+The CallerInfo interface represents information about the caller. Currently, this
+information is limited to STIR/SHAKEN status of incoming PSTN Calls, but may later
+be expanded to include CNAM, and other endpoint types.
+
+```ts
+interface CallerInfo {
+  isVerified: boolean;
+}
+```
+
+#### Attributes
+
+- `isVerified` - Whether or not the caller's phone number has been verified by Twilio using
+  SHAKEN/STIR validation. True if the caller has been validated at 'A' level, false if
+  the caller has been verified at any lower level, has failed validation or has not
+  provided any SHAKEN/STIR information.
+
+#### Example
+
+```ts
+device.on('incoming', connection => {
+  if (connection.callerInfo && connection.callerInfo.isVerified) {
+    showVerifiedBadge();
+  }
+});
+```
+
 1.11.0 (May 21, 2020)
-===================
+=====================
 
 New Features
 ---------

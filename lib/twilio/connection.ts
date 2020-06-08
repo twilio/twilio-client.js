@@ -96,6 +96,12 @@ class Connection extends EventEmitter {
   static toString = () => '[Twilio.Connection class]';
 
   /**
+   * Information about the calling phone number for incoming calls from PSTN
+   * only, otherwise returns `null`.
+   */
+  readonly callerInfo: Connection.CallerInfo | null;
+
+  /**
    * The custom parameters sent to (outgoing) or received by (incoming) the TwiML app.
    */
   readonly customParameters: Map<string, string>;
@@ -261,6 +267,15 @@ class Connection extends EventEmitter {
     }
 
     this._direction = this.parameters.CallSid ? Connection.CallDirection.Incoming : Connection.CallDirection.Outgoing;
+
+    if (this._direction === Connection.CallDirection.Incoming && this.parameters) {
+      const isFromPSTN: boolean = /^\+?[\d-\(\) ]+$/.test(this.parameters.From);
+      this.callerInfo = isFromPSTN
+        ? { isVerified: this.parameters.StirStatus === 'TN-Validation-Passed-A' }
+        : null;
+    } else {
+      this.callerInfo = null;
+    }
 
     this._mediaReconnectBackoff = Backoff.exponential(BACKOFF_CONFIG);
     this._mediaReconnectBackoff.on('ready', () => this.mediaStream.iceRestart());
@@ -1520,6 +1535,22 @@ namespace Connection {
      * Twilio Voice related error
      */
     twilioError?: TwilioError;
+  }
+
+  /**
+   * Represents information about the caller. Currently, this information
+   * is limited to STIR/SHAKEN status of incoming PSTN Calls, but may later
+   * be expanded to include CNAM, and other endpoint types.
+   */
+  export interface CallerInfo {
+    /**
+     * Whether or not the caller's phone number has been verified by
+     * Twilio using SHAKEN/STIR validation. True if the caller has
+     * been validated at 'A' level, false if the caller has been
+     * verified at any lower level, has failed validation or has not
+     * provided any SHAKEN/STIR information.
+     */
+    isVerified: boolean;
   }
 
   /**
