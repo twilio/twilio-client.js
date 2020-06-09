@@ -95,8 +95,8 @@ class Connection extends EventEmitter {
   static toString = () => '[Twilio.Connection class]';
 
   /**
-   * Information about the calling phone number for incoming calls from PSTN
-   * only, otherwise returns `null`.
+   * Information about the calling phone number for incoming calls
+   * from PSTN, otherwise returns `null`.
    */
   readonly callerInfo: Connection.CallerInfo | null;
 
@@ -1545,8 +1545,7 @@ namespace Connection {
      * Whether or not the caller's phone number has been verified by
      * Twilio using SHAKEN/STIR validation. True if the caller has
      * been validated at 'A' level, false if the caller has been
-     * verified at any lower level, has failed validation or has not
-     * provided any SHAKEN/STIR information.
+     * verified at any lower level or has failed validation.
      */
     isVerified: boolean;
   }
