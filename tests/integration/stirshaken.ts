@@ -5,7 +5,7 @@ import * as assert from 'assert';
 import { EventEmitter } from 'events';    
 import * as env from '../env';
 
-describe('STIR/Shaken', function() {
+describe('SHAKEN/STIR', function() {
   this.timeout(10000);
 
   let device1: Device;
