@@ -6,8 +6,7 @@ New Features
 
 ### CallerInfo
 
-This release adds a `Connection.callerInfo` field, which returns information about
-the calling phone number for incoming calls from PSTN only, otherwise returns `null`.
+This release adds a `Connection.callerInfo` field, which returns caller verification information about the caller. If no caller verification information is available this will return `null`.
 
 ```ts
 class Connection {
@@ -16,9 +15,7 @@ class Connection {
 }
 ```
 
-The CallerInfo interface represents information about the caller. Currently, this
-information is limited to STIR/SHAKEN status of incoming PSTN Calls, but may later
-be expanded to include CNAM, and other endpoint types.
+A CallerInfo provides caller verification information.
 
 ```ts
 interface CallerInfo {
@@ -28,10 +25,7 @@ interface CallerInfo {
 
 #### Attributes
 
-- `isVerified` - Whether or not the caller's phone number has been verified by Twilio using
-  SHAKEN/STIR validation. True if the caller has been validated at 'A' level, false if
-  the caller has been verified at any lower level, has failed validation or has not
-  provided any SHAKEN/STIR information.
+- `isVerified` - Whether or not the caller's phone number has been verified by Twilio using SHAKEN/STIR validation. True if the caller has been validated at level 'A', false if the caller has been verified at any lower level or has failed validation.
 
 #### Example
 
