@@ -35,38 +35,57 @@ describe('STIR/Shaken', function() {
   });
 
   describe('device 1 calls device 2', () => {
-    before(done => {
-      device2.once(Device.EventName.Incoming, () => done());
-      (device1['connect'] as any)({ CallerId: (env as any).callerId });
-    });
 
-    describe('and device 2 accepts', () => {
-      let connection1: Connection;
-      let connection2: Connection;
+    describe('with pstream sending additional params', () => {
 
-      beforeEach(() => {
-        const conn1: Connection | undefined | null = device1.activeConnection();
-        const conn2: Connection | undefined | null = device2.activeConnection();
-
-        if (!conn1 || !conn2) {
-          throw new Error(`Connections weren't both open at beforeEach`);
+      before(done => {
+        device2.once(Device.EventName.Incoming, () => done());
+        const devShim = device2 as any;
+        devShim.stream.transport.__onSocketMessage = devShim.stream.transport._onSocketMessage;
+        devShim.stream.transport._onSocketMessage = (message: any) => {
+          if (message && message.data && typeof message.data === 'string') {
+            const data = JSON.parse(message.data);
+            const text = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
+            data.payload.parameters.displayName = text;
+            data.payload.parameters.DisplayName = text;
+            data.payload.parameters.foo = text;
+            data.payload.parameters.longProp = Array(100).fill(text).join(',');
+            message.data = JSON.stringify(data);
+          }
+          return devShim.stream.transport.__onSocketMessage(message);
         }
 
-        connection1 = conn1;
-        connection2 = conn2;
+        (device1['connect'] as any)({ CallerId: (env as any).callerId });
       });
 
-      it('should set callerInfo to null on origin connection', () => {
-        assert.equal(connection1!.callerInfo, null);
-      });
+      describe('and device 2 accepts', () => {
+        let connection1: Connection;
+        let connection2: Connection;
 
-      it('should show isVerified on aliceStir connection', () => {
-        assert.equal(connection2!.callerInfo!.isVerified, true);
-      });
+        beforeEach(() => {
+          const conn1: Connection | undefined | null = device1.activeConnection();
+          const conn2: Connection | undefined | null = device2.activeConnection();
 
-      it('should reject the call', (done) => {
-        connection1.once('disconnect', () => done());
-        connection2.reject();
+          if (!conn1 || !conn2) {
+            throw new Error(`Connections weren't both open at beforeEach`);
+          }
+
+          connection1 = conn1;
+          connection2 = conn2;
+        });
+
+        it('should set callerInfo to null on origin connection', () => {
+          assert.equal(connection1!.callerInfo, null);
+        });
+
+        it('should show isVerified on aliceStir connection', () => {
+          assert.equal(connection2!.callerInfo!.isVerified, true);
+        });
+
+        it('should reject the call', (done) => {
+          connection1.once('disconnect', () => done());
+          connection2.reject();
+        });
       });
     });
   });

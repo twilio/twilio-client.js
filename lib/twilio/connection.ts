@@ -268,8 +268,7 @@ class Connection extends EventEmitter {
     this._direction = this.parameters.CallSid ? Connection.CallDirection.Incoming : Connection.CallDirection.Outgoing;
 
     if (this._direction === Connection.CallDirection.Incoming && this.parameters) {
-      const isFromPSTN: boolean = /^\+?[\d-\(\) ]+$/.test(this.parameters.From);
-      this.callerInfo = isFromPSTN
+      this.callerInfo = this.parameters.StirStatus
         ? { isVerified: this.parameters.StirStatus === 'TN-Validation-Passed-A' }
         : null;
     } else {
