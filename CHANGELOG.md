@@ -33,7 +33,7 @@ interface CallerInfo {
 
 #### Attributes
 
-- `isVerified` - Whether or not the caller's phone number has been verified by Twilio using SHAKEN/STIR validation. True if the caller has been validated at level 'A', false if the caller has been verified at any lower level or has failed validation.
+- `isVerified` - Whether or not the caller's phone number has been attested by the originating carrier and verified by Twilio using SHAKEN/STIR. True if the caller has been verified at highest attestation 'A', false if the caller has been attested at any lower level or verification has failed.
 
 #### Example
 
