@@ -1,4 +1,4 @@
-1.12.0 (In progress)
+1.12.0 (June 11, 2020)
 ====================
 
 New Features
