@@ -1735,6 +1735,199 @@ describe('Connection', function() {
     });
   });
 
+  describe('on connection setup warning', () => {
+    const wait = () => new Promise(r => {
+      setTimeout(r, 1);
+      clock.tick(1);
+    });
+
+    context('for dtls connection', () => {
+      [
+        { duration: 1000, shouldEmit: false },
+        { duration: 1299, shouldEmit: false },
+        { duration: 1300, shouldEmit: true },
+        { duration: 1301, shouldEmit: true },
+        { duration: 3000, shouldEmit: true },
+      ].forEach(({duration, shouldEmit}) => {
+        it(`should ${shouldEmit ? '' : 'not '}emit high-dtls-connect-duration warning if duration is ${duration}`, () => {
+          const callback = sinon.stub();
+          conn.on('warning', callback);
+          mediaStream.ondtlstransportstatechange('connecting');
+          clock.tick(duration);
+          mediaStream.ondtlstransportstatechange('connected');
+          return wait().then(() => {
+            shouldEmit ?
+              sinon.assert.calledWithExactly(callback, 'high-dtls-connect-duration') :
+              sinon.assert.notCalled(callback);
+          });
+        });
+      });
+
+      [
+        { previousState: '', newState: 'new', shouldEmit: false },
+        { previousState: 'new', newState: 'connecting', shouldEmit: false },
+        { previousState: 'connecting', newState: 'connected', shouldEmit: true },
+        { previousState: 'connected', newState: 'closed', shouldEmit: false },
+        { previousState: 'connected', newState: 'failed', shouldEmit: false },
+      ].forEach(({previousState, newState, shouldEmit}) => {
+        it(`should ${shouldEmit ? '' : 'not '}emit high-dtls-connect-duration warning when transitioning to ${newState}`, () => {
+          const callback = sinon.stub();
+          conn.on('warning', callback);
+          mediaStream.ondtlstransportstatechange(previousState);
+          clock.tick(5000);
+          mediaStream.ondtlstransportstatechange(newState);
+          return wait().then(() => {
+            shouldEmit ?
+              sinon.assert.calledWithExactly(callback, 'high-dtls-connect-duration') :
+              sinon.assert.notCalled(callback);
+          });
+        });
+      });
+
+      ['disconnected', 'failed', 'closed'].forEach(state => {
+        it(`should not call warnings after state reaches to ${state}`, () => {
+          const callback = sinon.stub();
+          conn.on('warning', callback);
+          mediaStream.ondtlstransportstatechange('connecting');
+          clock.tick(1);
+          mediaStream.ondtlstransportstatechange('connected');
+
+          // Simulate reconnection
+          clock.tick(20000);
+          mediaStream.ondtlstransportstatechange(state);
+          clock.tick(1);
+          mediaStream.ondtlstransportstatechange('connected');
+          return wait().then(() => sinon.assert.notCalled(callback));
+        });
+      });
+    });
+
+    context('for ice connection', () => {
+      [
+        { duration: 400, shouldEmit: false },
+        { duration: 499, shouldEmit: false },
+        { duration: 500, shouldEmit: true },
+        { duration: 501, shouldEmit: true },
+        { duration: 600, shouldEmit: true },
+      ].forEach(({duration, shouldEmit}) => {
+        it(`should ${shouldEmit ? '' : 'not '}emit high-ice-connect-duration warning if duration is ${duration}`, () => {
+          const callback = sinon.stub();
+          conn.on('warning', callback);
+          mediaStream.oniceconnectionstatechange('checking');
+          clock.tick(duration);
+          mediaStream.oniceconnectionstatechange('connected');
+          return wait().then(() => {
+            shouldEmit ?
+              sinon.assert.calledWithExactly(callback, 'high-ice-connect-duration') :
+              sinon.assert.notCalled(callback);
+          });
+        });
+      });
+
+      [
+        { previousState: '', newState: 'new', shouldEmit: false },
+        { previousState: 'new', newState: 'checking', shouldEmit: false },
+        { previousState: 'checking', newState: 'connected', shouldEmit: true },
+        { previousState: 'connected', newState: 'completed', shouldEmit: false },
+        { previousState: 'completed', newState: 'disconnected', shouldEmit: false },
+        { previousState: 'connected', newState: 'failed', shouldEmit: false },
+        { previousState: 'connected', newState: 'closed', shouldEmit: false },
+      ].forEach(({previousState, newState, shouldEmit}) => {
+        it(`should ${shouldEmit ? '' : 'not '}emit high-ice-connect-duration warning when transitioning to ${newState}`, () => {
+          const callback = sinon.stub();
+          conn.on('warning', callback);
+          mediaStream.oniceconnectionstatechange(previousState);
+          clock.tick(5000);
+          mediaStream.oniceconnectionstatechange(newState);
+          return wait().then(() => {
+            shouldEmit ?
+              sinon.assert.calledWithExactly(callback, 'high-ice-connect-duration') :
+              sinon.assert.notCalled(callback);
+          });
+        });
+      });
+
+      ['disconnected', 'failed', 'closed'].forEach(state => {
+        it(`should not call warnings after state reaches to ${state}`, () => {
+          const callback = sinon.stub();
+          conn.on('warning', callback);
+          mediaStream.oniceconnectionstatechange('checking');
+          clock.tick(1);
+          mediaStream.oniceconnectionstatechange('connected');
+
+          // Simulate reconnection
+          clock.tick(20000);
+          mediaStream.oniceconnectionstatechange(state);
+          clock.tick(1);
+          mediaStream.oniceconnectionstatechange('connected');
+          return wait().then(() => sinon.assert.notCalled(callback));
+        });
+      });
+    });
+
+    context('for peerConnection', () => {
+      [
+        { duration: 1000, shouldEmit: false },
+        { duration: 1799, shouldEmit: false },
+        { duration: 1800, shouldEmit: true },
+        { duration: 1801, shouldEmit: true },
+        { duration: 1900, shouldEmit: true },
+      ].forEach(({duration, shouldEmit}) => {
+        it(`should ${shouldEmit ? '' : 'not '}emit high-pc-connect-duration warning if duration is ${duration}`, () => {
+          const callback = sinon.stub();
+          conn.on('warning', callback);
+          mediaStream.onpcconnectionstatechange('connecting');
+          clock.tick(duration);
+          mediaStream.onpcconnectionstatechange('connected');
+          return wait().then(() => {
+            shouldEmit ?
+              sinon.assert.calledWithExactly(callback, 'high-pc-connect-duration') :
+              sinon.assert.notCalled(callback);
+          });
+        });
+      });
+
+      [
+        { previousState: '', newState: 'new', shouldEmit: false },
+        { previousState: 'new', newState: 'connecting', shouldEmit: false },
+        { previousState: 'connecting', newState: 'connected', shouldEmit: true },
+        { previousState: 'connected', newState: 'failed', shouldEmit: false },
+        { previousState: 'connected', newState: 'disconnected', shouldEmit: false },
+        { previousState: 'connected', newState: 'closed', shouldEmit: false },
+      ].forEach(({previousState, newState, shouldEmit}) => {
+        it(`should ${shouldEmit ? '' : 'not '}emit high-pc-connect-duration warning when transitioning to ${newState}`, () => {
+          const callback = sinon.stub();
+          conn.on('warning', callback);
+          mediaStream.onpcconnectionstatechange(previousState);
+          clock.tick(5000);
+          mediaStream.onpcconnectionstatechange(newState);
+          return wait().then(() => {
+            shouldEmit ?
+              sinon.assert.calledWithExactly(callback, 'high-pc-connect-duration') :
+              sinon.assert.notCalled(callback);
+          });
+        });
+      });
+
+      ['disconnected', 'failed', 'closed'].forEach(state => {
+        it(`should not call warnings after state reaches to ${state}`, () => {
+          const callback = sinon.stub();
+          conn.on('warning', callback);
+          mediaStream.onpcconnectionstatechange('connecting');
+          clock.tick(1);
+          mediaStream.onpcconnectionstatechange('connected');
+
+          // Simulate reconnection
+          clock.tick(20000);
+          mediaStream.onpcconnectionstatechange(state);
+          clock.tick(1);
+          mediaStream.onpcconnectionstatechange('connected');
+          return wait().then(() => sinon.assert.notCalled(callback));
+        });
+      });
+    });
+  });
+
   describe('on media failed', () => {
     beforeEach(() => {
       mediaStream.iceRestart = sinon.stub();

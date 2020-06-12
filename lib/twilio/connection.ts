@@ -1,4 +1,5 @@
 /**
+ * @packageDocumentation
  * @module Voice
  * @publicapi
  * @internal
@@ -12,6 +13,7 @@ import { RTCIceCandidate, RTCLocalIceCandidate } from './rtc/candidate';
 import RTCSample from './rtc/sample';
 import RTCWarning from './rtc/warning';
 import StatsMonitor from './statsMonitor';
+import { NetworkTiming, TimeMeasurement, TimingWarningConfig } from './timing';
 import { isChrome } from './util';
 
 const Backoff = require('backoff');
@@ -54,6 +56,27 @@ const DTMF_TONE_DURATION: number = 160;
 
 const METRICS_BATCH_SIZE: number = 10;
 const METRICS_DELAY: number = 5000;
+
+const CONNECTION_SETUP_WARNING_CONFIGS: Record<string, TimingWarningConfig> = {
+  dtls: {
+    endState: 'connected',
+    name: 'high-dtls-connect-duration',
+    startState: 'connecting',
+    threshold: 1300,
+  },
+  ice: {
+    endState: 'connected',
+    name: 'high-ice-connect-duration',
+    startState: 'checking',
+    threshold: 500,
+  },
+  peerConnection: {
+    endState: 'connected',
+    name: 'high-pc-connect-duration',
+    startState: 'connecting',
+    threshold: 1800,
+  },
+};
 
 const MEDIA_DISCONNECT_ERROR = {
   disconnect: true,
@@ -200,6 +223,11 @@ class Connection extends EventEmitter {
   private readonly _monitor: StatsMonitor;
 
   /**
+   * Network related timing measurements for this {@link Connection}.
+   */
+  private _networkTiming: NetworkTiming | null = null;
+
+  /**
    * The number of times output volume has been the same consecutively.
    */
   private _outputVolumeStreak: number = 0;
@@ -334,6 +362,7 @@ class Connection extends EventEmitter {
     this.mediaStream.ondtlstransportstatechange = (state: string): void => {
       const level = state === 'failed' ? 'error' : 'debug';
       this._publisher.post(level, 'dtls-transport-state', state, null, this);
+      this._updateNetworkTiming('dtls', state);
     };
 
     this.mediaStream.onpcconnectionstatechange = (state: string): void => {
@@ -344,6 +373,7 @@ class Connection extends EventEmitter {
         level = dtlsTransport && dtlsTransport.state === 'failed' ? 'error' : 'warning';
       }
       this._publisher.post(level, 'pc-connection-state', state, null, this);
+      this._updateNetworkTiming('peerConnection', state);
     };
 
     this.mediaStream.onicecandidate = (candidate: RTCIceCandidate): void => {
@@ -354,6 +384,7 @@ class Connection extends EventEmitter {
     this.mediaStream.oniceconnectionstatechange = (state: string): void => {
       const level = state === 'failed' ? 'error' : 'debug';
       this._publisher.post(level, 'ice-connection-state', state, null, this);
+      this._updateNetworkTiming('ice', state);
     };
 
     this.mediaStream.onicegatheringfailure = (type: Connection.IceGatheringFailureReason): void => {
@@ -1363,6 +1394,46 @@ class Connection extends EventEmitter {
 
     this.parameters.CallSid = callSid;
     this.mediaStream.callSid = callSid;
+  }
+
+  /**
+   * Update network related timing information base on the supplied state and connection type.
+   * Then emits a warning if the connection setup time exceeds a certain threshold.
+   */
+  private _updateNetworkTiming(connectionType: string, state: string): void {
+    if (!this._networkTiming) {
+      this._networkTiming = {
+        dtls: { start: 0 },
+        ice: { start: 0 },
+        peerConnection: { start: 0 },
+      };
+    }
+
+    // Reset
+    if (state === 'disconnected' || state === 'failed' || state === 'closed') {
+      this._networkTiming = null;
+      return;
+    }
+
+    const { name, threshold, startState, endState } = CONNECTION_SETUP_WARNING_CONFIGS[connectionType];
+    const timing: TimeMeasurement = (this._networkTiming as any)[connectionType];
+
+    if (state === startState) {
+      timing.start = Date.now();
+      // Delete previous metric. This happens when there's a reconnection.
+      delete timing.end;
+      delete timing.duration;
+
+    } else if (state === endState && timing.start) {
+      timing.end = Date.now();
+      const duration = timing.duration = timing.end - timing.start;
+
+      if (duration >= threshold) {
+        const data = { threshold, value: duration };
+        this._publisher.warn('network-quality-warning-raised', name, { data }, this);
+        this.emit('warning', name);
+      }
+    }
   }
 }
 

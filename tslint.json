@@ -10,6 +10,7 @@
     "arrow-parens": false,
     "ban-types": false,
     "interface-name": false,
+    "max-line-length": [true, 200],
     "member-access": [true, "no-public"],
     "member-ordering": [true, {
       "order": "statics-first",

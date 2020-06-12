@@ -1,4 +1,5 @@
 /**
+ * @packageDocumentation
  * @module Voice
  * @preferred
  * @publicapi
