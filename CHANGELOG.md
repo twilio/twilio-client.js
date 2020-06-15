@@ -1,3 +1,25 @@
+1.13.0 (In progress)
+====================
+
+Additions
+---------
+
+### New Network Quality Warnings
+This release includes new network quality warnings that are raised via `Connection.on('warning', handler(name))` event. You can use these warnings to show visual indicators that alert the end user to a problem.
+
+* `high-ice-connect-duration` - Raised when [ICE connection](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceConnectionState) takes over 500ms to establish, which is measured from RTCPeerConnection.iceConnectionState:checking to RTCPeerConnection.iceConnectionState:connected. This value represents how long the client and media server took to establish a connection to exchange media. This warning does not have a corresponding warning-cleared event.
+* `high-dtls-connect-duration` - Raised when [DTLS transport](https://developer.mozilla.org/en-US/docs/Web/API/RTCDtlsTransport/state) takes over 1300ms to establish, which is measured from RTCDtlsTransport.state:connecting to RTCDtlsTransport.state:connected. This value represents how long the client and media server took to negotiate a secure connection. This warning does not have a corresponding warning-cleared event.
+* `high-pc-connect-duration` - Raised when [RTCPeerConnection](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/connectionState) takes over 1800ms to establish, which is measured from RTCPeerConnection.connectionState:connecting to RTCPeerConnection.connectionState:connected. This value represents how long the client and media server took to establish the ICE and DTLS connection. This warning does not have a corresponding warning-cleared event.
+
+**Example**
+```ts
+connection.on('warning', (warningName) => {
+  if (warningName === 'high-pc-connect-duration') {
+    console.log('We have detected poor network conditions. You may experience an initial media delay on future calls.');
+  }
+});
+```
+
 1.12.0 (June 11, 2020)
 ====================
 
