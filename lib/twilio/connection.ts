@@ -159,6 +159,11 @@ class Connection extends EventEmitter {
   private _isAnswered: boolean = false;
 
   /**
+   * Whether the call has been cancelled.
+   */
+  private _isCancelled: boolean = false;
+
+  /**
    * Whether or not the browser uses unified-plan SDP by default.
    */
   private readonly _isUnifiedPlanDefault: boolean | undefined;
@@ -444,7 +449,9 @@ class Connection extends EventEmitter {
       monitor.disable();
       this._publishMetrics();
 
-      this.emit('disconnect', this);
+      if (!this._isCancelled) {
+        this.emit('disconnect', this);
+      }
     };
 
     // temporary call sid to be used for outgoing calls
@@ -1119,15 +1126,14 @@ class Connection extends EventEmitter {
     // (rrowland) Is this check necessary? Verify, and if so move to pstream / VSP module.
     const callsid = payload.callsid;
     if (this.parameters.CallSid === callsid) {
-      this.once('disconnect', () => {
-        this._status = Connection.State.Closed;
-        this.emit('cancel');
-        this.pstream.removeListener('cancel', this._onCancel);
-      });
-
+      this._isCancelled = true;
       this._publisher.info('connection', 'cancel', null, this);
       this._cleanupEventListeners();
       this.mediaStream.close();
+
+      this._status = Connection.State.Closed;
+      this.emit('cancel');
+      this.pstream.removeListener('cancel', this._onCancel);
     }
   }
 
