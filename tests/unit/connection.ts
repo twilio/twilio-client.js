@@ -208,23 +208,78 @@ describe('Connection', function() {
         }
       });
 
-      it('should set .callerInfo.isVerified to false when StirStatus is undefined', () => {
+      it('should set .callerInfo to null when StirStatus is undefined', () => {
         conn = new Connection(config, Object.assign(options, { callParameters: {
           CallSid: 'CA123',
           From: '19293212323',
         }}));
-        let callerInfo: Connection.CallerInfo;
-        assert.equal(conn.callerInfo!.isVerified, false);
+        assert.equal(conn.callerInfo, null);
       });
 
-      it('should set .callerInfo to null when From is not a number', () => {
-        conn = new Connection(config, Object.assign(options, { callParameters: {
-          CallSid: 'CA123',
-          From: 'client:alice',
-          StirStatus: 'TN-Validation-Passed-A',
-        }}));
-        let callerInfo: Connection.CallerInfo;
-        assert.equal(conn.callerInfo, null);
+      describe('when From is not a number', () => {
+        it('should populate the .callerInfo fields appropriately when StirStatus is A', () => {
+          conn = new Connection(config, Object.assign(options, { callParameters: {
+            StirStatus: 'TN-Validation-Passed-A',
+            CallSid: 'CA123',
+            From: 'client:alice',
+          }}));
+          let callerInfo: Connection.CallerInfo;
+          if (conn.callerInfo !== null) {
+            callerInfo = conn.callerInfo;
+            assert.equal(callerInfo.isVerified, true);
+          } else {
+            throw Error('callerInfo object null, but expected to be populated');
+          }
+        });
+
+        it('should populate the .callerInfo fields appropriately when StirStatus is failed-A', () => {
+          conn = new Connection(config, Object.assign(options, { callParameters: {
+            StirStatus: 'TN-Validation-Failed-A',
+            CallSid: 'CA123',
+            From: 'client:alice',
+          }}));
+          let callerInfo: Connection.CallerInfo;
+          if (conn.callerInfo !== null) {
+            callerInfo = conn.callerInfo;
+            assert.equal(callerInfo.isVerified, false);
+          } else {
+            throw Error('callerInfo object null, but expected to be populated');
+          }
+        });
+      });
+
+      describe('when additional parameters are supplied', () => {
+        it('should populate the .callerInfo fields appropriately when DisplayName is supplied', () => {
+          conn = new Connection(config, Object.assign(options, { callParameters: {
+            StirStatus: 'TN-Validation-Passed-A',
+            CallSid: 'CA123',
+            From: 'client:alice',
+            DisplayName: 'foo bar baz',
+          }}));
+          let callerInfo: Connection.CallerInfo;
+          if (conn.callerInfo !== null) {
+            callerInfo = conn.callerInfo;
+            assert.equal(callerInfo.isVerified, true);
+          } else {
+            throw Error('callerInfo object null, but expected to be populated');
+          }
+        });
+
+        it('should populate the .callerInfo fields appropriately when a long string is supplied', () => {
+          conn = new Connection(config, Object.assign(options, { callParameters: {
+            StirStatus: 'TN-Validation-Passed-A',
+            CallSid: 'CA123',
+            From: 'client:alice',
+            DisplayName: Array(100).fill('foo bar baz').join(','),
+          }}));
+          let callerInfo: Connection.CallerInfo;
+          if (conn.callerInfo !== null) {
+            callerInfo = conn.callerInfo;
+            assert.equal(callerInfo.isVerified, true);
+          } else {
+            throw Error('callerInfo object null, but expected to be populated');
+          }
+        });
       });
     });
 

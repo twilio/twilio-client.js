@@ -1,8 +1,8 @@
-1.13.0 (In Progress)
-===================
+1.13.0-preview1 (June 17, 2020)
+===============================
 
 New Features - Preview
-------------
+----------------------
 
 * The SDK now supports a preflight test API which can help determine Voice calling readiness. The API creates a test call and will provide information to help troubleshoot call related issues. This new API is a static member of the [Device](https://www.twilio.com/docs/voice/client/javascript/device#twilio-device) class and can be used like the example below. Please see [API Docs](PREFLIGHT.md) for more details about this new API.
 
@@ -52,16 +52,23 @@ New Features - Preview
   }
   ```
 
-1.12.0 (In progress)
+1.12.0 (June 11, 2020)
 ====================
 
 New Features
----------
+------------
 
-### CallerInfo
+### SHAKEN/STIR Verification Status for incoming calls
 
-This release adds a `Connection.callerInfo` field, which returns information about
-the calling phone number for incoming calls from PSTN only, otherwise returns `null`.
+Twilio Client's [Connection](https://www.twilio.com/docs/voice/client/javascript/connection) class now has `Connection.callerInfo.isVerified`, that can be used to display a trust indicator to the recipient when an incoming call, say from the public telephone network, has been verified under the SHAKEN/STIR framework.
+
+A verified call that has been given highest attestation under SHAKEN/STIR means that the carrier that originated the call both (1) knows the identity of the caller, and (2) knows the caller has the right to use the phone number as the caller ID.
+
+When your application receives a request webhook, that has the new `StirStatus` parameter all you have to do is `<Dial><Client>` and Twilio will implicitly pass the `StirStatus` to the Javascript Client.
+
+#### CallerInfo
+
+The `Connection.callerInfo` field returns caller verification information about the caller. If no caller verification information is available this will return `null`.
 
 ```ts
 class Connection {
@@ -70,9 +77,7 @@ class Connection {
 }
 ```
 
-The CallerInfo interface represents information about the caller. Currently, this
-information is limited to STIR/SHAKEN status of incoming PSTN Calls, but may later
-be expanded to include CNAM, and other endpoint types.
+A CallerInfo provides caller verification information.
 
 ```ts
 interface CallerInfo {
@@ -82,20 +87,19 @@ interface CallerInfo {
 
 #### Attributes
 
-- `isVerified` - Whether or not the caller's phone number has been verified by Twilio using
-  SHAKEN/STIR validation. True if the caller has been validated at 'A' level, false if
-  the caller has been verified at any lower level, has failed validation or has not
-  provided any SHAKEN/STIR information.
+- `isVerified` - Whether or not the caller's phone number has been attested by the originating carrier and verified by Twilio using SHAKEN/STIR. True if the caller has been verified at highest attestation 'A', false if the caller has been attested at any lower level or verification has failed.
 
 #### Example
 
 ```ts
 device.on('incoming', connection => {
   if (connection.callerInfo && connection.callerInfo.isVerified) {
-    showVerifiedBadge();
+    console.log('This caller is verified by a carrier under the SHAKEN and STIR call authentication framework');
   }
 });
 ```
+
+Read [here](https://www.twilio.com/docs/voice/trusted-calling-using-shakenstir) to learn more about making and receiving SHAKEN/STIR calls to/from the public telephone network.
 
 1.11.0 (May 21, 2020)
 =====================
