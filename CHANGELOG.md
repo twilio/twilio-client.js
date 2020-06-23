@@ -1,3 +1,12 @@
+1.12.1 (In progress)
+====================
+
+Bug Fixes
+---------
+
+* Fixed an issue where a `device.on('disconnect')` is emitted before raising a `device.on('cancel')` event. This usually happens when the caller cancels the incoming call before the SDK accepts it.
+
+
 1.12.0 (June 11, 2020)
 ====================
 
