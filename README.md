@@ -97,7 +97,7 @@ These tests will run via karma, one at a time, in your system's default Chrome a
 Content Security Policy (CSP)
 ----------------------------
 
-Use the following policy directives to enabile [CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) that is compatible with twilio-client.js.
+Use the following policy directives to enable [CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) that is compatible with twilio-client.js.
 
 ```
 script-src https://media.twiliocdn.com https://sdk.twilio.com
