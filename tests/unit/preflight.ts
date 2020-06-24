@@ -71,13 +71,15 @@ describe('PreflightTest', () => {
     };
 
     const outputs = new Map();
-    outputs.set('default', { audio: {} })
+    outputs.set('default', { audio: {} });
+    outputs.set('foo', { audio: {} });
     connectionContext = {
       _monitor: monitor,
       mediaStream: {
         callSid: CALL_SID,
-        _masterAudio: {},
+        _onAddTrack: () => {},
         _fallbackOnAddTrack: () => {},
+        _updateAudioOutputs: () => {},
         version: { pc: {} },
         onpcconnectionstatechange: sinon.stub(),
         oniceconnectionstatechange: sinon.stub(),
@@ -338,29 +340,29 @@ describe('PreflightTest', () => {
       });
     });
 
-    it('should mute media stream if fakeMicInput is true', () => {
-      preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
+    ['onAddTrack', 'fallbackOnAddTrack', 'updateAudioOutputs'].forEach(handler => {
+      it(`should not mute media stream if fakeMicInput is false and pc.${handler} is called`, () => {
+        preflight = new PreflightTest('foo', options);
 
-      return wait().then(() => {
-        device.emit('ready');
-        connection.emit('accept');
-        connectionContext.mediaStream._fallbackOnAddTrack();
+        return wait().then(() => {
+          device.emit('ready');
+          connectionContext.mediaStream[`_${handler}`]();
 
-        assert(connectionContext.mediaStream.outputs.get('default').audio.muted);
-        assert(connectionContext.mediaStream._masterAudio.muted);
+          assert(!connectionContext.mediaStream.outputs.get('default').audio.muted);
+          assert(!connectionContext.mediaStream.outputs.get('foo').audio.muted);
+        });
       });
-    });
 
-    it('should not mute media stream if fakeMicInput is false', () => {
-      preflight = new PreflightTest('foo', options);
+      it(`should mute media stream if fakeMicInput is true and pc.${handler} is called`, () => {
+        preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
 
-      return wait().then(() => {
-        device.emit('ready');
-        connection.emit('accept');
-        connectionContext.mediaStream._fallbackOnAddTrack();
+        return wait().then(() => {
+          device.emit('ready');
+          connectionContext.mediaStream[`_${handler}`]();
 
-        assert(!connectionContext.mediaStream.outputs.get('default').audio.muted);
-        assert(!connectionContext.mediaStream._masterAudio.muted);
+          assert(connectionContext.mediaStream.outputs.get('default').audio.muted);
+          assert(connectionContext.mediaStream.outputs.get('foo').audio.muted);
+        });
       });
     });
   });
