@@ -5,7 +5,7 @@ Bug Fixes
 ---------
 
 * Fixed an issue where a `device.on('disconnect')` is emitted before raising a `device.on('cancel')` event. This usually happens when the caller cancels the incoming call before the SDK accepts it.
-
+* Fixed an issue where `sao-paolo` is expected as an edge name instead of `sao-paulo`.
 
 1.12.0 (June 11, 2020)
 ====================
