@@ -17,6 +17,17 @@ import { NetworkTiming, TimeMeasurement } from './timing';
 
 const { COWBELL_AUDIO_URL, ECHO_TEST_DURATION } = require('../constants');
 
+/**
+ * Represents the audio output object coming from Client SDK's PeerConnection object.
+ * @internalapi
+ */
+export interface AudioOutput {
+  /**
+   * The audio element used to play out the sound.
+   */
+  audio: HTMLAudioElement;
+}
+
 export declare interface PreflightTest {
   /**
    * Raised when [[PreflightTest.status]] has transitioned to [[PreflightTest.Status.Completed]].
@@ -459,6 +470,14 @@ export class PreflightTest extends EventEmitter {
    * @param connection
    */
   private _setupConnectionHandlers(connection: Connection): void {
+    if (this._options.fakeMicInput) {
+      // Mute all audio outputs
+      connection.once('volume', () => {
+        connection.mediaStream.outputs
+          .forEach((output: any) => output.audio.muted = true);
+      });
+    }
+
     connection.on('warning', (name: string, data: RTCWarning) => {
       // Constant audio warnings are handled by StatsMonitor
       if (name.includes('constant-audio')) {
