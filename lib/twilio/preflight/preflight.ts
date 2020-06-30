@@ -17,17 +17,6 @@ import { NetworkTiming, TimeMeasurement } from './timing';
 
 const { COWBELL_AUDIO_URL, ECHO_TEST_DURATION } = require('../constants');
 
-/**
- * Represents the audio output object coming from Client SDK's PeerConnection object.
- * @internalapi
- */
-export interface AudioOutput {
-  /**
-   * The audio element used to play out the sound.
-   */
-  audio: HTMLAudioElement;
-}
-
 export declare interface PreflightTest {
   /**
    * Raised when [[PreflightTest.status]] has transitioned to [[PreflightTest.Status.Completed]].
@@ -368,32 +357,6 @@ export class PreflightTest extends EventEmitter {
   }
 
   /**
-   * Mute the output audio for a given connection without affecting audio levels
-   */
-  private _muteMasterAudioOutput(connection: Connection): void {
-    // Muting just the output audio is not a public API
-    // Let's access internals for preflight
-    if (connection.mediaStream) {
-      const stream = connection.mediaStream;
-      const muteOutputs = (outputs: Map<string, AudioOutput>) =>
-        outputs.forEach((output: AudioOutput) => output.audio.muted = true);
-
-      ['onAddTrack', 'fallbackOnAddTrack', 'updateAudioOutputs'].forEach(handler => {
-        stream[`_orig${handler}`] = stream[`_${handler}`];
-        stream[`_${handler}`] = (...args: any[]) => {
-
-          const promise = stream[`_orig${handler}`](...args);
-          if (promise) {
-            return promise.then(() => muteOutputs(stream.outputs));
-          } else {
-            muteOutputs(stream.outputs);
-          }
-        };
-      });
-    }
-  }
-
-  /**
    * Called on {@link Device} error event
    * @param error
    */
@@ -416,8 +379,6 @@ export class PreflightTest extends EventEmitter {
     if (this._options.fakeMicInput) {
       this._echoTimer = setTimeout(() => this._device.disconnectAll(), ECHO_TEST_DURATION);
 
-      // Mute sounds
-      this._muteMasterAudioOutput(this._connection);
       const audio = this._device.audio as any;
       if (audio) {
         audio.disconnect(false);
