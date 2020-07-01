@@ -1,3 +1,11 @@
+1.13.0-preview2 (In progress)
+=============================
+
+Bug Fixes
+---------
+
+* Fixed an issue where preflight is not muting the audio output after output audio devices are updated.
+
 1.13.0-preview1 (June 17, 2020)
 ===============================
 

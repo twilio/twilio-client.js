@@ -71,13 +71,12 @@ describe('PreflightTest', () => {
     };
 
     const outputs = new Map();
-    outputs.set('default', { audio: {} })
+    outputs.set('default', { audio: {} });
+    outputs.set('foo', { audio: {} });
     connectionContext = {
       _monitor: monitor,
       mediaStream: {
         callSid: CALL_SID,
-        _masterAudio: {},
-        _fallbackOnAddTrack: () => {},
         version: { pc: {} },
         onpcconnectionstatechange: sinon.stub(),
         oniceconnectionstatechange: sinon.stub(),
@@ -338,29 +337,25 @@ describe('PreflightTest', () => {
       });
     });
 
-    it('should mute media stream if fakeMicInput is true', () => {
-      preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
-
-      return wait().then(() => {
-        device.emit('ready');
-        connection.emit('accept');
-        connectionContext.mediaStream._fallbackOnAddTrack();
-
-        assert(connectionContext.mediaStream.outputs.get('default').audio.muted);
-        assert(connectionContext.mediaStream._masterAudio.muted);
-      });
-    });
-
     it('should not mute media stream if fakeMicInput is false', () => {
       preflight = new PreflightTest('foo', options);
 
       return wait().then(() => {
         device.emit('ready');
-        connection.emit('accept');
-        connectionContext.mediaStream._fallbackOnAddTrack();
-
+        connection.emit('volume');
         assert(!connectionContext.mediaStream.outputs.get('default').audio.muted);
-        assert(!connectionContext.mediaStream._masterAudio.muted);
+        assert(!connectionContext.mediaStream.outputs.get('foo').audio.muted);
+      });
+    });
+
+    it('should mute media stream if fakeMicInput is true', () => {
+      preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
+
+      return wait().then(() => {
+        device.emit('ready');
+        connection.emit('volume');
+        assert(connectionContext.mediaStream.outputs.get('default').audio.muted);
+        assert(connectionContext.mediaStream.outputs.get('foo').audio.muted);
       });
     });
   });

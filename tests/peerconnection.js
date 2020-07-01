@@ -2185,7 +2185,7 @@ describe('PeerConnection', () => {
       assert(context._startPollingVolume.calledWithExactly());
     });
 
-    it('Should call _onAddTrack when sink is supported', () => {
+    it('Should not call _onAddTrack when sink is not supported', () => {
       context._isSinkSupported = false;
       const event = {stream: STREAM};
       assert.deepStrictEqual(toTest(), new rtcpcFactory());
@@ -2196,6 +2196,49 @@ describe('PeerConnection', () => {
       assert(context._fallbackOnAddTrack.calledOn(context));
       assert.equal(context._onAddTrack.called, false);
       assert(context._startPollingVolume.calledWithExactly());
+    });
+
+    describe('after creating audio outputs', () => {
+      beforeEach(() => {
+        clock = sinon.useFakeTimers();
+        context = {
+          ...context,
+          onvolume: sinon.stub(),
+          _audioContext: {},
+          _remoteStream: {},
+          _updateInputStreamSource: sinon.stub(),
+          _updateOutputStreamSource: sinon.stub(),
+          _createAnalyser: () => ({
+            frequencyBinCount: 1,
+            getByteFrequencyData: sinon.stub(),
+          }),
+          _startPollingVolume: sinon.stub().callsFake(() => {
+            PeerConnection.prototype._startPollingVolume.call(context);
+          }),
+          util: { average: () => {} },
+        };
+        PeerConnection.prototype._setupPeerConnection.call(context, CONSTRAINTS, ICE_SERVERS);
+        versionPc.onaddstream({stream: STREAM});
+      });
+
+      afterEach(() => {
+        clock.restore();
+      });
+
+      it('should poll volume', () => {
+        sinon.assert.calledOnce(context._startPollingVolume);
+      });
+
+      it('should emit volume events', () => {
+        clock.tick(49);
+        sinon.assert.notCalled(context.onvolume);
+        clock.tick(1);
+
+        for (let a = 0; a < 100; a++) {
+          sinon.assert.callCount(context.onvolume, a + 1);
+          clock.tick(50);
+        }
+      });
     });
   });
 

@@ -17,6 +17,18 @@ import { NetworkTiming, TimeMeasurement } from './timing';
 
 const { COWBELL_AUDIO_URL, ECHO_TEST_DURATION } = require('../constants');
 
+/**
+ * Placeholder until we convert peerconnection.js to TypeScript.
+ * Represents the audio output object coming from Client SDK's PeerConnection object.
+ * @internalapi
+ */
+export interface AudioOutput {
+  /**
+   * The audio element used to play out the sound.
+   */
+  audio: HTMLAudioElement;
+}
+
 export declare interface PreflightTest {
   /**
    * Raised when [[PreflightTest.status]] has transitioned to [[PreflightTest.Status.Completed]].
@@ -357,26 +369,6 @@ export class PreflightTest extends EventEmitter {
   }
 
   /**
-   * Mute the output audio for a given connection without affecting audio levels
-   */
-  private _muteAudioOutput(connection: Connection): void {
-    // Muting just the output audio is not a public API
-    // Let's access internals for preflight
-    if (connection.mediaStream) {
-      const stream = connection.mediaStream;
-      if (stream._masterAudio) {
-        stream._masterAudio.muted = true;
-      }
-      stream.__fallbackOnAddTrack = stream._fallbackOnAddTrack;
-      stream._fallbackOnAddTrack = (...args: any[]) => {
-        const rval = stream.__fallbackOnAddTrack(...args);
-        stream.outputs.get('default').audio.muted = true;
-        return rval;
-      };
-    }
-  }
-
-  /**
    * Called on {@link Device} error event
    * @param error
    */
@@ -399,7 +391,6 @@ export class PreflightTest extends EventEmitter {
     if (this._options.fakeMicInput) {
       this._echoTimer = setTimeout(() => this._device.disconnectAll(), ECHO_TEST_DURATION);
 
-      // Mute sounds
       const audio = this._device.audio as any;
       if (audio) {
         audio.disconnect(false);
@@ -480,6 +471,15 @@ export class PreflightTest extends EventEmitter {
    * @param connection
    */
   private _setupConnectionHandlers(connection: Connection): void {
+    if (this._options.fakeMicInput) {
+      // When volume events start emitting, it means all audio outputs have been created.
+      // Let's mute them if we're using fake mic input.
+      connection.once('volume', () => {
+        connection.mediaStream.outputs
+          .forEach((output: AudioOutput) => output.audio.muted = true);
+      });
+    }
+
     connection.on('warning', (name: string, data: RTCWarning) => {
       // Constant audio warnings are handled by StatsMonitor
       if (name.includes('constant-audio')) {
@@ -489,9 +489,6 @@ export class PreflightTest extends EventEmitter {
     });
 
     connection.once('accept', () => {
-      if (this._options.fakeMicInput) {
-        this._muteAudioOutput(connection);
-      }
       this._callSid = connection.mediaStream.callSid;
       this._status = PreflightTest.Status.Connected;
       this.emit(PreflightTest.Events.Connected);
