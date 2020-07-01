@@ -18,6 +18,7 @@ import { NetworkTiming, TimeMeasurement } from './timing';
 const { COWBELL_AUDIO_URL, ECHO_TEST_DURATION } = require('../constants');
 
 /**
+ * Placeholder until we convert peerconnection.js to TypeScript.
  * Represents the audio output object coming from Client SDK's PeerConnection object.
  * @internalapi
  */
@@ -471,10 +472,11 @@ export class PreflightTest extends EventEmitter {
    */
   private _setupConnectionHandlers(connection: Connection): void {
     if (this._options.fakeMicInput) {
-      // Mute all audio outputs
+      // When volume events start emitting, it means all audio outputs have been created.
+      // Let's mute them if we're using fake mic input.
       connection.once('volume', () => {
         connection.mediaStream.outputs
-          .forEach((output: any) => output.audio.muted = true);
+          .forEach((output: AudioOutput) => output.audio.muted = true);
       });
     }
 
