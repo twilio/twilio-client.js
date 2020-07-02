@@ -44,7 +44,7 @@
 					<a href="globals.html">Globals</a>
 				</li>
 			</ul>
-			<h1> twilio-client</h1>
+			<h1>twilio-client</h1>
 		</div>
 	</div>
 </header>
@@ -115,17 +115,6 @@
 <span class="hljs-tag">&lt;/<span class="hljs-name">Response</span>&gt;</span></code></pre>
 				<p>Integration tests can be run via:</p>
 				<pre><code>npm <span class="hljs-keyword">run</span><span class="bash"> <span class="hljs-built_in">test</span>:integration</span></code></pre><p>These tests will run via karma, one at a time, in your system&#39;s default Chrome and then Firefox.</p>
-				<a href="#content-security-policy-csp" id="content-security-policy-csp" style="color: inherit; text-decoration: none;">
-					<h2>Content Security Policy (CSP)</h2>
-				</a>
-				<p>Use the following policy directives to enable <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP">CSP</a> that is compatible with twilio-client.js.</p>
-				<pre><code>script-src http<span class="hljs-variable">s:</span>//media.twiliocdn.<span class="hljs-keyword">com</span> http<span class="hljs-variable">s:</span>//sdk.twilio.<span class="hljs-keyword">com</span>
-media-src mediastream http<span class="hljs-variable">s:</span>//media.twiliocdn.<span class="hljs-keyword">com</span> http<span class="hljs-variable">s:</span>//sdk.twilio.<span class="hljs-keyword">com</span>
-connect-src http<span class="hljs-variable">s:</span>//eventgw.twilio.<span class="hljs-keyword">com</span> <span class="hljs-keyword">ws</span><span class="hljs-variable">s:</span>//chunderw-vpc-gll.twilio.<span class="hljs-keyword">com</span> http<span class="hljs-variable">s:</span>//media.twiliocdn.<span class="hljs-keyword">com</span> http<span class="hljs-variable">s:</span>//sdk.twilio.<span class="hljs-keyword">com</span></code></pre><p>If you are providing a non-default value for <code>Device.Options.edge</code> or <code>Device.Options.region</code> parameter, you need to add the Signaling URI <code>wss://chunderw-vpc-gll-{regionId}.twilio.com</code> in your <code>connect-src</code> directive where <code>regionId</code> is the <code>Region ID</code> as defined in this <a href="https://www.twilio.com/docs/global-infrastructure/edge-locations/legacy-regions">page</a>. See examples below.</p>
-				<p><strong>If <code>Device.Options.region</code> is <code>us1</code></strong></p>
-				<pre><code>connect-src http<span class="hljs-variable">s:</span>//eventgw.twilio.<span class="hljs-keyword">com</span> http<span class="hljs-variable">s:</span>//media.twiliocdn.<span class="hljs-keyword">com</span> http<span class="hljs-variable">s:</span>//sdk.twilio.<span class="hljs-keyword">com</span> <span class="hljs-keyword">ws</span><span class="hljs-variable">s:</span>//chunderw-vpc-gll-us1.twilio.<span class="hljs-keyword">com</span></code></pre><p><strong>If <code>Device.Options.edge</code> is <code>ashburn</code></strong></p>
-				<pre><code>connect-src http<span class="hljs-variable">s:</span>//eventgw.twilio.<span class="hljs-keyword">com</span> http<span class="hljs-variable">s:</span>//media.twiliocdn.<span class="hljs-keyword">com</span> http<span class="hljs-variable">s:</span>//sdk.twilio.<span class="hljs-keyword">com</span> <span class="hljs-keyword">ws</span><span class="hljs-variable">s:</span>//chunderw-vpc-gll-us1.twilio.<span class="hljs-keyword">com</span></code></pre><p><strong>If <code>Device.Options.edge</code> is <code>[&#39;ashburn&#39;, &#39;sydney&#39;, &#39;roaming&#39;]</code></strong></p>
-				<pre><code>connect-src http<span class="hljs-variable">s:</span>//eventgw.twilio.<span class="hljs-keyword">com</span> http<span class="hljs-variable">s:</span>//media.twiliocdn.<span class="hljs-keyword">com</span> http<span class="hljs-variable">s:</span>//sdk.twilio.<span class="hljs-keyword">com</span> <span class="hljs-keyword">ws</span><span class="hljs-variable">s:</span>//chunderw-vpc-gll-us1.twilio.<span class="hljs-keyword">com</span> <span class="hljs-keyword">ws</span><span class="hljs-variable">s:</span>//chunderw-vpc-gll-au1.twilio.<span class="hljs-keyword">com</span> <span class="hljs-keyword">ws</span><span class="hljs-variable">s:</span>//chunderw-vpc-gll.twilio.<span class="hljs-keyword">com</span></code></pre>
 				<a href="#license" id="license" style="color: inherit; text-decoration: none;">
 					<h2>License</h2>
 				</a>
@@ -148,22 +137,28 @@ connect-src http<span class="hljs-variable">s:</span>//eventgw.twilio.<span clas
 						<span>Externals</span>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_twilio_.html">"twilio"</a>
+						<a href="modules/_twilio_.html">&quot;twilio&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_twilio_constants_.html">"twilio/constants"</a>
+						<a href="modules/_twilio_constants_.html">&quot;twilio/constants&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_twilio_errors_index_.html">"twilio/errors/index"</a>
+						<a href="modules/_twilio_errors_index_.html">&quot;twilio/errors/index&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_twilio_shims_eventtarget_.html">"twilio/shims/eventtarget"</a>
+						<a href="modules/_twilio_rtc_mockrtcstatsreport_.html">&quot;twilio/rtc/mockrtcstatsreport&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_twilio_shims_mediadevices_.html">"twilio/shims/mediadevices"</a>
+						<a href="modules/_twilio_rtc_stats_.html">&quot;twilio/rtc/stats&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="modules/_twilio_util_.html">"twilio/util"</a>
+						<a href="modules/_twilio_shims_eventtarget_.html">&quot;twilio/shims/eventtarget&quot;</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="modules/_twilio_shims_mediadevices_.html">&quot;twilio/shims/mediadevices&quot;</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="modules/_twilio_util_.html">&quot;twilio/util&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="modules/tools.html">Tools</a>
