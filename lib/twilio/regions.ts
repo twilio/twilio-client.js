@@ -28,7 +28,7 @@ export enum Edge {
    * Public edges
    */
   Sydney = 'sydney',
-  SaoPaolo = 'sao-paolo',
+  SaoPaulo = 'sao-paulo',
   Dublin = 'dublin',
   Frankfurt = 'frankfurt',
   Tokyo = 'tokyo',
@@ -150,7 +150,7 @@ const regionURIs: Record<Region, string> = {
  */
 export const edgeToRegion: Record<Edge, Region> = {
   [Edge.Sydney]: Region.Au1,
-  [Edge.SaoPaolo]: Region.Br1,
+  [Edge.SaoPaulo]: Region.Br1,
   [Edge.Dublin]: Region.Ie1,
   [Edge.Frankfurt]: Region.De1,
   [Edge.Tokyo]: Region.Jp1,
@@ -175,7 +175,7 @@ export const edgeToRegion: Record<Edge, Region> = {
  */
 export const regionToEdge: Record<Region, Edge> = {
   [Region.Au1]: Edge.Sydney,
-  [Region.Br1]: Edge.SaoPaolo,
+  [Region.Br1]: Edge.SaoPaulo,
   [Region.Ie1]: Edge.Dublin,
   [Region.De1]: Edge.Frankfurt,
   [Region.Jp1]: Edge.Tokyo,

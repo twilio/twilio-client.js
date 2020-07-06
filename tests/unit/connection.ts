@@ -1363,6 +1363,11 @@ describe('Connection', function() {
     });
 
     describe('pstream.cancel event', () => {
+      const wait = (timeout?: number) => new Promise(r => {
+        setTimeout(r, timeout || 0);
+        clock.tick(0);
+      });
+
       let conn: any;
       let cleanupStub: any;
       let closeStub: any;
@@ -1403,6 +1408,15 @@ describe('Connection', function() {
           sinon.assert.called(cleanupStub);
           sinon.assert.called(closeStub);
           sinon.assert.calledWithExactly(publishStub, 'connection', 'cancel', null, conn);
+        });
+
+        it('should not emit a disconnect event', () => {
+          const callback = sinon.stub();
+          conn.mediaStream.close = () => mediaStream.onclose();
+          conn.on('disconnect', callback);
+          pstream.emit('cancel', { callsid: 'CA123' });
+
+          return wait().then(() => sinon.assert.notCalled(callback));
         });
       });
 

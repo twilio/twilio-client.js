@@ -1641,7 +1641,7 @@ namespace Device {
      * | Region Value | Edge Value   |
      * |:-------------|:-------------|
      * | au1          | sydney       |
-     * | br1          | sao-paolo    |
+     * | br1          | sao-paulo    |
      * | ie1          | dublin       |
      * | de1          | frankfurt    |
      * | jp1          | tokyo        |

@@ -94,6 +94,37 @@ npm run test:integration
 
 These tests will run via karma, one at a time, in your system's default Chrome and then Firefox.
 
+Content Security Policy (CSP)
+----------------------------
+
+Use the following policy directives to enable [CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) that is compatible with twilio-client.js.
+
+```
+script-src https://media.twiliocdn.com https://sdk.twilio.com
+media-src mediastream https://media.twiliocdn.com https://sdk.twilio.com
+connect-src https://eventgw.twilio.com wss://chunderw-vpc-gll.twilio.com https://media.twiliocdn.com https://sdk.twilio.com
+```
+
+If you are providing a non-default value for `Device.Options.edge` or `Device.Options.region` parameter, you need to add the Signaling URI `wss://chunderw-vpc-gll-{regionId}.twilio.com` in your `connect-src` directive where `regionId` is the `Region ID` as defined in this [page](https://www.twilio.com/docs/global-infrastructure/edge-locations/legacy-regions). See examples below.
+
+**If `Device.Options.region` is `us1`**
+
+```
+connect-src https://eventgw.twilio.com https://media.twiliocdn.com https://sdk.twilio.com wss://chunderw-vpc-gll-us1.twilio.com
+```
+
+**If `Device.Options.edge` is `ashburn`**
+
+```
+connect-src https://eventgw.twilio.com https://media.twiliocdn.com https://sdk.twilio.com wss://chunderw-vpc-gll-us1.twilio.com
+```
+
+**If `Device.Options.edge` is `['ashburn', 'sydney', 'roaming']`**
+
+```
+connect-src https://eventgw.twilio.com https://media.twiliocdn.com https://sdk.twilio.com wss://chunderw-vpc-gll-us1.twilio.com wss://chunderw-vpc-gll-au1.twilio.com wss://chunderw-vpc-gll.twilio.com
+```
+
 License
 -------
 
