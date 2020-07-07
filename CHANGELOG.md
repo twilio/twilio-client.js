@@ -1,4 +1,4 @@
-1.13.0-preview2 (In progress)
+1.13.0-beta1 (July 7, 2020)
 =============================
 
 Bug Fixes
