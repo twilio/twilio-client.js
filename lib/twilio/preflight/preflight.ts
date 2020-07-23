@@ -72,7 +72,7 @@ export declare interface PreflightTest {
    * @example `preflight.on('warning', (name, data) => console.log({ name, data }))`
    * @event
    */
-  warningEvent(name: string, data: RTCWarning): void;
+  warningEvent(name: string, data: PreflightTest.Warning): void;
 }
 
 /**
@@ -109,6 +109,11 @@ export class PreflightTest extends EventEmitter {
    * End of test timestamp
    */
   private _endTime: number | undefined;
+
+  /**
+   * Whether this test has already logged an insights-connection-warning.
+   */
+  private _hasInsightsErrored: boolean = false;
 
   /**
    * Latest WebRTC sample collected for this test
@@ -205,11 +210,15 @@ export class PreflightTest extends EventEmitter {
   }
 
   /**
-   * Emit a warning
+   * Emit a {PreflightTest.Warning}
    */
-  private _emitWarning(name: string, data: RTCWarning): void {
-    this._warnings.push({ name, data });
-    this.emit(PreflightTest.Events.Warning, name, data);
+  private _emitWarning(name: string, description: string, rtcWarning?: RTCWarning): void {
+    const warning: PreflightTest.Warning = { name, description };
+    if (rtcWarning) {
+      warning.rtcWarning = rtcWarning;
+    }
+    this._warnings.push(warning);
+    this.emit(PreflightTest.Events.Warning, warning);
   }
 
   /**
@@ -414,8 +423,17 @@ export class PreflightTest extends EventEmitter {
       const threshold = data.threshold!.name;
       if (threshold === 'maxDuration' && (name === 'audioInputLevel' || name === 'audioOutputLevel')) {
         name = `constant-${name.split(/(?=[A-Z])/).join('-').toLowerCase()}`;
-        this._emitWarning(name, data);
+        this._emitWarning(name, 'Received an RTCWarning. See .rtcWarning for the RTCWarning', data);
       }
+    });
+
+    const publisher = this._connection['_publisher'] as any;
+    publisher.on('error', () => {
+      if (!this._hasInsightsErrored) {
+        this._emitWarning('insights-connection-error',
+          'Received an error when attempting to connect to Insights gateway');
+      }
+      this._hasInsightsErrored = true;
     });
   }
 
@@ -486,7 +504,7 @@ export class PreflightTest extends EventEmitter {
       if (name.includes('constant-audio')) {
         return;
       }
-      this._emitWarning(name, data);
+      this._emitWarning(name, 'Received an RTCWarning. See .rtcWarning for the RTCWarning', data);
     });
 
     connection.once('accept', () => {
@@ -824,21 +842,6 @@ export namespace PreflightTest {
   }
 
   /**
-   * Represents the warning emitted from VoiceJS SDK.
-   */
-  export interface Warning {
-    /**
-     * Data coming from VoiceJS SDK associated with the warning.
-     */
-    data: RTCWarning;
-
-    /**
-     * Name of the warning.
-     */
-    name: string;
-  }
-
-  /**
    * Represents RTC related stats that are extracted from RTC samples.
    */
   export interface RTCStats {
@@ -948,6 +951,24 @@ export namespace PreflightTest {
     /**
      * List of warning names and warning data detected during this test.
      */
-    warnings: Warning[];
+    warnings: PreflightTest.Warning[];
+  }
+
+  /**
+   * A warning that can be raised by Preflight, and returned in the Report.warnings field.
+   */
+  export interface Warning {
+    /**
+     * Description of the Warning
+     */
+    description: string;
+    /**
+     * Name of the Warning
+     */
+    name: string;
+    /**
+     * If applicable, the RTCWarning that triggered this warning.
+     */
+    rtcWarning?: RTCWarning;
   }
  }
