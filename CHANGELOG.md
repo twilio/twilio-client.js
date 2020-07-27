@@ -1,6 +1,31 @@
 1.13.0-beta2 (In Progress)
 =============================
 
+Additions
+---------
+
+* Added signaling timing information in the `PreflightTest.Report.networkTiming` object.
+
+  Example:
+
+  ```ts
+  const preflightTest = Device.testPreflight(token, options);
+
+  preflightTest.on(PreflightTest.Events.Completed, (report) => {
+    console.log(report.networkTiming);
+  });
+  /* Outputs the following
+    {
+      "signaling": {
+        "start": 1595885835227,
+        "end": 1595885835573,
+        "duration": 346
+      }
+      ...
+    }
+  */
+  ```
+
 Changes
 -------
 

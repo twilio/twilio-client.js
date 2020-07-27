@@ -48,4 +48,12 @@ export interface NetworkTiming {
    * See [RTCPeerConnection.connectionState](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/connectionState).
    */
   peerConnection?: TimeMeasurement;
+
+  /**
+   * Measurements for establishing Signaling connection.
+   * This is measured from initiating a connection using `device.connect()`,
+   * up to when [RTCPeerConnection.signalingState](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/signalingState)
+   * transitions to `stable` state.
+   */
+  signaling?: TimeMeasurement;
 }

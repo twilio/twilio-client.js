@@ -152,6 +152,19 @@ Raised when `PreflightTest.status` has transitioned to `PreflightTest.Status.Com
       "start": 1584573229902,
       "end": 1584573230167,
       "duration": 265
+    },
+
+    /**
+     * Measurements for establishing Signaling connection.
+     * This is measured from initiating a connection using `device.connect()`,
+     * up to when RTCPeerConnection.signalingState transitions to `stable` state.
+     * See RTCPeerConnection.signalingState
+     * https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/signalingState
+     */
+    "signaling": {
+      "start": 1595885835227,
+      "end": 1595885835573,
+      "duration": 346
     }
   },
 
