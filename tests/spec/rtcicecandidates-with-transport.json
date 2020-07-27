@@ -1,5 +1,5 @@
 {
-  "iceCandidates": [
+  "iceCandidateStats": [
     {
       "id": "RTCIceCandidate_4YKlBJ9Q",
       "timestamp": 1591045655922.057,
@@ -86,7 +86,7 @@
       "deleted": false
     }
   ],
-  "selectedIceCandidatePair": {
+  "selectedIceCandidatePairStats": {
     "localCandidate": {
       "id": "RTCIceCandidate_4YKlBJ9Q",
       "timestamp": 1591045655922.057,

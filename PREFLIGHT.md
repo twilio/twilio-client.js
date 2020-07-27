@@ -89,18 +89,18 @@ Raised when `PreflightTest.status` has transitioned to `PreflightTest.Status.Com
   "callQuality": "excellent",
 
   /**
-   * An array of ICE candidates gathered when connecting to media.
+   * An array of WebRTC stats for the ICE candidates gathered when connecting to media.
    * Each item is an RTCIceCandidateStats object which provides information related to an ICE candidate.
    * See RTCIceCandidateStats for more details https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidateStats
    */
-  "iceCandidates": [...]
+  "iceCandidateStats": [...]
 
   /**
-   * The ICE candidate pair used to connect to media, if available.
+   * A WebRTC stats for the ICE candidate pair used to connect to media, if candidates were selected.
    * Each item is an RTCIceCandidateStats object which provides information related to an ICE candidate.
    * See RTCIceCandidateStats for more details https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidateStats
    */
-  "selectedIceCandidatePair": {
+  "selectedIceCandidatePairStats": {
     "localCandidate": {...},
     "remoteCandidate": {...}
   }

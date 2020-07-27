@@ -1,3 +1,15 @@
+1.13.0-beta2 (In Progress)
+=============================
+
+Changes
+-------
+
+* Renamed the following `PreflightTest.Report` fields to reflect the correct object types.
+  | Old field name                                  | New field name                                       |
+  |:------------------------------------------------|:-----------------------------------------------------|
+  | `PreflightTest.Report.iceCandidates`            | `PreflightTest.Report.iceCandidateStats`             |
+  | `PreflightTest.Report.selectedIceCandidatePair` | `PreflightTest.Report.selectedIceCandidatePairStats` |
+
 1.13.0-beta1 (July 7, 2020)
 =============================
 

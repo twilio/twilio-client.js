@@ -1,5 +1,5 @@
 {
-  "iceCandidates": [
+  "iceCandidateStats": [
     {
       "id": "63638ca5",
       "timestamp": 1591045915800,
@@ -84,7 +84,7 @@
       "protocol": "udp"
     }
   ],
-  "selectedIceCandidatePair": {
+  "selectedIceCandidatePairStats": {
     "localCandidate": {
       "id": "5b7b6997",
       "timestamp": 1591045915800,
