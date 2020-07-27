@@ -385,6 +385,7 @@ export class PreflightTest extends EventEmitter {
     clearTimeout(this._signalingTimeoutTimer);
 
     this._connection = this._device.connect();
+    this._networkTiming.signaling = { start: Date.now() };
     this._setupConnectionHandlers(this._connection);
 
     this._edge = this._device.edge || undefined;
@@ -518,6 +519,9 @@ export class PreflightTest extends EventEmitter {
      }, {
       reportLabel: 'dtls',
       type: 'dtlstransport',
+     }, {
+      reportLabel: 'signaling',
+      type: 'signaling',
      }].forEach(({type, reportLabel}) => {
 
       const handlerName = `on${type}statechange`;
@@ -529,7 +533,7 @@ export class PreflightTest extends EventEmitter {
 
         if (state === 'connecting' || state === 'checking') {
           timing.start = Date.now();
-        } else if (state === 'connected') {
+        } else if ((state === 'connected' || state === 'stable') && !timing.duration) {
           timing.end = Date.now();
           timing.duration = timing.end - timing.start;
         }

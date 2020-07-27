@@ -81,6 +81,7 @@ describe('PreflightTest', () => {
         onpcconnectionstatechange: sinon.stub(),
         oniceconnectionstatechange: sinon.stub(),
         ondtlstransportstatechange: sinon.stub(),
+        onsignalingstatechange: sinon.stub(),
         outputs,
       }
     };
@@ -572,6 +573,9 @@ describe('PreflightTest', () => {
             iceCandidateStats: [ 'foo', 'bar' ],
             isTurnRequired: false,
             networkTiming: {
+              // pc, ice, and dtls starts after 15ms because of wait calls below.
+              // The duration are calculated base on the clock.ticks calls below.
+              // See "// Populate samples"
               peerConnection: {
                 start: 15,
                 end: 1015,
@@ -586,6 +590,11 @@ describe('PreflightTest', () => {
                 start: 15,
                 end: 1015,
                 duration: 1000,
+              },
+              signaling: {
+                start: 0,
+                end: 1015,
+                duration: 1015,
               }
             },
             samples: testSamples,
@@ -650,6 +659,7 @@ describe('PreflightTest', () => {
         connection.mediaStream.onpcconnectionstatechange('connected');
         connection.mediaStream.ondtlstransportstatechange('connected');
         connection.mediaStream.oniceconnectionstatechange('connected');
+        connection.mediaStream.onsignalingstatechange('stable');
 
         clock.tick(13000);
         device.emit('disconnect');
