@@ -1,6 +1,6 @@
 const sinon = require('sinon');
 const assert = require('assert');
-const { getRTCIceCandidates, getRTCStats } = require('../lib/twilio/rtc/stats');
+const { getRTCIceCandidateStatsReport, getRTCStats } = require('../lib/twilio/rtc/stats');
 const standardPayload = require('./payloads/rtcstatsreport.json');
 const edgePayload = require('./payloads/rtcstatsreport-edge.json');
 const ffPayload = require('./payloads/rtcstatsreport-ff.json');
@@ -12,11 +12,11 @@ const withoutTransportSpec = require('./spec/rtcicecandidates-without-transport.
 const MockRTCStatsReport = require('../lib/twilio/rtc/mockrtcstatsreport');
 
 describe('Stats Report', () => {
-  describe('getRTCIceCandidates', () => {
+  describe('getRTCIceCandidateStatsReport', () => {
     it('should reject if peerConnection is not passed in', async () => {
       let error;
       try {
-        await getRTCIceCandidates();
+        await getRTCIceCandidateStatsReport();
       } catch (ex) {
         error = ex;
       }
@@ -26,7 +26,7 @@ describe('Stats Report', () => {
     it('should reject if WebRTC statistics is not supported', async () => {
       let error;
       try {
-        await getRTCIceCandidates({ foo: 'foo' });
+        await getRTCIceCandidateStatsReport({ foo: 'foo' });
       } catch (ex) {
         error = ex;
       }
@@ -36,14 +36,14 @@ describe('Stats Report', () => {
     it('should return ice candidates for report with transport stats', async () => {
       const statsReport = MockRTCStatsReport.fromArray(withTransportPayload);
       const peerConnection = { getStats() { return Promise.resolve(statsReport); } };
-      const rtcIceCandidates = await getRTCIceCandidates(peerConnection);
+      const rtcIceCandidates = await getRTCIceCandidateStatsReport(peerConnection);
       assert.deepEqual(rtcIceCandidates, withTransportSpec);
     });
 
     it('should return ice candidates for report without transport stats', async () => {
       const statsReport = MockRTCStatsReport.fromArray(withoutTransportPayload);
       const peerConnection = { getStats() { return Promise.resolve(statsReport); } };
-      const rtcIceCandidates = await getRTCIceCandidates(peerConnection);
+      const rtcIceCandidates = await getRTCIceCandidateStatsReport(peerConnection);
       assert.deepEqual(rtcIceCandidates, withoutTransportSpec);
     });
   });

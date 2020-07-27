@@ -10,7 +10,7 @@ import Device from '../device';
 import { NotSupportedError } from '../errors';
 import { RTCSampleTotals } from '../rtc/sample';
 import RTCSample from '../rtc/sample';
-import { getRTCIceCandidates } from '../rtc/stats';
+import { getRTCIceCandidateStatsReport } from '../rtc/stats';
 import RTCWarning from '../rtc/warning';
 import StatsMonitor from '../statsMonitor';
 import { NetworkTiming, TimeMeasurement } from './timing';
@@ -137,9 +137,9 @@ export class PreflightTest extends EventEmitter {
   private _report: PreflightTest.Report | undefined;
 
   /**
-   * The WebRTC ICE candidates information collected during the test
+   * The WebRTC ICE candidates stats information collected during the test
    */
-  private _rtcIceCandidates: PreflightTest.RTCIceCandidates;
+  private _rtcIceCandidateStatsReport: PreflightTest.RTCIceCandidateStatsReport;
 
   /**
    * WebRTC samples collected during this test
@@ -243,7 +243,7 @@ export class PreflightTest extends EventEmitter {
     const report: PreflightTest.Report = {
       callSid: this._callSid,
       edge: this._edge,
-      iceCandidates: this._rtcIceCandidates.iceCandidates,
+      iceCandidateStats: this._rtcIceCandidateStatsReport.iceCandidateStats,
       networkTiming: this._networkTiming,
       samples: this._samples,
       selectedEdge: this._options.edge,
@@ -253,12 +253,12 @@ export class PreflightTest extends EventEmitter {
       warnings: this._warnings,
     };
 
-    const selectedIceCandidatePair = this._rtcIceCandidates.selectedIceCandidatePair;
+    const selectedIceCandidatePairStats = this._rtcIceCandidateStatsReport.selectedIceCandidatePairStats;
 
-    if (selectedIceCandidatePair) {
-      report.selectedIceCandidatePair = selectedIceCandidatePair;
-      report.isTurnRequired = selectedIceCandidatePair.localCandidate.candidateType === 'relay'
-      || selectedIceCandidatePair.remoteCandidate.candidateType === 'relay';
+    if (selectedIceCandidatePairStats) {
+      report.selectedIceCandidatePairStats = selectedIceCandidatePairStats;
+      report.isTurnRequired = selectedIceCandidatePairStats.localCandidate.candidateType === 'relay'
+      || selectedIceCandidatePairStats.remoteCandidate.candidateType === 'relay';
     }
 
     if (stats) {
@@ -497,8 +497,8 @@ export class PreflightTest extends EventEmitter {
     connection.on('sample', async (sample) => {
       // RTC Stats are ready. We only need to get ICE candidate stats report once.
       if (!this._latestSample) {
-        this._rtcIceCandidates = await (
-          this._options.getRTCIceCandidates || getRTCIceCandidates
+        this._rtcIceCandidateStatsReport = await (
+          this._options.getRTCIceCandidateStatsReport || getRTCIceCandidateStatsReport
         )(connection.mediaStream.version.pc);
       }
 
@@ -696,9 +696,9 @@ export namespace PreflightTest {
     fileInputStream?: MediaStream;
 
     /**
-     * The getRTCIceCandidates to use for testing.
+     * The getRTCIceCandidateStatsReport to use for testing.
      */
-    getRTCIceCandidates?: Function;
+    getRTCIceCandidateStatsReport?: Function;
 
     /**
      * An RTCConfiguration to pass to the RTCPeerConnection constructor during `Device.setup`.
@@ -709,16 +709,16 @@ export namespace PreflightTest {
   /**
    * A WebRTC stats report containing relevant information about selected and gathered ICE candidates
    */
-  export interface RTCIceCandidates {
+  export interface RTCIceCandidateStatsReport {
     /**
-     * An array of ICE candidates gathered when connecting to media.
+     * An array of WebRTC stats for the ICE candidates gathered when connecting to media.
      */
-    iceCandidates: RTCIceCandidateStats[];
+    iceCandidateStats: RTCIceCandidateStats[];
 
     /**
-     * The ICE candidate pair used to connect to media, if candidates were selected.
+     * A WebRTC stats for the ICE candidate pair used to connect to media, if candidates were selected.
      */
-    selectedIceCandidatePair?: RTCSelectedIceCandidatePair;
+    selectedIceCandidatePairStats?: RTCSelectedIceCandidatePairStats;
   }
 
   /**
@@ -803,9 +803,9 @@ export namespace PreflightTest {
   }
 
   /**
-   * Represents the ICE candidate pair used to connect to media.
+   * Represents the WebRTC stats for the ICE candidate pair used to connect to media, if candidates were selected.
    */
-  export interface RTCSelectedIceCandidatePair {
+  export interface RTCSelectedIceCandidatePairStats {
     /**
      * An [RTCIceCandidateStats](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidateStats)
      * object which provides information related to the selected local ICE candidate.
@@ -894,9 +894,9 @@ export namespace PreflightTest {
     edge?: string;
 
     /**
-     * An array of ICE candidates gathered when connecting to media.
+     * An array of WebRTC stats for the ICE candidates gathered when connecting to media.
      */
-    iceCandidates: RTCIceCandidateStats[];
+    iceCandidateStats: RTCIceCandidateStats[];
 
     /**
      * Whether a TURN server is required to connect to media.
@@ -922,9 +922,9 @@ export namespace PreflightTest {
     selectedEdge?: string;
 
     /**
-     * The ICE candidate pair used to connect to media, if candidates were selected.
+     * A WebRTC stats for the ICE candidate pair used to connect to media, if candidates were selected.
      */
-    selectedIceCandidatePair?: RTCSelectedIceCandidatePair;
+    selectedIceCandidatePairStats?: RTCSelectedIceCandidatePairStats;
 
     /**
      * RTC related stats captured during the test.

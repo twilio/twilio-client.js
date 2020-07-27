@@ -16,7 +16,7 @@ describe('PreflightTest', () => {
   let device: any;
   let deviceFactory: any;
   let deviceContext: any;
-  let rtcIceCandidates: any;
+  let rtcIceCandidateStatsReport: any;
   let options: any;
   let monitor: any;
   let testSamples: any;
@@ -102,9 +102,9 @@ describe('PreflightTest', () => {
     edgeStub = sinon.stub().returns('foobar-edge');
     sinon.stub(deviceContext, 'edge').get(edgeStub);
     deviceFactory = getDeviceFactory(deviceContext);
-    rtcIceCandidates = {
-      iceCandidates: ['foo', 'bar'],
-      selectedIceCandidatePair: {
+    rtcIceCandidateStatsReport = {
+      iceCandidateStats: ['foo', 'bar'],
+      selectedIceCandidatePairStats: {
         localCandidate: { candidateType: 'host' },
         remoteCandidate: { candidateType: 'host' },
       }
@@ -112,7 +112,7 @@ describe('PreflightTest', () => {
 
     options = {
       deviceFactory,
-      getRTCIceCandidates: () => Promise.resolve(rtcIceCandidates),
+      getRTCIceCandidateStatsReport: () => Promise.resolve(rtcIceCandidateStatsReport),
     };
 
     testSamples = getTestSamples();
@@ -511,7 +511,7 @@ describe('PreflightTest', () => {
 
     beforeEach(() => {
       preflight = new PreflightTest('foo', options);
-      preflight['_rtcIceCandidates'] = rtcIceCandidates;
+      preflight['_rtcIceCandidateStatsReport'] = rtcIceCandidateStatsReport;
     });
 
     it('should clear signaling timeout timer', () => {
@@ -569,7 +569,7 @@ describe('PreflightTest', () => {
           const expected = {
             callSid: CALL_SID,
             edge: 'foobar-edge',
-            iceCandidates: [ 'foo', 'bar' ],
+            iceCandidateStats: [ 'foo', 'bar' ],
             isTurnRequired: false,
             networkTiming: {
               peerConnection: {
@@ -590,7 +590,7 @@ describe('PreflightTest', () => {
             },
             samples: testSamples,
             selectedEdge: 'roaming',
-            selectedIceCandidatePair: {
+            selectedIceCandidatePairStats: {
               localCandidate: { candidateType: 'host' },
               remoteCandidate: { candidateType: 'host' }
             },
@@ -739,25 +739,25 @@ describe('PreflightTest', () => {
 
       beforeEach(() => {
         candidateInfo = {
-          iceCandidates: ['foo', 'bar'],
-          selectedIceCandidatePair: {
+          iceCandidateStats: ['foo', 'bar'],
+          selectedIceCandidatePairStats: {
             localCandidate: { candidateType: 'host' },
             remoteCandidate: { candidateType: 'host' },
           }
         };
       });
 
-      it('should not include selectedIceCandidatePair if no candidates are selected', () => {
-        candidateInfo.selectedIceCandidatePair = undefined;
+      it('should not include selectedIceCandidatePairStats if no candidates are selected', () => {
+        candidateInfo.selectedIceCandidatePairStats = undefined;
         preflight = new PreflightTest('foo', {
           ...options,
-          getRTCIceCandidates: () => Promise.resolve(candidateInfo),
+          getRTCIceCandidateStatsReport: () => Promise.resolve(candidateInfo),
         });
 
         return new Promise(async (resolve) => {
           const onCompleted = (results: PreflightTest.Report) => {
-            assert.deepEqual(results.iceCandidates, ['foo', 'bar']);
-            assert(!results.selectedIceCandidatePair);
+            assert.deepEqual(results.iceCandidateStats, ['foo', 'bar']);
+            assert(!results.selectedIceCandidatePairStats);
             resolve();
           };
 
@@ -767,10 +767,10 @@ describe('PreflightTest', () => {
       });
 
       it('should not include isTurnRequired if no candidates are selected', () => {
-        candidateInfo.selectedIceCandidatePair = undefined;
+        candidateInfo.selectedIceCandidatePairStats = undefined;
         preflight = new PreflightTest('foo', {
           ...options,
-          getRTCIceCandidates: () => Promise.resolve(candidateInfo),
+          getRTCIceCandidateStatsReport: () => Promise.resolve(candidateInfo),
         });
 
         return new Promise(async (resolve) => {
@@ -784,16 +784,16 @@ describe('PreflightTest', () => {
         });
       });
 
-      it('should provide selectedIceCandidatePair and iceCandidates in the report', () => {
+      it('should provide selectedIceCandidatePairStats and iceCandidateStats in the report', () => {
         preflight = new PreflightTest('foo', {
           ...options,
-          getRTCIceCandidates: () => Promise.resolve(candidateInfo),
+          getRTCIceCandidateStatsReport: () => Promise.resolve(candidateInfo),
         });
 
         return new Promise(async (resolve) => {
           const onCompleted = (results: PreflightTest.Report) => {
-            assert.deepEqual(results.iceCandidates, ['foo', 'bar']);
-            assert.deepEqual(results.selectedIceCandidatePair, {
+            assert.deepEqual(results.iceCandidateStats, ['foo', 'bar']);
+            assert.deepEqual(results.selectedIceCandidatePairStats, {
               localCandidate: { candidateType: 'host' },
               remoteCandidate: { candidateType: 'host' },
             });
@@ -812,11 +812,11 @@ describe('PreflightTest', () => {
         ['host', 'host', false],
       ].forEach(([remoteCandidateType, localCandidateType, isTurnRequired]) => {
         it(`should set isTurnRequired to ${isTurnRequired} if remote candidate is a ${remoteCandidateType} and local candidate is ${localCandidateType}`, () => {
-          candidateInfo.selectedIceCandidatePair.remoteCandidate.candidateType = remoteCandidateType;
-          candidateInfo.selectedIceCandidatePair.localCandidate.candidateType = localCandidateType;
+          candidateInfo.selectedIceCandidatePairStats.remoteCandidate.candidateType = remoteCandidateType;
+          candidateInfo.selectedIceCandidatePairStats.localCandidate.candidateType = localCandidateType;
           preflight = new PreflightTest('foo', {
             ...options,
-            getRTCIceCandidates: () => Promise.resolve(candidateInfo),
+            getRTCIceCandidateStatsReport: () => Promise.resolve(candidateInfo),
           });
 
           return new Promise(async (resolve) => {
