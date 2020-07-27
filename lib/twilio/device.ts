@@ -477,7 +477,7 @@ class Device extends EventEmitter {
       this.stream = null;
     }
 
-    if (networkInformation) {
+    if (networkInformation && typeof networkInformation.removeEventListener === 'function') {
       networkInformation.removeEventListener('change', this._publishNetworkChange);
     }
 
@@ -735,7 +735,7 @@ class Device extends EventEmitter {
       this._publisher.disable();
     }
 
-    if (networkInformation) {
+    if (networkInformation && typeof networkInformation.addEventListener === 'function') {
       networkInformation.addEventListener('change', this._publishNetworkChange);
     }
 
