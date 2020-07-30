@@ -22,6 +22,12 @@ Passing the `rtcConfiguration` parameter to these functions will override any pr
 1.13.1 (Jan 11, 2021)
 =======
 
+New Features
+------------
+
+### Twilio Home Region Support for Insights
+TODO:
+
 Additions
 ---------
 
