@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import {
-  createEventGatewayUri,
+  createEventGatewayURI,
   defaultEdge,
   defaultRegion,
   deprecatedRegions,
@@ -14,16 +14,16 @@ import {
 } from '../../lib/twilio/regions';
 
 describe('regions', () => {
-  describe('createEventGatewayUri', () => {
+  describe('createEventGatewayURI', () => {
     [null, '', undefined, 0].forEach((home: any) => {
       it(`should set event gateway uri to eventgw.twilio.com if home is '${home}'`, () => {
-        assert.equal(createEventGatewayUri(home), 'eventgw.twilio.com');
+        assert.equal(createEventGatewayURI(home), 'eventgw.twilio.com');
       });
     });
 
     Object.values(Region).concat(['foo', 'bar'] as any).forEach((home: any) => {
       it(`should set event gateway uri to eventgw.${home}.twilio.com when home is set to '${home}'`, () => {
-        assert.equal(createEventGatewayUri(home), `eventgw.${home}.twilio.com`);
+        assert.equal(createEventGatewayURI(home), `eventgw.${home}.twilio.com`);
       });
     });
   });

@@ -21,7 +21,7 @@ import {
 import Log from './log';
 import { PreflightTest } from './preflight/preflight';
 import {
-  createEventGatewayUri,
+  createEventGatewayURI,
   getChunderURIs,
   getRegionShortcode,
   Region,
@@ -1100,7 +1100,7 @@ class Device extends EventEmitter {
     const region = getRegionShortcode(payload.region);
     this._edge = regionToEdge[region as Region] || payload.region;
     this._region = region || payload.region;
-    this._publisher.setHost(createEventGatewayUri(payload.home));
+    this._publisher.setHost(createEventGatewayURI(payload.home));
     this._sendPresence();
   }
 
