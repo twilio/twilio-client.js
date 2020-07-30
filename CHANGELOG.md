@@ -1,6 +1,12 @@
 1.13.0-beta2 (In Progress)
 =============================
 
+New Features
+------------
+
+### Twilio Home Region Support for Insights
+TODO:
+
 Additions
 ---------
 
