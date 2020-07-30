@@ -223,6 +223,13 @@ export const defaultEdge: Edge = Edge.Roaming;
 export const defaultChunderRegionURI: string = 'chunderw-vpc-gll.twilio.com';
 
 /**
+ * The default event gateway URI to publish to.
+ * @constant
+ * @private
+ */
+const defaultEventGatewayURI: string = 'eventgw.twilio.com';
+
+/**
  * String template for a region chunder URI
  * @param region - The region.
  */
@@ -238,6 +245,12 @@ function createChunderRegionUri(region: string): string {
  */
 function createChunderEdgeUri(edge: string): string {
   return `voice-js.${edge}.twilio.com`;
+}
+
+export function createEventGatewayUri(region: string): string {
+  return region
+    ? `eventgw.${region}.twilio.com`
+    : defaultEventGatewayURI;
 }
 
 /**

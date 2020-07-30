@@ -21,6 +21,7 @@ import {
 import Log from './log';
 import { PreflightTest } from './preflight/preflight';
 import {
+  createEventGatewayUri,
   getChunderURIs,
   getRegionShortcode,
   Region,
@@ -369,7 +370,6 @@ class Device extends EventEmitter {
     debug: false,
     dscp: true,
     enableIceRestart: false,
-    eventgw: 'eventgw.twilio.com',
     forceAggressiveIceNomination: false,
     iceServers: [],
     noRegister: false,
@@ -748,14 +748,19 @@ class Device extends EventEmitter {
       this.soundcache.set(name as Device.SoundName, sound);
     }
 
-    this._publisher = (this.options.Publisher || Publisher)('twilio-js-sdk', token, {
+    const publisherOptions = {
       defaultPayload: this._createDefaultPayload,
-      host: this.options.eventgw,
       metadata: {
         app_name: this.options.appName,
         app_version: this.options.appVersion,
       },
-    } as any);
+    } as any;
+
+    if (this.options.eventgw) {
+      publisherOptions.host = this.options.eventgw;
+    }
+
+    this._publisher = (this.options.Publisher || Publisher)('twilio-js-sdk', token, publisherOptions);
 
     if (this.options.publishEvents === false) {
       this._publisher.disable();
@@ -1095,6 +1100,7 @@ class Device extends EventEmitter {
     const region = getRegionShortcode(payload.region);
     this._edge = regionToEdge[region as Region] || payload.region;
     this._region = region || payload.region;
+    this._publisher.setHost(createEventGatewayUri(payload.home));
     this._sendPresence();
   }
 
