@@ -707,6 +707,15 @@ describe('PeerConnection', () => {
       });
     });
 
+    it('Should reset hasIceCandidates flag before ICE restart', () => {
+      context._hasIceCandidates = true;
+      toTest();
+      assert(!context._hasIceCandidates)
+      return wait().then(() => {
+        sinon.assert.calledOnce(version.createOffer);
+      });
+    });
+
     it('Should publish reinvite', () => {
       toTest();
       return wait().then(() => {
@@ -1240,13 +1249,6 @@ describe('PeerConnection', () => {
         sinon.assert.calledOnce(context._startIceGatheringTimeout);
       });
 
-      it('Should reset _hasIceCandidates flag', () => {
-        toTest();
-        version.pc.iceGatheringState = 'gathering';
-        version.pc.onicegatheringstatechange();
-        assert(!version.pc._hasIceCandidates);
-      });
-
       it('Should stop ICE Gathering timeout on complete', () => {
         toTest();
         version.pc.iceGatheringState = 'complete';
@@ -1256,19 +1258,33 @@ describe('PeerConnection', () => {
 
       it('Should not raise ICE Gathering failure if ICE Candidates are found', () => {
         toTest();
-        context._hasIceCandidates = true;
+        version.pc.iceGatheringState = 'gathering';
+        version.pc.onicegatheringstatechange();
+        version.pc.onicecandidate({ candidate: 'foo' });
         version.pc.iceGatheringState = 'complete';
         version.pc.onicegatheringstatechange();
         sinon.assert.notCalled(context._onIceGatheringFailure);
-        sinon.assert.notCalled(context._startIceGatheringTimeout);
+        sinon.assert.callOrder(context._startIceGatheringTimeout, context._stopIceGatheringTimeout);
       });
 
       it('Should raise ICE Gathering failure if ICE Candidates are not found', () => {
         toTest();
-        context._hasIceCandidates = false;
+        version.pc.iceGatheringState = 'gathering';
+        version.pc.onicegatheringstatechange();
         version.pc.iceGatheringState = 'complete';
         version.pc.onicegatheringstatechange();
         sinon.assert.calledWith(context._onIceGatheringFailure, 'none');
+      });
+
+      it('Should not raise ICE Gathering failure if ICE Candidates are found '
+        + 'and icegatheringstate transitions to "gathering" last', () => {
+          toTest();
+          version.pc.onicecandidate({ candidate: 'foo' });
+          version.pc.iceGatheringState = 'gathering';
+          version.pc.onicegatheringstatechange();
+          version.pc.iceGatheringState = 'complete';
+          version.pc.onicegatheringstatechange();
+          sinon.assert.notCalled(context._onIceGatheringFailure);
       });
 
       it('Should start ICE Gathering timeout if ICE Gathering failed mid process', () => {
@@ -2287,5 +2303,4 @@ describe('PeerConnection', () => {
       assert(context.stream.audioTracks[0].enabled);
     });
   });
-
 });

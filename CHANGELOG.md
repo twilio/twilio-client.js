@@ -1,3 +1,11 @@
+1.12.2 (In Progress)
+====================
+
+Bug Fixes
+---------
+
+* Fixed an issue where calls on Safari 13.1.2 will intermittently raise a 31003 error.
+
 1.12.1 (June 29, 2020)
 ====================
 
