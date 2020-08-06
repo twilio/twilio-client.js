@@ -16,6 +16,9 @@ interface RTCIceCandidatePayload {
   port: number;
   priority: number;
   protocol: string;
+  related_address: string;
+  related_port: number;
+  tcp_type: string;
   transport_id: string;
 }
 
@@ -28,9 +31,9 @@ export type RTCIceCandidate = any;
 
 /**
  * {@link RTCIceCandidate} parses an ICE candidate gathered by the browser
- * and returns a RTCLocalIceCandidate object
+ * and returns a IceCandidate object
  */
-export class RTCLocalIceCandidate {
+export class IceCandidate {
   /**
    * Candidate's type
    * https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidateType
@@ -50,7 +53,7 @@ export class RTCLocalIceCandidate {
   /**
    * Whether this is a remote candidate
    */
-  private isRemote: boolean = false;
+  private isRemote: boolean;
 
   /**
    * A number from 0 to 999 indicating the cost of network
@@ -74,6 +77,22 @@ export class RTCLocalIceCandidate {
   private protocol: string;
 
   /**
+   * The host candidate's IP address if the candidate is derived from another candidate,
+   */
+  private relatedAddress: string;
+
+  /**
+   * The port number of the candidate from which this
+   * candidate is derived, such as a relay or reflexive candidate.
+   */
+  private relatedPort: number;
+
+  /**
+   * Represents the type of TCP candidate.
+   */
+  private tcpType: string;
+
+  /**
    * Also known as sdpMid, specifying the candidate's media stream identification tag which uniquely
    * identifies the media stream within the component with which the candidate is associated
    */
@@ -83,7 +102,7 @@ export class RTCLocalIceCandidate {
    * @constructor
    * @param iceCandidate RTCIceCandidate coming from the browser
    */
-  constructor(iceCandidate: RTCIceCandidate) {
+  constructor(iceCandidate: RTCIceCandidate, isRemote: boolean = false) {
     let cost;
     const parts = iceCandidate.candidate.split('network-cost ');
 
@@ -93,10 +112,14 @@ export class RTCLocalIceCandidate {
 
     this.candidateType = iceCandidate.type;
     this.ip = iceCandidate.ip || iceCandidate.address;
+    this.isRemote = isRemote;
     this.networkCost = cost;
     this.port = iceCandidate.port;
     this.priority = iceCandidate.priority;
     this.protocol = iceCandidate.protocol;
+    this.relatedAddress = iceCandidate.relatedAddress;
+    this.relatedPort = iceCandidate.relatedPort;
+    this.tcpType = iceCandidate.tcpType;
     this.transportId = iceCandidate.sdpMid;
   }
 
@@ -113,6 +136,9 @@ export class RTCLocalIceCandidate {
       'port': this.port,
       'priority': this.priority,
       'protocol': this.protocol,
+      'related_address': this.relatedAddress,
+      'related_port': this.relatedPort,
+      'tcp_type': this.tcpType,
       'transport_id': this.transportId,
     };
   }

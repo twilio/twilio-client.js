@@ -8,7 +8,7 @@ import Device from './device';
 import DialtonePlayer from './dialtonePlayer';
 import { GeneralErrors, InvalidArgumentError, MediaErrors, TwilioError } from './errors';
 import Log from './log';
-import { RTCIceCandidate, RTCLocalIceCandidate } from './rtc/candidate';
+import { IceCandidate, RTCIceCandidate } from './rtc/icecandidate';
 import RTCSample from './rtc/sample';
 import RTCWarning from './rtc/warning';
 import StatsMonitor from './statsMonitor';
@@ -352,8 +352,18 @@ class Connection extends EventEmitter {
     };
 
     this.mediaStream.onicecandidate = (candidate: RTCIceCandidate): void => {
-      const payload = new RTCLocalIceCandidate(candidate).toPayload();
+      const payload = new IceCandidate(candidate).toPayload();
       this._publisher.debug('ice-candidate', 'ice-candidate', payload, this);
+    };
+
+    this.mediaStream.onselectedcandidatepairchange = (pair: RTCIceCandidatePair): void => {
+      const localCandidatePayload = new IceCandidate(pair.local).toPayload();
+      const remoteCandidatePayload = new IceCandidate(pair.remote, true).toPayload();
+
+      this._publisher.debug('ice-candidate', 'selected-ice-candidate-pair', {
+        local_candidate: localCandidatePayload,
+        remote_candidate: remoteCandidatePayload,
+      }, this);
     };
 
     this.mediaStream.oniceconnectionstatechange = (state: string): void => {
