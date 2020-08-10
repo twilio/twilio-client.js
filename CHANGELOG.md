@@ -4,7 +4,7 @@
 Bug Fixes
 ---------
 
-* Fixed an issue where calls on Safari 13.1.2 will intermittently raise a 31003 error.
+* Fixed an issue where calls on Safari 13.1.2 will intermittently fail and raise a 31003 error when establishing media connection. This usually happens when receiving or initiating the call.
 
 1.12.1 (June 29, 2020)
 ====================
