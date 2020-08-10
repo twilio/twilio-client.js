@@ -77,7 +77,7 @@ require('./sound');
 require('./sdp');
 
 require('./unit/asyncQueue');
-require('./unit/candidate');
+require('./unit/icecandidate');
 require('./unit/connection');
 require('./unit/device');
 require('./unit/deferred');

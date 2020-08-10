@@ -1,3 +1,11 @@
+1.12.3 (In Progress)
+=======================
+
+Additions
+---------
+
+* We now log selected [ICE candidate pair](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidatePair) to Insights. This will help with isolating issues should they arise.
+
 1.12.2 (August 6, 2020)
 =======================
 

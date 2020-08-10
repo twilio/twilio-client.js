@@ -1117,6 +1117,42 @@ describe('PeerConnection', () => {
     });
   });
 
+  context('PeerConnection.prototype._setupRTCIceTransportListener', () => {
+    const METHOD = PeerConnection.prototype._setupRTCIceTransportListener;
+
+    let context;
+    let toTest;
+    let iceTransport;
+
+    beforeEach(() => {
+      iceTransport = { getSelectedCandidatePair: () => 'foo' };
+      context = {
+        onselectedcandidatepairchange: sinon.stub(),
+        _getRTCIceTransport: () => iceTransport,
+      };
+      toTest = METHOD.bind(context);
+    });
+
+    it('should not crash if iceTransport is not available', () => {
+      context._getRTCIceTransport = () => null;
+      assert(!toTest());
+    });
+
+    it('should only set onselectedcandidatepairchange listener once', () => {
+      iceTransport.onselectedcandidatepairchange = 'bar';
+      toTest();
+      assert.equal(iceTransport.onselectedcandidatepairchange, 'bar');
+    });
+
+    it('should call onselectedcandidatepairchange callback', () => {
+      toTest();
+      assert(!!iceTransport.onselectedcandidatepairchange);
+
+      iceTransport.onselectedcandidatepairchange();
+      sinon.assert.calledWithExactly(context.onselectedcandidatepairchange, 'foo');
+    });
+  });
+
   context('PeerConnection.prototype._setupRTCDtlsTransportListener', () => {
     const METHOD = PeerConnection.prototype._setupRTCDtlsTransportListener;
 
@@ -1208,6 +1244,7 @@ describe('PeerConnection', () => {
         _hasIceCandidates: false,
         _onMediaConnectionStateChange: sinon.stub(),
         _onIceGatheringFailure: sinon.stub(),
+        _setupRTCIceTransportListener: sinon.stub(),
         _startIceGatheringTimeout: sinon.stub(),
         _stopIceGatheringTimeout: sinon.stub(),
       };
@@ -1231,6 +1268,18 @@ describe('PeerConnection', () => {
         toTest();
         version.pc.onicecandidate({ candidate: 'foo' });
         assert(context._hasIceCandidates);
+      });
+
+      it('Should not set ICE transport listener if candidate is null', () => {
+        toTest();
+        version.pc.onicecandidate({ candidate: null });
+        sinon.assert.notCalled(context._setupRTCIceTransportListener);
+      });
+
+      it('Should set ICE transport listener if candidate is not null', () => {
+        toTest();
+        version.pc.onicecandidate({ candidate: 'foo' });
+        sinon.assert.calledOnce(context._setupRTCIceTransportListener);
       });
     });
 
@@ -1924,6 +1973,33 @@ describe('PeerConnection', () => {
         assert.deepStrictEqual(pc.outputs.get('a'), 'a1');
         assert.deepStrictEqual(pc._masterAudioDeviceId, 'before');
       });
+    });
+  });
+
+  context('PeerConnection.prototype._getRTCIceTransport', () => {
+    const METHOD = PeerConnection.prototype._getRTCIceTransport;
+
+    let toTest = null;
+    let context = null;
+
+    beforeEach(() => {
+      context = {};
+      toTest = METHOD.bind(context);
+    });
+
+    it('should return null if dtls transport is not available', () => {
+      context.getRTCDtlsTransport = () => null;
+      assert(!toTest());
+    });
+
+    it('should return null if dtls transport is available and ice transport is not available', () => {
+      context.getRTCDtlsTransport = () => ({});
+      assert(!toTest());
+    });
+
+    it('should return iceTransport if it is available', () => {
+      context.getRTCDtlsTransport = () => ({ iceTransport: 'foo' });
+      assert.equal(toTest(), 'foo');
     });
   });
 

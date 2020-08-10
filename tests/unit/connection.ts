@@ -1064,6 +1064,16 @@ describe('Connection', function() {
       });
     });
 
+    describe('mediaStream.onselectedcandidatepairchange', () => {
+      it('should publish a debug event', () => {
+        mediaStream.onselectedcandidatepairchange({
+          local: { candidate: 'foo' },
+          remote: { candidate: 'bar' },
+        });
+        sinon.assert.calledWith(publisher.debug, 'ice-candidate', 'selected-ice-candidate-pair');
+      });
+    });
+
     describe('mediaStream.onpcconnectionstatechange', () => {
       it('should publish an warning event if state is failed', () => {
         mediaStream.onpcconnectionstatechange('failed');
