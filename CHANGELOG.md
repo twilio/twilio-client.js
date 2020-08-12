@@ -4,6 +4,7 @@
 Additions
 ---------
 
+* Fixed an issue where the transportClose event listener was not being cleaned up appropriately when a Connection closed.
 * We now log selected [ICE candidate pair](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidatePair) to Insights. This will help with isolating issues should they arise.
 
 1.12.2 (August 6, 2020)
