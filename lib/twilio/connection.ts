@@ -977,7 +977,11 @@ class Connection extends EventEmitter {
     const cleanup = () => {
       if (!this.pstream) { return; }
 
-      this.pstream.removeAllListeners('answer');
+      this.pstream.removeListener('answer', this._onAnswer);
+      this.pstream.removeListener('cancel', this._onCancel);
+      this.pstream.removeListener('hangup', this._onHangup);
+      this.pstream.removeListener('ringing', this._onRinging);
+      this.pstream.removeListener('transportClose', this._onTransportClose);
     };
 
     // This is kind of a hack, but it lets us avoid rewriting more code.
