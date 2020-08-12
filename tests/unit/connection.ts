@@ -676,6 +676,7 @@ describe('Connection', function() {
       context(`when state is ${state}`, () => {
         beforeEach(() => {
           (conn as any)['_status'] = state;
+          pstream.removeAllListeners = sinon.spy();
         });
 
         it('should call pstream.hangup', () => {
@@ -686,6 +687,13 @@ describe('Connection', function() {
         it('should call mediaStream.close', () => {
           conn.disconnect();
           sinon.assert.calledOnce(mediaStream.close);
+        });
+
+        it('should call pstream.removeAllListeners', () => {
+          conn.disconnect();
+          sinon.assert.calledOnce(pstream.removeAllListeners);
+          clock.tick(10);
+          sinon.assert.calledTwice(pstream.removeAllListeners);
         });
       });
     });

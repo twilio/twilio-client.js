@@ -977,11 +977,7 @@ class Connection extends EventEmitter {
     const cleanup = () => {
       if (!this.pstream) { return; }
 
-      this.pstream.removeListener('answer', this._onAnswer);
-      this.pstream.removeListener('cancel', this._onCancel);
-      this.pstream.removeListener('hangup', this._onHangup);
-      this.pstream.removeListener('ringing', this._onRinging);
-      this.pstream.removeListener('transportClose', this._onTransportClose);
+      this.pstream.removeAllListeners('answer');
     };
 
     // This is kind of a hack, but it lets us avoid rewriting more code.
@@ -1322,7 +1318,6 @@ class Connection extends EventEmitter {
   /**
    * Called when we receive a transportClose event from pstream.
    * Re-emits the event.
-   * @param sample
    */
   private _onTransportClose = (): void => {
     this._log.error('Received transportClose from pstream');
