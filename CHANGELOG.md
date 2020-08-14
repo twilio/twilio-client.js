@@ -1,11 +1,11 @@
-1.12.3 (In Progress)
+1.12.3 (August 14, 2020)
 =======================
 
-Additions
----------
+Changes
+-------
 
-* Fixed an issue where the transportClose event listener was not being cleaned up appropriately when a Connection closed.
 * We now log selected [ICE candidate pair](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidatePair) to Insights. This will help with isolating issues should they arise.
+* Fixed an issue where the transportClose event listener was not being cleaned up appropriately when a Connection is closed, causing MaxListenersExceededWarning on the console.
 
 1.12.2 (August 6, 2020)
 =======================
