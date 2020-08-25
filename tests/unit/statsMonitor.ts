@@ -73,7 +73,7 @@ describe('StatsMonitor', () => {
   describe('StatsMonitor.disableWarnings', () => {
     it(`Should NOT raise warnings when thresholds reached and warnings are disabled`, () => {
       const onWarning = sinon.stub();
-      thresholds[STAT_NAME].maxDuration = 2;
+      thresholds[STAT_NAME].max = 10;
       monitor = new StatsMonitor({ getRTCStats, thresholds });
       monitor.enable({});
 
@@ -90,7 +90,7 @@ describe('StatsMonitor', () => {
   describe('StatsMonitor.enableWarnings', () => {
     it(`Should raise warning after re-enabling warnings`, () => {
       const onWarning = sinon.stub();
-      thresholds[STAT_NAME].maxDuration = 2;
+      thresholds[STAT_NAME].max = 10;
       monitor = new StatsMonitor({ getRTCStats, thresholds });
       monitor.enable({});
 
@@ -225,44 +225,68 @@ describe('StatsMonitor', () => {
 
   describe(`StatsMonitor on 'warning'`, () => {
     context(`'maxDuration' threshold`, () => {
-      it(`Should raise warning when 'maxDuration' threshold is reached`, (done) => {
-        thresholds[STAT_NAME].maxDuration = 2;
-        monitor = new StatsMonitor({ getRTCStats, thresholds });
-        monitor.enable({});
+      it(`Should raise a warning when 'maxDuration' threshold is reached`, () =>
+        new Promise(async resolve => {
+          const statsMonitor = new StatsMonitor({
+            getRTCStats: async () => ({}),
+            thresholds: { audioInputLevel: { maxDuration: 2, sampleCount: 2 } },
+          });
 
-        monitor.on('warning', warning => {
-          assert.equal(warning.name, STAT_NAME);
-          assert.equal(warning.value, thresholds[STAT_NAME].maxDuration);
-          done();
-        });
+          statsMonitor.enable({});
 
-        clock.tick(SAMPLE_COUNT_RAISE * 1000);
-      });
+          statsMonitor.on('warning', warning => {
+            assert.equal(warning.name, 'audioInputLevel');
+            resolve();
+          });
 
-      it(`Should NOT raise warning when 'maxDuration' threshold is reached but with different stat values`, () => {
-        const onWarning = sinon.stub();
-        thresholds[STAT_NAME].maxDuration = 2;
-        monitor = new StatsMonitor({ getRTCStats, thresholds });
-        monitor.enable({});
+          for (const volume of [10, 10, 10, 10, 10]) {
+            statsMonitor.addVolumes(volume, volume);
+          }
+          await clock.tickAsync(1000);
 
-        monitor.on('warning', (warning) => {
-          console.log(warning);
-          onWarning();
-        });
+          for (const volume of [10, 10, 10, 10, 10]) {
+            statsMonitor.addVolumes(volume, volume);
+          }
+          await clock.tickAsync(1000);
 
-        clock.tick(1000);
-        stats[STAT_NAME]--;
+          for (const volume of [10, 10, 10, 10, 10]) {
+            statsMonitor.addVolumes(volume, volume);
+          }
+          await clock.tickAsync(1000);
+        }),
+      );
 
-        clock.tick(1000);
-        stats[STAT_NAME]--;
+      it(
+        `Should NOT raise warning when 'maxDuration' threshold is reached but with different stat values`,
+        async () => {
+          const statsMonitor = new StatsMonitor({
+            getRTCStats: async () => ({}),
+            thresholds: { audioInputLevel: { maxDuration: 2, sampleCount: 2 } },
+          });
 
-        clock.tick(1000);
-        stats[STAT_NAME]--;
+          statsMonitor.enable({});
 
-        clock.restore();
+          const warningHandler: sinon.SinonStub = sinon.stub();
+          statsMonitor.on('warning', warningHandler);
 
-        return wait().then(() => sinon.assert.notCalled(onWarning));
-      });
+          for (const volume of [10, 150, 300, 400, 500]) {
+            statsMonitor.addVolumes(volume, volume);
+          }
+          await clock.tickAsync(1000);
+
+          for (const volume of [400, 10, 800, 900, 1000]) {
+            statsMonitor.addVolumes(volume, volume);
+          }
+          await clock.tickAsync(1000);
+
+          for (const volume of [50, 100, 1000, 500, 10]) {
+            statsMonitor.addVolumes(volume, volume);
+          }
+          await clock.tickAsync(1000);
+
+          assert(warningHandler.notCalled);
+        },
+      );
     });
 
     context(`'min' and 'max' thresholds`, () => {

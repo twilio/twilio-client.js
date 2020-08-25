@@ -35,6 +35,7 @@ Changes
 
 * We now log selected [ICE candidate pair](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidatePair) to Insights. This will help with isolating issues should they arise.
 * Fixed an issue where the transportClose event listener was not being cleaned up appropriately when a Connection is closed, causing MaxListenersExceededWarning on the console.
+* The behavior for raising the `constant-audio-level` warning has been updated. Now, the most recent ten seconds of volume values are recorded and then analyzed. If the standard deviation of these samples is less than 1% of the maximum audio value, then the warning is raised. When the standard deviation is greater than 1% and the warning has already been raised, then the warning is cleared.
 
 1.12.2 (August 6, 2020)
 =======================

@@ -13,7 +13,7 @@ const getRTCStats = require('./rtc/stats');
 const Mos = require('./rtc/mos');
 
 // How many samples we use when testing metric thresholds
-const SAMPLE_COUNT_METRICS = 5;
+const SAMPLE_COUNT_METRICS = 10;
 
 // How many samples that need to cross the threshold to
 // raise or clear a warning.
@@ -24,8 +24,8 @@ const SAMPLE_INTERVAL = 1000;
 const WARNING_TIMEOUT = 5 * 1000;
 
 const DEFAULT_THRESHOLDS: StatsMonitor.ThresholdOptions = {
-  audioInputLevel: { maxDuration: 10 },
-  audioOutputLevel: { maxDuration: 10 },
+  audioInputLevel: { maxDuration: 10, sampleCount: 10 },
+  audioOutputLevel: { maxDuration: 10, sampleCount: 10 },
   bytesReceived: { clearCount: 2, min: 1, raiseCount: 3, sampleCount: 3 },
   bytesSent: { clearCount: 2, min: 1, raiseCount: 3, sampleCount: 3 },
   jitter: { max: 30 },
@@ -74,6 +74,56 @@ function countHigh(max: number, values: number[]): number {
  */
 function countLow(min: number, values: number[]): number {
   return values.reduce((lowCount, value) => lowCount += (value < min) ? 1 : 0, 0);
+}
+
+/**
+ * Average the set of values.
+ * @private
+ * @param values - The values to average.
+ * @returns The average of those values or `null` if the set of values is empty.
+ */
+function averageValues(values: number[]): number | null {
+  return values.length
+    ? values.reduce(
+        (partialSum: number, value: number) => partialSum + value,
+        0,
+      ) / values.length
+    : null;
+}
+
+/**
+ * Calculate the standard deviation from a list of numbers.
+ * @private
+ * @param values The list of numbers to calculate the standard deviation from.
+ * @returns The standard deviation of a list of numbers.
+ */
+function calculateStandardDeviation(sampleValues: number[]) {
+  const sampleAverage: number = sampleValues.reduce(
+    (partialSum: number, sample: number) => partialSum + sample,
+    0,
+  ) / sampleValues.length;
+
+  const diffSquared: number[] = sampleValues.map(
+    (sample: number) => Math.pow(sample - sampleAverage, 2),
+  );
+
+  const stdDev: number = Math.sqrt(diffSquared.reduce(
+    (partialSum: number, sample: number) => partialSum + sample,
+    0,
+  ) / diffSquared.length);
+
+  return stdDev;
+}
+
+/**
+ * Flatten a set of numerical sample sets into a single array of samples.
+ * @param sampleSets
+ */
+function flattenSamples(sampleSets: number[][]): number[] {
+  return sampleSets.reduce(
+    (flat: number[], current: number[]) => [...flat, ...current],
+    [],
+  );
 }
 
 /**
@@ -130,6 +180,17 @@ class StatsMonitor extends EventEmitter {
    * The setInterval id for fetching samples.
    */
   private _sampleInterval: NodeJS.Timer;
+
+  /**
+   * Keeps track of supplemental sample values.
+   *
+   * Currently used for constant audio detection. Contains an array of volume
+   * samples for each sample interval.
+   */
+  private _supplementalSampleBuffers: Record<string, number[][]> = {
+    audioInputLevel: [],
+    audioOutputLevel: [],
+  };
 
   /**
    * Threshold values for {@link StatsMonitor}
@@ -308,9 +369,15 @@ class StatsMonitor extends EventEmitter {
 
     const rttValue = (typeof stats.rtt === 'number' || !previousSample) ? stats.rtt : previousSample.rtt;
 
+    const audioInputLevelValues = this._inputVolumes.splice(0);
+    this._supplementalSampleBuffers.audioInputLevel.push(audioInputLevelValues);
+
+    const audioOutputLevelValues = this._outputVolumes.splice(0);
+    this._supplementalSampleBuffers.audioOutputLevel.push(audioOutputLevelValues);
+
     return {
-      audioInputLevel: Math.round(average(this._inputVolumes.splice(0))),
-      audioOutputLevel: Math.round(average(this._outputVolumes.splice(0))),
+      audioInputLevel: Math.round(average(audioInputLevelValues)),
+      audioOutputLevel: Math.round(average(audioOutputLevelValues)),
       bytesReceived: currentBytesReceived,
       bytesSent: currentBytesSent,
       codecName: stats.codecName,
@@ -408,7 +475,7 @@ class StatsMonitor extends EventEmitter {
     const raiseCount = limits.raiseCount || SAMPLE_COUNT_RAISE;
     const sampleCount = limits.sampleCount || this._maxSampleCount;
 
-    let relevantSamples = samples.slice(-sampleCount);
+    const relevantSamples = samples.slice(-sampleCount);
     const values = relevantSamples.map(sample => sample[statName]);
 
     // (rrowland) If we have a bad or missing value in the set, we don't
@@ -438,19 +505,27 @@ class StatsMonitor extends EventEmitter {
       }
     }
 
-    if (typeof limits.maxDuration === 'number' && samples.length > 1) {
-      relevantSamples = samples.slice(-2);
-      const prevValue = relevantSamples[0][statName];
-      const curValue = relevantSamples[1][statName];
+    if (typeof limits.maxDuration === 'number') {
+      const volumeSampleSets: number[][] = this._supplementalSampleBuffers[statName];
+      if (!volumeSampleSets || volumeSampleSets.length < limits.maxDuration) {
+        return;
+      }
+      if (volumeSampleSets.length > limits.maxDuration) {
+        volumeSampleSets.splice(0, volumeSampleSets.length - limits.maxDuration);
+      }
 
-      const prevStreak = this._currentStreaks.get(statName) || 0;
-      const streak = (prevValue === curValue) ? prevStreak + 1 : 0;
+      const volumeSamples: number[] = flattenSamples(volumeSampleSets.slice(-sampleCount));
 
-      this._currentStreaks.set(statName, streak);
+      const prevStreak: number = this._currentStreaks.get(statName) || 0;
 
-      if (streak >= limits.maxDuration) {
-        this._raiseWarning(statName, 'maxDuration', { value: streak });
-      } else if (streak === 0) {
+      const stdDev: number = calculateStandardDeviation(volumeSamples);
+
+      if (stdDev < 327.67) {
+        const currentStreak: number = prevStreak + 1;
+        this._currentStreaks.set(statName, currentStreak);
+        this._raiseWarning(statName, 'maxDuration', { value: currentStreak });
+      } else {
+        this._currentStreaks.set(statName, 0);
         this._clearWarning(statName, 'maxDuration', { value: prevStreak });
       }
     }
