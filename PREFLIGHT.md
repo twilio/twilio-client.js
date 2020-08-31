@@ -245,7 +245,7 @@ Raised when `PreflightTest.status` has transitioned to `PreflightTest.Status.Fai
 #### .on('sample', handler(sample))
 This event is published every second and is raised when the [Connection](https://www.twilio.com/docs/voice/client/javascript/connection) gets a webrtc sample object. The `sample` object is coming from [Connection.on('sample')](https://www.twilio.com/docs/voice/client/javascript/connection#sample) and uses the same `sample` format.
 
-#### .on('warning', handler(warningName, warningData))
+#### .on('warning', handler(warning))
 Raised whenever the test encounters a warning. Example warning data:
 
 ```ts
