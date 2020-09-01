@@ -36,13 +36,6 @@ const rtc = require('./rtc');
 const getUserMedia = require('./rtc/getusermedia');
 const Sound = require('./sound');
 
-/**
- * @private
- */
-const networkInformation = (navigator as any).connection
-  || (navigator as any).mozConnection
-  || (navigator as any).webkitConnection;
-
 // Placeholders until we convert the respective files to TypeScript.
 /**
  * @private
@@ -306,6 +299,12 @@ class Device extends EventEmitter {
   private _log: Log = Log.getInstance();
 
   /**
+   * Network related information
+   * See https://developer.mozilla.org/en-US/docs/Web/API/Network_Information_API
+   */
+  private _networkInformation: any;
+
+  /**
    * An Insights Event Publisher.
    */
   private _publisher: IPublisher | null = null;
@@ -393,6 +392,13 @@ class Device extends EventEmitter {
       this._log.info('Running as browser extension.');
     }
 
+    if (navigator) {
+      const n = navigator as any;
+      this._networkInformation = n.connection
+        || n.mozConnection
+        || n.webkitConnection;
+    }
+
     if (token) {
       this.setup(token, options);
     } else if (options) {
@@ -477,8 +483,8 @@ class Device extends EventEmitter {
       this.stream = null;
     }
 
-    if (networkInformation && typeof networkInformation.removeEventListener === 'function') {
-      networkInformation.removeEventListener('change', this._publishNetworkChange);
+    if (this._networkInformation && typeof this._networkInformation.removeEventListener === 'function') {
+      this._networkInformation.removeEventListener('change', this._publishNetworkChange);
     }
 
     if (typeof window !== 'undefined' && window.removeEventListener) {
@@ -735,8 +741,8 @@ class Device extends EventEmitter {
       this._publisher.disable();
     }
 
-    if (networkInformation && typeof networkInformation.addEventListener === 'function') {
-      networkInformation.addEventListener('change', this._publishNetworkChange);
+    if (this._networkInformation && typeof this._networkInformation.addEventListener === 'function') {
+      this._networkInformation.addEventListener('change', this._publishNetworkChange);
     }
 
     this.audio = new (this.options.AudioHelper || AudioHelper)
@@ -1162,13 +1168,13 @@ class Device extends EventEmitter {
       return;
     }
 
-    if (networkInformation) {
+    if (this._networkInformation) {
       this._publisher.info('network-information', 'network-change', {
-        connection_type: networkInformation.type,
-        downlink: networkInformation.downlink,
-        downlinkMax: networkInformation.downlinkMax,
-        effective_type: networkInformation.effectiveType,
-        rtt: networkInformation.rtt,
+        connection_type: this._networkInformation.type,
+        downlink: this._networkInformation.downlink,
+        downlinkMax: this._networkInformation.downlinkMax,
+        effective_type: this._networkInformation.effectiveType,
+        rtt: this._networkInformation.rtt,
       }, this._activeConnection);
     }
   }

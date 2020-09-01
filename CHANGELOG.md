@@ -1,3 +1,11 @@
+1.12.4 (In Progress)
+====================
+
+Bug Fixes
+---------
+
+* Fixed an issue where an error is thrown if `Device` is imported and run in a NodeJS environment.
+
 1.12.3 (August 14, 2020)
 =======================
 
