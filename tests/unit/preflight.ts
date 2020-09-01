@@ -19,6 +19,7 @@ describe('PreflightTest', () => {
   let rtcIceCandidateStatsReport: any;
   let options: any;
   let monitor: any;
+  let publisher: any;
   let testSamples: any;
   let edgeStub: any;
   let wait: any;
@@ -70,6 +71,8 @@ describe('PreflightTest', () => {
       audioOutputLevel: { maxDuration: 10 }
     };
 
+    publisher = new EventEmitter();
+
     const outputs = new Map();
     outputs.set('default', { audio: {} });
     outputs.set('foo', { audio: {} });
@@ -83,7 +86,8 @@ describe('PreflightTest', () => {
         ondtlstransportstatechange: sinon.stub(),
         onsignalingstatechange: sinon.stub(),
         outputs,
-      }
+      },
+      _publisher: publisher,
     };
     connection = new EventEmitter();
     Object.assign(connection, connectionContext);
@@ -397,7 +401,11 @@ describe('PreflightTest', () => {
       connection.emit('warning', 'foo', data);
 
       sinon.assert.calledOnce(onWarning);
-      sinon.assert.calledWithExactly(onWarning, 'foo', data);
+      sinon.assert.calledWithExactly(onWarning, {
+        description: 'Received an RTCWarning. See .rtcWarning for the RTCWarning',
+        name: 'foo',
+        rtcWarning: { bar: 'bar', foo: 'foo' },
+      });
     });
 
     it('should ignore constant audio warnings from connection', () => {
@@ -418,6 +426,21 @@ describe('PreflightTest', () => {
       assert.equal(monitor._thresholds.audioOutputLevel.maxDuration, 5);
     });
 
+    it('should emit a warning the first time Insights fails to publish', () => {
+      const onWarning = sinon.stub();
+      preflight.on('warning', onWarning);
+      device.emit('ready');
+
+      publisher.emit('error');
+      sinon.assert.calledOnce(onWarning);
+      sinon.assert.calledWithExactly(onWarning, {
+        description: 'Received an error when attempting to connect to Insights gateway',
+        name: 'insights-connection-error',
+      });
+      publisher.emit('error');
+      sinon.assert.calledOnce(onWarning);
+    });
+
     it('should emit audioInputLevel warnings from monitor', () => {
       const onWarning = sinon.stub();
       preflight.on('warning', onWarning);
@@ -429,7 +452,11 @@ describe('PreflightTest', () => {
       };
       monitor.emit('warning', data);
       sinon.assert.calledOnce(onWarning);
-      sinon.assert.calledWithExactly(onWarning, 'constant-audio-input-level', data);
+      sinon.assert.calledWithExactly(onWarning, {
+        description: 'Received an RTCWarning. See .rtcWarning for the RTCWarning',
+        name: 'constant-audio-input-level',
+        rtcWarning: data,
+      });
     });
 
     it('should emit audioOutputLevel warnings from monitor', () => {
@@ -443,7 +470,11 @@ describe('PreflightTest', () => {
       };
       monitor.emit('warning', data);
       sinon.assert.calledOnce(onWarning);
-      sinon.assert.calledWithExactly(onWarning, 'constant-audio-output-level', data);
+      sinon.assert.calledWithExactly(onWarning, {
+        description: 'Received an RTCWarning. See .rtcWarning for the RTCWarning',
+        name: 'constant-audio-output-level',
+        rtcWarning: data,
+      });
     });
 
     it('should not emit warnings from monitor if threshold is not maxDuration', () => {
@@ -626,7 +657,11 @@ describe('PreflightTest', () => {
               duration: 15025
             },
             totals: testSamples[testSamples.length - 1].totals,
-            warnings: [{name: 'foo', data: warningData}],
+            warnings: [{
+              description: 'Received an RTCWarning. See .rtcWarning for the RTCWarning',
+              name: 'foo',
+              rtcWarning: warningData,
+            }],
             callQuality: 'excellent',
           };
           assert.equal(preflight.status, PreflightTest.Status.Completed);

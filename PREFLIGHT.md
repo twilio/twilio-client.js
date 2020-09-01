@@ -230,8 +230,7 @@ Raised when `PreflightTest.status` has transitioned to `PreflightTest.Status.Com
   "edge": "ashburn",
 
   /**
-   * Warnings detected during the test.
-   * These are coming from Connection.on('warning').
+   * PreflightTest.Warnings detected during the test.
    */
   "warnings": [...]
 }
@@ -246,8 +245,29 @@ Raised when `PreflightTest.status` has transitioned to `PreflightTest.Status.Fai
 #### .on('sample', handler(sample))
 This event is published every second and is raised when the [Connection](https://www.twilio.com/docs/voice/client/javascript/connection) gets a webrtc sample object. The `sample` object is coming from [Connection.on('sample')](https://www.twilio.com/docs/voice/client/javascript/connection#sample) and uses the same `sample` format.
 
-#### .on('warning', handler(warningName, warningData))
-Raised whenever the [Connection](https://www.twilio.com/docs/voice/client/javascript/connection) encounters a warning. This is coming from [Connection.on('warning')](https://www.twilio.com/docs/voice/client/javascript/connection#onwarning-handlerwarningname) and uses the same API format.
+#### .on('warning', handler(warning))
+Raised whenever the test encounters a warning. Example warning data:
+
+```ts
+{
+  /**
+   * Name of the warning.
+   * See https://www.twilio.com/docs/voice/insights/call-quality-events-twilio-client-sdk
+   */
+  name: 'insights-connection-error',
+
+  /**
+   * Description of the Warning.
+   */
+  description: 'Received an error when attempting to connect to Insights gateway',
+
+  /**
+   * Optional RTCWarning data coming from Connection.on('warning')
+   * See https://www.twilio.com/docs/voice/client/javascript/connection#onwarning-handlerwarningname
+   */
+  rtcWarning: {...}
+}
+```
 
 Properties
 ----------

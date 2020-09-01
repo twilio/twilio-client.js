@@ -91,15 +91,17 @@ describe('Preflight Test', function() {
 
     it('should emit warning event', () => {
       const name = 'constant-audio-input-level';
+      const rtcWarning = {
+        name: 'audioInputLevel',
+        threshold: { name: 'maxDuration' }
+      }
       setTimeout(() => {
-        callerConnection['_monitor'].emit('warning', {
-          name: 'audioInputLevel',
-          threshold: { name: 'maxDuration' }
-        });
+        callerConnection['_monitor'].emit('warning', rtcWarning);
       }, 5);
 
-      return waitFor(expectEvent('warning', preflight).then(warning => {
-        assert.equal(warning, name);
+      return waitFor(expectEvent('warning', preflight).then((warning: any) => {
+        assert.equal(warning.name, name);
+        assert.equal(warning.rtcWarning, rtcWarning);
       }), EVENT_TIMEOUT);
     });
 
