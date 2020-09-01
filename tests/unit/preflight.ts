@@ -966,6 +966,28 @@ describe('PreflightTest', () => {
       sinon.assert.calledWithExactly(onFailed, { code: 123 });
     });
 
+    it('should listen to device error once', () => {
+      const onFailed = sinon.stub();
+      const preflight = new PreflightTest('foo', options);
+      preflight.on('failed', onFailed);
+
+      // Remove cleanup routine to test we are only subscribing once
+      preflight['_releaseHandlers'] = sinon.stub();
+      // Add stub listener so device won't crash if there are no error handlers
+      // This is a default behavior of an EventEmitter
+      device.on('error', sinon.stub());
+
+      // Triggers the test
+      device.emit('ready');
+      device.emit('error', { code: 123 });
+      device.emit('error', { code: 123 });
+
+      assert.equal(preflight.status, PreflightTest.Status.Failed);
+      sinon.assert.calledOnce(deviceContext.destroy);
+      sinon.assert.calledOnce(onFailed);
+      sinon.assert.calledWithExactly(onFailed, { code: 123 });
+    });
+
     it('should stop test', () => {
       const onCompleted = sinon.stub();
       const preflight = new PreflightTest('foo', options);

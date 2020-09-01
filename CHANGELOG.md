@@ -52,6 +52,11 @@ Changes
   | `PreflightTest.Report.selectedIceCandidatePair` | `PreflightTest.Report.selectedIceCandidatePairStats` |
 --------------------------
 
+Bug Fixes
+---------
+
+* Fixed an issue where the browser console is flooded with errors after a network handover.
+
 1.13.0-beta1 (July 7, 2020)
 =============================
 
