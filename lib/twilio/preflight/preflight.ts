@@ -361,11 +361,11 @@ export class PreflightTest extends EventEmitter {
       return;
     }
 
-    this._device.on('ready', () => {
+    this._device.once('ready', () => {
       this._onDeviceReady();
     });
 
-    this._device.on('error', (error: Device.Error) => {
+    this._device.once('error', (error: Device.Error) => {
       this._onDeviceError(error);
     });
 
