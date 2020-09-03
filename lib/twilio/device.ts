@@ -594,6 +594,14 @@ class Device extends EventEmitter {
    * @param [options]
    */
   setup(token: string, options: Device.Options = { }): this {
+    if (isLegacyEdge()) {
+      throw new NotSupportedError(
+        'Microsoft Edge Legacy (https://support.microsoft.com/en-us/help/4533505/what-is-microsoft-edge-legacy) ' +
+        'is deprecated and will not be able to connect to Twilio to make or receive calls after September 1st, 2020. ' +
+        'Please see this documentation for a list of supported browsers ' +
+        'https://www.twilio.com/docs/voice/client/javascript#supported-browsers',
+      );
+    }
     if (!Device.isSupported && !options.ignoreBrowserSupport) {
       if (window && window.location && window.location.protocol === 'http:') {
         throw new NotSupportedError(`twilio.js wasn't able to find WebRTC browser support. \
@@ -601,19 +609,11 @@ class Device extends EventEmitter {
           which does not support WebRTC in many browsers. Please load this page over https and \
           try again.`);
       }
-      throw new NotSupportedError(`twilio.js 1.3+ SDKs require WebRTC/ORTC browser support. \
+
+      throw new NotSupportedError(`twilio.js 1.3+ SDKs require WebRTC browser support. \
         For more information, see <https://www.twilio.com/docs/api/client/twilio-js>. \
         If you have any questions about this announcement, please contact \
         Twilio Support at <help@twilio.com>.`);
-    }
-
-    if (isLegacyEdge()) {
-      this._log.warn(
-        'Microsoft Edge Legacy (https://support.microsoft.com/en-us/help/4533505/what-is-microsoft-edge-legacy) ' +
-        'is deprecated and will not be able to connect to Twilio to make or receive calls after September 1st, 2020. ' +
-        'Please see this documentation for a list of supported browsers ' +
-        'https://www.twilio.com/docs/voice/client/javascript#supported-browsers',
-      );
     }
 
     if (!token) {

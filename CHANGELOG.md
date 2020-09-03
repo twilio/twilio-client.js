@@ -6,6 +6,11 @@ Bug Fixes
 
 * Fixed an issue where an error is thrown if `Device` is imported and run in a NodeJS environment.
 
+Changes
+-------
+
+* The twilio.js SDK no longer supports the deprecated Edge Legacy browsers that rely on ORTC. See [our deprecation notice](https://support.twilio.com/hc/en-us/articles/360047874793-Twilio-Client-JavaScript-SDK-twilio-js-Microsoft-Edge-Legacy-support-notice) for more details.
+
 1.12.3 (August 14, 2020)
 =======================
 

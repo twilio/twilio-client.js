@@ -209,10 +209,22 @@ describe('Device', function() {
         before(() => Promise.resolve((window as any).RTCPeerConnection = null));
 
         it('should throw an exception if not supported', () => {
-          assert.throws(() => device.setup(token, setupOptions), /require WebRTC\/ORTC browser support/);
+          assert.throws(() => device.setup(token, setupOptions), /require WebRTC browser support/);
         });
 
         after(() => (window as any).RTCPeerConnection = original);
+      });
+
+      context('when legacy edge', () => {
+        const original: any = (window as any).navigator;
+
+        before(() => Promise.resolve((window as any).navigator = { userAgent: 'foo edge/123 bar' }));
+
+        it('should throw an exception if not supported', () => {
+          assert.throws(() => device.setup(token, setupOptions), /Microsoft Edge Legacy/);
+        });
+
+        after(() => (window as any).navigator = original);
       });
 
       context('when supported', () => {
