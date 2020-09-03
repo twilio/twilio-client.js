@@ -39,13 +39,6 @@ const rtc = require('./rtc');
 const getUserMedia = require('./rtc/getusermedia');
 const Sound = require('./sound');
 
-/**
- * @private
- */
-const networkInformation = (navigator as any).connection
-  || (navigator as any).mozConnection
-  || (navigator as any).webkitConnection;
-
 // Placeholders until we convert the respective files to TypeScript.
 /**
  * @private
@@ -338,6 +331,12 @@ class Device extends EventEmitter {
   private _log: Log = Log.getInstance();
 
   /**
+   * Network related information
+   * See https://developer.mozilla.org/en-US/docs/Web/API/Network_Information_API
+   */
+  private _networkInformation: any;
+
+  /**
    * An Insights Event Publisher.
    */
   private _publisher: IPublisher | null = null;
@@ -425,6 +424,13 @@ class Device extends EventEmitter {
       this._log.info('Running as browser extension.');
     }
 
+    if (navigator) {
+      const n = navigator as any;
+      this._networkInformation = n.connection
+        || n.mozConnection
+        || n.webkitConnection;
+    }
+
     if (token) {
       this.setup(token, options);
     } else if (options) {
@@ -509,8 +515,8 @@ class Device extends EventEmitter {
       this.stream = null;
     }
 
-    if (networkInformation) {
-      networkInformation.removeEventListener('change', this._publishNetworkChange);
+    if (this._networkInformation && typeof this._networkInformation.removeEventListener === 'function') {
+      this._networkInformation.removeEventListener('change', this._publishNetworkChange);
     }
 
     if (typeof window !== 'undefined' && window.removeEventListener) {
@@ -620,6 +626,14 @@ class Device extends EventEmitter {
    * @param [options]
    */
   setup(token: string, options: Device.Options = { }): this {
+    if (isLegacyEdge()) {
+      throw new NotSupportedError(
+        'Microsoft Edge Legacy (https://support.microsoft.com/en-us/help/4533505/what-is-microsoft-edge-legacy) ' +
+        'is deprecated and will not be able to connect to Twilio to make or receive calls after September 1st, 2020. ' +
+        'Please see this documentation for a list of supported browsers ' +
+        'https://www.twilio.com/docs/voice/client/javascript#supported-browsers',
+      );
+    }
     if (!Device.isSupported && !options.ignoreBrowserSupport) {
       if (window && window.location && window.location.protocol === 'http:') {
         throw new NotSupportedError(`twilio.js wasn't able to find WebRTC browser support. \
@@ -627,19 +641,11 @@ class Device extends EventEmitter {
           which does not support WebRTC in many browsers. Please load this page over https and \
           try again.`);
       }
-      throw new NotSupportedError(`twilio.js 1.3+ SDKs require WebRTC/ORTC browser support. \
+
+      throw new NotSupportedError(`twilio.js 1.3+ SDKs require WebRTC browser support. \
         For more information, see <https://www.twilio.com/docs/api/client/twilio-js>. \
         If you have any questions about this announcement, please contact \
         Twilio Support at <help@twilio.com>.`);
-    }
-
-    if (isLegacyEdge()) {
-      this._log.warn(
-        'Microsoft Edge Legacy (https://support.microsoft.com/en-us/help/4533505/what-is-microsoft-edge-legacy) ' +
-        'is deprecated and will not be able to connect to Twilio to make or receive calls after September 1st, 2020. ' +
-        'Please see this documentation for a list of supported browsers ' +
-        'https://www.twilio.com/docs/voice/client/javascript#supported-browsers',
-      );
     }
 
     if (!token) {
@@ -765,8 +771,8 @@ class Device extends EventEmitter {
       });
     }
 
-    if (networkInformation) {
-      networkInformation.addEventListener('change', this._publishNetworkChange);
+    if (this._networkInformation && typeof this._networkInformation.addEventListener === 'function') {
+      this._networkInformation.addEventListener('change', this._publishNetworkChange);
     }
 
     this.audio = new (this.options.AudioHelper || AudioHelper)
@@ -1192,13 +1198,13 @@ class Device extends EventEmitter {
       return;
     }
 
-    if (networkInformation) {
+    if (this._networkInformation) {
       this._publisher.info('network-information', 'network-change', {
-        connection_type: networkInformation.type,
-        downlink: networkInformation.downlink,
-        downlinkMax: networkInformation.downlinkMax,
-        effective_type: networkInformation.effectiveType,
-        rtt: networkInformation.rtt,
+        connection_type: this._networkInformation.type,
+        downlink: this._networkInformation.downlink,
+        downlinkMax: this._networkInformation.downlinkMax,
+        effective_type: this._networkInformation.effectiveType,
+        rtt: this._networkInformation.rtt,
       }, this._activeConnection);
     }
   }

@@ -119,6 +119,36 @@ New Features - Preview
   }
   ```
 
+1.12.4 (In Progress)
+====================
+
+Bug Fixes
+---------
+
+* Fixed an issue where an error is thrown if `Device` is imported and run in a NodeJS environment.
+
+Changes
+-------
+
+* The twilio.js SDK no longer supports the deprecated Edge Legacy browsers that rely on ORTC. See [our deprecation notice](https://support.twilio.com/hc/en-us/articles/360047874793-Twilio-Client-JavaScript-SDK-twilio-js-Microsoft-Edge-Legacy-support-notice) for more details.
+
+1.12.3 (August 14, 2020)
+=======================
+
+Changes
+-------
+
+* We now log selected [ICE candidate pair](https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidatePair) to Insights. This will help with isolating issues should they arise.
+* Fixed an issue where the transportClose event listener was not being cleaned up appropriately when a Connection is closed, causing MaxListenersExceededWarning on the console.
+
+1.12.2 (August 6, 2020)
+=======================
+
+Bug Fixes
+---------
+
+* Fixed an issue where calls on Safari 13.1.2 will intermittently fail and raise a 31003 error when establishing media connection. This usually happens when receiving or initiating the call.
+
 1.12.1 (June 29, 2020)
 ====================
 

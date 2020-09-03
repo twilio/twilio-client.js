@@ -687,6 +687,20 @@ describe('Connection', function() {
           conn.disconnect();
           sinon.assert.calledOnce(mediaStream.close);
         });
+
+        [
+          'answer',
+          'cancel',
+          'hangup',
+          'ringing',
+          'transportClose',
+        ].forEach((eventName: string) => {
+          it(`should call pstream.removeListener on ${eventName}`, () => {
+            conn.disconnect();
+            clock.tick(10);
+            assert.equal(pstream.listenerCount(eventName), 0);
+          });
+        });
       });
     });
 
@@ -1061,6 +1075,16 @@ describe('Connection', function() {
       it('should publish a debug event', () => {
         mediaStream.onicecandidate({ candidate: 'foo' });
         sinon.assert.calledWith(publisher.debug, 'ice-candidate', 'ice-candidate');
+      });
+    });
+
+    describe('mediaStream.onselectedcandidatepairchange', () => {
+      it('should publish a debug event', () => {
+        mediaStream.onselectedcandidatepairchange({
+          local: { candidate: 'foo' },
+          remote: { candidate: 'bar' },
+        });
+        sinon.assert.calledWith(publisher.debug, 'ice-candidate', 'selected-ice-candidate-pair');
       });
     });
 

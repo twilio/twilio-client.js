@@ -707,6 +707,15 @@ describe('PeerConnection', () => {
       });
     });
 
+    it('Should reset hasIceCandidates flag before ICE restart', () => {
+      context._hasIceCandidates = true;
+      toTest();
+      assert(!context._hasIceCandidates)
+      return wait().then(() => {
+        sinon.assert.calledOnce(version.createOffer);
+      });
+    });
+
     it('Should publish reinvite', () => {
       toTest();
       return wait().then(() => {
@@ -1108,6 +1117,42 @@ describe('PeerConnection', () => {
     });
   });
 
+  context('PeerConnection.prototype._setupRTCIceTransportListener', () => {
+    const METHOD = PeerConnection.prototype._setupRTCIceTransportListener;
+
+    let context;
+    let toTest;
+    let iceTransport;
+
+    beforeEach(() => {
+      iceTransport = { getSelectedCandidatePair: () => 'foo' };
+      context = {
+        onselectedcandidatepairchange: sinon.stub(),
+        _getRTCIceTransport: () => iceTransport,
+      };
+      toTest = METHOD.bind(context);
+    });
+
+    it('should not crash if iceTransport is not available', () => {
+      context._getRTCIceTransport = () => null;
+      assert(!toTest());
+    });
+
+    it('should only set onselectedcandidatepairchange listener once', () => {
+      iceTransport.onselectedcandidatepairchange = 'bar';
+      toTest();
+      assert.equal(iceTransport.onselectedcandidatepairchange, 'bar');
+    });
+
+    it('should call onselectedcandidatepairchange callback', () => {
+      toTest();
+      assert(!!iceTransport.onselectedcandidatepairchange);
+
+      iceTransport.onselectedcandidatepairchange();
+      sinon.assert.calledWithExactly(context.onselectedcandidatepairchange, 'foo');
+    });
+  });
+
   context('PeerConnection.prototype._setupRTCDtlsTransportListener', () => {
     const METHOD = PeerConnection.prototype._setupRTCDtlsTransportListener;
 
@@ -1199,6 +1244,7 @@ describe('PeerConnection', () => {
         _hasIceCandidates: false,
         _onMediaConnectionStateChange: sinon.stub(),
         _onIceGatheringFailure: sinon.stub(),
+        _setupRTCIceTransportListener: sinon.stub(),
         _startIceGatheringTimeout: sinon.stub(),
         _stopIceGatheringTimeout: sinon.stub(),
       };
@@ -1223,6 +1269,18 @@ describe('PeerConnection', () => {
         version.pc.onicecandidate({ candidate: 'foo' });
         assert(context._hasIceCandidates);
       });
+
+      it('Should not set ICE transport listener if candidate is null', () => {
+        toTest();
+        version.pc.onicecandidate({ candidate: null });
+        sinon.assert.notCalled(context._setupRTCIceTransportListener);
+      });
+
+      it('Should set ICE transport listener if candidate is not null', () => {
+        toTest();
+        version.pc.onicecandidate({ candidate: 'foo' });
+        sinon.assert.calledOnce(context._setupRTCIceTransportListener);
+      });
     });
 
     describe('pc.onicegatheringstatechange', () => {
@@ -1240,13 +1298,6 @@ describe('PeerConnection', () => {
         sinon.assert.calledOnce(context._startIceGatheringTimeout);
       });
 
-      it('Should reset _hasIceCandidates flag', () => {
-        toTest();
-        version.pc.iceGatheringState = 'gathering';
-        version.pc.onicegatheringstatechange();
-        assert(!version.pc._hasIceCandidates);
-      });
-
       it('Should stop ICE Gathering timeout on complete', () => {
         toTest();
         version.pc.iceGatheringState = 'complete';
@@ -1256,19 +1307,33 @@ describe('PeerConnection', () => {
 
       it('Should not raise ICE Gathering failure if ICE Candidates are found', () => {
         toTest();
-        context._hasIceCandidates = true;
+        version.pc.iceGatheringState = 'gathering';
+        version.pc.onicegatheringstatechange();
+        version.pc.onicecandidate({ candidate: 'foo' });
         version.pc.iceGatheringState = 'complete';
         version.pc.onicegatheringstatechange();
         sinon.assert.notCalled(context._onIceGatheringFailure);
-        sinon.assert.notCalled(context._startIceGatheringTimeout);
+        sinon.assert.callOrder(context._startIceGatheringTimeout, context._stopIceGatheringTimeout);
       });
 
       it('Should raise ICE Gathering failure if ICE Candidates are not found', () => {
         toTest();
-        context._hasIceCandidates = false;
+        version.pc.iceGatheringState = 'gathering';
+        version.pc.onicegatheringstatechange();
         version.pc.iceGatheringState = 'complete';
         version.pc.onicegatheringstatechange();
         sinon.assert.calledWith(context._onIceGatheringFailure, 'none');
+      });
+
+      it('Should not raise ICE Gathering failure if ICE Candidates are found '
+        + 'and icegatheringstate transitions to "gathering" last', () => {
+          toTest();
+          version.pc.onicecandidate({ candidate: 'foo' });
+          version.pc.iceGatheringState = 'gathering';
+          version.pc.onicegatheringstatechange();
+          version.pc.iceGatheringState = 'complete';
+          version.pc.onicegatheringstatechange();
+          sinon.assert.notCalled(context._onIceGatheringFailure);
       });
 
       it('Should start ICE Gathering timeout if ICE Gathering failed mid process', () => {
@@ -1911,6 +1976,33 @@ describe('PeerConnection', () => {
     });
   });
 
+  context('PeerConnection.prototype._getRTCIceTransport', () => {
+    const METHOD = PeerConnection.prototype._getRTCIceTransport;
+
+    let toTest = null;
+    let context = null;
+
+    beforeEach(() => {
+      context = {};
+      toTest = METHOD.bind(context);
+    });
+
+    it('should return null if dtls transport is not available', () => {
+      context.getRTCDtlsTransport = () => null;
+      assert(!toTest());
+    });
+
+    it('should return null if dtls transport is available and ice transport is not available', () => {
+      context.getRTCDtlsTransport = () => ({});
+      assert(!toTest());
+    });
+
+    it('should return iceTransport if it is available', () => {
+      context.getRTCDtlsTransport = () => ({ iceTransport: 'foo' });
+      assert.equal(toTest(), 'foo');
+    });
+  });
+
   context('PeerConnection.prototype.getRTCDtlsTransport', () => {
     const METHOD = PeerConnection.prototype.getRTCDtlsTransport;
 
@@ -2330,5 +2422,4 @@ describe('PeerConnection', () => {
       assert(context.stream.audioTracks[0].enabled);
     });
   });
-
 });

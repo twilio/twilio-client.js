@@ -9,7 +9,7 @@ import Device from './device';
 import DialtonePlayer from './dialtonePlayer';
 import { GeneralErrors, InvalidArgumentError, MediaErrors, TwilioError } from './errors';
 import Log from './log';
-import { RTCIceCandidate, RTCLocalIceCandidate } from './rtc/candidate';
+import { IceCandidate, RTCIceCandidate } from './rtc/icecandidate';
 import RTCSample from './rtc/sample';
 import RTCWarning from './rtc/warning';
 import StatsMonitor from './statsMonitor';
@@ -353,8 +353,18 @@ class Connection extends EventEmitter {
     };
 
     this.mediaStream.onicecandidate = (candidate: RTCIceCandidate): void => {
-      const payload = new RTCLocalIceCandidate(candidate).toPayload();
+      const payload = new IceCandidate(candidate).toPayload();
       this._publisher.debug('ice-candidate', 'ice-candidate', payload, this);
+    };
+
+    this.mediaStream.onselectedcandidatepairchange = (pair: RTCIceCandidatePair): void => {
+      const localCandidatePayload = new IceCandidate(pair.local).toPayload();
+      const remoteCandidatePayload = new IceCandidate(pair.remote, true).toPayload();
+
+      this._publisher.debug('ice-candidate', 'selected-ice-candidate-pair', {
+        local_candidate: localCandidatePayload,
+        remote_candidate: remoteCandidatePayload,
+      }, this);
     };
 
     this.mediaStream.oniceconnectionstatechange = (state: string): void => {
@@ -461,11 +471,7 @@ class Connection extends EventEmitter {
     this.pstream = config.pstream;
     this.pstream.on('cancel', this._onCancel);
     this.pstream.on('ringing', this._onRinging);
-
-    this.pstream.on('transportClose', () => {
-      this._log.error('Received transportClose from pstream');
-      this.emit('transportClose');
-    });
+    this.pstream.on('transportClose', this._onTransportClose);
 
     this.on('error', error => {
       this._publisher.error('connection', 'error', {
@@ -976,6 +982,7 @@ class Connection extends EventEmitter {
       this.pstream.removeListener('cancel', this._onCancel);
       this.pstream.removeListener('hangup', this._onHangup);
       this.pstream.removeListener('ringing', this._onRinging);
+      this.pstream.removeListener('transportClose', this._onTransportClose);
     };
 
     // This is kind of a hack, but it lets us avoid rewriting more code.
@@ -1311,6 +1318,15 @@ class Connection extends EventEmitter {
     }
 
     this.emit('sample', sample);
+  }
+
+  /**
+   * Called when we receive a transportClose event from pstream.
+   * Re-emits the event.
+   */
+  private _onTransportClose = (): void => {
+    this._log.error('Received transportClose from pstream');
+    this.emit('transportClose');
   }
 
   /**
