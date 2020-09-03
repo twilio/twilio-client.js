@@ -57,6 +57,13 @@
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>A smart collection containing a Set of active output devices.</p>
+					</div>
+				</div>
+			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
@@ -93,13 +100,23 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/2868ea3/lib/twilio/outputdevicecollection.ts#L33">twilio/outputdevicecollection.ts:33</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/125ea57/lib/twilio/outputdevicecollection.ts#L34">lib/twilio/outputdevicecollection.ts:34</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Delete a device from the collection. If no devices remain, the &#39;default&#39;
+										device will be added as the sole device. If no <code>default</code> device exists,
+									the first available device will be used.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>device: <span class="tsd-signature-type">MediaDeviceInfo</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The device to delete from the collection</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -117,9 +134,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/2868ea3/lib/twilio/outputdevicecollection.ts#L54">twilio/outputdevicecollection.ts:54</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/125ea57/lib/twilio/outputdevicecollection.ts#L55">lib/twilio/outputdevicecollection.ts:55</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Get the current set of devices.</p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Set</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">MediaDeviceInfo</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
@@ -134,13 +156,21 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/2868ea3/lib/twilio/outputdevicecollection.ts#L64">twilio/outputdevicecollection.ts:64</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/125ea57/lib/twilio/outputdevicecollection.ts#L65">lib/twilio/outputdevicecollection.ts:65</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Replace the current set of devices with a new set of devices.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>deviceIdOrIds: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>An ID or array of IDs of devices to replace the existing devices with.</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -159,13 +189,18 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/2868ea3/lib/twilio/outputdevicecollection.ts#L100">twilio/outputdevicecollection.ts:100</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/125ea57/lib/twilio/outputdevicecollection.ts#L101">lib/twilio/outputdevicecollection.ts:101</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Test the devices by playing audio through them.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> soundUrl: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;DEFAULT_TEST_SOUND_URL</span></h5>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> soundUrl: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = DEFAULT_TEST_SOUND_URL</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -186,27 +221,50 @@
 					</li>
 					<li class="current tsd-kind-external-module">
 						<a href="../modules/voice.html">Voice</a>
+						<ul>
+							<li class=" tsd-kind-module tsd-parent-kind-external-module">
+								<a href="../modules/voice.authorizationerrors.html">Authorization<wbr>Errors</a>
+							</li>
+							<li class=" tsd-kind-module tsd-parent-kind-external-module">
+								<a href="../modules/voice.clienterrors.html">Client<wbr>Errors</a>
+							</li>
+							<li class=" tsd-kind-module tsd-parent-kind-external-module">
+								<a href="../modules/voice.generalerrors.html">General<wbr>Errors</a>
+							</li>
+							<li class=" tsd-kind-module tsd-parent-kind-external-module">
+								<a href="../modules/voice.mediaerrors.html">Media<wbr>Errors</a>
+							</li>
+							<li class=" tsd-kind-module tsd-parent-kind-external-module">
+								<a href="../modules/voice.signalingerrors.html">Signaling<wbr>Errors</a>
+							</li>
+						</ul>
 					</li>
 					<li class="label tsd-is-external">
 						<span>Externals</span>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_twilio_.html">"twilio"</a>
+						<a href="../modules/_twilio_.html">&quot;twilio&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_twilio_constants_.html">"twilio/constants"</a>
+						<a href="../modules/_twilio_constants_.html">&quot;twilio/constants&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_twilio_errors_index_.html">"twilio/errors/index"</a>
+						<a href="../modules/_twilio_errors_index_.html">&quot;twilio/errors/index&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_twilio_shims_eventtarget_.html">"twilio/shims/eventtarget"</a>
+						<a href="../modules/_twilio_rtc_mockrtcstatsreport_.html">&quot;twilio/rtc/mockrtcstatsreport&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_twilio_shims_mediadevices_.html">"twilio/shims/mediadevices"</a>
+						<a href="../modules/_twilio_rtc_stats_.html">&quot;twilio/rtc/stats&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_twilio_util_.html">"twilio/util"</a>
+						<a href="../modules/_twilio_shims_eventtarget_.html">&quot;twilio/shims/eventtarget&quot;</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_twilio_shims_mediadevices_.html">&quot;twilio/shims/mediadevices&quot;</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_twilio_util_.html">&quot;twilio/util&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="../modules/tools.html">Tools</a>
