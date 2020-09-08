@@ -30,7 +30,10 @@ const DEFAULT_THRESHOLDS: StatsMonitor.ThresholdOptions = {
   bytesSent: { clearCount: 2, min: 1, raiseCount: 3, sampleCount: 3 },
   jitter: { max: 30 },
   mos: { min: 3 },
-  packetsLostFraction: { max: 1 },
+  packetsLostFraction: {
+    average: { max: { raise: 3, clear: 1 } },
+    sampleCount: 7,
+  },
   rtt: { max: 400 },
 };
 
@@ -70,6 +73,21 @@ function countHigh(max: number, values: number[]): number {
  */
 function countLow(min: number, values: number[]): number {
   return values.reduce((lowCount, value) => lowCount += (value < min) ? 1 : 0, 0);
+}
+
+/**
+ * Average the set of values.
+ * @private
+ * @param values - The values to average.
+ * @returns The average of those values or `null` if the set of values is empty.
+ */
+function averageValues(values: number[]): number | null {
+  return values.length
+    ? values.reduce(
+        (partialSum: number, value: number) => partialSum + value,
+        0,
+      ) / values.length
+    : null;
 }
 
 /**
@@ -450,6 +468,48 @@ class StatsMonitor extends EventEmitter {
         this._clearWarning(statName, 'maxDuration', { value: prevStreak });
       }
     }
+
+    if (typeof limits.average === 'object') {
+      const averageOption: Exclude<
+        StatsMonitor.ThresholdOption['average'],
+        undefined
+      > = limits.average;
+
+      const valueAverage: number | null = averageValues(values);
+      if (typeof valueAverage !== 'number') {
+        return;
+      }
+
+      const prevStreak: number = this._currentStreaks.get(statName) || 0;
+      const newStreak: number = prevStreak + 1;
+
+      const thresholds = ([
+        ['max', [
+          valueAverage > (averageOption.max ? averageOption.max.raise : Infinity),
+          valueAverage < (averageOption.max ? averageOption.max.clear : -Infinity),
+        ]],
+        ['min', [
+          valueAverage < (averageOption.min ? averageOption.min.raise : -Infinity),
+          valueAverage > (averageOption.min ? averageOption.min.clear : Infinity),
+        ]],
+      ] as const).find(
+        ([key]) => key in averageOption,
+      );
+
+      if (!thresholds) {
+        return;
+      }
+
+      const [type, [doRaise, doClear]] = thresholds;
+      const warningName: string = `${type}Average`;
+      if (doRaise) {
+        this._currentStreaks.set(statName, newStreak);
+        this._raiseWarning(statName, warningName, { value: newStreak });
+      } else if (doClear) {
+        this._currentStreaks.set(statName, 0);
+        this._clearWarning(statName, warningName, { value: prevStreak });
+      }
+    }
   }
 }
 
@@ -485,6 +545,22 @@ namespace StatsMonitor {
    * @private
    */
   export interface ThresholdOption {
+    /**
+     * Warning will be raised based on the average over `sampleCount` samples.
+     *
+     * If `max` is used, the warning is raised if the average is above
+     * the `raise` amount and is cleared when below the `clear` amount.
+     *
+     * If `min` is used, the warning is raised if the average is below
+     * the `raise` amount and is cleared when above the `clear` amount.
+     */
+    average?: {
+      [key in 'max' | 'min']?: {
+        clear: number;
+        raise: number;
+      };
+    };
+
     /**
      * How many samples that need to cross the threshold to clear a warning.
      * Overrides SAMPLE_COUNT_CLEAR
