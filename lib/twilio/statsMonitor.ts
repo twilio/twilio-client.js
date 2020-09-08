@@ -24,8 +24,8 @@ const SAMPLE_INTERVAL = 1000;
 const WARNING_TIMEOUT = 5 * 1000;
 
 const DEFAULT_THRESHOLDS: StatsMonitor.ThresholdOptions = {
-  audioInputLevel: { maxDuration: 10, sampleCount: 10 },
-  audioOutputLevel: { maxDuration: 10, sampleCount: 10 },
+  audioInputLevel: { minStandardDeviation: 327.67, sampleCount: 10 },
+  audioOutputLevel: { minStandardDeviation: 327.67, sampleCount: 10 },
   bytesReceived: { clearCount: 2, min: 1, raiseCount: 3, sampleCount: 3 },
   bytesSent: { clearCount: 2, min: 1, raiseCount: 3, sampleCount: 3 },
   jitter: { max: 30 },
@@ -97,18 +97,22 @@ function averageValues(values: number[]): number | null {
  * @param values The list of numbers to calculate the standard deviation from.
  * @returns The standard deviation of a list of numbers.
  */
-function calculateStandardDeviation(sampleValues: number[]) {
-  const sampleAverage: number = sampleValues.reduce(
-    (partialSum: number, sample: number) => partialSum + sample,
-    0,
-  ) / sampleValues.length;
+function calculateStandardDeviation(values: number[]): number | null {
+  if (!(values.length > 0)) {
+    return null;
+  }
 
-  const diffSquared: number[] = sampleValues.map(
-    (sample: number) => Math.pow(sample - sampleAverage, 2),
+  const valueAverage: number = values.reduce(
+    (partialSum: number, value: number) => partialSum + value,
+    0,
+  ) / values.length;
+
+  const diffSquared: number[] = values.map(
+    (value: number) => Math.pow(value - valueAverage, 2),
   );
 
   const stdDev: number = Math.sqrt(diffSquared.reduce(
-    (partialSum: number, sample: number) => partialSum + sample,
+    (partialSum: number, value: number) => partialSum + value,
     0,
   ) / diffSquared.length);
 
@@ -475,7 +479,7 @@ class StatsMonitor extends EventEmitter {
     const raiseCount = limits.raiseCount || SAMPLE_COUNT_RAISE;
     const sampleCount = limits.sampleCount || this._maxSampleCount;
 
-    const relevantSamples = samples.slice(-sampleCount);
+    let relevantSamples = samples.slice(-sampleCount);
     const values = relevantSamples.map(sample => sample[statName]);
 
     // (rrowland) If we have a bad or missing value in the set, we don't
@@ -505,28 +509,47 @@ class StatsMonitor extends EventEmitter {
       }
     }
 
-    if (typeof limits.maxDuration === 'number') {
-      const volumeSampleSets: number[][] = this._supplementalSampleBuffers[statName];
-      if (!volumeSampleSets || volumeSampleSets.length < limits.maxDuration) {
+    if (typeof limits.maxDuration === 'number' && samples.length > 1) {
+      relevantSamples = samples.slice(-2);
+      const prevValue = relevantSamples[0][statName];
+      const curValue = relevantSamples[1][statName];
+
+      const prevStreak = this._currentStreaks.get(statName) || 0;
+      const streak = (prevValue === curValue) ? prevStreak + 1 : 0;
+
+      this._currentStreaks.set(statName, streak);
+
+      if (streak >= limits.maxDuration) {
+        this._raiseWarning(statName, 'maxDuration', { value: streak });
+      } else if (streak === 0) {
+        this._clearWarning(statName, 'maxDuration', { value: prevStreak });
+      }
+    }
+
+    if (typeof limits.minStandardDeviation === 'number') {
+      const sampleSets: number[][] = this._supplementalSampleBuffers[statName];
+      if (!sampleSets || sampleSets.length < limits.sampleCount) {
         return;
       }
-      if (volumeSampleSets.length > limits.maxDuration) {
-        volumeSampleSets.splice(0, volumeSampleSets.length - limits.maxDuration);
+      if (sampleSets.length > limits.sampleCount) {
+        sampleSets.splice(0, sampleSets.length - limits.sampleCount);
       }
+      const flatSamples: number[] = flattenSamples(sampleSets.slice(-sampleCount));
+      const stdDev: number | null = calculateStandardDeviation(flatSamples);
 
-      const volumeSamples: number[] = flattenSamples(volumeSampleSets.slice(-sampleCount));
+      if (typeof stdDev !== 'number') {
+        return;
+      }
 
       const prevStreak: number = this._currentStreaks.get(statName) || 0;
 
-      const stdDev: number = calculateStandardDeviation(volumeSamples);
-
-      if (stdDev < 327.67) {
+      if (stdDev < limits.minStandardDeviation) {
         const currentStreak: number = prevStreak + 1;
         this._currentStreaks.set(statName, currentStreak);
-        this._raiseWarning(statName, 'maxDuration', { value: currentStreak });
+        this._raiseWarning(statName, 'minStandardDeviation', { value: currentStreak });
       } else {
         this._currentStreaks.set(statName, 0);
-        this._clearWarning(statName, 'maxDuration', { value: prevStreak });
+        this._clearWarning(statName, 'minStandardDeviation', { value: prevStreak });
       }
     }
 
@@ -622,6 +645,12 @@ namespace StatsMonitor {
      * is cleared when above the `clearValue` amount.
      */
     minAverage?: number;
+
+    /**
+     * Warning will be raised if the standard deviation of the tracked metric
+     * does not exceed this value.
+     */
+    minStandardDeviation?: number;
 
     /**
      * How many samples that need to cross the threshold to raise a warning.

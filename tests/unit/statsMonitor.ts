@@ -225,7 +225,48 @@ describe('StatsMonitor', () => {
 
   describe(`StatsMonitor on 'warning'`, () => {
     context(`'maxDuration' threshold`, () => {
-      it(`Should raise a warning when 'maxDuration' threshold is reached`, () =>
+      it(`Should raise warning when 'maxDuration' threshold is reached`, (done) => {
+        thresholds[STAT_NAME].maxDuration = 2;
+        monitor = new StatsMonitor({ getRTCStats, thresholds });
+        monitor.enable({});
+
+        monitor.on('warning', warning => {
+          assert.equal(warning.name, STAT_NAME);
+          assert.equal(warning.value, thresholds[STAT_NAME].maxDuration);
+          done();
+        });
+
+        clock.tick(SAMPLE_COUNT_RAISE * 1000);
+      });
+
+      it(`Should NOT raise warning when 'maxDuration' threshold is reached but with different stat values`, () => {
+        const onWarning = sinon.stub();
+        thresholds[STAT_NAME].maxDuration = 2;
+        monitor = new StatsMonitor({ getRTCStats, thresholds });
+        monitor.enable({});
+
+        monitor.on('warning', (warning) => {
+          console.log(warning);
+          onWarning();
+        });
+
+        clock.tick(1000);
+        stats[STAT_NAME]--;
+
+        clock.tick(1000);
+        stats[STAT_NAME]--;
+
+        clock.tick(1000);
+        stats[STAT_NAME]--;
+
+        clock.restore();
+
+        return wait().then(() => sinon.assert.notCalled(onWarning));
+      });
+    });
+
+    context(`'minStandardDeviation' threshold`, () => {
+      it(`Should raise a warning when 'minStandardDeviation' threshold is reached`, () =>
         new Promise(async resolve => {
           const statsMonitor = new StatsMonitor({
             getRTCStats: async () => ({}),
