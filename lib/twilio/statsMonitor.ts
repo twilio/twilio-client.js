@@ -31,7 +31,7 @@ const DEFAULT_THRESHOLDS: StatsMonitor.ThresholdOptions = {
   jitter: { max: 30 },
   mos: { min: 3 },
   packetsLostFraction: {
-    average: { max: { raise: 3, clear: 1 } },
+    average: { max: { raiseValue: 3, clearValue: 1 } },
     sampleCount: 7,
   },
   rtt: { max: 400 },
@@ -73,21 +73,6 @@ function countHigh(max: number, values: number[]): number {
  */
 function countLow(min: number, values: number[]): number {
   return values.reduce((lowCount, value) => lowCount += (value < min) ? 1 : 0, 0);
-}
-
-/**
- * Average the set of values.
- * @private
- * @param values - The values to average.
- * @returns The average of those values or `null` if the set of values is empty.
- */
-function averageValues(values: number[]): number | null {
-  return values.length
-    ? values.reduce(
-        (partialSum: number, value: number) => partialSum + value,
-        0,
-      ) / values.length
-    : null;
 }
 
 /**
@@ -470,30 +455,30 @@ class StatsMonitor extends EventEmitter {
     }
 
     if (typeof limits.average === 'object') {
-      const averageOption: Exclude<
+      const option: Exclude<
         StatsMonitor.ThresholdOption['average'],
         undefined
       > = limits.average;
 
-      const valueAverage: number | null = averageValues(values);
-      if (typeof valueAverage !== 'number') {
+      if (values.length === 0) {
         return;
       }
 
+      const avg: number = average(values);
       const prevStreak: number = this._currentStreaks.get(statName) || 0;
       const newStreak: number = prevStreak + 1;
 
       const thresholds = ([
         ['max', [
-          valueAverage > (averageOption.max ? averageOption.max.raise : Infinity),
-          valueAverage < (averageOption.max ? averageOption.max.clear : -Infinity),
+          avg > (option.max ? option.max.raiseValue : Infinity),
+          avg <= (option.max ? option.max.clearValue : -Infinity),
         ]],
         ['min', [
-          valueAverage < (averageOption.min ? averageOption.min.raise : -Infinity),
-          valueAverage > (averageOption.min ? averageOption.min.clear : Infinity),
+          avg < (option.min ? option.min.raiseValue : -Infinity),
+          avg >= (option.min ? option.min.clearValue : Infinity),
         ]],
       ] as const).find(
-        ([key]) => key in averageOption,
+        ([key]) => key in option,
       );
 
       if (!thresholds) {
@@ -556,8 +541,8 @@ namespace StatsMonitor {
      */
     average?: {
       [key in 'max' | 'min']?: {
-        clear: number;
-        raise: number;
+        clearValue: number;
+        raiseValue: number;
       };
     };
 

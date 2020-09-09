@@ -363,7 +363,7 @@ describe('StatsMonitor', () => {
           });
 
           statsMonitor['_thresholds'] = {
-            [STAT_NAME]: { average: { max: { raise: 3, clear: 1 } }, sampleCount: 3 },
+            [STAT_NAME]: { average: { max: { raiseValue: 3, clearValue: 1 } }, sampleCount: 3 },
           };
 
           statsMonitor.on('warning', onWarning);
@@ -394,7 +394,7 @@ describe('StatsMonitor', () => {
           });
 
           statsMonitor['_thresholds'] = {
-            [STAT_NAME]: { average: { max: { raise: 3, clear: 1 } }, sampleCount: 3 },
+            [STAT_NAME]: { average: { max: { raiseValue: 3, clearValue: 1 } }, sampleCount: 3 },
           };
 
           statsMonitor.on('warning', onWarning);
