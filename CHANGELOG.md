@@ -1,3 +1,11 @@
+1.12.5 (In Progress)
+====================
+
+Bug Fixes
+---------
+
+* Fixed an issue where the disconnect sound plays after the caller cancelled the incoming call.
+
 1.12.4 (Sept 4, 2020)
 ====================
 
