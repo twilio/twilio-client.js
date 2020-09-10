@@ -1,10 +1,10 @@
-1.13.0-beta2 (In Progress)
-=============================
+1.13.0-beta2 (Sept 10, 2020)
+============================
 
 Breaking Changes
 ----------------
 
-* (Breaking Change) We now emit `(warning: PreflightTest.Warning)` object from PreflightTest.on('warning'),
+* We now emit `(warning: PreflightTest.Warning)` object from PreflightTest.on('warning'),
   rather than `(name: string, data: RTCWarning)`. The `PreflightTest.Warning` object has been updated
   to match the following interface:
   ```ts
@@ -14,6 +14,11 @@ Breaking Changes
     rtcWarning?: RTCWarning;
   }
   ```
+* Renamed the following `PreflightTest.Report` fields to reflect the correct object types.
+  | Old field name                                  | New field name                                       |
+  |:------------------------------------------------|:-----------------------------------------------------|
+  | `PreflightTest.Report.iceCandidates`            | `PreflightTest.Report.iceCandidateStats`             |
+  | `PreflightTest.Report.selectedIceCandidatePair` | `PreflightTest.Report.selectedIceCandidatePairStats` |
 
 Additions
 ---------
@@ -41,16 +46,6 @@ Additions
     }
   */
   ```
-
-Changes
--------
-
-* Renamed the following `PreflightTest.Report` fields to reflect the correct object types.
-  | Old field name                                  | New field name                                       |
-  |:------------------------------------------------|:-----------------------------------------------------|
-  | `PreflightTest.Report.iceCandidates`            | `PreflightTest.Report.iceCandidateStats`             |
-  | `PreflightTest.Report.selectedIceCandidatePair` | `PreflightTest.Report.selectedIceCandidatePairStats` |
---------------------------
 
 Bug Fixes
 ---------
