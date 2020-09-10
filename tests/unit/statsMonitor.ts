@@ -363,7 +363,7 @@ describe('StatsMonitor', () => {
           });
 
           statsMonitor['_thresholds'] = {
-            [STAT_NAME]: { maxAverage: 3, averageClearValue: 1, sampleCount: 3 },
+            [STAT_NAME]: { maxAverage: 3, clearValue: 1, sampleCount: 3 },
           };
 
           statsMonitor.on('warning', onWarning);
@@ -388,7 +388,7 @@ describe('StatsMonitor', () => {
                 name: 'maxAverage',
                 value: 3,
               },
-              value: 1,
+              value: 5,
             });
           });
         });
@@ -404,7 +404,7 @@ describe('StatsMonitor', () => {
           });
 
           statsMonitor['_thresholds'] = {
-            [STAT_NAME]: { maxAverage: 3, averageClearValue: 1, sampleCount: 3 },
+            [STAT_NAME]: { maxAverage: 3, clearValue: 1, sampleCount: 3 },
           };
 
           statsMonitor.on('warning', onWarning);
@@ -433,7 +433,7 @@ describe('StatsMonitor', () => {
                 name: 'maxAverage',
                 value: 3,
               },
-              value: 1,
+              value: 5,
             });
             sinon.assert.calledOnce(onWarningCleared);
           });

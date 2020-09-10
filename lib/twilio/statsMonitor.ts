@@ -31,7 +31,7 @@ const DEFAULT_THRESHOLDS: StatsMonitor.ThresholdOptions = {
   jitter: { max: 30 },
   mos: { min: 3 },
   packetsLostFraction: {
-    averageClearValue: 1,
+    clearValue: 1,
     maxAverage: 3,
     sampleCount: 7,
   },
@@ -461,15 +461,11 @@ class StatsMonitor extends EventEmitter {
     ] as const).forEach(([thresholdName, comparator]) => {
       if (typeof limits[thresholdName] === 'number' && values.length > 0) {
         const avg: number = average(values);
-        const prevStreak: number = this._currentStreaks.get(statName) || 0;
-        const newStreak: number = prevStreak + 1;
 
         if (comparator(avg, limits[thresholdName])) {
-          this._currentStreaks.set(statName, newStreak);
-          this._raiseWarning(statName, thresholdName, { value: newStreak });
-        } else if (!comparator(avg, limits.averageClearValue || limits[thresholdName])) {
-          this._currentStreaks.set(statName, 0);
-          this._clearWarning(statName, thresholdName, { value: prevStreak });
+          this._raiseWarning(statName, thresholdName, { value: avg });
+        } else if (!comparator(avg, limits.clearValue || limits[thresholdName])) {
+          this._clearWarning(statName, thresholdName, { value: avg });
         }
       }
     });
@@ -509,18 +505,18 @@ namespace StatsMonitor {
    */
   export interface ThresholdOption {
     /**
+     * How many samples that need to cross the threshold to clear a warning.
+     * Overrides SAMPLE_COUNT_CLEAR
+     */
+    clearCount?: number;
+
+    /**
      * Used with the `minAverage` and `maxAverage` options. If `maxAverage` is
      * used, then the warning will be cleared when at or below this value. If
      * `minAverage` is used, then the warning will be cleared at or above this
      * value.
      */
-    averageClearValue?: number;
-
-    /**
-     * How many samples that need to cross the threshold to clear a warning.
-     * Overrides SAMPLE_COUNT_CLEAR
-     */
-    clearCount?: number;
+    clearValue?: number;
 
     /**
      * Warning will be raised if tracked metric rises above this value.
