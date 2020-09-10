@@ -363,7 +363,7 @@ describe('StatsMonitor', () => {
           });
 
           statsMonitor['_thresholds'] = {
-            [STAT_NAME]: { average: { max: { raiseValue: 3, clearValue: 1 } }, sampleCount: 3 },
+            [STAT_NAME]: { maxAverage: 3, averageClearValue: 1, sampleCount: 3 },
           };
 
           statsMonitor.on('warning', onWarning);
@@ -380,7 +380,17 @@ describe('StatsMonitor', () => {
 
           clock.restore();
 
-          await wait().then(() => sinon.assert.calledOnce(onWarning));
+          await wait().then(() => {
+            sinon.assert.calledOnce(onWarning);
+            assert.deepEqual(onWarning.args[0][0], {
+              name: STAT_NAME,
+              threshold: {
+                name: 'maxAverage',
+                value: 3,
+              },
+              value: 1,
+            });
+          });
         });
 
         it('should clear warning when the average-clear threshold is reached', async () => {
@@ -394,7 +404,7 @@ describe('StatsMonitor', () => {
           });
 
           statsMonitor['_thresholds'] = {
-            [STAT_NAME]: { average: { max: { raiseValue: 3, clearValue: 1 } }, sampleCount: 3 },
+            [STAT_NAME]: { maxAverage: 3, averageClearValue: 1, sampleCount: 3 },
           };
 
           statsMonitor.on('warning', onWarning);
@@ -417,6 +427,14 @@ describe('StatsMonitor', () => {
 
           await wait().then(() => {
             sinon.assert.calledOnce(onWarning);
+            assert.deepEqual(onWarning.args[0][0], {
+              name: STAT_NAME,
+              threshold: {
+                name: 'maxAverage',
+                value: 3,
+              },
+              value: 1,
+            });
             sinon.assert.calledOnce(onWarningCleared);
           });
         });

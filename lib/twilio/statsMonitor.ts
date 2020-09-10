@@ -31,7 +31,8 @@ const DEFAULT_THRESHOLDS: StatsMonitor.ThresholdOptions = {
   jitter: { max: 30 },
   mos: { min: 3 },
   packetsLostFraction: {
-    average: { max: { raiseValue: 3, clearValue: 1 } },
+    averageClearValue: 1,
+    maxAverage: 3,
     sampleCount: 7,
   },
   rtt: { max: 400 },
@@ -454,47 +455,24 @@ class StatsMonitor extends EventEmitter {
       }
     }
 
-    if (typeof limits.average === 'object') {
-      const option: Exclude<
-        StatsMonitor.ThresholdOption['average'],
-        undefined
-      > = limits.average;
+    ([
+      ['maxAverage', (x: number, y: number) => x > y],
+      ['minAverage', (x: number, y: number) => x < y],
+    ] as const).forEach(([thresholdName, comparator]) => {
+      if (typeof limits[thresholdName] === 'number' && values.length > 0) {
+        const avg: number = average(values);
+        const prevStreak: number = this._currentStreaks.get(statName) || 0;
+        const newStreak: number = prevStreak + 1;
 
-      if (values.length === 0) {
-        return;
+        if (comparator(avg, limits[thresholdName])) {
+          this._currentStreaks.set(statName, newStreak);
+          this._raiseWarning(statName, thresholdName, { value: newStreak });
+        } else if (!comparator(avg, limits.averageClearValue || limits[thresholdName])) {
+          this._currentStreaks.set(statName, 0);
+          this._clearWarning(statName, thresholdName, { value: prevStreak });
+        }
       }
-
-      const avg: number = average(values);
-      const prevStreak: number = this._currentStreaks.get(statName) || 0;
-      const newStreak: number = prevStreak + 1;
-
-      const thresholds = ([
-        ['max', [
-          avg > (option.max ? option.max.raiseValue : Infinity),
-          avg <= (option.max ? option.max.clearValue : -Infinity),
-        ]],
-        ['min', [
-          avg < (option.min ? option.min.raiseValue : -Infinity),
-          avg >= (option.min ? option.min.clearValue : Infinity),
-        ]],
-      ] as const).find(
-        ([key]) => key in option,
-      );
-
-      if (!thresholds) {
-        return;
-      }
-
-      const [type, [doRaise, doClear]] = thresholds;
-      const warningName: string = `${type}Average`;
-      if (doRaise) {
-        this._currentStreaks.set(statName, newStreak);
-        this._raiseWarning(statName, warningName, { value: newStreak });
-      } else if (doClear) {
-        this._currentStreaks.set(statName, 0);
-        this._clearWarning(statName, warningName, { value: prevStreak });
-      }
-    }
+    });
   }
 }
 
@@ -531,20 +509,12 @@ namespace StatsMonitor {
    */
   export interface ThresholdOption {
     /**
-     * Warning will be raised based on the average over `sampleCount` samples.
-     *
-     * If `max` is used, the warning is raised if the average is above
-     * the `raise` amount and is cleared when below the `clear` amount.
-     *
-     * If `min` is used, the warning is raised if the average is below
-     * the `raise` amount and is cleared when above the `clear` amount.
+     * Used with the `minAverage` and `maxAverage` options. If `maxAverage` is
+     * used, then the warning will be cleared when at or below this value. If
+     * `minAverage` is used, then the warning will be cleared at or above this
+     * value.
      */
-    average?: {
-      [key in 'max' | 'min']?: {
-        clearValue: number;
-        raiseValue: number;
-      };
-    };
+    averageClearValue?: number;
 
     /**
      * How many samples that need to cross the threshold to clear a warning.
@@ -558,6 +528,13 @@ namespace StatsMonitor {
     max?: number;
 
     /**
+     * Warning will be raised based on the average over `sampleCount` samples.
+     * The warning is raised if the average is above the `raiseValue` amount and
+     * is cleared when below the `clearValue` amount.
+     */
+    maxAverage?: number;
+
+    /**
      * Warning will be raised if tracked metric stays constant for
      * the specified number of consequent samples.
      */
@@ -567,6 +544,13 @@ namespace StatsMonitor {
      * Warning will be raised if tracked metric falls below this value.
      */
     min?: number;
+
+    /**
+     * Warning will be raised based on the average over `sampleCount` samples.
+     * The warning is raised if the average is below the `raiseValue` amount and
+     * is cleared when above the `clearValue` amount.
+     */
+    minAverage?: number;
 
     /**
      * How many samples that need to cross the threshold to raise a warning.
