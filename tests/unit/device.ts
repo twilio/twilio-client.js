@@ -52,6 +52,7 @@ describe('Device', function() {
 
   afterEach(() => {
     clock.restore();
+    root.resetEvents();
   });
 
   beforeEach(() => {
@@ -870,6 +871,24 @@ describe('Device', function() {
         pstream.emit('ready');
         sinon.assert.calledOnce(device.emit as any);
         sinon.assert.calledWith(device.emit as any, 'ready');
+      });
+    });
+
+    describe('on unload or pagehide', () => {
+      beforeEach(() => {
+        device = new Device();
+      });
+      it('should call destroy once on pagehide', () => {
+        device.destroy = sinon.spy();
+        device.setup(token, setupOptions);
+        root.window.dispatchEvent('pagehide');
+        sinon.assert.calledOnce(device.destroy as any);
+      });
+      it('should call destroy once on unload', () => {
+        device.destroy = sinon.spy();
+        device.setup(token, setupOptions);
+        root.window.dispatchEvent('unload');
+        sinon.assert.calledOnce(device.destroy as any);
       });
     });
 
