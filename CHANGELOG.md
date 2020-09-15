@@ -1,3 +1,11 @@
+1.12.5 (In progress)
+====================
+
+Bug Fixes
+---------
+
+* Fixed an issue introduced in Safari 13.1 that caused calls to continue playing after navigating away from the page.
+
 1.12.4 (Sept 4, 2020)
 ====================
 

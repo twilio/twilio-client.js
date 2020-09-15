@@ -1,5 +1,14 @@
 const root = global as any;
-root.window = { navigator: { userAgent: '' }, removeEventListener: () => { }, addEventListener: () => { } };
+let handlers = {};
+root.resetEvents = () => { handlers = {}; };
+root.window = {
+  navigator: { userAgent: '' },
+  removeEventListener: (name: string) => {delete (handlers as any)[name];},
+  addEventListener: (name:string, func: Function) => {(handlers as any)[name] = func;},
+  dispatchEvent: (name: string) => {
+    (handlers as any)[name]();
+  }
+};
 
 root.XMLHttpRequest = () => { };
 root.XMLHttpRequest.prototype.addEventListener = (name: string, cb: Function) => {
