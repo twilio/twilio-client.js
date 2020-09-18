@@ -452,7 +452,11 @@ class Connection extends EventEmitter {
 
     this.mediaStream.onclose = () => {
       this._status = Connection.State.Closed;
-      if (this.options.shouldPlayDisconnect && this.options.shouldPlayDisconnect()) {
+      if (this.options.shouldPlayDisconnect && this.options.shouldPlayDisconnect()
+        // Don't play disconnect sound if this was from a cancel event. i.e. the call
+        // was ignored or hung up even before it was answered.
+        && !this._isCancelled) {
+
         this._soundcache.get(Device.SoundName.Disconnect).play();
       }
 
