@@ -4,6 +4,7 @@
 Bug Fixes
 ---------
 
+* Fixed an issue introduced in Safari 13.1 that caused calls to continue playing after navigating away from the page.
 * Fixed an issue where the disconnect sound plays after the caller cancelled the incoming call.
 
 1.12.4 (Sept 4, 2020)
