@@ -470,7 +470,7 @@ class Device extends EventEmitter {
   /**
    * Destroy the {@link Device}, freeing references to be garbage collected.
    */
-  destroy(): void {
+  destroy = (): void => {
     this._disconnectAll();
     this._stopRegistrationTimer();
 
@@ -489,7 +489,8 @@ class Device extends EventEmitter {
 
     if (typeof window !== 'undefined' && window.removeEventListener) {
       window.removeEventListener('beforeunload', this._confirmClose);
-      window.removeEventListener('unload', this._disconnectAll);
+      window.removeEventListener('unload', this.destroy);
+      window.removeEventListener('pagehide', this.destroy);
     }
   }
 
@@ -769,7 +770,8 @@ class Device extends EventEmitter {
 
     // Setup close protection and make sure we clean up ongoing calls on unload.
     if (typeof window !== 'undefined' && window.addEventListener) {
-      window.addEventListener('unload', this._disconnectAll);
+      window.addEventListener('unload', this.destroy);
+      window.addEventListener('pagehide', this.destroy);
       if (this.options.closeProtection) {
         window.addEventListener('beforeunload', this._confirmClose);
       }

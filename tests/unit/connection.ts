@@ -1397,7 +1397,7 @@ describe('Connection', function() {
       let closeStub: any;
       let publishStub: any;
 
-      beforeEach(() => {
+      const initConnection = () => {
         cleanupStub = sinon.stub();
         closeStub = sinon.stub();
         publishStub = sinon.stub();
@@ -1414,7 +1414,9 @@ describe('Connection', function() {
         conn._publisher = {
           info: publishStub
         };
-      });
+      };
+
+      beforeEach(initConnection);
 
       context('when the callsid matches', () => {
         it('should transition to closed', () => {
@@ -1441,6 +1443,17 @@ describe('Connection', function() {
           pstream.emit('cancel', { callsid: 'CA123' });
 
           return wait().then(() => sinon.assert.notCalled(callback));
+        });
+
+        it('should not play disconnect sound', () => {
+          options.shouldPlayDisconnect = () => true;
+          initConnection();
+          conn.mediaStream.close = () => mediaStream.onclose();
+          pstream.emit('cancel', { callsid: 'CA123' });
+
+          return wait().then(() => {
+            sinon.assert.notCalled(soundcache.get(Device.SoundName.Disconnect).play);
+          });
         });
       });
 
