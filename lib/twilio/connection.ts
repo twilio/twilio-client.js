@@ -77,6 +77,7 @@ const WARNING_NAMES: Record<string, string> = {
 
 const WARNING_PREFIXES: Record<string, string> = {
   max: 'high-',
+  maxAverage: 'high-',
   maxDuration: 'constant-',
   min: 'low-',
 };

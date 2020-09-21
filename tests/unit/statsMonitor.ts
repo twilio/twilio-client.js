@@ -1,7 +1,7 @@
-import StatsMonitor from '../../lib/twilio/statsMonitor';
-import { SinonFakeTimers } from 'sinon';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
+import { SinonFakeTimers } from 'sinon';
+import StatsMonitor from '../../lib/twilio/statsMonitor';
 
 describe('StatsMonitor', () => {
   const SAMPLE_COUNT_RAISE = 3;
@@ -347,6 +347,96 @@ describe('StatsMonitor', () => {
           clock.restore();
 
           return wait().then(() => sinon.assert.notCalled(onWarning));
+        });
+      });
+    });
+
+    context(`'average' thresholds`, () => {
+      context(`max`, () => {
+        it('should raise warning when the average threshold is reached', async () => {
+          const onWarning = sinon.stub();
+
+          stats[STAT_NAME] = 0;
+
+          const statsMonitor = new StatsMonitor({
+            getRTCStats,
+          });
+
+          statsMonitor['_thresholds'] = {
+            [STAT_NAME]: { maxAverage: 3, clearValue: 1, sampleCount: 3 },
+          };
+
+          statsMonitor.on('warning', onWarning);
+
+          statsMonitor.enable({});
+
+          await clock.tickAsync(1000);
+          stats[STAT_NAME] += 10;
+
+          await clock.tickAsync(1000);
+          stats[STAT_NAME] += 10;
+
+          await clock.tickAsync(1000);
+
+          clock.restore();
+
+          await wait().then(() => {
+            sinon.assert.calledOnce(onWarning);
+            assert.deepEqual(onWarning.args[0][0], {
+              name: STAT_NAME,
+              threshold: {
+                name: 'maxAverage',
+                value: 3,
+              },
+              value: 5,
+            });
+          });
+        });
+
+        it('should clear warning when the average-clear threshold is reached', async () => {
+          const onWarning = sinon.stub();
+          const onWarningCleared = sinon.stub();
+
+          stats[STAT_NAME] = 0;
+
+          const statsMonitor = new StatsMonitor({
+            getRTCStats,
+          });
+
+          statsMonitor['_thresholds'] = {
+            [STAT_NAME]: { maxAverage: 3, clearValue: 1, sampleCount: 3 },
+          };
+
+          statsMonitor.on('warning', onWarning);
+          statsMonitor.on('warning-cleared', onWarningCleared);
+
+          statsMonitor.enable({});
+
+          await clock.tickAsync(1000);
+
+          stats[STAT_NAME] += 10;
+          await clock.tickAsync(1000);
+
+          stats[STAT_NAME] += 10;
+          await clock.tickAsync(1000);
+
+          stats[STAT_NAME] = 0;
+          await clock.tickAsync(10000);
+
+          clock.restore();
+
+          await wait().then(() => {
+            sinon.assert.calledOnce(onWarning);
+            assert.deepEqual(onWarning.args[0][0], {
+              name: STAT_NAME,
+              threshold: {
+                name: 'maxAverage',
+                value: 3,
+              },
+              value: 5,
+            });
+            sinon.assert.calledOnce(onWarningCleared);
+          });
         });
       });
     });
