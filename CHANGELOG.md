@@ -1,3 +1,10 @@
+1.12.6 (In Progress)
+====================
+
+Changes
+-------
+* The behavior for raising the `high-packet-loss` warning has been updated. Now, the most recent seven seconds of packet-loss samples are recorded and analyzed. If the average of these samples is greater than `3%` packet-loss, then the warning is raised. When the average packet-loss over the most recent seven seconds is less than or equal to `1%` packet-loss, then the warning is cleared.
+
 1.12.5 (Sept 22, 2020)
 ====================
 
