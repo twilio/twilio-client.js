@@ -1735,19 +1735,6 @@ describe('Connection', function() {
   });
 
   describe('on monitor.warning', () => {
-    it('should properly translate `maxAverage`', () => {
-      monitor.emit('warning', {
-        name: 'packetsLostFraction',
-        threshold: { name: 'maxAverage', value: 3 },
-        value: 1,
-      });
-      sinon.assert.calledOnce(publisher.post);
-      const [warningStr, warningType, warning] = publisher.post.args[0];
-      assert.equal(warningStr, 'warning');
-      assert.equal(warningType, 'network-quality-warning-raised');
-      assert.equal(warning, 'high-packet-loss');
-    });
-
     context('if warningData.name contains audio', () => {
       it('should publish an audio-level-warning-raised warning event', () => {
         monitor.emit('warning', { name: 'audio', threshold: { name: 'max' }, values: [1, 2, 3] });

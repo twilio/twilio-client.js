@@ -30,11 +30,7 @@ const DEFAULT_THRESHOLDS: StatsMonitor.ThresholdOptions = {
   bytesSent: { clearCount: 2, min: 1, raiseCount: 3, sampleCount: 3 },
   jitter: { max: 30 },
   mos: { min: 3 },
-  packetsLostFraction: {
-    clearValue: 1,
-    maxAverage: 3,
-    sampleCount: 7,
-  },
+  packetsLostFraction: { max: 1 },
   rtt: { max: 400 },
 };
 
@@ -454,21 +450,6 @@ class StatsMonitor extends EventEmitter {
         this._clearWarning(statName, 'maxDuration', { value: prevStreak });
       }
     }
-
-    ([
-      ['maxAverage', (x: number, y: number) => x > y],
-      ['minAverage', (x: number, y: number) => x < y],
-    ] as const).forEach(([thresholdName, comparator]) => {
-      if (typeof limits[thresholdName] === 'number' && values.length > 0) {
-        const avg: number = average(values);
-
-        if (comparator(avg, limits[thresholdName])) {
-          this._raiseWarning(statName, thresholdName, { value: avg });
-        } else if (!comparator(avg, limits.clearValue || limits[thresholdName])) {
-          this._clearWarning(statName, thresholdName, { value: avg });
-        }
-      }
-    });
   }
 }
 
@@ -511,24 +492,9 @@ namespace StatsMonitor {
     clearCount?: number;
 
     /**
-     * Used with the `minAverage` and `maxAverage` options. If `maxAverage` is
-     * used, then the warning will be cleared when at or below this value. If
-     * `minAverage` is used, then the warning will be cleared at or above this
-     * value.
-     */
-    clearValue?: number;
-
-    /**
      * Warning will be raised if tracked metric rises above this value.
      */
     max?: number;
-
-    /**
-     * Warning will be raised based on the average over `sampleCount` samples.
-     * The warning is raised if the average is above the `raiseValue` amount and
-     * is cleared when below the `clearValue` amount.
-     */
-    maxAverage?: number;
 
     /**
      * Warning will be raised if tracked metric stays constant for
@@ -540,13 +506,6 @@ namespace StatsMonitor {
      * Warning will be raised if tracked metric falls below this value.
      */
     min?: number;
-
-    /**
-     * Warning will be raised based on the average over `sampleCount` samples.
-     * The warning is raised if the average is below the `raiseValue` amount and
-     * is cleared when above the `clearValue` amount.
-     */
-    minAverage?: number;
 
     /**
      * How many samples that need to cross the threshold to raise a warning.
