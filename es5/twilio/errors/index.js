@@ -1,0 +1,61 @@
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * @internalapi
+ */
+/* tslint:disable max-classes-per-file */
+var generated_1 = require("./generated");
+exports.AuthorizationErrors = generated_1.AuthorizationErrors;
+exports.ClientErrors = generated_1.ClientErrors;
+exports.GeneralErrors = generated_1.GeneralErrors;
+exports.MediaErrors = generated_1.MediaErrors;
+exports.SignalingErrors = generated_1.SignalingErrors;
+// Application errors that can be avoided by good app logic
+var InvalidArgumentError = /** @class */ (function (_super) {
+    __extends(InvalidArgumentError, _super);
+    function InvalidArgumentError() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return InvalidArgumentError;
+}(Error));
+exports.InvalidArgumentError = InvalidArgumentError;
+var InvalidStateError = /** @class */ (function (_super) {
+    __extends(InvalidStateError, _super);
+    function InvalidStateError() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return InvalidStateError;
+}(Error));
+exports.InvalidStateError = InvalidStateError;
+var NotSupportedError = /** @class */ (function (_super) {
+    __extends(NotSupportedError, _super);
+    function NotSupportedError() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return NotSupportedError;
+}(Error));
+exports.NotSupportedError = NotSupportedError;
+// This should only be used to look up error codes returned by a server
+// using the same repo of error codes.
+function getErrorByCode(code) {
+    var error = generated_1.errorsByCode.get(code);
+    if (!error) {
+        throw new InvalidArgumentError("Error code " + code + " not found");
+    }
+    return error;
+}
+exports.getErrorByCode = getErrorByCode;
+//# sourceMappingURL=index.js.map
