@@ -13,7 +13,7 @@ const getRTCStats = require('./rtc/stats');
 const Mos = require('./rtc/mos');
 
 // How many samples we use when testing metric thresholds
-const SAMPLE_COUNT_METRICS = 10;
+const SAMPLE_COUNT_METRICS = 5;
 
 // How many samples that need to cross the threshold to
 // raise or clear a warning.
