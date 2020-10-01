@@ -1748,6 +1748,20 @@ describe('Connection', function() {
       assert.equal(warning, 'high-packet-loss');
     });
 
+    it('should properly translate `minStandardDeviation`', () => {
+      mediaStream.isMuted = false;
+      monitor.emit('warning', {
+        name: 'audioInputLevel',
+        threshold: { name: 'minStandardDeviation', value: 3 },
+        value: 1,
+      });
+      sinon.assert.calledOnce(publisher.post);
+      const [warningStr, warningType, warning] = publisher.post.args[0];
+      assert.equal(warningStr, 'warning');
+      assert.equal(warningType, 'audio-level-warning-raised');
+      assert.equal(warning, 'constant-audio-input-level');
+    });
+
     context('if warningData.name contains audio', () => {
       it('should publish an audio-level-warning-raised warning event', () => {
         monitor.emit('warning', { name: 'audio', threshold: { name: 'max' }, values: [1, 2, 3] });
