@@ -529,14 +529,25 @@ describe('Device', function() {
       let device: any;
       let options: any;
       let pStreamFactory: any;
+      let pStream: any;
 
       beforeEach(() => {
-        pStreamFactory = sinon.stub().returns({
-          addListener: sinon.stub()
-        });
+        pStream = {
+          addListener: sinon.stub(),
+          open: sinon.stub()
+        };
+        pStreamFactory = sinon.stub().returns(pStream);
 
         device = new Device();
         options = Object.assign({}, setupOptions, { pStreamFactory });
+      });
+
+      it('opens stream after listeners are added', () => {
+        device.setup(token, options);
+        sinon.assert.callOrder(
+          pStream.addListener,
+          pStream.open
+        );
       });
 
       it('should call updateToken with the passed token', () => {
