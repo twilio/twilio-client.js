@@ -77,21 +77,6 @@ function countLow(min: number, values: number[]): number {
 }
 
 /**
- * Average the set of values.
- * @private
- * @param values - The values to average.
- * @returns The average of those values or `null` if the set of values is empty.
- */
-function averageValues(values: number[]): number | null {
-  return values.length
-    ? values.reduce(
-        (partialSum: number, value: number) => partialSum + value,
-        0,
-      ) / values.length
-    : null;
-}
-
-/**
  * Calculate the standard deviation from a list of numbers.
  * @private
  * @param values The list of numbers to calculate the standard deviation from.
@@ -541,15 +526,10 @@ class StatsMonitor extends EventEmitter {
         return;
       }
 
-      const prevStreak: number = this._currentStreaks.get(statName) || 0;
-
       if (stdDev < limits.minStandardDeviation) {
-        const currentStreak: number = prevStreak + 1;
-        this._currentStreaks.set(statName, currentStreak);
-        this._raiseWarning(statName, 'minStandardDeviation', { value: currentStreak });
+        this._raiseWarning(statName, 'minStandardDeviation', { value: stdDev });
       } else {
-        this._currentStreaks.set(statName, 0);
-        this._clearWarning(statName, 'minStandardDeviation', { value: prevStreak });
+        this._clearWarning(statName, 'minStandardDeviation', { value: stdDev });
       }
     }
 
