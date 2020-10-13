@@ -83,7 +83,7 @@ function countLow(min: number, values: number[]): number {
  * @returns The standard deviation of a list of numbers.
  */
 function calculateStandardDeviation(values: number[]): number | null {
-  if (!(values.length > 0)) {
+  if (values.length <= 0) {
     return null;
   }
 
