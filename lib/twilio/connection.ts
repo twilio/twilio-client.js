@@ -80,6 +80,7 @@ const WARNING_PREFIXES: Record<string, string> = {
   maxAverage: 'high-',
   maxDuration: 'constant-',
   min: 'low-',
+  minStandardDeviation: 'constant-',
 };
 
 let hasBeenWarnedHandlers = false;

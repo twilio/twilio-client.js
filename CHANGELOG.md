@@ -3,7 +3,9 @@
 
 Changes
 -------
+
 * The behavior for raising the `high-packet-loss` warning has been updated. Now, the most recent seven seconds of packet-loss samples are recorded and analyzed. If the average of these samples is greater than `3%` packet-loss, then the warning is raised. When the average packet-loss over the most recent seven seconds is less than or equal to `1%` packet-loss, then the warning is cleared.
+* The behavior for raising the `constant-audio-level` warning has been updated. Now, the most recent ten seconds of volume values are recorded and then analyzed. If the standard deviation of these samples is less than 1% of the maximum audio value, then the warning is raised. When the standard deviation is greater than 1% and the warning has already been raised, then the warning is cleared.
 
 1.12.5 (Sept 22, 2020)
 ====================
@@ -15,7 +17,7 @@ Bug Fixes
 * Fixed an issue where the disconnect sound plays after the caller cancelled the incoming call.
 
 1.12.4 (Sept 4, 2020)
-====================
+=====================
 
 Bug Fixes
 ---------
