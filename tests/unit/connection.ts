@@ -1397,7 +1397,7 @@ describe('Connection', function() {
       let closeStub: any;
       let publishStub: any;
 
-      beforeEach(() => {
+      const initConnection = () => {
         cleanupStub = sinon.stub();
         closeStub = sinon.stub();
         publishStub = sinon.stub();
@@ -1414,7 +1414,9 @@ describe('Connection', function() {
         conn._publisher = {
           info: publishStub
         };
-      });
+      };
+
+      beforeEach(initConnection);
 
       context('when the callsid matches', () => {
         it('should transition to closed', () => {
@@ -1441,6 +1443,17 @@ describe('Connection', function() {
           pstream.emit('cancel', { callsid: 'CA123' });
 
           return wait().then(() => sinon.assert.notCalled(callback));
+        });
+
+        it('should not play disconnect sound', () => {
+          options.shouldPlayDisconnect = () => true;
+          initConnection();
+          conn.mediaStream.close = () => mediaStream.onclose();
+          pstream.emit('cancel', { callsid: 'CA123' });
+
+          return wait().then(() => {
+            sinon.assert.notCalled(soundcache.get(Device.SoundName.Disconnect).play);
+          });
         });
       });
 
@@ -1722,6 +1735,33 @@ describe('Connection', function() {
   });
 
   describe('on monitor.warning', () => {
+    it('should properly translate `maxAverage`', () => {
+      monitor.emit('warning', {
+        name: 'packetsLostFraction',
+        threshold: { name: 'maxAverage', value: 3 },
+        value: 1,
+      });
+      sinon.assert.calledOnce(publisher.post);
+      const [warningStr, warningType, warning] = publisher.post.args[0];
+      assert.equal(warningStr, 'warning');
+      assert.equal(warningType, 'network-quality-warning-raised');
+      assert.equal(warning, 'high-packet-loss');
+    });
+
+    it('should properly translate `minStandardDeviation`', () => {
+      mediaStream.isMuted = false;
+      monitor.emit('warning', {
+        name: 'audioInputLevel',
+        threshold: { name: 'minStandardDeviation', value: 3 },
+        value: 1,
+      });
+      sinon.assert.calledOnce(publisher.post);
+      const [warningStr, warningType, warning] = publisher.post.args[0];
+      assert.equal(warningStr, 'warning');
+      assert.equal(warningType, 'audio-level-warning-raised');
+      assert.equal(warning, 'constant-audio-input-level');
+    });
+
     context('if warningData.name contains audio', () => {
       it('should publish an audio-level-warning-raised warning event', () => {
         monitor.emit('warning', { name: 'audio', threshold: { name: 'max' }, values: [1, 2, 3] });

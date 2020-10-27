@@ -25,13 +25,17 @@ const SAMPLE_INTERVAL = 1000;
 const WARNING_TIMEOUT = 5 * 1000;
 
 const DEFAULT_THRESHOLDS: StatsMonitor.ThresholdOptions = {
-  audioInputLevel: { maxDuration: 10 },
-  audioOutputLevel: { maxDuration: 10 },
+  audioInputLevel: { minStandardDeviation: 327.67, sampleCount: 10 },
+  audioOutputLevel: { minStandardDeviation: 327.67, sampleCount: 10 },
   bytesReceived: { clearCount: 2, min: 1, raiseCount: 3, sampleCount: 3 },
   bytesSent: { clearCount: 2, min: 1, raiseCount: 3, sampleCount: 3 },
   jitter: { max: 30 },
   mos: { min: 3 },
-  packetsLostFraction: { max: 1 },
+  packetsLostFraction: {
+    clearValue: 1,
+    maxAverage: 3,
+    sampleCount: 7,
+  },
   rtt: { max: 400 },
 };
 
@@ -71,6 +75,45 @@ function countHigh(max: number, values: number[]): number {
  */
 function countLow(min: number, values: number[]): number {
   return values.reduce((lowCount, value) => lowCount += (value < min) ? 1 : 0, 0);
+}
+
+/**
+ * Calculate the standard deviation from a list of numbers.
+ * @private
+ * @param values The list of numbers to calculate the standard deviation from.
+ * @returns The standard deviation of a list of numbers.
+ */
+function calculateStandardDeviation(values: number[]): number | null {
+  if (values.length <= 0) {
+    return null;
+  }
+
+  const valueAverage: number = values.reduce(
+    (partialSum: number, value: number) => partialSum + value,
+    0,
+  ) / values.length;
+
+  const diffSquared: number[] = values.map(
+    (value: number) => Math.pow(value - valueAverage, 2),
+  );
+
+  const stdDev: number = Math.sqrt(diffSquared.reduce(
+    (partialSum: number, value: number) => partialSum + value,
+    0,
+  ) / diffSquared.length);
+
+  return stdDev;
+}
+
+/**
+ * Flatten a set of numerical sample sets into a single array of samples.
+ * @param sampleSets
+ */
+function flattenSamples(sampleSets: number[][]): number[] {
+  return sampleSets.reduce(
+    (flat: number[], current: number[]) => [...flat, ...current],
+    [],
+  );
 }
 
 /**
@@ -127,6 +170,17 @@ class StatsMonitor extends EventEmitter {
    * The setInterval id for fetching samples.
    */
   private _sampleInterval: NodeJS.Timer;
+
+  /**
+   * Keeps track of supplemental sample values.
+   *
+   * Currently used for constant audio detection. Contains an array of volume
+   * samples for each sample interval.
+   */
+  private _supplementalSampleBuffers: Record<string, number[][]> = {
+    audioInputLevel: [],
+    audioOutputLevel: [],
+  };
 
   /**
    * Threshold values for {@link StatsMonitor}
@@ -305,9 +359,15 @@ class StatsMonitor extends EventEmitter {
 
     const rttValue = (typeof stats.rtt === 'number' || !previousSample) ? stats.rtt : previousSample.rtt;
 
+    const audioInputLevelValues = this._inputVolumes.splice(0);
+    this._supplementalSampleBuffers.audioInputLevel.push(audioInputLevelValues);
+
+    const audioOutputLevelValues = this._outputVolumes.splice(0);
+    this._supplementalSampleBuffers.audioOutputLevel.push(audioOutputLevelValues);
+
     return {
-      audioInputLevel: Math.round(average(this._inputVolumes.splice(0))),
-      audioOutputLevel: Math.round(average(this._outputVolumes.splice(0))),
+      audioInputLevel: Math.round(average(audioInputLevelValues)),
+      audioOutputLevel: Math.round(average(audioOutputLevelValues)),
       bytesReceived: currentBytesReceived,
       bytesSent: currentBytesSent,
       codecName: stats.codecName,
@@ -451,6 +511,43 @@ class StatsMonitor extends EventEmitter {
         this._clearWarning(statName, 'maxDuration', { value: prevStreak });
       }
     }
+
+    if (typeof limits.minStandardDeviation === 'number') {
+      const sampleSets: number[][] = this._supplementalSampleBuffers[statName];
+      if (!sampleSets || sampleSets.length < limits.sampleCount) {
+        return;
+      }
+      if (sampleSets.length > limits.sampleCount) {
+        sampleSets.splice(0, sampleSets.length - limits.sampleCount);
+      }
+      const flatSamples: number[] = flattenSamples(sampleSets.slice(-sampleCount));
+      const stdDev: number | null = calculateStandardDeviation(flatSamples);
+
+      if (typeof stdDev !== 'number') {
+        return;
+      }
+
+      if (stdDev < limits.minStandardDeviation) {
+        this._raiseWarning(statName, 'minStandardDeviation', { value: stdDev });
+      } else {
+        this._clearWarning(statName, 'minStandardDeviation', { value: stdDev });
+      }
+    }
+
+    ([
+      ['maxAverage', (x: number, y: number) => x > y],
+      ['minAverage', (x: number, y: number) => x < y],
+    ] as const).forEach(([thresholdName, comparator]) => {
+      if (typeof limits[thresholdName] === 'number' && values.length > 0) {
+        const avg: number = average(values);
+
+        if (comparator(avg, limits[thresholdName])) {
+          this._raiseWarning(statName, thresholdName, { value: avg });
+        } else if (!comparator(avg, limits.clearValue || limits[thresholdName])) {
+          this._clearWarning(statName, thresholdName, { value: avg });
+        }
+      }
+    });
   }
 }
 
@@ -493,9 +590,24 @@ namespace StatsMonitor {
     clearCount?: number;
 
     /**
+     * Used with the `minAverage` and `maxAverage` options. If `maxAverage` is
+     * used, then the warning will be cleared when at or below this value. If
+     * `minAverage` is used, then the warning will be cleared at or above this
+     * value.
+     */
+    clearValue?: number;
+
+    /**
      * Warning will be raised if tracked metric rises above this value.
      */
     max?: number;
+
+    /**
+     * Warning will be raised based on the average over `sampleCount` samples.
+     * The warning is raised if the average is above the `raiseValue` amount and
+     * is cleared when below the `clearValue` amount.
+     */
+    maxAverage?: number;
 
     /**
      * Warning will be raised if tracked metric stays constant for
@@ -507,6 +619,19 @@ namespace StatsMonitor {
      * Warning will be raised if tracked metric falls below this value.
      */
     min?: number;
+
+    /**
+     * Warning will be raised based on the average over `sampleCount` samples.
+     * The warning is raised if the average is below the `raiseValue` amount and
+     * is cleared when above the `clearValue` amount.
+     */
+    minAverage?: number;
+
+    /**
+     * Warning will be raised if the standard deviation of the tracked metric
+     * does not exceed this value.
+     */
+    minStandardDeviation?: number;
 
     /**
      * How many samples that need to cross the threshold to raise a warning.

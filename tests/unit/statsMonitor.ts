@@ -1,7 +1,7 @@
-import StatsMonitor from '../../lib/twilio/statsMonitor';
-import { SinonFakeTimers } from 'sinon';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
+import { SinonFakeTimers } from 'sinon';
+import StatsMonitor from '../../lib/twilio/statsMonitor';
 
 describe('StatsMonitor', () => {
   const SAMPLE_COUNT_RAISE = 3;
@@ -73,7 +73,7 @@ describe('StatsMonitor', () => {
   describe('StatsMonitor.disableWarnings', () => {
     it(`Should NOT raise warnings when thresholds reached and warnings are disabled`, () => {
       const onWarning = sinon.stub();
-      thresholds[STAT_NAME].maxDuration = 2;
+      thresholds[STAT_NAME].max = 10;
       monitor = new StatsMonitor({ getRTCStats, thresholds });
       monitor.enable({});
 
@@ -90,7 +90,7 @@ describe('StatsMonitor', () => {
   describe('StatsMonitor.enableWarnings', () => {
     it(`Should raise warning after re-enabling warnings`, () => {
       const onWarning = sinon.stub();
-      thresholds[STAT_NAME].maxDuration = 2;
+      thresholds[STAT_NAME].max = 10;
       monitor = new StatsMonitor({ getRTCStats, thresholds });
       monitor.enable({});
 
@@ -265,6 +265,71 @@ describe('StatsMonitor', () => {
       });
     });
 
+    context(`'minStandardDeviation' threshold`, () => {
+      it(`Should raise a warning when 'minStandardDeviation' threshold is reached`, () =>
+        new Promise(async resolve => {
+          const statsMonitor = new StatsMonitor({
+            getRTCStats: async () => ({}),
+            thresholds: { audioInputLevel: { maxDuration: 2, sampleCount: 2 } },
+          });
+
+          statsMonitor.enable({});
+
+          statsMonitor.on('warning', warning => {
+            assert.equal(warning.name, 'audioInputLevel');
+            resolve();
+          });
+
+          for (const volume of [10, 10, 10, 10, 10]) {
+            statsMonitor.addVolumes(volume, volume);
+          }
+          await clock.tickAsync(1000);
+
+          for (const volume of [10, 10, 10, 10, 10]) {
+            statsMonitor.addVolumes(volume, volume);
+          }
+          await clock.tickAsync(1000);
+
+          for (const volume of [10, 10, 10, 10, 10]) {
+            statsMonitor.addVolumes(volume, volume);
+          }
+          await clock.tickAsync(1000);
+        }),
+      );
+
+      it(
+        `Should NOT raise warning when 'maxDuration' threshold is reached but with different stat values`,
+        async () => {
+          const statsMonitor = new StatsMonitor({
+            getRTCStats: async () => ({}),
+            thresholds: { audioInputLevel: { maxDuration: 2, sampleCount: 2 } },
+          });
+
+          statsMonitor.enable({});
+
+          const warningHandler: sinon.SinonStub = sinon.stub();
+          statsMonitor.on('warning', warningHandler);
+
+          for (const volume of [10, 150, 300, 400, 500]) {
+            statsMonitor.addVolumes(volume, volume);
+          }
+          await clock.tickAsync(1000);
+
+          for (const volume of [400, 10, 800, 900, 1000]) {
+            statsMonitor.addVolumes(volume, volume);
+          }
+          await clock.tickAsync(1000);
+
+          for (const volume of [50, 100, 1000, 500, 10]) {
+            statsMonitor.addVolumes(volume, volume);
+          }
+          await clock.tickAsync(1000);
+
+          assert(warningHandler.notCalled);
+        },
+      );
+    });
+
     context(`'min' and 'max' thresholds`, () => {
       [{
         // Used to go outside max boundary
@@ -347,6 +412,96 @@ describe('StatsMonitor', () => {
           clock.restore();
 
           return wait().then(() => sinon.assert.notCalled(onWarning));
+        });
+      });
+    });
+
+    context(`'average' thresholds`, () => {
+      context(`max`, () => {
+        it('should raise warning when the average threshold is reached', async () => {
+          const onWarning = sinon.stub();
+
+          stats[STAT_NAME] = 0;
+
+          const statsMonitor = new StatsMonitor({
+            getRTCStats,
+          });
+
+          statsMonitor['_thresholds'] = {
+            [STAT_NAME]: { maxAverage: 3, clearValue: 1, sampleCount: 3 },
+          };
+
+          statsMonitor.on('warning', onWarning);
+
+          statsMonitor.enable({});
+
+          await clock.tickAsync(1000);
+          stats[STAT_NAME] += 10;
+
+          await clock.tickAsync(1000);
+          stats[STAT_NAME] += 10;
+
+          await clock.tickAsync(1000);
+
+          clock.restore();
+
+          await wait().then(() => {
+            sinon.assert.calledOnce(onWarning);
+            assert.deepEqual(onWarning.args[0][0], {
+              name: STAT_NAME,
+              threshold: {
+                name: 'maxAverage',
+                value: 3,
+              },
+              value: 5,
+            });
+          });
+        });
+
+        it('should clear warning when the average-clear threshold is reached', async () => {
+          const onWarning = sinon.stub();
+          const onWarningCleared = sinon.stub();
+
+          stats[STAT_NAME] = 0;
+
+          const statsMonitor = new StatsMonitor({
+            getRTCStats,
+          });
+
+          statsMonitor['_thresholds'] = {
+            [STAT_NAME]: { maxAverage: 3, clearValue: 1, sampleCount: 3 },
+          };
+
+          statsMonitor.on('warning', onWarning);
+          statsMonitor.on('warning-cleared', onWarningCleared);
+
+          statsMonitor.enable({});
+
+          await clock.tickAsync(1000);
+
+          stats[STAT_NAME] += 10;
+          await clock.tickAsync(1000);
+
+          stats[STAT_NAME] += 10;
+          await clock.tickAsync(1000);
+
+          stats[STAT_NAME] = 0;
+          await clock.tickAsync(10000);
+
+          clock.restore();
+
+          await wait().then(() => {
+            sinon.assert.calledOnce(onWarning);
+            assert.deepEqual(onWarning.args[0][0], {
+              name: STAT_NAME,
+              threshold: {
+                name: 'maxAverage',
+                value: 3,
+              },
+              value: 5,
+            });
+            sinon.assert.calledOnce(onWarningCleared);
+          });
         });
       });
     });
