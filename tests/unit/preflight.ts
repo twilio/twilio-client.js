@@ -408,24 +408,6 @@ describe('PreflightTest', () => {
       });
     });
 
-    it('should ignore constant audio warnings from connection', () => {
-      const onWarning = sinon.stub();
-      preflight.on('warning', onWarning);
-      device.emit('ready');
-
-      const data = {foo: 'foo', bar: 'bar'};
-
-      connection.emit('warning', 'constant-audio', data);
-
-      sinon.assert.notCalled(onWarning);
-    });
-
-    it('should set thresholds', () => {
-      device.emit('ready');
-      assert.equal(monitor._thresholds.audioInputLevel.maxDuration, 5);
-      assert.equal(monitor._thresholds.audioOutputLevel.maxDuration, 5);
-    });
-
     it('should emit a warning the first time Insights fails to publish', () => {
       const onWarning = sinon.stub();
       preflight.on('warning', onWarning);
@@ -439,68 +421,6 @@ describe('PreflightTest', () => {
       });
       publisher.emit('error');
       sinon.assert.calledOnce(onWarning);
-    });
-
-    it('should emit audioInputLevel warnings from monitor', () => {
-      const onWarning = sinon.stub();
-      preflight.on('warning', onWarning);
-      device.emit('ready');
-
-      const data = {
-        name: 'audioInputLevel',
-        threshold: { name: 'maxDuration' }
-      };
-      monitor.emit('warning', data);
-      sinon.assert.calledOnce(onWarning);
-      sinon.assert.calledWithExactly(onWarning, {
-        description: 'Received an RTCWarning. See .rtcWarning for the RTCWarning',
-        name: 'constant-audio-input-level',
-        rtcWarning: data,
-      });
-    });
-
-    it('should emit audioOutputLevel warnings from monitor', () => {
-      const onWarning = sinon.stub();
-      preflight.on('warning', onWarning);
-      device.emit('ready');
-
-      const data = {
-        name: 'audioOutputLevel',
-        threshold: { name: 'maxDuration' }
-      };
-      monitor.emit('warning', data);
-      sinon.assert.calledOnce(onWarning);
-      sinon.assert.calledWithExactly(onWarning, {
-        description: 'Received an RTCWarning. See .rtcWarning for the RTCWarning',
-        name: 'constant-audio-output-level',
-        rtcWarning: data,
-      });
-    });
-
-    it('should not emit warnings from monitor if threshold is not maxDuration', () => {
-      const onWarning = sinon.stub();
-      preflight.on('warning', onWarning);
-      device.emit('ready');
-
-      const data = {
-        name: 'audioOutputLevel',
-        threshold: { name: 'foo' }
-      };
-      monitor.emit('warning', data);
-      sinon.assert.notCalled(onWarning);
-    });
-
-    it('should not emit warnings from monitor if warning name is not audioInputLevel or audioOutputLevel', () => {
-      const onWarning = sinon.stub();
-      preflight.on('warning', onWarning);
-      device.emit('ready');
-
-      const data = {
-        name: 'foo',
-        threshold: { name: 'maxDuration' }
-      };
-      monitor.emit('warning', data);
-      sinon.assert.notCalled(onWarning);
     });
   });
 

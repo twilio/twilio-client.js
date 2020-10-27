@@ -413,20 +413,6 @@ export class PreflightTest extends EventEmitter {
       this._device.destroy();
     });
 
-    // Connection doesn't currently exposes this
-    // Accessing the internals for now for preflight
-    const monitor = this._connection['_monitor'] as StatsMonitor;
-    monitor['_thresholds'].audioInputLevel!.maxDuration = 5;
-    monitor['_thresholds'].audioOutputLevel!.maxDuration = 5;
-    monitor.on('warning', (data: RTCWarning) => {
-      let name = data.name;
-      const threshold = data.threshold!.name;
-      if (threshold === 'maxDuration' && (name === 'audioInputLevel' || name === 'audioOutputLevel')) {
-        name = `constant-${name.split(/(?=[A-Z])/).join('-').toLowerCase()}`;
-        this._emitWarning(name, 'Received an RTCWarning. See .rtcWarning for the RTCWarning', data);
-      }
-    });
-
     const publisher = this._connection['_publisher'] as any;
     publisher.on('error', () => {
       if (!this._hasInsightsErrored) {
@@ -500,10 +486,6 @@ export class PreflightTest extends EventEmitter {
     }
 
     connection.on('warning', (name: string, data: RTCWarning) => {
-      // Constant audio warnings are handled by StatsMonitor
-      if (name.includes('constant-audio')) {
-        return;
-      }
       this._emitWarning(name, 'Received an RTCWarning. See .rtcWarning for the RTCWarning', data);
     });
 
