@@ -110,6 +110,11 @@ export interface IExtendedDeviceOptions extends Device.Options {
   noRegister?: boolean;
 
   /**
+   * Whether this is a preflight call or not
+   */
+  preflight?: boolean;
+
+  /**
    * Custom PStream constructor
    */
   pStreamFactory?: IPStream;
@@ -373,6 +378,7 @@ class Device extends EventEmitter {
     iceServers: [],
     noRegister: false,
     pStreamFactory: PStream,
+    preflight: false,
     rtcConstraints: { },
     soundFactory: Sound,
     sounds: { },
@@ -999,6 +1005,7 @@ class Device extends EventEmitter {
       getInputStream: (): MediaStream | null => this.options.fileInputStream || this._connectionInputStream,
       getSinkIds: (): string[] => this._connectionSinkIds,
       maxAverageBitrate: this.options.maxAverageBitrate,
+      preflight: this.options.preflight,
       rtcConfiguration: this.options.rtcConfiguration || { iceServers: this.options.iceServers },
       rtcConstraints: this.options.rtcConstraints,
       shouldPlayDisconnect: () => this._enabledSounds.disconnect,

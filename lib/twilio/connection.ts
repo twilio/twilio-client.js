@@ -286,10 +286,15 @@ class Connection extends EventEmitter {
     this._mediaReconnectBackoff = Backoff.exponential(BACKOFF_CONFIG);
     this._mediaReconnectBackoff.on('ready', () => this.mediaStream.iceRestart());
 
+    // temporary call sid to be used for outgoing calls
+    this.outboundConnectionId = generateTempCallSid();
+
     const publisher = this._publisher = config.publisher;
 
     if (this._direction === Connection.CallDirection.Incoming) {
       publisher.info('connection', 'incoming', null, this);
+    } else {
+      publisher.info('connection', 'outgoing', { preflight: this.options.preflight }, this);
     }
 
     const monitor = this._monitor = new (this.options.StatsMonitor || StatsMonitor)();
@@ -470,9 +475,6 @@ class Connection extends EventEmitter {
         this.emit('disconnect', this);
       }
     };
-
-    // temporary call sid to be used for outgoing calls
-    this.outboundConnectionId = generateTempCallSid();
 
     this.pstream = config.pstream;
     this.pstream.on('cancel', this._onCancel);
@@ -1704,6 +1706,11 @@ namespace Connection {
      * The offer SDP, if this is an incoming call.
      */
     offerSdp?: string | null;
+
+    /**
+     * Whether this is a preflight call or not
+     */
+    preflight?: boolean;
 
     /**
      * The Region currently connected to.

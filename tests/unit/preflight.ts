@@ -136,6 +136,7 @@ describe('PreflightTest', () => {
         edge: 'roaming',
         fileInputStream: undefined,
         iceServers: undefined,
+        preflight: true,
         rtcConfiguration: undefined,
       });
     });
@@ -149,6 +150,7 @@ describe('PreflightTest', () => {
         edge: 'roaming',
         fileInputStream: undefined,
         iceServers: undefined,
+        preflight: true,
         rtcConfiguration: undefined,
       });
     });
@@ -162,6 +164,7 @@ describe('PreflightTest', () => {
         edge: 'roaming',
         fileInputStream: undefined,
         iceServers: undefined,
+        preflight: true,
         rtcConfiguration: undefined,
       });
     });
@@ -175,6 +178,7 @@ describe('PreflightTest', () => {
         edge: options.edge,
         fileInputStream: undefined,
         iceServers: undefined,
+        preflight: true,
         rtcConfiguration: undefined,
       });
       sinon.assert.calledOnce(edgeStub);
@@ -189,6 +193,7 @@ describe('PreflightTest', () => {
         edge: 'roaming',
         fileInputStream: undefined,
         iceServers: 'foo',
+        preflight: true,
         rtcConfiguration: undefined,
       });
     });
@@ -202,6 +207,7 @@ describe('PreflightTest', () => {
         edge: 'roaming',
         fileInputStream: undefined,
         iceServers: undefined,
+        preflight: true,
         rtcConfiguration: {foo: 'foo', iceServers: 'bar'},
       });
     });
@@ -250,6 +256,7 @@ describe('PreflightTest', () => {
         edge: 'roaming',
         fileInputStream: undefined,
         iceServers: undefined,
+        preflight: true,
         rtcConfiguration: undefined,
       });
     });
@@ -263,6 +270,7 @@ describe('PreflightTest', () => {
           edge: 'roaming',
           fileInputStream: stream,
           iceServers: undefined,
+          preflight: true,
           rtcConfiguration: undefined,
         });
       });

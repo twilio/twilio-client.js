@@ -1,3 +1,11 @@
+1.13.0 (In Progress)
+====================
+
+Changes
+-------
+
+* We now log an `outgoing` event to Insights when making an outbound call. This event also contains information whether the call is a preflight or not.
+
 1.13.0-beta2 (Sept 10, 2020)
 ============================
 
