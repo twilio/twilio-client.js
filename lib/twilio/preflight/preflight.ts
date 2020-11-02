@@ -351,6 +351,7 @@ export class PreflightTest extends EventEmitter {
         edge: options.edge,
         fileInputStream: options.fileInputStream,
         iceServers: options.iceServers,
+        preflight: true,
         rtcConfiguration: options.rtcConfiguration,
       });
     } catch (error) {

@@ -105,9 +105,24 @@ describe('Device', function() {
       assert.equal(conn['options'].enableIceRestart, false);
     });
 
-    it('should set enableIceRestart to false if passed in as true', () => {
+    it('should set enableIceRestart to true if passed in as true', () => {
       const conn = device.setup(token, Object.assign({ enableIceRestart: true}, setupOptions));
       assert.equal(conn['options'].enableIceRestart, true);
+    });
+
+    it('should set preflight to false by default', () => {
+      const conn = device.setup(token, setupOptions);
+      assert.equal(conn['options'].preflight, false);
+    });
+
+    it('should set preflight to false if passed in as false', () => {
+      const conn = device.setup(token, Object.assign({ preflight: false }, setupOptions));
+      assert.equal(conn['options'].preflight, false);
+    });
+
+    it('should set preflight to true if passed in as true', () => {
+      const conn = device.setup(token, Object.assign({ preflight: true }, setupOptions));
+      assert.equal(conn['options'].preflight, true);
     });
 
     it('should set forceAggressiveIceNomination to false by default', () => {

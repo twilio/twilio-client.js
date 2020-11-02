@@ -103,6 +103,13 @@ describe('Connection', function() {
     });
 
     context('when incoming', () => {
+      it('should send incoming event to insights', () => {
+        conn = new Connection(config, Object.assign(options, { callParameters: {
+          CallSid: 'CA123'
+        }}));
+        assert.equal(publisher.info.lastCall.args[1], 'incoming');
+      });
+
       it('should populate the .callerInfo fields appropriately when StirStatus is A', () => {
         conn = new Connection(config, Object.assign(options, { callParameters: {
           StirStatus: 'TN-Validation-Passed-A',
@@ -284,6 +291,13 @@ describe('Connection', function() {
     });
 
     context('when outgoing', () => {
+      it('should send outgoing event to insights', () => {
+        conn = new Connection(config, Object.assign(options, { preflight: true }));
+        const args = publisher.info.lastCall.args;
+        assert.equal(args[1], 'outgoing');
+        assert.deepEqual(args[2], { preflight: true })
+      });
+
       it('should not populate the .callerInfo fields, instead return null', () => {
         conn = new Connection(config, Object.assign(options, { callParameters: {
           StirStatus: 'TN-Validation-Passed-A',
@@ -789,7 +803,10 @@ describe('Connection', function() {
 
         it('should not publish an event to insights', () => {
           conn.ignore();
-          sinon.assert.notCalled(publisher.info);
+          publisher.info.getCalls().forEach((methodCall: any) => {
+            const insightsEventName = methodCall.args[1];
+            assert.notEqual(insightsEventName, 'ignored-by-local');
+          });
         });
       });
     });
@@ -817,7 +834,11 @@ describe('Connection', function() {
 
           it('should not call publisher.info', () => {
             conn.mute(value);
-            sinon.assert.notCalled(publisher.info);
+            publisher.info.getCalls().forEach((methodCall: any) => {
+              const insightsEventName = methodCall.args[1];
+              assert.notEqual(insightsEventName, 'muted');
+              assert.notEqual(insightsEventName, 'unmuted');
+            });
           });
 
           it('should not emit mute', () => {
@@ -880,7 +901,11 @@ describe('Connection', function() {
 
         it('should not call publisher.info', () => {
           conn.mute(false);
-          sinon.assert.notCalled(publisher.info);
+          publisher.info.getCalls().forEach((methodCall: any) => {
+            const insightsEventName = methodCall.args[1];
+            assert.notEqual(insightsEventName, 'muted');
+            assert.notEqual(insightsEventName, 'unmuted');
+          });
         });
 
         it('should not emit mute', () => {
@@ -948,7 +973,10 @@ describe('Connection', function() {
 
         it('should not publish an event to insights', () => {
           conn.reject();
-          sinon.assert.notCalled(publisher.info);
+          publisher.info.getCalls().forEach((methodCall: any) => {
+            const insightsEventName = methodCall.args[1];
+            assert.notEqual(insightsEventName, 'rejected-by-local');
+          });
         });
       });
     });
