@@ -505,6 +505,108 @@ describe('StatsMonitor', () => {
         });
       });
     });
+
+    context('multiple thresholds', () => {
+      it('should raise the appropriate warning if reached', async () => {
+        const onWarning = sinon.stub();
+
+        const mockRTCStats = {
+          [STAT_NAME]: 2,
+        };
+
+        const statsMonitor = new StatsMonitor({
+          getRTCStats: async () => mockRTCStats,
+          thresholds: {
+            [STAT_NAME]: [{
+              max: 1,
+            }, {
+              clearValue: 1,
+              maxAverage: 3,
+              sampleCount: 7,
+            }],
+          } as any,
+        });
+
+        statsMonitor.on('warning', onWarning);
+
+        statsMonitor.enable({});
+
+        await clock.tickAsync(10000);
+
+        clock.restore();
+
+        await wait().then(() => {
+          sinon.assert.calledOnce(onWarning);
+          assert.deepEqual({
+            ...onWarning.args[0][0],
+            samples: null,
+          }, {
+            name: STAT_NAME,
+            samples: null,
+            threshold: {
+              name: 'max',
+              value: 1,
+            },
+            values: [2, 2, 2],
+          });
+        });
+      });
+
+      it('should raise all warnings when reached', async () => {
+        const onWarning = sinon.stub();
+
+        const mockRTCStats = {
+          [STAT_NAME]: 5,
+        };
+
+        const statsMonitor = new StatsMonitor({
+          getRTCStats: async () => mockRTCStats,
+          thresholds: {
+            [STAT_NAME]: [{
+              max: 1,
+            }, {
+              clearValue: 1,
+              maxAverage: 3,
+              sampleCount: 7,
+            }],
+          } as any,
+        });
+
+        statsMonitor.on('warning', onWarning);
+
+        statsMonitor.enable({});
+
+        await clock.tickAsync(10000);
+
+        clock.restore();
+
+        await wait().then(() => {
+          sinon.assert.callCount(onWarning, 2);
+
+          assert.deepEqual(onWarning.args[0][0], {
+            name: STAT_NAME,
+            threshold: {
+              name: 'maxAverage',
+              value: 3,
+            },
+            value: 5,
+          });
+
+          assert.deepEqual({
+            ...onWarning.args[1][0],
+            samples: null,
+          }, {
+            name: STAT_NAME,
+            samples: null,
+            threshold: {
+              name: 'max',
+              value: 1,
+            },
+            values: [5, 5, 5],
+          });
+        });
+      });
+    });
   });
 
   describe(`StatsMonitor on 'error'`, () => {
