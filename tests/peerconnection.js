@@ -812,7 +812,7 @@ describe('PeerConnection', () => {
         version,
         status: CLOSED,
         onerror: sinon.stub(),
-        options: { },
+        options: { preflight: true },
         pstream: {
           once: sinon.stub(),
           on: sinon.stub(),
@@ -871,7 +871,7 @@ describe('PeerConnection', () => {
       assert(version.createOffer.calledWithExactly(undefined, undefined, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(callback.called, false);
       assert(context.pstream.invite.calledOnce);
-      assert(context.pstream.invite.calledWithExactly(eSDP, eCallSid, eParams));
+      assert(context.pstream.invite.calledWithExactly(eSDP, eCallSid, true, eParams));
       assert(version.getSDP.calledOnce);
       assert(version.getSDP.calledWithExactly());
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
@@ -888,7 +888,7 @@ describe('PeerConnection', () => {
       assert(version.createOffer.calledWithExactly(undefined, undefined, {audio: true}, sinon.match.func, sinon.match.func));
       assert.equal(callback.called, false);
       assert(context.pstream.invite.calledOnce);
-      assert(context.pstream.invite.calledWithExactly(eSDP, eCallSid, eParams));
+      assert(context.pstream.invite.calledWithExactly(eSDP, eCallSid, true, eParams));
       assert(version.getSDP.calledOnce);
       assert(version.getSDP.calledWithExactly());
       assert(context.pstream.on.calledWithExactly('answer', sinon.match.func));
