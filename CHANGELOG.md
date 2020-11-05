@@ -6,6 +6,8 @@ Changes
 
 * We now log an `outgoing` event to Insights when making an outbound call. This event also contains information whether the call is a preflight or not.
 
+* Added a boolean field to the signaling payload for calls initiated by `Device.testPreflight` for debugging purposes.
+
 1.13.0-beta2 (Sept 10, 2020)
 ============================
 

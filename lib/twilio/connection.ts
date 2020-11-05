@@ -322,6 +322,7 @@ class Connection extends EventEmitter {
         forceAggressiveIceNomination: this.options.forceAggressiveIceNomination,
         isUnifiedPlan: this._isUnifiedPlanDefault,
         maxAverageBitrate: this.options.maxAverageBitrate,
+        preflight: this.options.preflight,
       });
 
     this.on('volume', (inputVolume: number, outputVolume: number): void => {
