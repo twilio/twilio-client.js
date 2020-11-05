@@ -57,6 +57,13 @@
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>A <a href="voice.connection.html">Connection</a> represents a media and signaling connection to a TwiML application.</p>
+					</div>
+				</div>
+			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
@@ -184,13 +191,26 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L1404">twilio/connection.ts:1404</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L1429">lib/twilio/connection.ts:1429</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Emitted when the <a href="voice.connection.html">Connection</a> is accepted.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>example</dt>
+									<dd><p><code>connection.on(&#39;accept&#39;, connection =&gt; { })</code></p>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>connection: <a href="voice.connection.html" class="tsd-signature-type">Connection</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The <a href="voice.connection.html">Connection</a>.</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -207,9 +227,19 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L1411">twilio/connection.ts:1411</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L1436">lib/twilio/connection.ts:1436</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Emitted when the <a href="voice.connection.html">Connection</a> is canceled.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>example</dt>
+									<dd><p><code>connection.on(&#39;cancel&#39;, () =&gt; { })</code></p>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
@@ -224,13 +254,26 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L1419">twilio/connection.ts:1419</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L1444">lib/twilio/connection.ts:1444</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Emitted when the <a href="voice.connection.html">Connection</a> is disconnected.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>example</dt>
+									<dd><p><code>connection.on(&#39;disconnect&#39;, connection =&gt; { })</code></p>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>connection: <a href="voice.connection.html" class="tsd-signature-type">Connection</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The <a href="voice.connection.html">Connection</a>.</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -247,9 +290,19 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L1427">twilio/connection.ts:1427</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L1452">lib/twilio/connection.ts:1452</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Emitted when the <a href="voice.connection.html">Connection</a> receives an error.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>example</dt>
+									<dd><p><code>connection.on(&#39;error&#39;, error =&gt; { })</code></p>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -270,16 +323,32 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L1436">twilio/connection.ts:1436</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L1461">lib/twilio/connection.ts:1461</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Emitted when the <a href="voice.connection.html">Connection</a> is muted or unmuted.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>example</dt>
+									<dd><p><code>connection.on(&#39;mute&#39;, (isMuted, connection) =&gt; { })</code></p>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>isMuted: <span class="tsd-signature-type">boolean</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Whether the <a href="voice.connection.html">Connection</a> is muted.</p>
+									</div>
 								</li>
 								<li>
 									<h5>connection: <a href="voice.connection.html" class="tsd-signature-type">Connection</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The <a href="voice.connection.html">Connection</a>.</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -296,13 +365,26 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L1444">twilio/connection.ts:1444</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L1469">lib/twilio/connection.ts:1469</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Emitted when the <a href="voice.connection.html">Connection</a> is rejected.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>example</dt>
+									<dd><p><code>connection.on(&#39;reject&#39;, connection =&gt; { })</code></p>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>connection: <a href="voice.connection.html" class="tsd-signature-type">Connection</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The <a href="voice.connection.html">Connection</a>.</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -319,9 +401,20 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L1463">twilio/connection.ts:1463</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L1488">lib/twilio/connection.ts:1488</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Emitted when the <a href="voice.connection.html">Connection</a> gets a webrtc sample object.
+									This event is published every second.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>example</dt>
+									<dd><p><code>connection.on(&#39;sample&#39;, sample =&gt; { })</code></p>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -342,16 +435,33 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L1454">twilio/connection.ts:1454</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L1479">lib/twilio/connection.ts:1479</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Emitted every 50ms with the current input and output volumes, as a percentage of maximum
+									volume, between -100dB and -30dB. Represented by a floating point number.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>example</dt>
+									<dd><p><code>connection.on(&#39;volume&#39;, (inputVolume, outputVolume) =&gt; { })</code></p>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>inputVolume: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>A floating point number between 0.0 and 1.0 inclusive.</p>
+									</div>
 								</li>
 								<li>
 									<h5>outputVolume: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>A floating point number between 0.0 and 1.0 inclusive.</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -367,9 +477,15 @@
 					<div class="tsd-signature tsd-kind-icon">caller<wbr>Info<span class="tsd-signature-symbol">:</span> <a href="../interfaces/voice.connection.callerinfo.html" class="tsd-signature-type">CallerInfo</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L103">twilio/connection.ts:103</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L112">lib/twilio/connection.ts:112</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Returns caller verification information about the caller.
+							If no caller verification information is available this will return null.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="customparameters" class="tsd-anchor"></a>
@@ -377,9 +493,14 @@
 					<div class="tsd-signature tsd-kind-icon">custom<wbr>Parameters<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L108">twilio/connection.ts:108</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L117">lib/twilio/connection.ts:117</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The custom parameters sent to (outgoing) or received by (incoming) the TwiML app.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-private">
 					<a name="mediastream" class="tsd-anchor"></a>
@@ -387,9 +508,15 @@
 					<div class="tsd-signature tsd-kind-icon">media<wbr>Stream<span class="tsd-signature-symbol">:</span> <a href="../modules/voice.html#ipeerconnection" class="tsd-signature-type">IPeerConnection</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L130">twilio/connection.ts:130</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L139">lib/twilio/connection.ts:139</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The MediaStream (Twilio PeerConnection) this <a href="voice.connection.html">Connection</a> is using for
+							media signaling.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="outboundconnectionid" class="tsd-anchor"></a>
@@ -397,9 +524,14 @@
 					<div class="tsd-signature tsd-kind-icon">outbound<wbr>Connection<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L135">twilio/connection.ts:135</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L144">lib/twilio/connection.ts:144</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The temporary CallSid for this call, if it&#39;s outbound.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="parameters" class="tsd-anchor"></a>
@@ -407,16 +539,21 @@
 					<div class="tsd-signature tsd-kind-icon">parameters<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L140">twilio/connection.ts:140</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L149">lib/twilio/connection.ts:149</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Call parameters received from Twilio for an incoming call.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static">
 					<a name="defaultmaxlisteners" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagStatic">Static</span> default<wbr>Max<wbr>Listeners</h3>
 					<div class="tsd-signature tsd-kind-icon">default<wbr>Max<wbr>Listeners<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
-						<p>Inherited from EventEmitter.defaultMaxListeners</p>
+						<p>Inherited from <a href="voice.audiohelper.html">AudioHelper</a>.<a href="voice.audiohelper.html#defaultmaxlisteners">defaultMaxListeners</a></p>
 						<ul>
 						</ul>
 					</aside>
@@ -427,22 +564,47 @@
 				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
 					<a name="codec-1" class="tsd-anchor"></a>
 					<h3>codec</h3>
-					<div class="tsd-signature tsd-kind-icon">codec<span class="tsd-signature-symbol">:</span> </div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L121">twilio/connection.ts:121</a></li>
-						</ul>
-					</aside>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> codec<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L130">lib/twilio/connection.ts:130</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Audio codec used for this <a href="voice.connection.html">Connection</a>. Expecting <a href="../enums/voice.connection.codec.html">Connection.Codec</a> but
+									will copy whatever we get from RTC stats.</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
 					<a name="direction" class="tsd-anchor"></a>
 					<h3>direction</h3>
-					<div class="tsd-signature tsd-kind-icon">direction<span class="tsd-signature-symbol">:</span> </div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L113">twilio/connection.ts:113</a></li>
-						</ul>
-					</aside>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> direction<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../enums/voice.connection.calldirection.html" class="tsd-signature-type">CallDirection</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L122">lib/twilio/connection.ts:122</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Whether this <a href="voice.connection.html">Connection</a> is incoming or outgoing.</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <a href="../enums/voice.connection.calldirection.html" class="tsd-signature-type">CallDirection</a></h4>
+						</li>
+					</ul>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
@@ -457,9 +619,18 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L501">twilio/connection.ts:501</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L513">lib/twilio/connection.ts:513</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Get the real CallSid. Returns null if not present or is a temporary call sid.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>deprecated</dt>
+									<dd></dd>
+								</dl>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span>
 								<span class="tsd-signature-symbol"> | </span>
 								<span class="tsd-signature-type">null</span>
@@ -477,9 +648,18 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L511">twilio/connection.ts:511</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L523">lib/twilio/connection.ts:523</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Get the temporary CallSid.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>deprecated</dt>
+									<dd></dd>
+								</dl>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span>
 								<span class="tsd-signature-symbol"> | </span>
 								<span class="tsd-signature-type">undefined</span>
@@ -497,9 +677,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L522">twilio/connection.ts:522</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L534">lib/twilio/connection.ts:534</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Set the audio input tracks from a given stream.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -520,9 +705,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L531">twilio/connection.ts:531</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L543">lib/twilio/connection.ts:543</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Set the audio output sink IDs.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -537,16 +727,21 @@
 					<a name="accept" class="tsd-anchor"></a>
 					<h3>accept</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">accept<span class="tsd-signature-symbol">(</span>audioConstraints<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">MediaTrackConstraints</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">accept<span class="tsd-signature-symbol">(</span>audioConstraints<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">MediaTrackConstraints</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 						<li class="tsd-signature tsd-kind-icon">accept<span class="tsd-signature-symbol">(</span>handler<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L539">twilio/connection.ts:539</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L551">lib/twilio/connection.ts:551</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Accept the incoming <a href="voice.connection.html">Connection</a>.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -558,13 +753,24 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L544">twilio/connection.ts:544</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L556">lib/twilio/connection.ts:556</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<dl class="tsd-comment-tags">
+									<dt>deprecated</dt>
+									<dd><ul>
+											<li>Set a handler for the <a href="voice.connection.html#acceptevent">acceptEvent</a></li>
+										</ul>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>handler: <span class="tsd-signature-type">function</span></h5>
+									<div class="tsd-comment tsd-typography">
+									</div>
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-siganture">
 											<ul class="tsd-signatures tsd-kind-type-literal">
@@ -598,7 +804,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from EventEmitter.addListener</p>
+								<p>Inherited from <a href="voice.audiohelper.html">AudioHelper</a>.<a href="voice.audiohelper.html#addlistener">addListener</a></p>
 								<p>Overrides EventEmitter.addListener</p>
 								<ul>
 								</ul>
@@ -613,14 +819,14 @@
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-siganture">
 											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
 												<li class="tsd-description">
 													<h4 class="tsd-parameters-title">Parameters</h4>
 													<ul class="tsd-parameters">
 														<li>
-															<h5><span class="tsd-flag ts-flagRest">Rest</span> args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
+															<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 														</li>
 													</ul>
 													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -645,17 +851,35 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L661">twilio/connection.ts:661</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L673">lib/twilio/connection.ts:673</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<dl class="tsd-comment-tags">
+									<dt>deprecated</dt>
+									<dd><ul>
+											<li>Ignore the incoming <a href="voice.connection.html">Connection</a>.</li>
+										</ul>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L665">twilio/connection.ts:665</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L677">lib/twilio/connection.ts:677</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<dl class="tsd-comment-tags">
+									<dt>deprecated</dt>
+									<dd><ul>
+											<li>Set a handler for the <a href="voice.connection.html#cancelevent">cancelEvent</a></li>
+										</ul>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -689,17 +913,31 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L679">twilio/connection.ts:679</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L691">lib/twilio/connection.ts:691</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Disconnect from the <a href="voice.connection.html">Connection</a>.</p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L683">twilio/connection.ts:683</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L695">lib/twilio/connection.ts:695</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<dl class="tsd-comment-tags">
+									<dt>deprecated</dt>
+									<dd><ul>
+											<li>Set a handler for the <a href="voice.connection.html#disconnectevent">disconnectEvent</a></li>
+										</ul>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -732,12 +970,12 @@
 					<a name="emit" class="tsd-anchor"></a>
 					<h3>emit</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
-						<li class="tsd-signature tsd-kind-icon">emit<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span>, args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+						<li class="tsd-signature tsd-kind-icon">emit<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span>, <span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from EventEmitter.emit</p>
+								<p>Inherited from <a href="voice.audiohelper.html">AudioHelper</a>.<a href="voice.audiohelper.html#emit">emit</a></p>
 								<p>Overrides EventEmitter.emit</p>
 								<ul>
 								</ul>
@@ -748,7 +986,7 @@
 									<h5>event: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span></h5>
 								</li>
 								<li>
-									<h5><span class="tsd-flag ts-flagRest">Rest</span> args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
+									<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -765,9 +1003,18 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L695">twilio/connection.ts:695</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L707">lib/twilio/connection.ts:707</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<dl class="tsd-comment-tags">
+									<dt>deprecated</dt>
+									<dd><ul>
+											<li>Set a handler for the <a href="voice.connection.html#errorevent">errorEvent</a></li>
+										</ul>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -805,7 +1052,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from EventEmitter.eventNames</p>
+								<p>Inherited from <a href="voice.audiohelper.html">AudioHelper</a>.<a href="voice.audiohelper.html#eventnames">eventNames</a></p>
 								<p>Overrides EventEmitter.eventNames</p>
 								<ul>
 								</ul>
@@ -824,9 +1071,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L704">twilio/connection.ts:704</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L716">lib/twilio/connection.ts:716</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Get the local MediaStream, if set.</p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">MediaStream</span>
 								<span class="tsd-signature-symbol"> | </span>
 								<span class="tsd-signature-type">undefined</span>
@@ -843,7 +1095,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from EventEmitter.getMaxListeners</p>
+								<p>Inherited from <a href="voice.audiohelper.html">AudioHelper</a>.<a href="voice.audiohelper.html#getmaxlisteners">getMaxListeners</a></p>
 								<p>Overrides EventEmitter.getMaxListeners</p>
 								<ul>
 								</ul>
@@ -862,9 +1114,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L711">twilio/connection.ts:711</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L723">lib/twilio/connection.ts:723</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Get the remote MediaStream, if set.</p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">MediaStream</span>
 								<span class="tsd-signature-symbol"> | </span>
 								<span class="tsd-signature-type">undefined</span>
@@ -883,17 +1140,31 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L718">twilio/connection.ts:718</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L730">lib/twilio/connection.ts:730</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Ignore the incoming <a href="voice.connection.html">Connection</a>.</p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L722">twilio/connection.ts:722</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L734">lib/twilio/connection.ts:734</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<dl class="tsd-comment-tags">
+									<dt>deprecated</dt>
+									<dd><ul>
+											<li>Set a handler for the <a href="voice.connection.html#cancelevent">cancelEvent</a></li>
+										</ul>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -926,9 +1197,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L742">twilio/connection.ts:742</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L754">lib/twilio/connection.ts:754</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Check if connection is muted</p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 						</li>
 					</ul>
@@ -942,7 +1218,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from EventEmitter.listenerCount</p>
+								<p>Inherited from <a href="voice.audiohelper.html">AudioHelper</a>.<a href="voice.audiohelper.html#listenercount-1">listenerCount</a></p>
 								<p>Overrides EventEmitter.listenerCount</p>
 								<ul>
 								</ul>
@@ -966,7 +1242,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from EventEmitter.listeners</p>
+								<p>Inherited from <a href="voice.audiohelper.html">AudioHelper</a>.<a href="voice.audiohelper.html#listeners">listeners</a></p>
 								<p>Overrides EventEmitter.listeners</p>
 								<ul>
 								</ul>
@@ -985,20 +1261,28 @@
 					<a name="mute" class="tsd-anchor"></a>
 					<h3>mute</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">mute<span class="tsd-signature-symbol">(</span>shouldMute<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">mute<span class="tsd-signature-symbol">(</span>shouldMute<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 						<li class="tsd-signature tsd-kind-icon">mute<span class="tsd-signature-symbol">(</span>handler<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L750">twilio/connection.ts:750</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L762">lib/twilio/connection.ts:762</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Mute incoming audio.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5><span class="tsd-flag ts-flagOptional">Optional</span> shouldMute: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">true</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Whether the incoming audio should be muted. Defaults to true.</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -1006,9 +1290,18 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L754">twilio/connection.ts:754</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L766">lib/twilio/connection.ts:766</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<dl class="tsd-comment-tags">
+									<dt>deprecated</dt>
+									<dd><ul>
+											<li>Set a handler for the <a href="voice.connection.html#muteevent">muteEvent</a></li>
+										</ul>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -1049,7 +1342,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from EventEmitter.off</p>
+								<p>Inherited from <a href="voice.audiohelper.html">AudioHelper</a>.<a href="voice.audiohelper.html#off">off</a></p>
 								<p>Overrides EventEmitter.off</p>
 								<ul>
 								</ul>
@@ -1064,14 +1357,14 @@
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-siganture">
 											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
 												<li class="tsd-description">
 													<h4 class="tsd-parameters-title">Parameters</h4>
 													<ul class="tsd-parameters">
 														<li>
-															<h5><span class="tsd-flag ts-flagRest">Rest</span> args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
+															<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 														</li>
 													</ul>
 													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -1094,7 +1387,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from EventEmitter.on</p>
+								<p>Inherited from <a href="voice.audiohelper.html">AudioHelper</a>.<a href="voice.audiohelper.html#on">on</a></p>
 								<p>Overrides EventEmitter.on</p>
 								<ul>
 								</ul>
@@ -1109,14 +1402,14 @@
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-siganture">
 											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
 												<li class="tsd-description">
 													<h4 class="tsd-parameters-title">Parameters</h4>
 													<ul class="tsd-parameters">
 														<li>
-															<h5><span class="tsd-flag ts-flagRest">Rest</span> args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
+															<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 														</li>
 													</ul>
 													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -1139,7 +1432,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from EventEmitter.once</p>
+								<p>Inherited from <a href="voice.audiohelper.html">AudioHelper</a>.<a href="voice.audiohelper.html#once">once</a></p>
 								<p>Overrides EventEmitter.once</p>
 								<ul>
 								</ul>
@@ -1154,14 +1447,14 @@
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-siganture">
 											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
 												<li class="tsd-description">
 													<h4 class="tsd-parameters-title">Parameters</h4>
 													<ul class="tsd-parameters">
 														<li>
-															<h5><span class="tsd-flag ts-flagRest">Rest</span> args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
+															<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 														</li>
 													</ul>
 													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -1179,22 +1472,39 @@
 					<a name="postfeedback" class="tsd-anchor"></a>
 					<h3>post<wbr>Feedback</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">post<wbr>Feedback<span class="tsd-signature-symbol">(</span>score<span class="tsd-signature-symbol">: </span><a href="../enums/voice.connection.feedbackscore.html" class="tsd-signature-type">FeedbackScore</a>, issue<span class="tsd-signature-symbol">: </span><a href="../enums/voice.connection.feedbackissue.html" class="tsd-signature-type">FeedbackIssue</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">post<wbr>Feedback<span class="tsd-signature-symbol">(</span>score<span class="tsd-signature-symbol">?: </span><a href="../enums/voice.connection.feedbackscore.html" class="tsd-signature-type">FeedbackScore</a>, issue<span class="tsd-signature-symbol">?: </span><a href="../enums/voice.connection.feedbackissue.html" class="tsd-signature-type">FeedbackIssue</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L782">twilio/connection.ts:782</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L794">lib/twilio/connection.ts:794</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Post an event to Endpoint Analytics indicating that the end user
+										has given call quality feedback. Called without a score, this
+									will report that the customer declined to give feedback.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5><span class="tsd-flag ts-flagOptional">Optional</span> score: <a href="../enums/voice.connection.feedbackscore.html" class="tsd-signature-type">FeedbackScore</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The end-user&#39;s rating of the call; an
+											integer 1 through 5. Or undefined if the user declined to give
+										feedback.</p>
+									</div>
 								</li>
 								<li>
 									<h5><span class="tsd-flag ts-flagOptional">Optional</span> issue: <a href="../enums/voice.connection.feedbackissue.html" class="tsd-signature-type">FeedbackIssue</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The primary issue the end user
+											experienced on the call. Can be: [&#39;one-way-audio&#39;, &#39;choppy-audio&#39;,
+										&#39;dropped-call&#39;, &#39;audio-latency&#39;, &#39;noisy-call&#39;, &#39;echo&#39;]</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -1210,7 +1520,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from EventEmitter.prependListener</p>
+								<p>Inherited from <a href="voice.audiohelper.html">AudioHelper</a>.<a href="voice.audiohelper.html#prependlistener">prependListener</a></p>
 								<p>Overrides EventEmitter.prependListener</p>
 								<ul>
 								</ul>
@@ -1225,14 +1535,14 @@
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-siganture">
 											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
 												<li class="tsd-description">
 													<h4 class="tsd-parameters-title">Parameters</h4>
 													<ul class="tsd-parameters">
 														<li>
-															<h5><span class="tsd-flag ts-flagRest">Rest</span> args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
+															<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 														</li>
 													</ul>
 													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -1255,7 +1565,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from EventEmitter.prependOnceListener</p>
+								<p>Inherited from <a href="voice.audiohelper.html">AudioHelper</a>.<a href="voice.audiohelper.html#prependoncelistener">prependOnceListener</a></p>
 								<p>Overrides EventEmitter.prependOnceListener</p>
 								<ul>
 								</ul>
@@ -1270,14 +1580,14 @@
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-siganture">
 											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
 												<li class="tsd-description">
 													<h4 class="tsd-parameters-title">Parameters</h4>
 													<ul class="tsd-parameters">
 														<li>
-															<h5><span class="tsd-flag ts-flagRest">Rest</span> args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
+															<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 														</li>
 													</ul>
 													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -1300,7 +1610,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from EventEmitter.rawListeners</p>
+								<p>Inherited from <a href="voice.audiohelper.html">AudioHelper</a>.<a href="voice.audiohelper.html#rawlisteners">rawListeners</a></p>
 								<p>Overrides EventEmitter.rawListeners</p>
 								<ul>
 								</ul>
@@ -1326,17 +1636,31 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L804">twilio/connection.ts:804</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L816">lib/twilio/connection.ts:816</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Reject the incoming <a href="voice.connection.html">Connection</a>.</p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L808">twilio/connection.ts:808</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L820">lib/twilio/connection.ts:820</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<dl class="tsd-comment-tags">
+									<dt>deprecated</dt>
+									<dd><ul>
+											<li>Set a handler for the <a href="voice.connection.html#rejectevent">rejectEvent</a></li>
+										</ul>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -1363,12 +1687,12 @@
 					<a name="removealllisteners" class="tsd-anchor"></a>
 					<h3>remove<wbr>All<wbr>Listeners</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite tsd-is-inherited">
-						<li class="tsd-signature tsd-kind-icon">remove<wbr>All<wbr>Listeners<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
+						<li class="tsd-signature tsd-kind-icon">remove<wbr>All<wbr>Listeners<span class="tsd-signature-symbol">(</span>event<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">symbol</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">this</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from EventEmitter.removeAllListeners</p>
+								<p>Inherited from <a href="voice.audiohelper.html">AudioHelper</a>.<a href="voice.audiohelper.html#removealllisteners">removeAllListeners</a></p>
 								<p>Overrides EventEmitter.removeAllListeners</p>
 								<ul>
 								</ul>
@@ -1392,7 +1716,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from EventEmitter.removeListener</p>
+								<p>Inherited from <a href="voice.audiohelper.html">AudioHelper</a>.<a href="voice.audiohelper.html#removelistener">removeListener</a></p>
 								<p>Overrides EventEmitter.removeListener</p>
 								<ul>
 								</ul>
@@ -1407,14 +1731,14 @@
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-siganture">
 											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
 												<li class="tsd-description">
 													<h4 class="tsd-parameters-title">Parameters</h4>
 													<ul class="tsd-parameters">
 														<li>
-															<h5><span class="tsd-flag ts-flagRest">Rest</span> args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
+															<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
 														</li>
 													</ul>
 													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -1438,13 +1762,20 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L830">twilio/connection.ts:830</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L842">lib/twilio/connection.ts:842</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Send a string of digits.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>digits: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -1460,7 +1791,7 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from EventEmitter.setMaxListeners</p>
+								<p>Inherited from <a href="voice.audiohelper.html">AudioHelper</a>.<a href="voice.audiohelper.html#setmaxlisteners">setMaxListeners</a></p>
 								<p>Overrides EventEmitter.setMaxListeners</p>
 								<ul>
 								</ul>
@@ -1485,9 +1816,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L904">twilio/connection.ts:904</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L916">lib/twilio/connection.ts:916</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Get the current <a href="voice.connection.html">Connection</a> status.</p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <a href="../enums/voice.connection.state.html" class="tsd-signature-type">State</a></h4>
 						</li>
 					</ul>
@@ -1502,9 +1838,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L912">twilio/connection.ts:912</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L924">lib/twilio/connection.ts:924</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>String representation of <a href="voice.connection.html">Connection</a> instance.</p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
 						</li>
 					</ul>
@@ -1519,9 +1860,18 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L917">twilio/connection.ts:917</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L929">lib/twilio/connection.ts:929</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<dl class="tsd-comment-tags">
+									<dt>deprecated</dt>
+									<dd><ul>
+											<li>Unmute the <a href="voice.connection.html">Connection</a>.</li>
+										</ul>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
@@ -1536,13 +1886,24 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L926">twilio/connection.ts:926</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L938">lib/twilio/connection.ts:938</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<dl class="tsd-comment-tags">
+									<dt>deprecated</dt>
+									<dd><ul>
+											<li>Set a handler for the <a href="voice.connection.html#volumeevent">volumeEvent</a></li>
+										</ul>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>handler: <span class="tsd-signature-type">function</span></h5>
+									<div class="tsd-comment tsd-typography">
+									</div>
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-siganture">
 											<ul class="tsd-signatures tsd-kind-type-literal">
@@ -1579,10 +1940,17 @@
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
-								<p>Inherited from EventEmitter.listenerCount</p>
+								<p>Inherited from <a href="voice.audiohelper.html">AudioHelper</a>.<a href="voice.audiohelper.html#listenercount-1">listenerCount</a></p>
 								<ul>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<dl class="tsd-comment-tags">
+									<dt>deprecated</dt>
+									<dd><p>since v4.0.0</p>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -1606,9 +1974,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e7a7b97/lib/twilio/connection.ts#L97">twilio/connection.ts:97</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/ecc1f69/lib/twilio/connection.ts#L106">lib/twilio/connection.ts:106</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>String representation of the <a href="voice.connection.html">Connection</a> class.</p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
 						</li>
 					</ul>
@@ -1626,27 +1999,50 @@
 					</li>
 					<li class="current tsd-kind-external-module">
 						<a href="../modules/voice.html">Voice</a>
+						<ul>
+							<li class=" tsd-kind-module tsd-parent-kind-external-module">
+								<a href="../modules/voice.authorizationerrors.html">Authorization<wbr>Errors</a>
+							</li>
+							<li class=" tsd-kind-module tsd-parent-kind-external-module">
+								<a href="../modules/voice.clienterrors.html">Client<wbr>Errors</a>
+							</li>
+							<li class=" tsd-kind-module tsd-parent-kind-external-module">
+								<a href="../modules/voice.generalerrors.html">General<wbr>Errors</a>
+							</li>
+							<li class=" tsd-kind-module tsd-parent-kind-external-module">
+								<a href="../modules/voice.mediaerrors.html">Media<wbr>Errors</a>
+							</li>
+							<li class=" tsd-kind-module tsd-parent-kind-external-module">
+								<a href="../modules/voice.signalingerrors.html">Signaling<wbr>Errors</a>
+							</li>
+						</ul>
 					</li>
 					<li class="label tsd-is-external">
 						<span>Externals</span>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_twilio_.html">"twilio"</a>
+						<a href="../modules/_twilio_.html">&quot;twilio&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_twilio_constants_.html">"twilio/constants"</a>
+						<a href="../modules/_twilio_constants_.html">&quot;twilio/constants&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_twilio_errors_index_.html">"twilio/errors/index"</a>
+						<a href="../modules/_twilio_errors_index_.html">&quot;twilio/errors/index&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_twilio_shims_eventtarget_.html">"twilio/shims/eventtarget"</a>
+						<a href="../modules/_twilio_rtc_mockrtcstatsreport_.html">&quot;twilio/rtc/mockrtcstatsreport&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_twilio_shims_mediadevices_.html">"twilio/shims/mediadevices"</a>
+						<a href="../modules/_twilio_rtc_stats_.html">&quot;twilio/rtc/stats&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
-						<a href="../modules/_twilio_util_.html">"twilio/util"</a>
+						<a href="../modules/_twilio_shims_eventtarget_.html">&quot;twilio/shims/eventtarget&quot;</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_twilio_shims_mediadevices_.html">&quot;twilio/shims/mediadevices&quot;</a>
+					</li>
+					<li class=" tsd-kind-external-module tsd-is-external">
+						<a href="../modules/_twilio_util_.html">&quot;twilio/util&quot;</a>
 					</li>
 					<li class=" tsd-kind-external-module tsd-is-external">
 						<a href="../modules/tools.html">Tools</a>
