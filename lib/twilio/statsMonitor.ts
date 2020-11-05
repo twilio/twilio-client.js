@@ -31,11 +31,13 @@ const DEFAULT_THRESHOLDS: StatsMonitor.ThresholdOptions = {
   bytesSent: { clearCount: 2, min: 1, raiseCount: 3, sampleCount: 3 },
   jitter: { max: 30 },
   mos: { min: 3 },
-  packetsLostFraction: {
+  packetsLostFraction: [{
+    max: 1,
+  }, {
     clearValue: 1,
     maxAverage: 3,
     sampleCount: 7,
-  },
+  }],
   rtt: { max: 400 },
 };
 
@@ -433,12 +435,26 @@ class StatsMonitor extends EventEmitter {
     if (this._activeWarnings.has(warningId)) { return; }
     this._activeWarnings.set(warningId, { timeRaised: Date.now() });
 
+    const thresholds: StatsMonitor.ThresholdOption | StatsMonitor.ThresholdOption[] =
+      this._thresholds[statName];
+
+    let thresholdValue;
+
+    if (Array.isArray(thresholds)) {
+      const foundThreshold = thresholds.find(threshold => thresholdName in threshold);
+      if (foundThreshold) {
+        thresholdValue = foundThreshold[thresholdName as keyof StatsMonitor.ThresholdOption];
+      }
+    } else {
+      thresholdValue = this._thresholds[statName][thresholdName];
+    }
+
     this.emit('warning', {
       ...data,
       name: statName,
       threshold: {
         name: thresholdName,
-        value: this._thresholds[statName][thresholdName],
+        value: thresholdValue,
       },
     });
   }
@@ -458,95 +474,101 @@ class StatsMonitor extends EventEmitter {
    * @param statName - Name of the stat to compare.
    */
   private _raiseWarningsForStat(statName: string): void {
-    const samples = this._sampleBuffer;
-    const limits = this._thresholds[statName];
+    const limits: StatsMonitor.ThresholdOptions[] =
+      Array.isArray(this._thresholds[statName])
+        ? this._thresholds[statName]
+        : [this._thresholds[statName]];
 
-    const clearCount = limits.clearCount || SAMPLE_COUNT_CLEAR;
-    const raiseCount = limits.raiseCount || SAMPLE_COUNT_RAISE;
-    const sampleCount = limits.sampleCount || this._maxSampleCount;
+    limits.forEach((limit: StatsMonitor.ThresholdOptions) => {
+      const samples = this._sampleBuffer;
 
-    let relevantSamples = samples.slice(-sampleCount);
-    const values = relevantSamples.map(sample => sample[statName]);
+      const clearCount = limit.clearCount || SAMPLE_COUNT_CLEAR;
+      const raiseCount = limit.raiseCount || SAMPLE_COUNT_RAISE;
+      const sampleCount = limit.sampleCount || this._maxSampleCount;
 
-    // (rrowland) If we have a bad or missing value in the set, we don't
-    // have enough information to throw or clear a warning. Bail out.
-    const containsNull = values.some(value => typeof value === 'undefined' || value === null);
+      let relevantSamples = samples.slice(-sampleCount);
+      const values = relevantSamples.map(sample => sample[statName]);
 
-    if (containsNull) {
-      return;
-    }
+      // (rrowland) If we have a bad or missing value in the set, we don't
+      // have enough information to throw or clear a warning. Bail out.
+      const containsNull = values.some(value => typeof value === 'undefined' || value === null);
 
-    let count;
-    if (typeof limits.max === 'number') {
-      count = countHigh(limits.max, values);
-      if (count >= raiseCount) {
-        this._raiseWarning(statName, 'max', { values, samples: relevantSamples });
-      } else if (count <= clearCount) {
-        this._clearWarning(statName, 'max', { values, samples: relevantSamples });
-      }
-    }
-
-    if (typeof limits.min === 'number') {
-      count = countLow(limits.min, values);
-      if (count >= raiseCount) {
-        this._raiseWarning(statName, 'min', { values, samples: relevantSamples });
-      } else if (count <= clearCount) {
-        this._clearWarning(statName, 'min', { values, samples: relevantSamples });
-      }
-    }
-
-    if (typeof limits.maxDuration === 'number' && samples.length > 1) {
-      relevantSamples = samples.slice(-2);
-      const prevValue = relevantSamples[0][statName];
-      const curValue = relevantSamples[1][statName];
-
-      const prevStreak = this._currentStreaks.get(statName) || 0;
-      const streak = (prevValue === curValue) ? prevStreak + 1 : 0;
-
-      this._currentStreaks.set(statName, streak);
-
-      if (streak >= limits.maxDuration) {
-        this._raiseWarning(statName, 'maxDuration', { value: streak });
-      } else if (streak === 0) {
-        this._clearWarning(statName, 'maxDuration', { value: prevStreak });
-      }
-    }
-
-    if (typeof limits.minStandardDeviation === 'number') {
-      const sampleSets: number[][] = this._supplementalSampleBuffers[statName];
-      if (!sampleSets || sampleSets.length < limits.sampleCount) {
-        return;
-      }
-      if (sampleSets.length > limits.sampleCount) {
-        sampleSets.splice(0, sampleSets.length - limits.sampleCount);
-      }
-      const flatSamples: number[] = flattenSamples(sampleSets.slice(-sampleCount));
-      const stdDev: number | null = calculateStandardDeviation(flatSamples);
-
-      if (typeof stdDev !== 'number') {
+      if (containsNull) {
         return;
       }
 
-      if (stdDev < limits.minStandardDeviation) {
-        this._raiseWarning(statName, 'minStandardDeviation', { value: stdDev });
-      } else {
-        this._clearWarning(statName, 'minStandardDeviation', { value: stdDev });
-      }
-    }
-
-    ([
-      ['maxAverage', (x: number, y: number) => x > y],
-      ['minAverage', (x: number, y: number) => x < y],
-    ] as const).forEach(([thresholdName, comparator]) => {
-      if (typeof limits[thresholdName] === 'number' && values.length > 0) {
-        const avg: number = average(values);
-
-        if (comparator(avg, limits[thresholdName])) {
-          this._raiseWarning(statName, thresholdName, { value: avg });
-        } else if (!comparator(avg, limits.clearValue || limits[thresholdName])) {
-          this._clearWarning(statName, thresholdName, { value: avg });
+      let count;
+      if (typeof limit.max === 'number') {
+        count = countHigh(limit.max, values);
+        if (count >= raiseCount) {
+          this._raiseWarning(statName, 'max', { values, samples: relevantSamples });
+        } else if (count <= clearCount) {
+          this._clearWarning(statName, 'max', { values, samples: relevantSamples });
         }
       }
+
+      if (typeof limit.min === 'number') {
+        count = countLow(limit.min, values);
+        if (count >= raiseCount) {
+          this._raiseWarning(statName, 'min', { values, samples: relevantSamples });
+        } else if (count <= clearCount) {
+          this._clearWarning(statName, 'min', { values, samples: relevantSamples });
+        }
+      }
+
+      if (typeof limit.maxDuration === 'number' && samples.length > 1) {
+        relevantSamples = samples.slice(-2);
+        const prevValue = relevantSamples[0][statName];
+        const curValue = relevantSamples[1][statName];
+
+        const prevStreak = this._currentStreaks.get(statName) || 0;
+        const streak = (prevValue === curValue) ? prevStreak + 1 : 0;
+
+        this._currentStreaks.set(statName, streak);
+
+        if (streak >= limit.maxDuration) {
+          this._raiseWarning(statName, 'maxDuration', { value: streak });
+        } else if (streak === 0) {
+          this._clearWarning(statName, 'maxDuration', { value: prevStreak });
+        }
+      }
+
+      if (typeof limit.minStandardDeviation === 'number') {
+        const sampleSets: number[][] = this._supplementalSampleBuffers[statName];
+        if (!sampleSets || sampleSets.length < limit.sampleCount) {
+          return;
+        }
+        if (sampleSets.length > limit.sampleCount) {
+          sampleSets.splice(0, sampleSets.length - limit.sampleCount);
+        }
+        const flatSamples: number[] = flattenSamples(sampleSets.slice(-sampleCount));
+        const stdDev: number | null = calculateStandardDeviation(flatSamples);
+
+        if (typeof stdDev !== 'number') {
+          return;
+        }
+
+        if (stdDev < limit.minStandardDeviation) {
+          this._raiseWarning(statName, 'minStandardDeviation', { value: stdDev });
+        } else {
+          this._clearWarning(statName, 'minStandardDeviation', { value: stdDev });
+        }
+      }
+
+      ([
+        ['maxAverage', (x: number, y: number) => x > y],
+        ['minAverage', (x: number, y: number) => x < y],
+      ] as const).forEach(([thresholdName, comparator]) => {
+        if (typeof limit[thresholdName] === 'number' && values.length > 0) {
+          const avg: number = average(values);
+
+          if (comparator(avg, limit[thresholdName])) {
+            this._raiseWarning(statName, thresholdName, { values, samples: relevantSamples });
+          } else if (!comparator(avg, limit.clearValue || limit[thresholdName])) {
+            this._clearWarning(statName, thresholdName, { values, samples: relevantSamples });
+          }
+        }
+      });
     });
   }
 }
@@ -676,7 +698,7 @@ namespace StatsMonitor {
     /**
      * Rules to apply to sample.packetsLostFraction
      */
-    packetsLostFraction?: ThresholdOption;
+    packetsLostFraction?: ThresholdOption[];
 
     /**
      * Rules to apply to sample.rtt

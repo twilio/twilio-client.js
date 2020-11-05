@@ -4,6 +4,10 @@
 Changes
 -------
 
+* Added `high-packets-lost-fraction` [network warning](https://www.twilio.com/docs/voice/insights/call-quality-events-twilio-client-sdk#network-warnings). This new warning is raised when the average of the most recent seven seconds of packet-loss samples is greater than `3%`. When the average packet-loss over the most recent seven seconds is less than or equal to `1%`, then the warning is cleared.
+
+* The behavior for raising the `constant-audio-level` warning has been updated. Now, the most recent ten seconds of volume values are recorded and then analyzed. If the standard deviation of these samples is less than 1% of the maximum audio value, then the warning is raised. When the standard deviation is greater than 1% and the warning has already been raised, then the warning is cleared.
+
 * We now log an `outgoing` event to Insights when making an outbound call. This event also contains information whether the call is a preflight or not.
 
 * Added a boolean field to the signaling payload for calls initiated by `Device.testPreflight` for debugging purposes.
@@ -123,15 +127,6 @@ New Features - Preview
     }
   }
   ```
-
-1.12.6 (In Progress)
-====================
-
-Changes
--------
-
-* The behavior for raising the `high-packet-loss` warning has been updated. Now, the most recent seven seconds of packet-loss samples are recorded and analyzed. If the average of these samples is greater than `3%` packet-loss, then the warning is raised. When the average packet-loss over the most recent seven seconds is less than or equal to `1%` packet-loss, then the warning is cleared.
-* The behavior for raising the `constant-audio-level` warning has been updated. Now, the most recent ten seconds of volume values are recorded and then analyzed. If the standard deviation of these samples is less than 1% of the maximum audio value, then the warning is raised. When the standard deviation is greater than 1% and the warning has already been raised, then the warning is cleared.
 
 1.12.5 (Sept 22, 2020)
 ====================
