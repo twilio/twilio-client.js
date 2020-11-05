@@ -1,6 +1,6 @@
 {
   "type": "JavaScript",
-  "ci": "travis",
+  "ci": "travis-pro",
   "slug": "twilio/twilio-client.js",
   "env": {
     "GH_REF": "github.com/twilio/twilio-client.js.git"
