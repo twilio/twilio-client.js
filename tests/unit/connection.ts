@@ -1735,17 +1735,61 @@ describe('Connection', function() {
   });
 
   describe('on monitor.warning', () => {
-    it('should properly translate `maxAverage`', () => {
-      monitor.emit('warning', {
-        name: 'packetsLostFraction',
-        threshold: { name: 'maxAverage', value: 3 },
-        value: 1,
+    context('single-threshold warnings', () => {
+      it('should properly translate `maxAverage`', () => {
+        monitor.emit('warning', {
+          name: 'jitter',
+          threshold: { name: 'maxAverage', value: 1 },
+          value: 3,
+        });
+        sinon.assert.calledOnce(publisher.post);
+        const [warningStr, warningType, warning] = publisher.post.args[0];
+        assert.equal(warningStr, 'warning');
+        assert.equal(warningType, 'network-quality-warning-raised');
+        assert.equal(warning, 'high-jitter');
       });
-      sinon.assert.calledOnce(publisher.post);
-      const [warningStr, warningType, warning] = publisher.post.args[0];
-      assert.equal(warningStr, 'warning');
-      assert.equal(warningType, 'network-quality-warning-raised');
-      assert.equal(warning, 'high-packet-loss');
+
+      it('should properly translate `max`', () => {
+        monitor.emit('warning', {
+          name: 'jitter',
+          samples: [],
+          threshold: { name: 'max', value: 1 },
+          values: [3, 3, 3],
+        });
+        sinon.assert.calledOnce(publisher.post);
+        const [warningStr, warningType, warning] = publisher.post.args[0];
+        assert.equal(warningStr, 'warning');
+        assert.equal(warningType, 'network-quality-warning-raised');
+        assert.equal(warning, 'high-jitter');
+      });
+    });
+
+    context('multiple-threshold warnings', () => {
+      it('should properly translate `maxAverage`', () => {
+        monitor.emit('warning', {
+          name: 'packetsLostFraction',
+          threshold: { name: 'maxAverage', value: 3 },
+          value: 1,
+        });
+        sinon.assert.calledOnce(publisher.post);
+        const [warningStr, warningType, warning] = publisher.post.args[0];
+        assert.equal(warningStr, 'warning');
+        assert.equal(warningType, 'network-quality-warning-raised');
+        assert.equal(warning, 'high-packets-lost-fraction');
+      });
+
+      it('should properly translate `max`', () => {
+        monitor.emit('warning', {
+          name: 'packetsLostFraction',
+          threshold: { name: 'max', value: 1 },
+          values: [2, 2, 2],
+        });
+        sinon.assert.calledOnce(publisher.post);
+        const [warningStr, warningType, warning] = publisher.post.args[0];
+        assert.equal(warningStr, 'warning');
+        assert.equal(warningType, 'network-quality-warning-raised');
+        assert.equal(warning, 'high-packet-loss');
+      });
     });
 
     it('should properly translate `minStandardDeviation`', () => {

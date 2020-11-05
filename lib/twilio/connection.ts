@@ -64,6 +64,15 @@ const MEDIA_DISCONNECT_ERROR = {
   },
 };
 
+const MULTIPLE_THRESHOLD_WARNING_NAMES: Record<string, Record<string, string>> = {
+  // The stat `packetsLostFraction` is monitored by two separate thresholds,
+  // `maxAverage` and `max`. Each threshold emits a different warning name.
+  packetsLostFraction: {
+    max: 'packet-loss',
+    maxAverage: 'packets-lost-fraction',
+  },
+};
+
 const WARNING_NAMES: Record<string, string> = {
   audioInputLevel: 'audio-input-level',
   audioOutputLevel: 'audio-output-level',
@@ -71,7 +80,6 @@ const WARNING_NAMES: Record<string, string> = {
   bytesSent: 'bytes-sent',
   jitter: 'jitter',
   mos: 'mos',
-  packetsLostFraction: 'packet-loss',
   rtt: 'rtt',
 };
 
@@ -1367,9 +1375,22 @@ class Connection extends EventEmitter {
       'audio-level-' : 'network-quality-';
 
     const warningPrefix = WARNING_PREFIXES[warningData.threshold.name];
-    const warningName = warningPrefix + WARNING_NAMES[warningData.name];
 
-    this._emitWarning(groupPrefix, warningName, warningData.threshold.value,
+    /**
+     * NOTE: There are two "packet-loss" warnings: `high-packet-loss` and
+     * `high-packets-lost-fraction`, so in this case we need to use a different
+     * `WARNING_NAME` mapping.
+     */
+    let warningName: string | undefined;
+    if (warningData.name in MULTIPLE_THRESHOLD_WARNING_NAMES) {
+      warningName = MULTIPLE_THRESHOLD_WARNING_NAMES[warningData.name][warningData.threshold.name];
+    } else if (warningData.name in WARNING_NAMES) {
+      warningName = WARNING_NAMES[warningData.name];
+    }
+
+    const warning: string = warningPrefix + warningName;
+
+    this._emitWarning(groupPrefix, warning, warningData.threshold.value,
                       warningData.values || warningData.value, wasCleared);
   }
 
