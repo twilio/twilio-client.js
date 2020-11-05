@@ -37,18 +37,35 @@ describe('EventPublisher', () => {
   });
 
   describe('#post', () => {
-    it('should use the current value of .token', () => {
-      const connection = new FakeConnection();
-      const mock = { 
+    let connection;
+    let mock;
+    let params;
+
+    beforeEach(() => {
+      connection = new FakeConnection();
+      mock = { 
         _defaultPayload() { return { }; },
         _post: EventPublisher.prototype._post,
         _request: { post: sinon.spy((a, cb) => { cb(); }) },
         token: 'abc123'
       };
 
-      return EventPublisher.prototype.post.call(mock, 'debug', 'group', 'name', { abc: 'xyz' }, connection, true).then(() => {
+      params = ['debug', 'group', 'name', { abc: 'xyz' }, connection, true];
+    });
+
+    it('should use the current value of .token', () => {
+      return EventPublisher.prototype.post.apply(mock, params).then(() => {
         assert(mock._request.post.calledOnce);
         assert.equal(mock._request.post.args[0][0].headers['X-Twilio-Token'], 'abc123');
+      });
+    });
+
+    it('should emit error', (done) => {
+      mock.emit = sinon.stub();
+      mock._request.post = (a, cb) => cb('foo');
+      EventPublisher.prototype.post.apply(mock, params).catch(() => {
+        sinon.assert.calledWith(mock.emit, 'error', 'foo');
+        done()
       });
     });
 

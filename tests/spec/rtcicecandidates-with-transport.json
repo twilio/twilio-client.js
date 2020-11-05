@@ -1,0 +1,118 @@
+{
+  "iceCandidateStats": [
+    {
+      "id": "RTCIceCandidate_4YKlBJ9Q",
+      "timestamp": 1591045655922.057,
+      "type": "local-candidate",
+      "transportId": "RTCTransport_0_1",
+      "isRemote": false,
+      "networkType": "ethernet",
+      "ip": "0.0.0.0",
+      "port": 53585,
+      "protocol": "udp",
+      "candidateType": "srflx",
+      "priority": 1686052607,
+      "deleted": false
+    },
+    {
+      "id": "RTCIceCandidate_UqrtRLJZ",
+      "timestamp": 1591045655922.057,
+      "type": "local-candidate",
+      "transportId": "RTCTransport_0_1",
+      "isRemote": false,
+      "networkType": "vpn",
+      "ip": "0.0.0.0",
+      "port": 51098,
+      "protocol": "udp",
+      "relayProtocol": "udp",
+      "candidateType": "relay",
+      "priority": 41754879,
+      "deleted": false
+    },
+    {
+      "id": "RTCIceCandidate_e3FLKFoG",
+      "timestamp": 1591045655922.057,
+      "type": "local-candidate",
+      "transportId": "RTCTransport_0_1",
+      "isRemote": false,
+      "networkType": "vpn",
+      "ip": "0.0.0.0",
+      "port": 52497,
+      "protocol": "udp",
+      "candidateType": "srflx",
+      "priority": 1685921535,
+      "deleted": false
+    },
+    {
+      "id": "RTCIceCandidate_oYROhau8",
+      "timestamp": 1591045655922.057,
+      "type": "local-candidate",
+      "transportId": "RTCTransport_0_1",
+      "isRemote": false,
+      "networkType": "ethernet",
+      "ip": "0.0.0.0",
+      "port": 38628,
+      "protocol": "udp",
+      "relayProtocol": "udp",
+      "candidateType": "relay",
+      "priority": 41885951,
+      "deleted": false
+    },
+    {
+      "id": "RTCIceCandidate_qQRsdncV",
+      "timestamp": 1591045655922.057,
+      "type": "local-candidate",
+      "transportId": "RTCTransport_0_1",
+      "isRemote": false,
+      "networkType": "wifi",
+      "ip": "0.0.0.0",
+      "port": 50951,
+      "protocol": "udp",
+      "candidateType": "host",
+      "priority": 2122194687,
+      "deleted": false
+    },
+    {
+      "id": "RTCIceCandidate_Di/J4tEz",
+      "timestamp": 1591045655922.057,
+      "type": "remote-candidate",
+      "transportId": "RTCTransport_0_1",
+      "isRemote": true,
+      "ip": "0.0.0.0",
+      "port": 19282,
+      "protocol": "udp",
+      "candidateType": "host",
+      "priority": 2130706431,
+      "deleted": false
+    }
+  ],
+  "selectedIceCandidatePairStats": {
+    "localCandidate": {
+      "id": "RTCIceCandidate_4YKlBJ9Q",
+      "timestamp": 1591045655922.057,
+      "type": "local-candidate",
+      "transportId": "RTCTransport_0_1",
+      "isRemote": false,
+      "networkType": "ethernet",
+      "ip": "0.0.0.0",
+      "port": 53585,
+      "protocol": "udp",
+      "candidateType": "srflx",
+      "priority": 1686052607,
+      "deleted": false
+    },
+    "remoteCandidate": {
+      "id": "RTCIceCandidate_Di/J4tEz",
+      "timestamp": 1591045655922.057,
+      "type": "remote-candidate",
+      "transportId": "RTCTransport_0_1",
+      "isRemote": true,
+      "ip": "0.0.0.0",
+      "port": 19282,
+      "protocol": "udp",
+      "candidateType": "host",
+      "priority": 2130706431,
+      "deleted": false
+    }
+  }
+}

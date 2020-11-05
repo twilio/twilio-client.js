@@ -1,4 +1,5 @@
 /**
+ * @packageDocumentation
  * @module Voice
  * @internalapi
  */
@@ -9,7 +10,7 @@ import RTCSample from './rtc/sample';
 import RTCWarning from './rtc/warning';
 import { average } from './util';
 
-const getRTCStats = require('./rtc/stats');
+const { getRTCStats } = require('./rtc/stats');
 const Mos = require('./rtc/mos');
 
 // How many samples we use when testing metric thresholds

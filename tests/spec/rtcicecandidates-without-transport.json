@@ -1,0 +1,109 @@
+{
+  "iceCandidateStats": [
+    {
+      "id": "63638ca5",
+      "timestamp": 1591045915800,
+      "type": "local-candidate",
+      "address": "0.0.0.0",
+      "candidateType": "host",
+      "port": 54086,
+      "priority": 2122252543,
+      "protocol": "udp"
+    },
+    {
+      "id": "d7714f13",
+      "timestamp": 1591045915800,
+      "type": "local-candidate",
+      "address": "0.0.0.0",
+      "candidateType": "srflx",
+      "port": 54086,
+      "priority": 1686052607,
+      "protocol": "udp"
+    },
+    {
+      "id": "bd61f9bb",
+      "timestamp": 1591045915800,
+      "type": "local-candidate",
+      "address": "0.0.0.0",
+      "candidateType": "relay",
+      "port": 46643,
+      "priority": 92217087,
+      "protocol": "udp",
+      "relayProtocol": "udp"
+    },
+    {
+      "id": "2593ba35",
+      "timestamp": 1591045915800,
+      "type": "local-candidate",
+      "address": "0.0.0.0",
+      "candidateType": "host",
+      "port": 50446,
+      "priority": 2105524479,
+      "protocol": "tcp"
+    },
+    {
+      "id": "8a824182",
+      "timestamp": 1591045915800,
+      "type": "local-candidate",
+      "address": "0.0.0.0",
+      "candidateType": "relay",
+      "port": 49759,
+      "priority": 8331263,
+      "protocol": "udp",
+      "relayProtocol": "tcp"
+    },
+    {
+      "id": "8e231a02",
+      "timestamp": 1591045915800,
+      "type": "local-candidate",
+      "address": "0.0.0.0",
+      "candidateType": "relay",
+      "port": 31922,
+      "priority": 8331263,
+      "protocol": "udp",
+      "relayProtocol": "tcp"
+    },
+    {
+      "id": "5b7b6997",
+      "timestamp": 1591045915800,
+      "type": "local-candidate",
+      "address": "0.0.0.0",
+      "candidateType": "prflx",
+      "port": 54086,
+      "priority": 1853817087,
+      "protocol": "udp"
+    },
+    {
+      "id": "9c4b85ea",
+      "timestamp": 1591045915800,
+      "type": "remote-candidate",
+      "address": "0.0.0.0",
+      "candidateType": "host",
+      "port": 15898,
+      "priority": 2130706431,
+      "protocol": "udp"
+    }
+  ],
+  "selectedIceCandidatePairStats": {
+    "localCandidate": {
+      "id": "5b7b6997",
+      "timestamp": 1591045915800,
+      "type": "local-candidate",
+      "address": "0.0.0.0",
+      "candidateType": "prflx",
+      "port": 54086,
+      "priority": 1853817087,
+      "protocol": "udp"
+    },
+    "remoteCandidate": {
+      "id": "9c4b85ea",
+      "timestamp": 1591045915800,
+      "type": "remote-candidate",
+      "address": "0.0.0.0",
+      "candidateType": "host",
+      "port": 15898,
+      "priority": 2130706431,
+      "protocol": "udp"
+    }
+  }
+}

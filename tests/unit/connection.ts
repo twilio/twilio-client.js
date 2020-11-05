@@ -103,6 +103,13 @@ describe('Connection', function() {
     });
 
     context('when incoming', () => {
+      it('should send incoming event to insights', () => {
+        conn = new Connection(config, Object.assign(options, { callParameters: {
+          CallSid: 'CA123'
+        }}));
+        assert.equal(publisher.info.lastCall.args[1], 'incoming');
+      });
+
       it('should populate the .callerInfo fields appropriately when StirStatus is A', () => {
         conn = new Connection(config, Object.assign(options, { callParameters: {
           StirStatus: 'TN-Validation-Passed-A',
@@ -284,6 +291,13 @@ describe('Connection', function() {
     });
 
     context('when outgoing', () => {
+      it('should send outgoing event to insights', () => {
+        conn = new Connection(config, Object.assign(options, { preflight: true }));
+        const args = publisher.info.lastCall.args;
+        assert.equal(args[1], 'outgoing');
+        assert.deepEqual(args[2], { preflight: true })
+      });
+
       it('should not populate the .callerInfo fields, instead return null', () => {
         conn = new Connection(config, Object.assign(options, { callParameters: {
           StirStatus: 'TN-Validation-Passed-A',
@@ -789,7 +803,10 @@ describe('Connection', function() {
 
         it('should not publish an event to insights', () => {
           conn.ignore();
-          sinon.assert.notCalled(publisher.info);
+          publisher.info.getCalls().forEach((methodCall: any) => {
+            const insightsEventName = methodCall.args[1];
+            assert.notEqual(insightsEventName, 'ignored-by-local');
+          });
         });
       });
     });
@@ -817,7 +834,11 @@ describe('Connection', function() {
 
           it('should not call publisher.info', () => {
             conn.mute(value);
-            sinon.assert.notCalled(publisher.info);
+            publisher.info.getCalls().forEach((methodCall: any) => {
+              const insightsEventName = methodCall.args[1];
+              assert.notEqual(insightsEventName, 'muted');
+              assert.notEqual(insightsEventName, 'unmuted');
+            });
           });
 
           it('should not emit mute', () => {
@@ -880,7 +901,11 @@ describe('Connection', function() {
 
         it('should not call publisher.info', () => {
           conn.mute(false);
-          sinon.assert.notCalled(publisher.info);
+          publisher.info.getCalls().forEach((methodCall: any) => {
+            const insightsEventName = methodCall.args[1];
+            assert.notEqual(insightsEventName, 'muted');
+            assert.notEqual(insightsEventName, 'unmuted');
+          });
         });
 
         it('should not emit mute', () => {
@@ -948,7 +973,10 @@ describe('Connection', function() {
 
         it('should not publish an event to insights', () => {
           conn.reject();
-          sinon.assert.notCalled(publisher.info);
+          publisher.info.getCalls().forEach((methodCall: any) => {
+            const insightsEventName = methodCall.args[1];
+            assert.notEqual(insightsEventName, 'rejected-by-local');
+          });
         });
       });
     });
@@ -1813,8 +1841,14 @@ describe('Connection', function() {
       });
 
       it('should emit a warning event', (done) => {
-        conn.on('warning', () => done());
-        monitor.emit('warning', { name: 'audio', threshold: { name: 'max' } });
+        const data = { name: 'audioInputLevel', threshold: { name: 'maxDuration', value: 1 }, values: [1, 2, 3] };
+        mediaStream.isMuted = false;
+        conn.on('warning', (name, warningData) => {
+          assert.equal(name, 'constant-audio-input-level');
+          assert.deepStrictEqual(data, warningData);
+          done();
+        });
+        monitor.emit('warning', data);
       });
     });
 
@@ -1824,9 +1858,40 @@ describe('Connection', function() {
         sinon.assert.calledWith(publisher.post, 'warning', 'network-quality-warning-raised');
       });
 
-      it('should emit a warning event', (done) => {
-        conn.on('warning', () => done());
-        monitor.emit('warning', { name: 'foo', threshold: { name: 'max' } });
+      [{
+        name: 'bytesReceived',
+        threshold: 'min',
+        warning: 'low-bytes-received',
+      },{
+        name: 'bytesSent',
+        threshold: 'min',
+        warning: 'low-bytes-sent',
+      },{
+        name: 'jitter',
+        threshold: 'max',
+        warning: 'high-jitter',
+      },{
+        name: 'mos',
+        threshold: 'min',
+        warning: 'low-mos',
+      },{
+        name: 'packetsLostFraction',
+        threshold: 'max',
+        warning: 'high-packet-loss',
+      },{
+        name: 'rtt',
+        threshold: 'max',
+        warning: 'high-rtt',
+      }].forEach(item => {
+        it(`should emit a warning event for ${item.name}`, (done) => {
+          const data = { name: item.name, threshold: { name: item.threshold, value: 1 }, values: [1, 2, 3] };
+          conn.on('warning', (name, warningData) => {
+            assert.equal(name, item.warning);
+            assert.deepStrictEqual(data, warningData);
+            done();
+          });
+          monitor.emit('warning', data);
+        });
       });
     });
   });

@@ -4,6 +4,7 @@ const { USED_ERRORS } = require('../lib/twilio/constants');
 
 let output = `/* tslint:disable max-classes-per-file max-line-length */
 /**
+ * @packageDocumentation
  * @module Voice
  * @publicapi
  * @internal

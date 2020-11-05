@@ -1,11 +1,132 @@
-1.12.6 (In Progress)
+1.13.0 (In Progress)
 ====================
 
 Changes
 -------
 
 * Added `high-packets-lost-fraction` [network warning](https://www.twilio.com/docs/voice/insights/call-quality-events-twilio-client-sdk#network-warnings). This new warning is raised when the average of the most recent seven seconds of packet-loss samples is greater than `3%`. When the average packet-loss over the most recent seven seconds is less than or equal to `1%`, then the warning is cleared.
+
 * The behavior for raising the `constant-audio-level` warning has been updated. Now, the most recent ten seconds of volume values are recorded and then analyzed. If the standard deviation of these samples is less than 1% of the maximum audio value, then the warning is raised. When the standard deviation is greater than 1% and the warning has already been raised, then the warning is cleared.
+
+* We now log an `outgoing` event to Insights when making an outbound call. This event also contains information whether the call is a preflight or not.
+
+* Added a boolean field to the signaling payload for calls initiated by `Device.testPreflight` for debugging purposes.
+
+1.13.0-beta2 (Sept 10, 2020)
+============================
+
+Breaking Changes
+----------------
+
+* We now emit `(warning: PreflightTest.Warning)` object from PreflightTest.on('warning'),
+  rather than `(name: string, data: RTCWarning)`. The `PreflightTest.Warning` object has been updated
+  to match the following interface:
+  ```ts
+  export interface Warning {
+    description: string;
+    name: string;
+    rtcWarning?: RTCWarning;
+  }
+  ```
+* Renamed the following `PreflightTest.Report` fields to reflect the correct object types.
+  | Old field name                                  | New field name                                       |
+  |:------------------------------------------------|:-----------------------------------------------------|
+  | `PreflightTest.Report.iceCandidates`            | `PreflightTest.Report.iceCandidateStats`             |
+  | `PreflightTest.Report.selectedIceCandidatePair` | `PreflightTest.Report.selectedIceCandidatePairStats` |
+
+Additions
+---------
+
+* We now emit a PreflightTest.Warning (`insights-connection-error`) the first time Insights emits an
+  error, and add that Warning in `Report.warnings`.
+* Added signaling timing information in the `PreflightTest.Report.networkTiming` object.
+
+  Example:
+
+  ```ts
+  const preflightTest = Device.testPreflight(token, options);
+
+  preflightTest.on(PreflightTest.Events.Completed, (report) => {
+    console.log(report.networkTiming);
+  });
+  /* Outputs the following
+    {
+      "signaling": {
+        "start": 1595885835227,
+        "end": 1595885835573,
+        "duration": 346
+      }
+      ...
+    }
+  */
+  ```
+
+Bug Fixes
+---------
+
+* Fixed an issue where the browser console is flooded with errors after a network handover.
+
+1.13.0-beta1 (July 7, 2020)
+=============================
+
+Bug Fixes
+---------
+
+* Fixed an issue where preflight is not muting the audio output after output audio devices are updated.
+
+1.13.0-preview1 (June 17, 2020)
+===============================
+
+New Features - Preview
+----------------------
+
+* The SDK now supports a preflight test API which can help determine Voice calling readiness. The API creates a test call and will provide information to help troubleshoot call related issues. This new API is a static member of the [Device](https://www.twilio.com/docs/voice/client/javascript/device#twilio-device) class and can be used like the example below. Please see [API Docs](PREFLIGHT.md) for more details about this new API.
+
+  ```ts
+  // Initiate the test
+  const preflight = Device.testPreflight(token, options);
+
+  // Subscribe to events
+  preflight.on('completed', (report) => console.log(report));
+  preflight.on('failed', (error) => console.log(error));
+  ```
+
+* [Connection.on('warning')](https://www.twilio.com/docs/voice/client/javascript/connection#onwarning-handlerwarningname) now provides data associated with the warning. This data can provide more details about the warning such as thresholds and WebRTC samples collected that caused the warning. The example below is a warning for high jitter. Please see [Voice Insights SDK Events Reference](https://www.twilio.com/docs/voice/insights/call-quality-events-twilio-client-sdk#warning-events) for a list of possible warnings.
+
+  ```ts
+  connection.on('warning', (warningName, warningData) => {
+    console.log({ warningName, warningData });
+  });
+  ```
+  Example output:
+  ```js
+  {
+    "warningName": "high-jitter",
+    "warningData": {
+      "name": "jitter",
+
+      /**
+       *  Array of jitter values in the past 5 samples that triggered the warning
+       */
+      "values": [35, 44, 31, 32, 32],
+
+      /**
+       * Array of samples collected that triggered the warning.
+       * See sample object format here https://www.twilio.com/docs/voice/client/javascript/connection#sample
+       */
+      "samples": [...],
+
+      /**
+       * The threshold configuration.
+       * In this example, high-jitter warning will be raised if the value exceeded more than 30
+       */
+      "threshold": {
+        "name": "max",
+        "value": 30
+      }
+    }
+  }
+  ```
 
 1.12.5 (Sept 22, 2020)
 ====================

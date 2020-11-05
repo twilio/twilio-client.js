@@ -1,4 +1,5 @@
 /**
+ * @packageDocumentation
  * @module Voice
  * @preferred
  * @publicapi
@@ -15,8 +16,10 @@ import {
   InvalidStateError,
   NotSupportedError,
   SignalingErrors,
+  TwilioError,
 } from './errors';
 import Log from './log';
+import { PreflightTest } from './preflight/preflight';
 import {
   getChunderURIs,
   getRegionShortcode,
@@ -85,6 +88,11 @@ export interface IExtendedDeviceOptions extends Device.Options {
   eventgw?: string;
 
   /**
+   * File input stream to use instead of reading from mic
+   */
+  fileInputStream?: MediaStream;
+
+  /**
    * A list of specific ICE servers to use. Overridden by {@link Device.Options.rtcConfiguration}.
    * @deprecated
    */
@@ -100,6 +108,11 @@ export interface IExtendedDeviceOptions extends Device.Options {
    * Whether to disable audio flag in MediaPresence (rrowland: Do we need this?)
    */
   noRegister?: boolean;
+
+  /**
+   * Whether this is a preflight call or not
+   */
+  preflight?: boolean;
 
   /**
    * Custom PStream constructor
@@ -199,6 +212,15 @@ class Device extends EventEmitter {
   static get packageName(): string { return C.PACKAGE_NAME; }
 
   /**
+   * Run some tests to identify issues, if any, prohibiting successful calling.
+   * @param token - A Twilio JWT token string
+   * @param options
+   */
+  static testPreflight(token: string, options?: PreflightTest.Options): PreflightTest {
+    return new PreflightTest(token, { audioContext: Device._getOrCreateAudioContext(), ...options });
+  }
+
+  /**
    * String representation of {@link Device} class.
    * @private
    */
@@ -225,6 +247,21 @@ class Device extends EventEmitter {
    * Whether or not the browser uses unified-plan SDP by default.
    */
   private static _isUnifiedPlanDefault: boolean | undefined;
+
+  /**
+   * Initializes the AudioContext instance shared across the Client SDK,
+   * or returns the existing instance if one has already been initialized.
+   */
+  private static _getOrCreateAudioContext(): AudioContext | undefined {
+    if (!Device._audioContext) {
+      if (typeof AudioContext !== 'undefined') {
+        Device._audioContext = new AudioContext();
+      } else if (typeof webkitAudioContext !== 'undefined') {
+        Device._audioContext = new webkitAudioContext();
+      }
+    }
+    return Device._audioContext;
+  }
 
   /**
    * The AudioHelper instance associated with this {@link Device}.
@@ -341,6 +378,7 @@ class Device extends EventEmitter {
     iceServers: [],
     noRegister: false,
     pStreamFactory: PStream,
+    preflight: false,
     rtcConstraints: { },
     soundFactory: Sound,
     sounds: { },
@@ -647,13 +685,7 @@ class Device extends EventEmitter {
       : false;
     }
 
-    if (!Device._audioContext) {
-      if (typeof AudioContext !== 'undefined') {
-        Device._audioContext = new AudioContext();
-      } else if (typeof webkitAudioContext !== 'undefined') {
-        Device._audioContext = new webkitAudioContext();
-      }
-    }
+    Device._getOrCreateAudioContext();
 
     if (Device._audioContext && options.fakeLocalDTMF) {
       if (!Device._dialtonePlayer) {
@@ -740,6 +772,10 @@ class Device extends EventEmitter {
 
     if (this.options.publishEvents === false) {
       this._publisher.disable();
+    } else {
+      this._publisher.on('error', (error: Error) => {
+        this._log.warn('Cannot connect to insights.', error);
+      });
     }
 
     if (this._networkInformation && typeof this._networkInformation.addEventListener === 'function') {
@@ -966,9 +1002,10 @@ class Device extends EventEmitter {
       enableIceRestart: this.options.enableIceRestart,
       enableRingingState: this.options.enableRingingState,
       forceAggressiveIceNomination: this.options.forceAggressiveIceNomination,
-      getInputStream: (): MediaStream | null => this._connectionInputStream,
+      getInputStream: (): MediaStream | null => this.options.fileInputStream || this._connectionInputStream,
       getSinkIds: (): string[] => this._connectionSinkIds,
       maxAverageBitrate: this.options.maxAverageBitrate,
+      preflight: this.options.preflight,
       rtcConfiguration: this.options.rtcConfiguration || { iceServers: this.options.iceServers },
       rtcConstraints: this.options.rtcConstraints,
       shouldPlayDisconnect: () => this._enabledSounds.disconnect,
@@ -1464,6 +1501,37 @@ namespace Device {
    * Names of all togglable sounds.
    */
   export type ToggleableSound = Device.SoundName.Incoming | Device.SoundName.Outgoing | Device.SoundName.Disconnect;
+
+  /**
+   * The error format used by errors emitted from {@link Device}.
+   */
+  export interface Error {
+    /**
+     * Error code
+     */
+    code: number;
+
+    /**
+     * Reference to the {@link Connection}
+     * This is usually available if the error is coming from {@link Connection}
+     */
+    connection?: Connection;
+
+    /**
+     * The info object from rtc/peerconnection or eventpublisher. May contain code and message (duplicated here).
+     */
+    info?: { code?: number, message?: string };
+
+    /**
+     * Error message
+     */
+    message: string;
+
+    /**
+     * Twilio Voice related error
+     */
+    twilioError?: TwilioError;
+  }
 
   /**
    * Options that may be passed to the {@link Device} constructor, or Device.setup via public API

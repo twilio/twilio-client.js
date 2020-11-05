@@ -1,4 +1,5 @@
 /**
+ * @packageDocumentation
  * @module Voice
  * @publicapi
  * @internal
@@ -293,10 +294,15 @@ class Connection extends EventEmitter {
     this._mediaReconnectBackoff = Backoff.exponential(BACKOFF_CONFIG);
     this._mediaReconnectBackoff.on('ready', () => this.mediaStream.iceRestart());
 
+    // temporary call sid to be used for outgoing calls
+    this.outboundConnectionId = generateTempCallSid();
+
     const publisher = this._publisher = config.publisher;
 
     if (this._direction === Connection.CallDirection.Incoming) {
       publisher.info('connection', 'incoming', null, this);
+    } else {
+      publisher.info('connection', 'outgoing', { preflight: this.options.preflight }, this);
     }
 
     const monitor = this._monitor = new (this.options.StatsMonitor || StatsMonitor)();
@@ -324,6 +330,7 @@ class Connection extends EventEmitter {
         forceAggressiveIceNomination: this.options.forceAggressiveIceNomination,
         isUnifiedPlan: this._isUnifiedPlanDefault,
         maxAverageBitrate: this.options.maxAverageBitrate,
+        preflight: this.options.preflight,
       });
 
     this.on('volume', (inputVolume: number, outputVolume: number): void => {
@@ -477,9 +484,6 @@ class Connection extends EventEmitter {
         this.emit('disconnect', this);
       }
     };
-
-    // temporary call sid to be used for outgoing calls
-    this.outboundConnectionId = generateTempCallSid();
 
     this.pstream = config.pstream;
     this.pstream.on('cancel', this._onCancel);
@@ -1071,7 +1075,7 @@ class Connection extends EventEmitter {
   }
 
   private _emitWarning = (groupPrefix: string, warningName: string, threshold: number,
-                          value: number|number[], wasCleared?: boolean): void => {
+                          value: number|number[], wasCleared?: boolean, warningData?: RTCWarning): void => {
     const groupSuffix = wasCleared ? '-cleared' : '-raised';
     const groupName = `${groupPrefix}warning${groupSuffix}`;
 
@@ -1107,7 +1111,7 @@ class Connection extends EventEmitter {
 
     if (warningName !== 'constant-audio-output-level') {
       const emitName = wasCleared ? 'warning-cleared' : 'warning';
-      this.emit(emitName, warningName);
+      this.emit(emitName, warningName, warningData && !wasCleared ? warningData : null);
     }
   }
 
@@ -1391,7 +1395,7 @@ class Connection extends EventEmitter {
     const warning: string = warningPrefix + warningName;
 
     this._emitWarning(groupPrefix, warning, warningData.threshold.value,
-                      warningData.values || warningData.value, wasCleared);
+                      warningData.values || warningData.value, wasCleared, warningData);
   }
 
   /**
@@ -1724,6 +1728,11 @@ namespace Connection {
      * The offer SDP, if this is an incoming call.
      */
     offerSdp?: string | null;
+
+    /**
+     * Whether this is a preflight call or not
+     */
+    preflight?: boolean;
 
     /**
      * The Region currently connected to.
