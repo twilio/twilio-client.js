@@ -446,15 +446,12 @@ describe('StatsMonitor', () => {
           clock.restore();
 
           await wait().then(() => {
+            const data = onWarning.args[0][0];
             sinon.assert.calledOnce(onWarning);
-            assert.deepEqual(onWarning.args[0][0], {
-              name: STAT_NAME,
-              threshold: {
-                name: 'maxAverage',
-                value: 3,
-              },
-              value: 5,
-            });
+            assert.equal(data.name, STAT_NAME);
+            assert.deepEqual(data.threshold, { name: 'maxAverage', value: 3 });
+            assert.deepEqual(data.values, [0, 10]);
+            assert(!!data.samples);
           });
         });
 
@@ -491,16 +488,13 @@ describe('StatsMonitor', () => {
           clock.restore();
 
           await wait().then(() => {
+            const data = onWarning.args[0][0];
             sinon.assert.calledOnce(onWarning);
-            assert.deepEqual(onWarning.args[0][0], {
-              name: STAT_NAME,
-              threshold: {
-                name: 'maxAverage',
-                value: 3,
-              },
-              value: 5,
-            });
             sinon.assert.calledOnce(onWarningCleared);
+            assert.equal(data.name, STAT_NAME);
+            assert.deepEqual(data.threshold, { name: 'maxAverage', value: 3 });
+            assert.deepEqual(data.values, [0, 10]);
+            assert(!!data.samples);
           });
         });
       });
@@ -583,14 +577,11 @@ describe('StatsMonitor', () => {
         await wait().then(() => {
           sinon.assert.callCount(onWarning, 2);
 
-          assert.deepEqual(onWarning.args[0][0], {
-            name: STAT_NAME,
-            threshold: {
-              name: 'maxAverage',
-              value: 3,
-            },
-            value: 5,
-          });
+          const data = onWarning.args[0][0];
+          assert.equal(data.name, STAT_NAME);
+          assert.deepEqual(data.threshold, { name: 'maxAverage', value: 3 });
+          assert.deepEqual(data.values, [5]);
+          assert(!!data.samples);
 
           assert.deepEqual({
             ...onWarning.args[1][0],

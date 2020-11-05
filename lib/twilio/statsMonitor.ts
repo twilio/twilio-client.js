@@ -562,9 +562,9 @@ class StatsMonitor extends EventEmitter {
           const avg: number = average(values);
 
           if (comparator(avg, limit[thresholdName])) {
-            this._raiseWarning(statName, thresholdName, { value: avg });
+            this._raiseWarning(statName, thresholdName, { values, samples: relevantSamples });
           } else if (!comparator(avg, limit.clearValue || limit[thresholdName])) {
-            this._clearWarning(statName, thresholdName, { value: avg });
+            this._clearWarning(statName, thresholdName, { values, samples: relevantSamples });
           }
         }
       });
