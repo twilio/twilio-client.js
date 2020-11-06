@@ -1,8 +1,28 @@
 1.13.0 (In Progress)
 ====================
 
+1.13.0-beta2 has been promoted to 1.13.0 GA. Here's what's new in 1.13.0.
+
+New Features
+------------
+
+### Voice diagnostics using PreflightTest API
+
+The SDK now supports a preflight test API which can help determine Voice calling readiness. The API creates a test call and will provide information to help troubleshoot call related issues. This new API is a static member of the [Device](https://www.twilio.com/docs/voice/client/javascript/device#twilio-device) class and can be used like the example below. Please see [Device.testPreflight](https://www.twilio.com/docs/voice/client/javascript/device#testpreflight) method and [PreflightTest](https://www.twilio.com/docs/voice/client/javascript/preflighttest) class for more details about this new API.
+
+```js
+// Initiate the test
+const preflight = Device.testPreflight(token, options);
+
+// Subscribe to events
+preflight.on('completed', (report) => console.log(report));
+preflight.on('failed', (error) => console.log(error));
+```
+
 Changes
 -------
+
+* [Connection.on('warning')](https://www.twilio.com/docs/voice/client/javascript/connection#onwarning-handlerwarningname) now provides data associated with the warning. This data can provide more details about the warning such as thresholds and WebRTC samples collected that caused the warning. The example below is a warning for high jitter. Please see [Voice Insights SDK Events Reference](https://www.twilio.com/docs/voice/insights/call-quality-events-twilio-client-sdk#warning-events) for a list of possible warnings.
 
 * Added `high-packets-lost-fraction` [network warning](https://www.twilio.com/docs/voice/insights/call-quality-events-twilio-client-sdk#network-warnings). This new warning is raised when the average of the most recent seven seconds of packet-loss samples is greater than `3%`. When the average packet-loss over the most recent seven seconds is less than or equal to `1%`, then the warning is cleared.
 
