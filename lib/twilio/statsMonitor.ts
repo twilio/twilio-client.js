@@ -559,7 +559,7 @@ class StatsMonitor extends EventEmitter {
         ['maxAverage', (x: number, y: number) => x > y],
         ['minAverage', (x: number, y: number) => x < y],
       ] as const).forEach(([thresholdName, comparator]) => {
-        if (typeof limit[thresholdName] === 'number' && values.length > 0) {
+        if (typeof limit[thresholdName] === 'number' && values.length >= sampleCount) {
           const avg: number = average(values);
 
           if (comparator(avg, limit[thresholdName])) {
