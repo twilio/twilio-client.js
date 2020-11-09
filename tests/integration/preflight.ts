@@ -58,7 +58,7 @@ describe('Preflight Test', function() {
       receiverDevice.on('incoming', (conn: Connection) => {
         conn.accept();
       });
-      preflight = Device.testPreflight(callerToken);
+      preflight = Device.runPreflight(callerToken);
       callerDevice = preflight['_device'];
 
       (callerDevice as any).connectOverride = callerDevice.connect;
@@ -137,7 +137,7 @@ describe('Preflight Test', function() {
       receiverDevice.on('incoming', (conn: Connection) => {
         conn.accept();
       });
-      preflight = Device.testPreflight(callerToken, {
+      preflight = Device.runPreflight(callerToken, {
         codecPreferences: [Connection.Codec.PCMU],
       });
       callerDevice = preflight['_device'];
@@ -171,7 +171,7 @@ describe('Preflight Test', function() {
           receiverDevice.on('incoming', (conn: Connection) => {
             conn.accept();
           });
-          preflight = Device.testPreflight(callerToken, {
+          preflight = Device.runPreflight(callerToken, {
             edge: selectedEdge,
           });
           const waitForReport: Promise<PreflightTest.Report> =
@@ -208,7 +208,7 @@ describe('Preflight Test', function() {
       receiverDevice.on('incoming', (conn: Connection) => {
         conn.accept();
       });
-      preflight = Device.testPreflight(callerToken);
+      preflight = Device.runPreflight(callerToken);
       callerDevice = preflight['_device'];
 
       (callerDevice as any).connectOverride = callerDevice.connect;
@@ -259,7 +259,7 @@ describe('Preflight Test', function() {
           receiverDevice.on('incoming', (conn: Connection) => {
             conn.accept();
           });
-          preflight = Device.testPreflight(callerToken);
+          preflight = Device.runPreflight(callerToken);
           callerDevice = preflight['_device'];
 
           (callerDevice as any).connectOverride = callerDevice.connect;
