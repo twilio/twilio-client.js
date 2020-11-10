@@ -6,7 +6,7 @@
 New Features
 ------------
 
-### Voice diagnostics using PreflightTest API
+### Voice diagnostics using runPreflight API
 
 The SDK now supports a preflight test API which can help determine Voice calling readiness. The API creates a test call and will provide information to help troubleshoot call related issues. Please see the following for more details.
 
