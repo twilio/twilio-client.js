@@ -427,21 +427,19 @@ describe('StatsMonitor', () => {
             getRTCStats,
           });
 
+          const sampleCount = 7;
           statsMonitor['_thresholds'] = {
-            [STAT_NAME]: { maxAverage: 3, clearValue: 1, sampleCount: 3 },
+            [STAT_NAME]: { maxAverage: 3, clearValue: 1, sampleCount },
           };
 
           statsMonitor.on('warning', onWarning);
 
           statsMonitor.enable({});
 
-          await clock.tickAsync(1000);
-          stats[STAT_NAME] += 10;
-
-          await clock.tickAsync(1000);
-          stats[STAT_NAME] += 10;
-
-          await clock.tickAsync(1000);
+          for(let a = 0; a < sampleCount; a++) {
+            await clock.tickAsync(1000);
+            stats[STAT_NAME] += 10;
+          }
 
           clock.restore();
 
@@ -450,7 +448,7 @@ describe('StatsMonitor', () => {
             sinon.assert.calledOnce(onWarning);
             assert.equal(data.name, STAT_NAME);
             assert.deepEqual(data.threshold, { name: 'maxAverage', value: 3 });
-            assert.deepEqual(data.values, [0, 10]);
+            assert.deepEqual(data.values, [0, 10, 20, 30, 40, 50, 60]);
             assert(!!data.samples);
           });
         });
@@ -465,8 +463,9 @@ describe('StatsMonitor', () => {
             getRTCStats,
           });
 
+          const sampleCount = 7;
           statsMonitor['_thresholds'] = {
-            [STAT_NAME]: { maxAverage: 3, clearValue: 1, sampleCount: 3 },
+            [STAT_NAME]: { maxAverage: 3, clearValue: 1, sampleCount },
           };
 
           statsMonitor.on('warning', onWarning);
@@ -474,13 +473,10 @@ describe('StatsMonitor', () => {
 
           statsMonitor.enable({});
 
-          await clock.tickAsync(1000);
-
-          stats[STAT_NAME] += 10;
-          await clock.tickAsync(1000);
-
-          stats[STAT_NAME] += 10;
-          await clock.tickAsync(1000);
+          for(let a = 0; a < sampleCount; a++) {
+            await clock.tickAsync(1000);
+            stats[STAT_NAME] += 10;
+          }
 
           stats[STAT_NAME] = 0;
           await clock.tickAsync(10000);
@@ -493,7 +489,7 @@ describe('StatsMonitor', () => {
             sinon.assert.calledOnce(onWarningCleared);
             assert.equal(data.name, STAT_NAME);
             assert.deepEqual(data.threshold, { name: 'maxAverage', value: 3 });
-            assert.deepEqual(data.values, [0, 10]);
+            assert.deepEqual(data.values, [0, 10, 20, 30, 40, 50, 60]);
             assert(!!data.samples);
           });
         });
@@ -577,14 +573,14 @@ describe('StatsMonitor', () => {
         await wait().then(() => {
           sinon.assert.callCount(onWarning, 2);
 
-          const data = onWarning.args[0][0];
+          const data = onWarning.args[1][0];
           assert.equal(data.name, STAT_NAME);
           assert.deepEqual(data.threshold, { name: 'maxAverage', value: 3 });
-          assert.deepEqual(data.values, [5]);
+          assert.deepEqual(data.values, [5, 5, 5, 5, 5, 5, 5]);
           assert(!!data.samples);
 
           assert.deepEqual({
-            ...onWarning.args[1][0],
+            ...onWarning.args[0][0],
             samples: null,
           }, {
             name: STAT_NAME,
