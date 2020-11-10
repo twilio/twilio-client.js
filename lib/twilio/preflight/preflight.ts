@@ -788,7 +788,7 @@ export namespace PreflightTest {
      * });
      *
      * // Use the TURN credentials using the iceServers parameter
-     * const preflightTest = Device.testPreflight(token, { iceServers });
+     * const preflightTest = Device.runPreflight(token, { iceServers });
      *
      * // Read from the report object to determine whether TURN is required to connect to media
      * preflightTest.on('completed', (report) => {
@@ -907,7 +907,7 @@ export namespace PreflightTest {
     samples: RTCSample[];
 
     /**
-     * The edge passed to `Device.testPreflight`.
+     * The edge passed to `Device.runPreflight`.
      */
     selectedEdge?: string;
 

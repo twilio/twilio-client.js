@@ -1,8 +1,59 @@
 1.13.0 (In Progress)
 ====================
 
+1.13.0-beta2 has been promoted to 1.13.0 GA. Here's a summary of what is new in 1.13.0.
+
+New Features
+------------
+
+### Voice diagnostics using runPreflight API
+
+The SDK now supports a preflight test API which can help determine Voice calling readiness. The API creates a test call and will provide information to help troubleshoot call related issues. Please see the following for more details.
+
+* [API Docs](https://www.twilio.com/docs/voice/client/javascript/preflighttest)
+* [Quick deploy App](https://github.com/twilio/rtc-diagnostics-react-app)
+
 Changes
 -------
+
+* [Connection.on('warning')](https://www.twilio.com/docs/voice/client/javascript/connection#onwarning-handlerwarningname) now provides data associated with the warning. This data can provide more details about the warning such as thresholds and WebRTC samples collected that caused the warning. The example below is a warning for high jitter. Please see [Voice Insights SDK Events Reference](https://www.twilio.com/docs/voice/insights/call-quality-events-twilio-client-sdk#warning-events) for a list of possible warnings.
+
+  ```ts
+  connection.on('warning', (warningName, warningData) => {
+    console.log({ warningName, warningData });
+  });
+  ```
+
+  Example output:
+
+  ```js
+  {
+    "warningName": "high-jitter",
+    "warningData": {
+      "name": "jitter",
+
+      /**
+       *  Array of jitter values in the past 5 samples that triggered the warning
+       */
+      "values": [35, 44, 31, 32, 32],
+
+      /**
+       * Array of samples collected that triggered the warning.
+       * See sample object format here https://www.twilio.com/docs/voice/client/javascript/connection#sample
+       */
+      "samples": [...],
+
+      /**
+       * The threshold configuration.
+       * In this example, high-jitter warning will be raised if the value exceeded more than 30
+       */
+      "threshold": {
+        "name": "max",
+        "value": 30
+      }
+    }
+  }
+  ```
 
 * Added `high-packets-lost-fraction` [network warning](https://www.twilio.com/docs/voice/insights/call-quality-events-twilio-client-sdk#network-warnings). This new warning is raised when the average of the most recent seven seconds of packet-loss samples is greater than `3%`. When the average packet-loss over the most recent seven seconds is less than or equal to `1%`, then the warning is cleared.
 
@@ -10,7 +61,7 @@ Changes
 
 * We now log an `outgoing` event to Insights when making an outbound call. This event also contains information whether the call is a preflight or not.
 
-* Added a boolean field to the signaling payload for calls initiated by `Device.testPreflight` for debugging purposes.
+* Added a boolean field to the signaling payload for calls initiated by `Device.runPreflight` for debugging purposes.
 
 1.13.0-beta2 (Sept 10, 2020)
 ============================
