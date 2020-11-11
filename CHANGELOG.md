@@ -10,7 +10,7 @@ New Features
 
 The SDK now supports a preflight test API which can help determine Voice calling readiness. The API creates a test call and will provide information to help troubleshoot call related issues. Please see the following for more details.
 
-* [API Docs](https://www.twilio.com/docs/voice/client/javascript/preflighttest)
+* [API Docs](https://www.twilio.com/docs/voice/client/javascript/twilio-client-js-sdk-twiliopreflighttest)
 * [Quick deploy App](https://github.com/twilio/rtc-diagnostics-react-app)
 
 Changes
