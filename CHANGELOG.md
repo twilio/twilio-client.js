@@ -1,4 +1,4 @@
-1.13.0 (In Progress)
+1.13.0 (Nov 11, 2020)
 ====================
 
 1.13.0-beta2 has been promoted to 1.13.0 GA. Here's a summary of what is new in 1.13.0.
