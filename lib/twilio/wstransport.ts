@@ -244,8 +244,12 @@ export default class WSTransport extends EventEmitter {
 
   /**
    * Close the WebSocket and remove all event listeners.
+   *
+   * @param fatal An optional boolean representing whether or not the
+   *  `PeerConnection`s associated with the signaling service should be
+   *  considered unrecoverable, i.e. in the case of network handover.
    */
-  private _closeSocket(): void {
+  private _closeSocket(fatal?: boolean): void {
     clearTimeout(this._connectTimeout);
     clearTimeout(this._heartbeatTimeout);
 
@@ -274,7 +278,7 @@ export default class WSTransport extends EventEmitter {
     this._backoff.backoff();
     delete this._socket;
 
-    this.emit('close');
+    this.emit('close', fatal);
   }
 
   /**
@@ -424,7 +428,7 @@ export default class WSTransport extends EventEmitter {
     this._heartbeatTimeout = setTimeout(() => {
       this._log.info(`No messages received in ${HEARTBEAT_TIMEOUT / 1000} seconds. Reconnecting...`);
       this._shouldFallback = true;
-      this._closeSocket();
+      this._closeSocket(true);
     }, HEARTBEAT_TIMEOUT);
   }
 

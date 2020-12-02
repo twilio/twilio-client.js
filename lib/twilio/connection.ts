@@ -1341,8 +1341,11 @@ class Connection extends EventEmitter {
    * Called when we receive a transportClose event from pstream.
    * Re-emits the event.
    */
-  private _onTransportClose = (): void => {
+  private _onTransportClose = (fatal?: boolean): void => {
     this._log.error('Received transportClose from pstream');
+    if (fatal) {
+      this._disconnect();
+    }
     this.emit('transportClose');
   }
 
