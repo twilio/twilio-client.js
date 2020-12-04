@@ -1196,6 +1196,16 @@ class Device extends EventEmitter {
   private _onSignalingReady = () => {
     this._log.info('Stream is ready');
     this._status = Device.Status.Ready;
+
+    const activeConnection = this.activeConnection();
+    if (activeConnection) {
+      activeConnection.disconnect();
+      this._log.warn(
+        'A signaling layer interruption was detected during an active call. ' +
+        'The call has been disconnected to keep behavior consistent.',
+      );
+    }
+
     this.emit('ready', this);
   }
 

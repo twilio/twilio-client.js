@@ -887,6 +887,13 @@ describe('Device', function() {
         sinon.assert.calledOnce(device.emit as any);
         sinon.assert.calledWith(device.emit as any, 'ready');
       });
+
+      it('should close an active connection if one exists', () => {
+        const mockConnection = { disconnect: sinon.spy() };
+        device.activeConnection = () => mockConnection as any;
+        pstream.emit('ready');
+        sinon.assert.calledOnce(mockConnection.disconnect);
+      });
     });
 
     describe('on unload or pagehide', () => {
