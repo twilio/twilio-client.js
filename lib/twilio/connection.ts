@@ -547,14 +547,16 @@ class Connection extends EventEmitter {
   /**
    * Accept the incoming {@link Connection}.
    * @param [audioConstraints]
+   * @param [iceServers] - An array of ICE servers to override those set in `Device.setup`.
    */
-  accept(audioConstraints?: MediaTrackConstraints | boolean): void;
+  accept(audioConstraints?: MediaTrackConstraints | boolean, iceServers?: RTCIceServer[]): void;
   /**
    * @deprecated - Set a handler for the {@link acceptEvent}
    * @param handler
    */
   accept(handler: (connection: this) => void): void;
-  accept(handlerOrConstraints?: ((connection: this) => void) | MediaTrackConstraints | boolean): void {
+  accept(handlerOrConstraints?: ((connection: this) => void) | MediaTrackConstraints | boolean,
+         iceServers?: RTCIceServer[]): void {
     if (typeof handlerOrConstraints === 'function') {
       this._addHandler('accept', handlerOrConstraints);
       return;
@@ -603,6 +605,10 @@ class Connection extends EventEmitter {
       }
 
       this.pstream.addListener('hangup', this._onHangup);
+
+      if (iceServers) {
+        this.options.rtcConfiguration = { ...this.options.rtcConfiguration, iceServers };
+      }
 
       if (this._direction === Connection.CallDirection.Incoming) {
         this._isAnswered = true;

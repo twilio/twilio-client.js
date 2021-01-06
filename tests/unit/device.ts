@@ -188,7 +188,7 @@ describe('Device', function() {
       });
     });
 
-    describe('.connect(params?, audioConstraints?)', () => {
+    describe('.connect(params?, audioConstraints?, iceServers?)', () => {
       it('should throw an error', () => {
         assert.throws(() => device.connect(), NOT_INITIALIZED_ERROR);
       });
@@ -350,7 +350,7 @@ describe('Device', function() {
       });
     });
 
-    describe('.connect(params?, audioConstraints?)', () => {
+    describe('.connect(params?, audioConstraints?, iceServers?)', () => {
       it('should throw an error if there is already an active connection', () => {
         device.connect();
         assert.throws(() => device.connect(), /A Connection is already active/);
@@ -393,6 +393,30 @@ describe('Device', function() {
         activeConnection._direction = 'OUTGOING';
         activeConnection.emit('accept');
         sinon.assert.calledOnce(spy.play);
+      });
+
+      context('when passed iceServers', () => {
+        it('should override the iceServers in `Device.options.rtcConfiguration`', () => {
+          device['options'].rtcConfiguration = {
+            ...device['options'].rtcConfiguration,
+            iceServers: [{ urls: 'foo-url' }],
+          };
+          const iceServers = [{ urls: 'bar-url' }];
+          device.connect(undefined, undefined, iceServers);
+          assert(connectOptions && connectOptions.rtcConfiguration);
+          assert.deepEqual(((connectOptions || {}).rtcConfiguration || {}).iceServers, iceServers);
+        });
+
+        it('should leave other `rtcConfiguration` members untouched', () => {
+          device['options'].rtcConfiguration = {
+            ...device['options'].rtcConfiguration,
+            iceServers: [{ urls: 'foo-url' }],
+          };
+          const iceServers = [{ urls: 'bar-url' }];
+          device.connect(undefined, undefined, iceServers);
+          assert(connectOptions && connectOptions.rtcConfiguration);
+          assert.deepEqual((connectOptions || {}).rtcConfiguration, { ...device['options'].rtcConfiguration, iceServers });
+        });
       });
     });
 

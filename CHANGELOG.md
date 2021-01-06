@@ -1,5 +1,26 @@
-1.13.1 (Jan 11, 2020)
+1.13.2 (In Progress)
 ====================
+
+New Features
+------------
+
+### Allow Connection specific ICE Servers
+
+Developers can now opt to override `rtcConfiguration` set within `Device.options` per specific outgoing and incoming `Connection`s.
+
+To use this feature, a new parameter `rtcConfiguration` can be passed to `Device.connect` and `Connection.accept`. The function signatures are now described as below.
+```ts
+Device.connect(params?: Record<string, string>,
+               audioConstraints?: MediaTrackConstraints | boolean,
+               rtcConfiguration?: RTCConfiguration);
+
+Connection.accept(audioConstraints?: MediaTrackConstraints | boolean,
+                  rtcConfiguration?: RTCConfiguration);
+```
+Passing the `rtcConfiguration` parameter to these functions will override any previously set `rtcConfiguration` within `Device.options` but not affect any other members set within `Device.options`.
+
+1.13.1 (Jan 11, 2020)
+=======
 
 Additions
 ---------

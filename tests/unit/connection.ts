@@ -492,6 +492,18 @@ describe('Connection', function() {
           });
         });
 
+        it('should call mediaStream.answerIncomingCall with override iceServers', () => {
+          const originalOptions = conn['options'];
+          const iceServers = [{ urls: 'foo-ice-server-url' }];
+          conn.accept(undefined, iceServers);
+          return wait.then(() => {
+            assert.deepEqual(mediaStream.answerIncomingCall.args[0][3], {
+              ...originalOptions.rtcConfiguration,
+              iceServers,
+            });
+          });
+        });
+
         context('when the success callback is called', () => {
           it('should publish an accepted-by-local event', () => {
             conn.accept();
@@ -562,6 +574,18 @@ describe('Connection', function() {
             sinon.assert.calledOnce(mediaStream.makeOutgoingCall);
             assert.equal(mediaStream.makeOutgoingCall.args[0][1],
               'To=foo&a=undefined&b=true&c=false&d=&e=123&f=123&g=null&h=undefined&i=null&j=0&k=0&l=a%24b%26c%3Fd%3De');
+          });
+        });
+
+        it('should call mediaStream.makeOutgoingCall with an override iceServers', () => {
+          const originalOptions = conn['options'];
+          const iceServers = [{ urls: 'foo-ice-server-url' }];
+          conn.accept(undefined, iceServers);
+          return wait.then(() => {
+            assert.deepEqual(mediaStream.makeOutgoingCall.args[0][4], {
+              ...originalOptions.rtcConfiguration,
+              iceServers,
+            });
           });
         });
 
