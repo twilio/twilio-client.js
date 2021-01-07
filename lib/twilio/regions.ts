@@ -44,6 +44,8 @@ export enum Edge {
   LondonIx = 'london-ix',
   FrankfurtIx = 'frankfurt-ix',
   SingaporeIx = 'singapore-ix',
+  SydneyIx = 'sydney-ix',
+  TokyoIx = 'tokyo-ix',
 }
 
 /**
@@ -64,6 +66,7 @@ export enum Edge {
  */
 export enum Region {
   Au1 = 'au1',
+  Au1Ix = 'au1-ix',
   Br1 = 'br1',
   De1 = 'de1',
   De1Ix = 'de1-ix',
@@ -72,6 +75,7 @@ export enum Region {
   Ie1Ix = 'ie1-ix',
   Ie1Tnx = 'ie1-tnx',
   Jp1 = 'jp1',
+  Jp1Ix = 'jp1-ix',
   Sg1 = 'sg1',
   Sg1Ix = 'sg1-ix',
   Sg1Tnx = 'sg1-tnx',
@@ -124,6 +128,7 @@ export const regionShortcodes: { [index: string]: Region } = {
  */
 const regionURIs: Record<Region, string> = {
   [Region.Au1]: 'chunderw-vpc-gll-au1.twilio.com',
+  [Region.Au1Ix]: 'chunderw-vpc-gll-au1-ix.twilio.com',
   [Region.Br1]: 'chunderw-vpc-gll-br1.twilio.com',
   [Region.De1]: 'chunderw-vpc-gll-de1.twilio.com',
   [Region.De1Ix]: 'chunderw-vpc-gll-de1-ix.twilio.com',
@@ -132,6 +137,7 @@ const regionURIs: Record<Region, string> = {
   [Region.Ie1Ix]: 'chunderw-vpc-gll-ie1-ix.twilio.com',
   [Region.Ie1Tnx]: 'chunderw-vpc-gll-ie1-tnx.twilio.com',
   [Region.Jp1]: 'chunderw-vpc-gll-jp1.twilio.com',
+  [Region.Jp1Ix]: 'chunderw-vpc-gll-jp1-ix.twilio.com',
   [Region.Sg1]: 'chunderw-vpc-gll-sg1.twilio.com',
   [Region.Sg1Ix]: 'chunderw-vpc-gll-sg1-ix.twilio.com',
   [Region.Sg1Tnx]: 'chunderw-vpc-gll-sg1-tnx.twilio.com',
@@ -166,6 +172,8 @@ export const edgeToRegion: Record<Edge, Region> = {
   [Edge.LondonIx]: Region.Ie1Ix,
   [Edge.FrankfurtIx]: Region.De1Ix,
   [Edge.SingaporeIx]: Region.Sg1Ix,
+  [Edge.SydneyIx]: Region.Au1Ix,
+  [Edge.TokyoIx]: Region.Jp1Ix,
 };
 
 /**
@@ -191,6 +199,8 @@ export const regionToEdge: Record<Region, Edge> = {
   [Region.Ie1Ix]: Edge.LondonIx,
   [Region.De1Ix]: Edge.FrankfurtIx,
   [Region.Sg1Ix]: Edge.SingaporeIx,
+  [Region.Au1Ix]: Edge.SydneyIx,
+  [Region.Jp1Ix]: Edge.TokyoIx,
   /**
    * Tnx regions
    */
