@@ -1,3 +1,11 @@
+1.13.1 (In progress)
+====================
+
+Additions
+---------
+
+* Added support for Tokyo and Sydney interconnect locations. These edges can be used by interconnect customers by specifying `{ edge: 'sydney-ix' }` or `{ edge: tokyo-ix' }` in `Device.setup()` or `new Device()` options.
+
 1.13.0 (Nov 11, 2020)
 ====================
 
