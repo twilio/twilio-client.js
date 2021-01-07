@@ -128,6 +128,7 @@ export const regionShortcodes: { [index: string]: Region } = {
  */
 const regionURIs: Record<Region, string> = {
   [Region.Au1]: 'chunderw-vpc-gll-au1.twilio.com',
+  [Region.Au1Ix]: 'chunderw-vpc-gll-au1-ix.twilio.com',
   [Region.Br1]: 'chunderw-vpc-gll-br1.twilio.com',
   [Region.De1]: 'chunderw-vpc-gll-de1.twilio.com',
   [Region.De1Ix]: 'chunderw-vpc-gll-de1-ix.twilio.com',
@@ -136,6 +137,7 @@ const regionURIs: Record<Region, string> = {
   [Region.Ie1Ix]: 'chunderw-vpc-gll-ie1-ix.twilio.com',
   [Region.Ie1Tnx]: 'chunderw-vpc-gll-ie1-tnx.twilio.com',
   [Region.Jp1]: 'chunderw-vpc-gll-jp1.twilio.com',
+  [Region.Jp1Ix]: 'chunderw-vpc-gll-jp1-ix.twilio.com',
   [Region.Sg1]: 'chunderw-vpc-gll-sg1.twilio.com',
   [Region.Sg1Ix]: 'chunderw-vpc-gll-sg1-ix.twilio.com',
   [Region.Sg1Tnx]: 'chunderw-vpc-gll-sg1-tnx.twilio.com',
