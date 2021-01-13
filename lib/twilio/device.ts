@@ -469,11 +469,11 @@ class Device extends EventEmitter {
    * Make an outgoing Call.
    * @param [params] - A flat object containing key:value pairs to be sent to the TwiML app.
    * @param [audioConstraints]
-   * @param [iceServers] - An array of ICE servers to override those set in `Device.setup`.
+   * @param [rtcConfiguration] - An RTCConfiguration to override the one set in `Device.setup`.
    */
   connect(params?: Record<string, string>,
           audioConstraints?: MediaTrackConstraints | boolean,
-          iceServers?: RTCIceServer[]): Connection;
+          rtcConfiguration?: RTCConfiguration): Connection;
   /**
    * Add a listener for the connect event.
    * @param handler - A handler to set on the connect event.
@@ -481,7 +481,7 @@ class Device extends EventEmitter {
   connect(handler: (connection: Connection) => any): null;
   connect(paramsOrHandler?: Record<string, string> | ((connection: Connection) => any),
           audioConstraints?: MediaTrackConstraints | boolean,
-          iceServers?: RTCIceServer[]): Connection | null {
+          rtcConfiguration?: RTCConfiguration): Connection | null {
     if (typeof paramsOrHandler === 'function') {
       this._addHandler(Device.EventName.Connect, paramsOrHandler);
       return null;
@@ -495,11 +495,7 @@ class Device extends EventEmitter {
 
     const params: Record<string, string> = paramsOrHandler || { };
     audioConstraints = audioConstraints || this.options && this.options.audioConstraints || { };
-
-    const rtcConfiguration = this.options.rtcConfiguration || { iceServers: this.options.iceServers };
-    if (iceServers) {
-      rtcConfiguration.iceServers = iceServers;
-    }
+    rtcConfiguration = rtcConfiguration || this.options.rtcConfiguration;
 
     const connection = this._activeConnection = this._makeConnection(params, { rtcConfiguration });
 

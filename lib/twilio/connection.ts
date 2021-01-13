@@ -547,16 +547,16 @@ class Connection extends EventEmitter {
   /**
    * Accept the incoming {@link Connection}.
    * @param [audioConstraints]
-   * @param [iceServers] - An array of ICE servers to override those set in `Device.setup`.
+   * @param [rtcConfiguration] - An RTCConfiguration to override the one set in `Device.setup`.
    */
-  accept(audioConstraints?: MediaTrackConstraints | boolean, iceServers?: RTCIceServer[]): void;
+  accept(audioConstraints?: MediaTrackConstraints | boolean, rtcConfiguration?: RTCConfiguration): void;
   /**
    * @deprecated - Set a handler for the {@link acceptEvent}
    * @param handler
    */
   accept(handler: (connection: this) => void): void;
   accept(handlerOrConstraints?: ((connection: this) => void) | MediaTrackConstraints | boolean,
-         iceServers?: RTCIceServer[]): void {
+         rtcConfiguration?: RTCConfiguration): void {
     if (typeof handlerOrConstraints === 'function') {
       this._addHandler('accept', handlerOrConstraints);
       return;
@@ -606,20 +606,18 @@ class Connection extends EventEmitter {
 
       this.pstream.addListener('hangup', this._onHangup);
 
-      if (iceServers) {
-        this.options.rtcConfiguration = { ...this.options.rtcConfiguration, iceServers };
-      }
+      rtcConfiguration = rtcConfiguration || this.options.rtcConfiguration;
 
       if (this._direction === Connection.CallDirection.Incoming) {
         this._isAnswered = true;
         this.mediaStream.answerIncomingCall(this.parameters.CallSid, this.options.offerSdp,
-          this.options.rtcConstraints, this.options.rtcConfiguration, onAnswer);
+          this.options.rtcConstraints, rtcConfiguration, onAnswer);
       } else {
         const params = Array.from(this.customParameters.entries()).map(pair =>
          `${encodeURIComponent(pair[0])}=${encodeURIComponent(pair[1])}`).join('&');
         this.pstream.once('answer', this._onAnswer.bind(this));
         this.mediaStream.makeOutgoingCall(this.pstream.token, params, this.outboundConnectionId,
-          this.options.rtcConstraints, this.options.rtcConfiguration, onAnswer);
+          this.options.rtcConstraints, rtcConfiguration, onAnswer);
       }
     };
 

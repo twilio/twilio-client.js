@@ -492,15 +492,13 @@ describe('Connection', function() {
           });
         });
 
-        it('should call mediaStream.answerIncomingCall with override iceServers', () => {
-          const originalOptions = conn['options'];
-          const iceServers = [{ urls: 'foo-ice-server-url' }];
-          conn.accept(undefined, iceServers);
+        it('should call mediaStream.answerIncomingCall with override `rtcConfiguration`', () => {
+          const rtcConfiguration = {
+            iceServers: [{ urls: 'foo-ice-server-url' }],
+          };
+          conn.accept(undefined, rtcConfiguration);
           return wait.then(() => {
-            assert.deepEqual(mediaStream.answerIncomingCall.args[0][3], {
-              ...originalOptions.rtcConfiguration,
-              iceServers,
-            });
+            assert.deepEqual(mediaStream.answerIncomingCall.args[0][3], rtcConfiguration);
           });
         });
 
@@ -577,15 +575,13 @@ describe('Connection', function() {
           });
         });
 
-        it('should call mediaStream.makeOutgoingCall with an override iceServers', () => {
-          const originalOptions = conn['options'];
-          const iceServers = [{ urls: 'foo-ice-server-url' }];
-          conn.accept(undefined, iceServers);
+        it('should call mediaStream.makeOutgoingCall with an override `rtcConfiguration`', () => {
+          const rtcConfiguration = {
+            iceServers: [{ urls: 'foo-ice-server-url' }],
+          };
+          conn.accept(undefined, rtcConfiguration);
           return wait.then(() => {
-            assert.deepEqual(mediaStream.makeOutgoingCall.args[0][4], {
-              ...originalOptions.rtcConfiguration,
-              iceServers,
-            });
+            assert.deepEqual(mediaStream.makeOutgoingCall.args[0][4], rtcConfiguration);
           });
         });
 

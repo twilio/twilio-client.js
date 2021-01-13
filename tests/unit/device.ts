@@ -395,27 +395,19 @@ describe('Device', function() {
         sinon.assert.calledOnce(spy.play);
       });
 
-      context('when passed iceServers', () => {
-        it('should override the iceServers in `Device.options.rtcConfiguration`', () => {
+      context('when passed an `rtcConfiguration`', () => {
+        it('should override the `rtcConfiguration` in `Device.options`', () => {
+          const overrideRtcConfiguration = {
+            ...device['options'].rtcConfiguration,
+            iceServers: [{ urls: 'bar-url' }],
+          };
           device['options'].rtcConfiguration = {
             ...device['options'].rtcConfiguration,
             iceServers: [{ urls: 'foo-url' }],
           };
-          const iceServers = [{ urls: 'bar-url' }];
-          device.connect(undefined, undefined, iceServers);
+          device.connect(undefined, undefined, overrideRtcConfiguration);
           assert(connectOptions && connectOptions.rtcConfiguration);
-          assert.deepEqual(((connectOptions || {}).rtcConfiguration || {}).iceServers, iceServers);
-        });
-
-        it('should leave other `rtcConfiguration` members untouched', () => {
-          device['options'].rtcConfiguration = {
-            ...device['options'].rtcConfiguration,
-            iceServers: [{ urls: 'foo-url' }],
-          };
-          const iceServers = [{ urls: 'bar-url' }];
-          device.connect(undefined, undefined, iceServers);
-          assert(connectOptions && connectOptions.rtcConfiguration);
-          assert.deepEqual((connectOptions || {}).rtcConfiguration, { ...device['options'].rtcConfiguration, iceServers });
+          assert.deepEqual((connectOptions || {}).rtcConfiguration, overrideRtcConfiguration);
         });
       });
     });
