@@ -188,7 +188,7 @@ describe('Device', function() {
       });
     });
 
-    describe('.connect(params?, audioConstraints?)', () => {
+    describe('.connect(params?, audioConstraints?, iceServers?)', () => {
       it('should throw an error', () => {
         assert.throws(() => device.connect(), NOT_INITIALIZED_ERROR);
       });
@@ -350,7 +350,7 @@ describe('Device', function() {
       });
     });
 
-    describe('.connect(params?, audioConstraints?)', () => {
+    describe('.connect(params?, audioConstraints?, iceServers?)', () => {
       it('should throw an error if there is already an active connection', () => {
         device.connect();
         assert.throws(() => device.connect(), /A Connection is already active/);
@@ -393,6 +393,22 @@ describe('Device', function() {
         activeConnection._direction = 'OUTGOING';
         activeConnection.emit('accept');
         sinon.assert.calledOnce(spy.play);
+      });
+
+      context('when passed an `rtcConfiguration`', () => {
+        it('should override the `rtcConfiguration` in `Device.options`', () => {
+          const overrideRtcConfiguration = {
+            ...device['options'].rtcConfiguration,
+            iceServers: [{ urls: 'bar-url' }],
+          };
+          device['options'].rtcConfiguration = {
+            ...device['options'].rtcConfiguration,
+            iceServers: [{ urls: 'foo-url' }],
+          };
+          device.connect(undefined, undefined, overrideRtcConfiguration);
+          assert(connectOptions && connectOptions.rtcConfiguration);
+          assert.deepEqual((connectOptions || {}).rtcConfiguration, overrideRtcConfiguration);
+        });
       });
     });
 
