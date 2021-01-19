@@ -473,7 +473,7 @@ class Device extends EventEmitter {
   destroy = (): void => {
     this._disconnectAll();
     this._stopRegistrationTimer();
-    
+
     EventEmitter.prototype.removeAllListeners.call(this);
 
     if (this.audio) {
