@@ -19,7 +19,7 @@ Connection.accept(audioConstraints?: MediaTrackConstraints | boolean,
 ```
 Passing the `rtcConfiguration` parameter to these functions will override any previously set `rtcConfiguration` within `Device.options` but not affect any other members set within `Device.options`.
 
-1.13.1 (Jan 11, 2020)
+1.13.1 (Jan 11, 2021)
 =======
 
 Additions
