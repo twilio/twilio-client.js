@@ -44,7 +44,7 @@ Though not recommended, releases of twilio-client.js are also hosted on a CDN an
 these directly in your web app using a &lt;script&gt; tag.
 
 ```html
-<script src="https://sdk.twilio.com/js/client/v1.13/twilio.js"></script>
+<script src="https://sdk.twilio.com/js/client/v1.14/twilio.js"></script>
 ```
 
 Using this method, twilio-client.js will set a browser global:
