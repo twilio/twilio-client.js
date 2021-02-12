@@ -28,7 +28,6 @@ describe('Reconnection', function() {
   let options = {
     warnings: false,
     debug: DEBUG,
-    enableIceRestart: false,
   };
 
   // Since both devices lives in the same machine, one device may receive
@@ -82,49 +81,8 @@ describe('Reconnection', function() {
     }
   };
 
-  describe('When enableIceRestart is false', function() {
+  describe('ICE Restart', function() {
     this.timeout(SUITE_TIMEOUT);
-
-    describe('and ICE connection fails', function() {
-      this.timeout(USE_CASE_TIMEOUT);
-
-      before(async () => {
-        await runDockerCommand('unblockMediaPorts');
-        await setupDevices();
-      });
-      after(() => {
-        destroyDevices();
-        return runDockerCommand('unblockMediaPorts');
-      });
-
-      it('should not trigger reconnecting', async () => {
-        await runDockerCommand('blockMediaPorts');
-        await Promise.race([
-          new Promise((resolve) => setTimeout(resolve, 10000)),
-          bindTestPerConnection((conn: Connection) => expectEvent('reconnecting', conn)
-            .then(() => Promise.reject(new Error('Detected reconnecting'))))
-        ]);
-      });
-
-      it('should disconnect call with error 31003', () => {
-        return waitFor(bindTestPerConnection((conn: Connection) => Promise.all([
-          expectEvent('disconnect', conn),
-          new Promise((resolve) => conn.once('error', (error) => error.code === 31003 && resolve()))
-        ]).then(() =>  assert(conn.status() === Connection.State.Closed))), RTP_TIMEOUT);
-      });
-    });
-  });
-
-  describe('When enableIceRestart is true', function() {
-    this.timeout(SUITE_TIMEOUT);
-
-    before(() => {
-      options.enableIceRestart = true;
-    });
-
-    after(() => {
-      options.enableIceRestart = false;
-    });
 
     describe('and ICE connection fails', function() {
       this.timeout(USE_CASE_TIMEOUT);

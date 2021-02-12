@@ -673,7 +673,7 @@ describe('PeerConnection', () => {
         },
         processAnswer: sinon.stub().callsFake(() => {}),
       };
-      options = { enableIceRestart: true };
+      options = {};
       pstream = {
         on: sinon.stub(),
         reinvite: sinon.stub()
@@ -690,14 +690,6 @@ describe('PeerConnection', () => {
       };
       toTest = METHOD.bind(context);
       wait = () => new Promise(r => setTimeout(r, 0));
-    });
-
-    it('Should not proceed iceRestart if enableIceRestart is false', () => {
-      options.enableIceRestart = false;
-      toTest();
-      return wait().then(() => {
-        assert(version.createOffer.notCalled);
-      });
     });
 
     it('Should call createOffer with iceRestart flag', () => {
