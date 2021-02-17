@@ -92,8 +92,6 @@ const WARNING_PREFIXES: Record<string, string> = {
   minStandardDeviation: 'constant-',
 };
 
-let hasBeenWarnedHandlers = false;
-
 /**
  * A {@link Connection} represents a media and signaling connection to a TwiML application.
  * @publicapi
@@ -244,8 +242,8 @@ class Connection extends EventEmitter {
    * Options passed to this {@link Connection}.
    */
   private options: Connection.Options = {
+    MediaStream: PeerConnection,
     enableRingingState: false,
-    mediaStreamFactory: PeerConnection,
     offerSdp: null,
     shouldPlayDisconnect: () => true,
   };
@@ -322,7 +320,7 @@ class Connection extends EventEmitter {
       this._reemitWarningCleared(data);
     });
 
-    this.mediaStream = new (this.options.MediaStream || this.options.mediaStreamFactory)
+    this.mediaStream = new (this.options.MediaStream)
       (config.audioHelper, config.pstream, config.getUserMedia, {
         codecPreferences: this.options.codecPreferences,
         dscp: this.options.dscp,
@@ -506,27 +504,6 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Get the real CallSid. Returns null if not present or is a temporary call sid.
-   * @deprecated
-   * @private
-   */
-  _getRealCallSid(): string | null {
-    this._log.warn('_getRealCallSid is deprecated and will be removed in 2.0.');
-    return /^TJ/.test(this.parameters.CallSid) ? null : this.parameters.CallSid;
-  }
-
-  /**
-   * Get the temporary CallSid.
-   * @deprecated
-   * @private
-   */
-  _getTempCallSid(): string | undefined {
-    this._log.warn('_getTempCallSid is deprecated and will be removed in 2.0. \
-                    Please use outboundConnectionId instead.');
-    return this.outboundConnectionId;
-  }
-
-  /**
    * Set the audio input tracks from a given stream.
    * @param stream
    * @private
@@ -549,24 +526,12 @@ class Connection extends EventEmitter {
    * @param [audioConstraints]
    * @param [rtcConfiguration] - An RTCConfiguration to override the one set in `Device.setup`.
    */
-  accept(audioConstraints?: MediaTrackConstraints | boolean, rtcConfiguration?: RTCConfiguration): void;
-  /**
-   * @deprecated - Set a handler for the {@link acceptEvent}
-   * @param handler
-   */
-  accept(handler: (connection: this) => void): void;
-  accept(handlerOrConstraints?: ((connection: this) => void) | MediaTrackConstraints | boolean,
-         rtcConfiguration?: RTCConfiguration): void {
-    if (typeof handlerOrConstraints === 'function') {
-      this._addHandler('accept', handlerOrConstraints);
-      return;
-    }
-
+  accept(audioConstraints?: MediaTrackConstraints | boolean, rtcConfiguration?: RTCConfiguration): void {
     if (this._status !== Connection.State.Pending) {
       return;
     }
 
-    const audioConstraints = handlerOrConstraints || this.options.audioConstraints;
+    audioConstraints = audioConstraints || this.options.audioConstraints;
     this._status = Connection.State.Connecting;
 
     const connect = () => {
@@ -672,46 +637,10 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * @deprecated - Ignore the incoming {@link Connection}.
-   */
-  cancel(): void;
-  /**
-   * @deprecated - Set a handler for the {@link cancelEvent}
-   */
-  cancel(handler: () => void): void;
-  cancel(handler?: () => void): void {
-    this._log.warn('.cancel() is deprecated. Please use .ignore() instead.');
-
-    if (handler) {
-      this.ignore(handler);
-    } else {
-      this.ignore();
-    }
-  }
-
-  /**
    * Disconnect from the {@link Connection}.
    */
-  disconnect(): void;
-  /**
-   * @deprecated - Set a handler for the {@link disconnectEvent}
-   */
-  disconnect(handler: (connection: this) => void): void;
-  disconnect(handler?: (connection: this) => void): void {
-    if (typeof handler === 'function') {
-      this._addHandler('disconnect', handler);
-      return;
-    }
+  disconnect(): void {
     this._disconnect();
-  }
-
-  /**
-   * @deprecated - Set a handler for the {@link errorEvent}
-   */
-  error(handler: (error: Connection.Error) => void): void {
-    if (typeof handler === 'function') {
-      this._addHandler('error', handler);
-    }
   }
 
   /**
@@ -731,17 +660,7 @@ class Connection extends EventEmitter {
   /**
    * Ignore the incoming {@link Connection}.
    */
-  ignore(): void;
-  /**
-   * @deprecated - Set a handler for the {@link cancelEvent}
-   */
-  ignore(handler: () => void): void;
-  ignore(handler?: () => void): void {
-    if (typeof handler === 'function') {
-      this._addHandler('cancel', handler);
-      return;
-    }
-
+  ignore(): void {
     if (this._status !== Connection.State.Pending) {
       return;
     }
@@ -753,7 +672,7 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Check if connection is muted
+   * Check whether connection is muted
    */
   isMuted(): boolean {
     return this.mediaStream.isMuted;
@@ -763,17 +682,7 @@ class Connection extends EventEmitter {
    * Mute incoming audio.
    * @param shouldMute - Whether the incoming audio should be muted. Defaults to true.
    */
-  mute(shouldMute?: boolean): void;
-  /**
-   * @deprecated - Set a handler for the {@link muteEvent}
-   */
-  mute(handler: (isMuted: boolean, connection: this) => void): void;
-  mute(shouldMute: boolean | ((isMuted: boolean, connection: this) => void) = true): void {
-    if (typeof shouldMute === 'function') {
-      this._addHandler('mute', shouldMute);
-      return;
-    }
-
+  mute(shouldMute: boolean = true): void {
     const wasMuted = this.mediaStream.isMuted;
     this.mediaStream.mute(shouldMute);
 
@@ -817,17 +726,7 @@ class Connection extends EventEmitter {
   /**
    * Reject the incoming {@link Connection}.
    */
-  reject(): void;
-  /**
-   * @deprecated - Set a handler for the {@link rejectEvent}
-   */
-  reject(handler: () => void): void;
-  reject(handler?: () => void): void {
-    if (typeof handler === 'function') {
-      this._addHandler('reject', handler);
-      return;
-    }
-
+  reject(): void {
     if (this._status !== Connection.State.Pending) {
       return;
     }
@@ -926,43 +825,6 @@ class Connection extends EventEmitter {
    * @private
    */
   toString = () => '[Twilio.Connection instance]';
-
-  /**
-   * @deprecated - Unmute the {@link Connection}.
-   */
-  unmute(): void {
-    this._log.warn('.unmute() is deprecated. Please use .mute(false) to unmute a call instead.');
-    this.mute(false);
-  }
-
-  /**
-   * @deprecated - Set a handler for the {@link volumeEvent}
-   * @param handler
-   */
-  volume(handler: (inputVolume: number, outputVolume: number) => void): void {
-    if (!window || (!(window as any).AudioContext && !(window as any).webkitAudioContext)) {
-      this._log.warn('This browser does not support Connection.volume');
-    }
-
-    this._addHandler('volume', handler);
-  }
-
-  /**
-   * Add a handler for an EventEmitter and emit a deprecation warning on first call.
-   * @param eventName - Name of the event
-   * @param handler - A handler to call when the event is emitted
-   */
-  private _addHandler(eventName: string, handler: (...args: any[]) => any): this {
-    if (!hasBeenWarnedHandlers) {
-      this._log.warn(`Connection callback handlers (accept, cancel, disconnect, error, ignore, mute, reject,
-        volume) have been deprecated and will be removed in the next breaking release. Instead, the EventEmitter \
-        interface can be used to set event listeners. Example: connection.on('${eventName}', handler)`);
-      hasBeenWarnedHandlers = true;
-    }
-
-    this.addListener(eventName, handler);
-    return this;
-  }
 
   /**
    * Check the volume passed, emitting a warning if one way audio is detected or cleared.
@@ -1719,14 +1581,9 @@ namespace Connection {
     maxAverageBitrate?: number;
 
     /**
-     * Custom MediaStream (PeerConnection) constructor. Overrides mediaStreamFactory (deprecated).
+     * Custom MediaStream (PeerConnection) constructor.
      */
     MediaStream?: IPeerConnection;
-
-    /**
-     * Custom MediaStream (PeerConnection) constructor (deprecated)
-     */
-    mediaStreamFactory?: IPeerConnection;
 
     /**
      * The offer SDP, if this is an incoming call.
