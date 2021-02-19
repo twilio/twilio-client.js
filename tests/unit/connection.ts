@@ -330,52 +330,6 @@ describe('Connection', function() {
     });
   });
 
-  describe('_getRealCallSid', () => {
-    it('should return null if CallSid is temporary', () => {
-      conn = new Connection(config, Object.assign({
-        callParameters: { CallSid: 'TJ123' }
-      }, options));
-
-      assert.equal(conn._getRealCallSid(), null);
-    });
-
-    it('should return the callsid if it does not begin with TJ', () => {
-      conn = new Connection(config, Object.assign({
-        callParameters: { CallSid: 'CA123' }
-      }, options));
-
-      assert.equal(conn._getRealCallSid(), 'CA123');
-    });
-  });
-
-  describe('_getTempCallSid', () => {
-    it('should return connection.outboundConnectionId', () => {
-      assert.equal(conn._getTempCallSid(), conn.outboundConnectionId);
-    });
-  });
-
-  describe('deprecated handler methods', () => {
-    ['accept', 'cancel', 'disconnect', 'error', 'mute', 'reject', 'volume'].forEach((eventName: string) => {
-      it(`should set an event listener on Connection for .${eventName}(handler)`, () => {
-        const handler = () => { };
-        (conn as any).removeAllListeners(eventName);
-        (conn as any)[eventName](handler);
-        assert.equal(conn.listenerCount(eventName), 1);
-        assert.equal(conn.listeners(eventName)[0], handler);
-        conn.removeListener(eventName, handler);
-      });
-    });
-
-    it(`should set an event listener on Connection for .ignore(handler)`, () => {
-      const handler = () => { };
-      (conn as any).removeAllListeners('cancel');
-      (conn as any)['ignore'](handler);
-      assert.equal(conn.listenerCount('cancel'), 1);
-      assert.equal(conn.listeners('cancel')[0], handler);
-      conn.removeListener('cancel', handler);
-    });
-  });
-
   describe('.accept', () => {
     [
       Connection.State.Open,
@@ -693,14 +647,6 @@ describe('Connection', function() {
     });
   });
 
-  describe('.cancel()', () => {
-    it('should call .ignore()', () => {
-      conn.ignore = sinon.spy();
-      conn.cancel();
-      sinon.assert.calledOnce(conn.ignore as SinonSpy);
-    });
-  });
-
   describe('.disconnect()', () => {
     [
       Connection.State.Open,
@@ -724,7 +670,6 @@ describe('Connection', function() {
 
         [
           'answer',
-          'cancel',
           'hangup',
           'ringing',
           'transportClose',
@@ -1095,14 +1040,6 @@ describe('Connection', function() {
       pstream.status = 'disconnected';
       conn.on('error', () => done());
       conn.sendDigits('123');
-    });
-  });
-
-  describe('.unmute()', () => {
-    it('should call .mute(false)', () => {
-      conn.mute = sinon.spy();
-      conn.unmute();
-      sinon.assert.calledWith(conn.mute as SinonSpy, false);
     });
   });
 
