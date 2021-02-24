@@ -315,11 +315,6 @@ describe('Device', function() {
         assert.equal(device.activeConnection(), conn);
         assert.equal(device.activeConnection(), activeConnection);
       });
-
-      it('should return the first connection if no Connection is active', () => {
-        (device as any)['connections'] = ['foo', 'bar'];
-        assert.equal(device.activeConnection(), 'foo');
-      });
     });
 
     describe('.connect(params?, audioConstraints?, iceServers?)', () => {
@@ -1030,12 +1025,12 @@ describe('Device', function() {
 
         it('should remove connection from activeDevice', () => {
           const conn = device.connections[0];
-          conn.accept();
+          conn.emit('accept');
           assert.equal(typeof conn, 'object');
           assert.equal(conn, device.activeConnection());
 
-          device.connections[0].emit('disconnect');
-          assert.equal(typeof device.activeConnection(), 'undefined');
+          conn.emit('disconnect');
+          assert.equal(device.activeConnection(), null);
         });
       });
 

@@ -447,13 +447,7 @@ class Device extends EventEmitter {
    * Return the active {@link Connection}. Null or undefined for backward compatibility.
    */
   activeConnection(): Connection | null | undefined {
-    if (!this.isInitialized) {
-      return null;
-    }
-    // @rrowland This should only return activeConnection, but customers have built around this
-    // broken behavior and in order to not break their apps we are including this until
-    // the next big release.
-    return this._activeConnection || this.connections[0];
+    return this.isInitialized ? this._activeConnection : null;
   }
 
   /**
