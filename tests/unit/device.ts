@@ -324,10 +324,6 @@ describe('Device', function() {
         assert.equal(device.connect(), device.activeConnection());
       });
 
-      it('should pass rtcConfiguration along', () => {
-        assert.deepEqual(rtcConfiguration, connectOptions && connectOptions.rtcConfiguration);
-      });
-
       it('should play outgoing sound after accepted if enabled', () => {
         const spy: any = { play: sinon.spy() };
         device['soundcache'].set(Device.SoundName.Outgoing, spy);

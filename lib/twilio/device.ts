@@ -93,12 +93,6 @@ export interface IExtendedDeviceOptions extends Device.Options {
   fileInputStream?: MediaStream;
 
   /**
-   * A list of specific ICE servers to use. Overridden by {@link Device.Options.rtcConfiguration}.
-   * @deprecated
-   */
-  iceServers?: Object[];
-
-  /**
    * Ignore browser support, disabling the exception that is thrown when neither WebRTC nor
    * ORTC are supported.
    */
@@ -373,7 +367,6 @@ class Device extends EventEmitter {
     dscp: true,
     eventgw: 'eventgw.twilio.com',
     forceAggressiveIceNomination: false,
-    iceServers: [],
     logLevel: LogLevels.ERROR,
     noRegister: false,
     pStreamFactory: PStream,
@@ -466,7 +459,6 @@ class Device extends EventEmitter {
 
     audioConstraints = audioConstraints || this.options && this.options.audioConstraints || { };
     params = params || {};
-    rtcConfiguration = rtcConfiguration || this.options.rtcConfiguration;
 
     const connection = this._activeConnection = this._makeConnection(params, { rtcConfiguration });
 
@@ -916,7 +908,6 @@ class Device extends EventEmitter {
       getSinkIds: (): string[] => this._connectionSinkIds,
       maxAverageBitrate: this.options.maxAverageBitrate,
       preflight: this.options.preflight,
-      rtcConfiguration: this.options.rtcConfiguration || { iceServers: this.options.iceServers },
       rtcConstraints: this.options.rtcConstraints,
       shouldPlayDisconnect: () => this._enabledSounds.disconnect,
       twimlParams,
@@ -1563,11 +1554,6 @@ namespace Device {
      * | sg1-ix       | singapore-ix |
      */
     region?: string;
-
-    /**
-     * An RTCConfiguration to pass to the RTCPeerConnection constructor.
-     */
-    rtcConfiguration?: RTCConfiguration;
 
     /**
      * A mapping of custom sound URLs by sound name.
