@@ -60,7 +60,6 @@ const RINGTONE_PLAY_TIMEOUT = 2000;
 declare const RTCRtpTransceiver: any;
 declare const webkitAudioContext: typeof AudioContext;
 
-let hasBeenWarnedHandlers: boolean = false;
 let hasBeenWarnedSounds: boolean = false;
 
 /**
@@ -451,14 +450,6 @@ class Device extends EventEmitter {
   }
 
   /**
-   * @deprecated Set a handler for the cancel event.
-   * @param handler
-   */
-  cancel(handler: (connection: Connection) => any): this {
-    return this._addHandler(Device.EventName.Cancel, handler);
-  }
-
-  /**
    * Make an outgoing Call.
    * @param [params] - A flat object containing key:value pairs to be sent to the TwiML app.
    * @param [audioConstraints]
@@ -466,28 +457,15 @@ class Device extends EventEmitter {
    */
   connect(params?: Record<string, string>,
           audioConstraints?: MediaTrackConstraints | boolean,
-          rtcConfiguration?: RTCConfiguration): Connection;
-  /**
-   * Add a listener for the connect event.
-   * @param handler - A handler to set on the connect event.
-   */
-  connect(handler: (connection: Connection) => any): null;
-  connect(paramsOrHandler?: Record<string, string> | ((connection: Connection) => any),
-          audioConstraints?: MediaTrackConstraints | boolean,
-          rtcConfiguration?: RTCConfiguration): Connection | null {
-    if (typeof paramsOrHandler === 'function') {
-      this._addHandler(Device.EventName.Connect, paramsOrHandler);
-      return null;
-    }
-
+          rtcConfiguration?: RTCConfiguration): Connection {
     this._throwUnlessSetup('connect');
 
     if (this._activeConnection) {
       throw new InvalidStateError('A Connection is already active');
     }
 
-    const params: Record<string, string> = paramsOrHandler || { };
     audioConstraints = audioConstraints || this.options && this.options.audioConstraints || { };
+    params = params || {};
     rtcConfiguration = rtcConfiguration || this.options.rtcConfiguration;
 
     const connection = this._activeConnection = this._makeConnection(params, { rtcConfiguration });
@@ -531,15 +509,6 @@ class Device extends EventEmitter {
   }
 
   /**
-   * Set a handler for the disconnect event.
-   * @deprecated Use {@link Device.on}.
-   * @param handler
-   */
-  disconnect(handler: (connection: Connection) => any): this {
-    return this._addHandler(Device.EventName.Disconnect, handler);
-  }
-
-  /**
    * Disconnect all {@link Connection}s.
    */
   disconnectAll(): void {
@@ -553,42 +522,6 @@ class Device extends EventEmitter {
    */
   get edge(): string | null {
     return this._edge;
-  }
-
-  /**
-   * Set a handler for the error event.
-   * @deprecated Use {@link Device.on}.
-   * @param handler
-   */
-  error(handler: (error: Connection) => any): this {
-    return this._addHandler(Device.EventName.Error, handler);
-  }
-
-  /**
-   * Set a handler for the incoming event.
-   * @deprecated Use {@link Device.on}.
-   * @param handler
-   */
-  incoming(handler: (connection: Connection) => any): this {
-    return this._addHandler(Device.EventName.Incoming, handler);
-  }
-
-  /**
-   * Set a handler for the offline event.
-   * @deprecated Use {@link Device.on}.
-   * @param handler
-   */
-  offline(handler: (device: Device) => any): this {
-    return this._addHandler(Device.EventName.Offline, handler);
-  }
-
-  /**
-   * Set a handler for the ready event.
-   * @deprecated Use {@link Device.on}.
-   * @param handler
-   */
-  ready(handler: (device: Device) => any): this {
-    return this._addHandler(Device.EventName.Ready, handler);
   }
 
   /**
@@ -856,23 +789,6 @@ class Device extends EventEmitter {
     this._throwUnlessSetup('updateToken');
     this.token = token;
     this.register(token);
-  }
-
-  /**
-   * Add a handler for an EventEmitter and emit a deprecation warning on first call.
-   * @param eventName - Name of the event
-   * @param handler - A handler to call when the event is emitted
-   */
-  private _addHandler(eventName: Device.EventName, handler: (...args: any[]) => any): this {
-    if (!hasBeenWarnedHandlers) {
-      this._log.warn(`Device callback handlers (connect, error, offline, incoming, cancel, ready, disconnect) \
-        have been deprecated and will be removed in the next breaking release. Instead, the EventEmitter \
-        interface can be used to set event listeners. Example: device.on('${eventName}', handler)`);
-      hasBeenWarnedHandlers = true;
-    }
-
-    this.addListener(eventName, handler);
-    return this;
   }
 
   /**

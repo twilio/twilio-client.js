@@ -142,18 +142,6 @@ describe('Device', function() {
   });
 
   context('before Device is initialized', () => {
-    describe('deprecated handler methods', () => {
-      Object.entries(Device.EventName).forEach(([eventName, eventString]) => {
-        it(`should set an event listener on Device for .${eventString}(handler)`, () => {
-          const handler = () => { };
-          (device as any)[eventString](handler);
-          assert.equal(device.listenerCount(eventString), 1);
-          assert.equal(device.listeners(eventString)[0], handler);
-          device.removeListener(eventName as Device.EventName, handler);
-        });
-      });
-    });
-
     describe('.activeConnection()', () => {
       it('should return null', () => {
         assert.equal(device.activeConnection(), null);
@@ -290,19 +278,6 @@ describe('Device', function() {
 
     beforeEach(() => {
       device.setup(token, Object.assign({ rtcConfiguration }, setupOptions));
-    });
-
-    describe('deprecated handler methods', () => {
-      Object.entries(Device.EventName).forEach(([eventName, eventString]) => {
-        it(`should set an event listener on Device for .${eventString}(handler)`, () => {
-          const handler = () => { };
-          device.removeAllListeners(eventString);
-          (device as any)[eventString](handler);
-          assert.equal(device.listenerCount(eventString), 1);
-          assert.equal(device.listeners(eventString)[0], handler);
-          device.removeListener(eventName as Device.EventName, handler);
-        });
-      });
     });
 
     describe('.activeConnection()', () => {
