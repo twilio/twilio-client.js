@@ -360,13 +360,13 @@ describe('Connection', function() {
     });
 
     context('when getInputStream is not present', () => {
-      it('should call mediaStream.openWithConstraints with audioConstraints if passed', () => {
-        conn.accept({ foo: 'bar' } as MediaTrackConstraints);
+      it('should call mediaStream.openWithConstraints with rtcConstraints if passed', () => {
+        conn.accept({ rtcConstraints: { audio: { foo: 'bar' } as MediaTrackConstraints } });
         sinon.assert.calledWith(mediaStream.openWithConstraints, { foo: 'bar' });
       });
 
       it('should call mediaStream.openWithConstraints with options.audioConstraints if no args', () => {
-        Object.assign(options, { audioConstraints: { bar: 'baz' } });
+        Object.assign(options, { rtcConstraints: { audio: { bar: 'baz' } } });
         conn = new Connection(config, options);
         conn.accept();
         sinon.assert.calledWith(mediaStream.openWithConstraints, { bar: 'baz' });
@@ -450,7 +450,7 @@ describe('Connection', function() {
           const rtcConfiguration = {
             iceServers: [{ urls: 'foo-ice-server-url' }],
           };
-          conn.accept(undefined, rtcConfiguration);
+          conn.accept({ rtcConfiguration });
           return wait.then(() => {
             assert.deepEqual(mediaStream.answerIncomingCall.args[0][3], rtcConfiguration);
           });
@@ -533,7 +533,7 @@ describe('Connection', function() {
           const rtcConfiguration = {
             iceServers: [{ urls: 'foo-ice-server-url' }],
           };
-          conn.accept(undefined, rtcConfiguration);
+          conn.accept({ rtcConfiguration });
           return wait.then(() => {
             assert.deepEqual(mediaStream.makeOutgoingCall.args[0][4], rtcConfiguration);
           });
@@ -614,7 +614,7 @@ describe('Connection', function() {
       });
 
       it('should publish a get-user-media denied error', () => {
-        conn.accept({ foo: 'bar' } as MediaTrackConstraints);
+        conn.accept({ rtcConstraints: { audio: { foo: 'bar' } as MediaTrackConstraints } });
         return wait.then(() => {
           sinon.assert.calledWith(publisher.error, 'get-user-media', 'denied');
         });
@@ -639,7 +639,7 @@ describe('Connection', function() {
       });
 
       it('should publish a get-user-media failed error', () => {
-        conn.accept({ foo: 'bar' } as MediaTrackConstraints);
+        conn.accept({ rtcConstraints: { audio: { foo: 'bar' } as MediaTrackConstraints } });
         return wait.then(() => {
           sinon.assert.calledWith(publisher.error, 'get-user-media', 'failed');
         });

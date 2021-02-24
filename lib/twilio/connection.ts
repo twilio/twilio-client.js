@@ -523,15 +523,18 @@ class Connection extends EventEmitter {
 
   /**
    * Accept the incoming {@link Connection}.
-   * @param [audioConstraints]
-   * @param [rtcConfiguration] - An RTCConfiguration to override the one set in `Device.setup`.
+   * @param [options]
    */
-  accept(audioConstraints?: MediaTrackConstraints | boolean, rtcConfiguration?: RTCConfiguration): void {
+  accept(options?: Connection.AcceptOptions): void {
     if (this._status !== Connection.State.Pending) {
       return;
     }
 
-    audioConstraints = audioConstraints || this.options.audioConstraints;
+    options = options || { };
+    const rtcConfiguration = options.rtcConfiguration || this.options.rtcConfiguration;
+    const rtcConstraints = options.rtcConstraints || this.options.rtcConstraints || { };
+    const audioConstraints = rtcConstraints.audio;
+
     this._status = Connection.State.Connecting;
 
     const connect = () => {
@@ -571,18 +574,16 @@ class Connection extends EventEmitter {
 
       this.pstream.addListener('hangup', this._onHangup);
 
-      rtcConfiguration = rtcConfiguration || this.options.rtcConfiguration;
-
       if (this._direction === Connection.CallDirection.Incoming) {
         this._isAnswered = true;
         this.mediaStream.answerIncomingCall(this.parameters.CallSid, this.options.offerSdp,
-          this.options.rtcConstraints, rtcConfiguration, onAnswer);
+          rtcConstraints, rtcConfiguration, onAnswer);
       } else {
         const params = Array.from(this.customParameters.entries()).map(pair =>
          `${encodeURIComponent(pair[0])}=${encodeURIComponent(pair[1])}`).join('&');
         this.pstream.once('answer', this._onAnswer.bind(this));
         this.mediaStream.makeOutgoingCall(this.pstream.token, params, this.outboundConnectionId,
-          this.options.rtcConstraints, rtcConfiguration, onAnswer);
+          rtcConstraints, rtcConfiguration, onAnswer);
       }
     };
 
@@ -1425,6 +1426,21 @@ namespace Connection {
   }
 
   /**
+   * Options to be used to acquire media tracks and connect media.
+   */
+  export interface AcceptOptions {
+    /**
+     * An RTCConfiguration to pass to the RTCPeerConnection constructor.
+     */
+    rtcConfiguration?: RTCConfiguration;
+
+    /**
+     * MediaStreamConstraints to pass to getUserMedia when making or accepting a Call.
+     */
+    rtcConstraints?: MediaStreamConstraints;
+  }
+
+  /**
    * The error format used by errors emitted from {@link Connection}.
    */
   export interface Error {
@@ -1508,12 +1524,6 @@ namespace Connection {
    * @private
    */
   export interface Options {
-    /**
-     * Audio Constraints to pass to getUserMedia when making or accepting a Call.
-     * This is placed directly under `audio` of the MediaStreamConstraints object.
-     */
-    audioConstraints?: MediaTrackConstraints | boolean;
-
     /**
      * A method to call before Connection.accept is processed.
      */

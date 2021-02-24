@@ -173,6 +173,7 @@ describe('Device', function() {
     describe('deprecated handler methods', () => {
       Object.entries(Device.EventName).forEach(([eventName, eventString]) => {
         it(`should set an event listener on Device for .${eventString}(handler)`, () => {
+          if (eventString === 'connect') { return; }
           const handler = () => { };
           (device as any)[eventString](handler);
           assert.equal(device.listenerCount(eventString), 1);
@@ -314,15 +315,14 @@ describe('Device', function() {
   });
 
   context('after Device is initialized', () => {
-    const rtcConfiguration = { foo: 'bar', abc: 123 };
-
     beforeEach(() => {
-      device.setup(token, Object.assign({ rtcConfiguration }, setupOptions));
+      device.setup(token, setupOptions);
     });
 
     describe('deprecated handler methods', () => {
       Object.entries(Device.EventName).forEach(([eventName, eventString]) => {
         it(`should set an event listener on Device for .${eventString}(handler)`, () => {
+          if (eventString === 'connect') { return; }
           const handler = () => { };
           device.removeAllListeners(eventString);
           (device as any)[eventString](handler);
@@ -382,10 +382,6 @@ describe('Device', function() {
         assert.equal(device.connect(), device.activeConnection());
       });
 
-      it('should pass rtcConfiguration along', () => {
-        assert.deepEqual(rtcConfiguration, connectOptions && connectOptions.rtcConfiguration);
-      });
-
       it('should play outgoing sound after accepted if enabled', () => {
         const spy: any = { play: sinon.spy() };
         device['soundcache'].set(Device.SoundName.Outgoing, spy);
@@ -393,22 +389,6 @@ describe('Device', function() {
         activeConnection._direction = 'OUTGOING';
         activeConnection.emit('accept');
         sinon.assert.calledOnce(spy.play);
-      });
-
-      context('when passed an `rtcConfiguration`', () => {
-        it('should override the `rtcConfiguration` in `Device.options`', () => {
-          const overrideRtcConfiguration = {
-            ...device['options'].rtcConfiguration,
-            iceServers: [{ urls: 'bar-url' }],
-          };
-          device['options'].rtcConfiguration = {
-            ...device['options'].rtcConfiguration,
-            iceServers: [{ urls: 'foo-url' }],
-          };
-          device.connect(undefined, undefined, overrideRtcConfiguration);
-          assert(connectOptions && connectOptions.rtcConfiguration);
-          assert.deepEqual((connectOptions || {}).rtcConfiguration, overrideRtcConfiguration);
-        });
       });
     });
 
