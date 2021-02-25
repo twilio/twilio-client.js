@@ -24,6 +24,41 @@ TwilioClientLogger.setLogLevel('DEBUG');
 
 Please see the original [`loglevel`](https://github.com/pimterry/loglevel) project for more documentation on usage.
 
+
+Changes
+-------
+
+### Removal of Deprecated Device Options
+
+As part of 2.x, some deprecated `Device` options have been removed. This includes:
+
+* `enableIceRestart`
+* `enableRingingState`
+* `fakeLocalDtmf`
+
+The above three removed options are now assumed `true`. The new `Device.Options` interface is now:
+
+```ts
+export interface Options {
+  allowIncomingWhileBusy?: boolean;
+  appName?: string;
+  appVersion?: string;
+  audioConstraints?: MediaTrackConstraints | boolean;
+  closeProtection?: boolean | string;
+  codecPreferences?: Connection.Codec[];
+  debug?: boolean;
+  disableAudioContextSounds?: boolean;
+  dscp?: boolean;
+  edge?: string[] | string;
+  forceAggressiveIceNomination?: boolean;
+  maxAverageBitrate?: number;
+  region?: string;
+  rtcConfiguration?: RTCConfiguration;
+  sounds?: Partial<Record<Device.SoundName, string>>;
+  warnings?: boolean;
+}
+```
+
 1.14.0 (Jan 27, 2021)
 ====================
 

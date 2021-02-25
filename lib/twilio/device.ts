@@ -372,7 +372,6 @@ class Device extends EventEmitter {
     codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
     connectionFactory: Connection,
     dscp: true,
-    enableIceRestart: false,
     eventgw: 'eventgw.twilio.com',
     forceAggressiveIceNomination: false,
     iceServers: [],
@@ -690,7 +689,7 @@ class Device extends EventEmitter {
 
     Device._getOrCreateAudioContext();
 
-    if (Device._audioContext && options.fakeLocalDTMF) {
+    if (Device._audioContext) {
       if (!Device._dialtonePlayer) {
         Device._dialtonePlayer = new DialtonePlayer(Device._audioContext);
       }
@@ -922,7 +921,7 @@ class Device extends EventEmitter {
       aggressive_nomination: this.options.forceAggressiveIceNomination,
       browser_extension: this._isBrowserExtension,
       dscp: !!this.options.dscp,
-      ice_restart_enabled: this.options.enableIceRestart,
+      ice_restart_enabled: true,
       platform: rtc.getMediaEngine(),
       sdk_version: C.RELEASE_VERSION,
     };
@@ -1002,8 +1001,6 @@ class Device extends EventEmitter {
       codecPreferences: this.options.codecPreferences,
       dialtonePlayer: Device._dialtonePlayer,
       dscp: this.options.dscp,
-      enableIceRestart: this.options.enableIceRestart,
-      enableRingingState: this.options.enableRingingState,
       forceAggressiveIceNomination: this.options.forceAggressiveIceNomination,
       getInputStream: (): MediaStream | null => this.options.fileInputStream || this._connectionInputStream,
       getSinkIds: (): string[] => this._connectionSinkIds,
@@ -1601,24 +1598,6 @@ namespace Device {
      * result in an `InvalidArgumentException`.
      */
     edge?: string[] | string;
-
-    /**
-     * Whether to automatically restart ICE when media connection fails
-     */
-    enableIceRestart?: boolean;
-
-    /**
-     * Whether the ringing state should be enabled on {@link Connection} objects. This is required
-     * to enable answerOnBridge functionality.
-     */
-    enableRingingState?: boolean;
-
-    /**
-     * Whether or not to override the local DTMF sounds with fake dialtones. This won't affect
-     * the DTMF tone sent over the connection, but will prevent double-send issues caused by
-     * using real DTMF tones for user interface. In 2.0, this will be enabled by default.
-     */
-    fakeLocalDTMF?: boolean;
 
     /**
      * Experimental feature.
