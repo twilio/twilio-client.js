@@ -166,12 +166,6 @@ describe('Device', function() {
       });
     });
 
-    describe('.region()', () => {
-      it('should throw an error', () => {
-        assert.throws(() => device.region(), NOT_INITIALIZED_ERROR);
-      });
-    });
-
     describe('.registerPresence()', () => {
       it('should throw an error', () => {
         assert.throws(() => device.registerPresence(), NOT_INITIALIZED_ERROR);
@@ -217,11 +211,6 @@ describe('Device', function() {
         it('should throw if token is undefined', () => {
           device = new Device();
           assert.throws(() => (device.setup as any)(), /Token is required/);
-        });
-
-        it('should throw if both `edge` and `region` are defined in options', () => {
-          device = new Device();
-          assert.throws(() => device.setup(token, { edge: 'foo', region: 'bar' }));
         });
 
         it('should set device.isInitialized to true', () => {
@@ -427,38 +416,7 @@ describe('Device', function() {
         ['FOO_BAR', ''].forEach((name: string) => {
           it(`should return the region string directly if it's '${name}'`, () => {
             pstream.emit('connected', { region: name });
-            assert.equal(device.region(), name);
-          });
-        });
-      });
-    });
-
-    describe('.region()', () => {
-      it(`should log.warn a deprecation warning`, () => {
-        const spy = sinon.spy();
-        device['_log'].warn = spy;
-        device.region();
-        assert(spy.calledOnce);
-      });
-
-      it(`should return 'offline' if not connected`, () => {
-        assert.equal(device.region(), 'offline');
-      });
-
-      context('when the Region is known to the SDK', () => {
-        Object.entries(regionShortcodes).forEach(([fullName, region]: [string, string]) => {
-          it(`should return ${region.toString()} for ${fullName}`, () => {
-            pstream.emit('connected', { region: fullName });
-            assert.equal(device.region(), region);
-          });
-        });
-      });
-
-      context('when the Region is not known to the SDK', () => {
-        ['FOO_BAR', 'sg1', ''].forEach((name: string) => {
-          it(`should return the region string directly if it's '${name}'`, () => {
-            pstream.emit('connected', { region: name });
-            assert.equal(device.region(), name);
+            assert.equal(device['_region'], name);
           });
         });
       });
@@ -532,16 +490,6 @@ describe('Device', function() {
         sinon.assert.calledOnce(pStreamFactory);
         sinon.assert.calledWithExactly(pStreamFactory,
           token, ['wss://chunderw-vpc-gll.twilio.com/signal'],
-          { backoffMaxMs: undefined });
-      });
-
-      it('should use correct region', () => {
-        options.region = 'sg1';
-        device.setup(token, options);
-
-        sinon.assert.calledOnce(pStreamFactory);
-        sinon.assert.calledWithExactly(pStreamFactory,
-          token, ['wss://chunderw-vpc-gll-sg1.twilio.com/signal'],
           { backoffMaxMs: undefined });
       });
 
@@ -668,7 +616,7 @@ describe('Device', function() {
     describe('on signaling.connected', () => {
       it('should update region', () => {
         pstream.emit('connected', { region: 'EU_IRELAND' });
-        assert.equal(device.region(), regionShortcodes.EU_IRELAND);
+        assert.equal(device['_region'], regionShortcodes.EU_IRELAND);
       });
 
       it('should send a register request with audio: true', () => {
@@ -810,9 +758,9 @@ describe('Device', function() {
         assert.equal(device.status(), Device.Status.Offline);
       });
 
-      it(`should set Device.region() to 'offline'`, () => {
+      it(`should set Device edge to 'null'`, () => {
         pstream.emit('offline');
-        assert.equal(device.region(), 'offline');
+        assert.equal(device.edge, null);
       });
 
       it('should emit Device.offline', () => {

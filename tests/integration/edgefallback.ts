@@ -37,12 +37,6 @@ describe('Edge Fallback', function() {
     }
   });
 
-  it('should connect to sg1 if region param is sg1', async () => {
-    device.setup(token, Object.assign({}, defaultOptions, { region: 'sg1' }));
-    await deviceReady();
-    assert.equal(device.stream.transport.uri, 'wss://chunderw-vpc-gll-sg1.twilio.com/signal');
-  });
-
   it('should connect to sg1 if edge param is a string and is equal to singapore', async () => {
     device.setup(token, Object.assign({}, defaultOptions, { edge: 'singapore' }));
     await deviceReady();

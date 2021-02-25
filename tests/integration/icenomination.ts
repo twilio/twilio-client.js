@@ -20,8 +20,8 @@ maybeSkip('ICE Nomination', function() {
   let device1Options: Device.Options = {};
   let device2Options: Device.Options = {};
 
-  let highDelayRegion: string;
-  let lowDelayRegion: string;
+  let highDelayEdge: string;
+  let lowDelayEdge: string;
 
   const defaultOptions: Device.Options = {
     warnings: false,
@@ -61,7 +61,7 @@ maybeSkip('ICE Nomination', function() {
     if (direction === Connection.CallDirection.Incoming) {
       device = device2;
     }
-    
+
     // We don't currently expose ice connection state changes.
     // Let's hook to makeConnection and subscribe to events
     const makeConnection = device['_makeConnection'].bind(device);
@@ -90,53 +90,53 @@ maybeSkip('ICE Nomination', function() {
   before(async () => {
     console.log('Measuring delays for each region...');
     const durations: number[] = [];
-    const regions = ['au1', 'br1', 'ie1', 'de1', 'jp1', 'sg1', 'us1'];
+    const edges = ['sydney', 'sao-paulo', 'dublin', 'tokyo', 'singapore', 'ashburn'];
 
-    for (let i = 0; i < regions.length; i++) {
-      const region = regions[i];
-      device2Options.region = region;
+    for (let i = 0; i < edges.length; i++) {
+      const edge = edges[i];
+      device2Options.edge = edge;
       await setupDevices();
 
       const duration = await getConnectionDuration(Connection.CallDirection.Incoming);
       durations.push(duration);
       destroyDevices();
 
-      console.log(`${region}: ${duration}`);
+      console.log(`${edge}: ${duration}`);
     }
-    delete device2Options.region;
+    delete device2Options.edge;
 
-    lowDelayRegion = regions[durations.indexOf(Math.min(...durations))];
-    highDelayRegion = regions[durations.indexOf(Math.max(...durations))];
+    lowDelayEdge = edges[durations.indexOf(Math.min(...durations))];
+    highDelayEdge = edges[durations.indexOf(Math.max(...durations))];
 
-    console.log(JSON.stringify({ lowDelayRegion, highDelayRegion }, null, 2));
+    console.log(JSON.stringify({ lowDelayEdge, highDelayEdge }, null, 2));
   });
 
   [Connection.CallDirection.Incoming, Connection.CallDirection.Outgoing].forEach(direction => {
     describe(`for ${direction} calls`, function() {
       this.timeout(SUITE_TIMEOUT);
-  
+
       let deviceOptions: Device.Options;
-  
+
       beforeEach(() => {
         deviceOptions = direction === Connection.CallDirection.Outgoing ? device1Options : device2Options;
       });
-  
+
       afterEach(() => {
         device1Options = {};
         device2Options = {};
         destroyDevices();
       });
-  
+
       it('should not have a significant dtls handshake delay when using low-delay region and aggressive nomination is false', async () => {
-        deviceOptions.region = lowDelayRegion;
+        deviceOptions.edge = lowDelayEdge;
         await setupDevices();
         await getConnectionDuration(direction).then(duration => {
           assert(duration < CONNECTION_DELAY_THRESHOLD);
         });
       });
-  
+
       it('should not have a significant dtls handshake delay when using low-delay region and aggressive nomination is true', async () => {
-        deviceOptions.region = lowDelayRegion;
+        deviceOptions.edge = lowDelayEdge;
         deviceOptions.forceAggressiveIceNomination = true;
         await setupDevices();
         await getConnectionDuration(direction).then(duration => {
@@ -146,14 +146,14 @@ maybeSkip('ICE Nomination', function() {
 
       // These two tests are flaky. Disable for now. We need to re-run/update them once media server deploys a fix.
       it.skip('should have a significant dtls handshake delay when using high-delay region and aggressive nomination is false', async () => {
-        deviceOptions.region = highDelayRegion;
+        deviceOptions.edge = highDelayEdge;
         await setupDevices();
         await getConnectionDuration(direction).then(duration => {
           assert(duration > CONNECTION_DELAY_THRESHOLD);
         });
       });
       it.skip('should not have a significant dtls handshake delay when using high-delay region and aggressive nomination is true', async () => {
-        deviceOptions.region = highDelayRegion;
+        deviceOptions.edge = highDelayEdge;
         deviceOptions.forceAggressiveIceNomination = true;
         await setupDevices();
         await getConnectionDuration(direction).then(duration => {

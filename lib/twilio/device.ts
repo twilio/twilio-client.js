@@ -517,19 +517,6 @@ class Device extends EventEmitter {
   }
 
   /**
-   * Get the {@link Region} string the {@link Device} is currently connected to, or 'offline'
-   * if not connected.
-   */
-  region(): string {
-    this._log.warn(
-      '`Device.region` is deprecated and will be removed in the next major ' +
-      'release. Please use `Device.edge` instead.',
-    );
-    this._throwUnlessSetup('region');
-    return typeof this._region === 'string' ? this._region : 'offline';
-  }
-
-  /**
    * Register to receive incoming calls. Does not need to be called unless {@link Device.unregisterPresence}
    * has been called directly.
    */
@@ -594,7 +581,7 @@ class Device extends EventEmitter {
       ? [`wss://${this.options.chunderw}/signal`]
       : getChunderURIs(
           this.options.edge,
-          this.options.region,
+          undefined,
           this._log.warn.bind(this._log),
         ).map((uri: string) => `wss://${uri}/signal`);
 
@@ -841,7 +828,6 @@ class Device extends EventEmitter {
     }
 
     setIfDefined('gateway', this.stream && this.stream.gateway);
-    setIfDefined('selected_region', this.options.region);
     setIfDefined('region', this.stream && this.stream.region);
 
     return payload;
@@ -1494,9 +1480,7 @@ namespace Device {
      * The edge value corresponds to the geographic location that the client
      * will use to connect to Twilio infrastructure. The default value is
      * "roaming" which automatically selects an edge based on the latency of the
-     * client relative to available edges. You may not specify both `edge` and
-     * `region` in the Device options. Specifying both `edge` and `region` will
-     * result in an `InvalidArgumentException`.
+     * client relative to available edges.
      */
     edge?: string[] | string;
 
@@ -1520,40 +1504,6 @@ namespace Device {
      * [RFC-7587 3.1.1](https://tools.ietf.org/html/rfc7587#section-3.1.1).
      */
     maxAverageBitrate?: number;
-
-    /**
-     * The region code of the region to connect to.
-     *
-     * @deprecated
-     *
-     * CLIENT-7519 This parameter is deprecated in favor of the `edge`
-     * parameter. You may not specify both `edge` and `region` in the Device
-     * options.
-     *
-     * This parameter will be removed in the next major version release.
-     *
-     * The following table lists the new edge names to region name mappings.
-     * Instead of passing the `region` value in `options.region`, please pass the
-     * following `edge` value in `options.edge`.
-     *
-     * | Region Value | Edge Value   |
-     * |:-------------|:-------------|
-     * | au1          | sydney       |
-     * | br1          | sao-paulo    |
-     * | ie1          | dublin       |
-     * | de1          | frankfurt    |
-     * | jp1          | tokyo        |
-     * | sg1          | singapore    |
-     * | us1          | ashburn      |
-     * | us2          | umatilla     |
-     * | gll          | roaming      |
-     * | us1-ix       | ashburn-ix   |
-     * | us2-ix       | san-jose-ix  |
-     * | ie1-ix       | london-ix    |
-     * | de1-ix       | frankfurt-ix |
-     * | sg1-ix       | singapore-ix |
-     */
-    region?: string;
 
     /**
      * A mapping of custom sound URLs by sound name.
