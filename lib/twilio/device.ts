@@ -5,6 +5,7 @@
  * @publicapi
  */
 import { EventEmitter } from 'events';
+import { levels as LogLevels, LogLevelDesc } from 'loglevel';
 import AudioHelper from './audiohelper';
 import Connection from './connection';
 import DialtonePlayer from './dialtonePlayer';
@@ -370,18 +371,17 @@ class Device extends EventEmitter {
     closeProtection: false,
     codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
     connectionFactory: Connection,
-    debug: false,
     dscp: true,
     eventgw: 'eventgw.twilio.com',
     forceAggressiveIceNomination: false,
     iceServers: [],
+    logLevel: LogLevels.ERROR,
     noRegister: false,
     pStreamFactory: PStream,
     preflight: false,
     rtcConstraints: { },
     soundFactory: Sound,
     sounds: { },
-    warnings: true,
   };
 
   /**
@@ -666,11 +666,9 @@ class Device extends EventEmitter {
     Object.assign(this.options, options);
 
     this._log.setDefaultLevel(
-      this.options.debug
-        ? Log.levels.DEBUG
-        : this.options.warnings
-          ? Log.levels.WARN
-          : Log.levels.SILENT,
+      typeof this.options.logLevel === 'number'
+        ? this.options.logLevel
+        : LogLevels.ERROR,
     );
 
     this._chunderURIs = this.options.chunderw
@@ -1580,11 +1578,6 @@ namespace Device {
     codecPreferences?: Connection.Codec[];
 
     /**
-     * Whether to enable debug logging.
-     */
-    debug?: boolean;
-
-    /**
      * Whether AudioContext sounds should be disabled. Useful for trouble shooting sound issues
      * that may be caused by AudioContext-specific sounds. If set to true, will fall back to
      * HTMLAudioElement sounds.
@@ -1611,6 +1604,11 @@ namespace Device {
      * Whether to use ICE Aggressive nomination.
      */
     forceAggressiveIceNomination?: boolean;
+
+    /**
+     * Log level.
+     */
+    logLevel?: LogLevelDesc;
 
     /**
      * The maximum average audio bitrate to use, in bits per second (bps) based on
@@ -1665,11 +1663,6 @@ namespace Device {
      * A mapping of custom sound URLs by sound name.
      */
     sounds?: Partial<Record<Device.SoundName, string>>;
-
-    /**
-     * Whether to enable warn logging.
-     */
-    warnings?: boolean;
   }
 }
 

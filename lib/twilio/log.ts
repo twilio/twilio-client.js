@@ -74,6 +74,14 @@ class Log {
   }
 
   /**
+   * Return the `loglevel` instance maintained internally.
+   * @returns The `loglevel` instance.
+   */
+  getLogLevelInstance(): LogLevelModule.Logger {
+    return this._log;
+  }
+
+  /**
    * Log an info message
    * @param args - Any number of arguments to be passed to loglevel.info
    */
@@ -96,5 +104,7 @@ class Log {
     this._log.warn(...args);
   }
 }
+
+export const Logger = Log.getInstance().getLogLevelInstance();
 
 export default Log;

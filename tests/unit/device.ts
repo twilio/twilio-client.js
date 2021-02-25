@@ -132,24 +132,11 @@ describe('Device', function() {
         device['_log'].setDefaultLevel = setDefaultLevelStub;
       });
 
-      it('should set log level to DEBUG if debug is true and warnings is true', () => {
-        device.setup(token, Object.assign({ debug: true, warnings: true }, setupOptions));
-        sinon.assert.calledWith(setDefaultLevelStub, LogLevels.DEBUG);
-      });
-
-      it('should set log level to DEBUG if debug is true and warnings is false', () => {
-        device.setup(token, Object.assign({ debug: true, warnings: false }, setupOptions));
-        sinon.assert.calledWith(setDefaultLevelStub, LogLevels.DEBUG);
-      });
-
-      it('should set log level to WARN if debug is false and warnings is true', () => {
-        device.setup(token, Object.assign({ debug: false, warnings: true }, setupOptions));
-        sinon.assert.calledWith(setDefaultLevelStub, LogLevels.WARN);
-      });
-
-      it('should set log level to SILENT if debug is false and warnings is false', () => {
-        device.setup(token, Object.assign({ debug: false, warnings: false }, setupOptions));
-        sinon.assert.calledWith(setDefaultLevelStub, LogLevels.SILENT);
+      Object.entries(LogLevels).forEach(([level, number]) => {
+        it(`should set log level to '${level}'`, () => {
+          device.setup(token, Object.assign({ logLevel: number }, setupOptions));
+          sinon.assert.calledWith(setDefaultLevelStub, number);
+        });
       });
     });
   });
