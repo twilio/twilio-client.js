@@ -15,21 +15,6 @@ let output = `/* tslint:disable max-classes-per-file max-line-length */
  */
 import TwilioError from './twilioError';
 export { TwilioError };
-
-// TypeScript doesn't allow extending Error so we need to run constructor logic on every one of these
-// individually. Ideally this logic would be run in a constructor on a TwilioError class but
-// due to this limitation TwilioError is an interface.
-// https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes
-function construct(context: TwilioError, messageOrError?: string | Error, originalError?: Error) {
-  if (typeof messageOrError === 'string') {
-    context.message = messageOrError;
-    if (originalError instanceof Error) {
-      context.originalError = originalError;
-    }
-  } else if (messageOrError instanceof Error) {
-    context.originalError = messageOrError;
-  }
-}
 \n`;
 
 const escapeQuotes = str => str.replace("'", "\\'");
@@ -38,7 +23,7 @@ const generateStringArray = arr => arr ? `[
     ]` : '[]';
 
 const generateDefinition = (code, subclassName, errorName, error) => `\
-  export class ${errorName} extends Error implements TwilioError {
+  export class ${errorName} extends TwilioError {
     causes: string[] = ${generateStringArray(error.causes)};
     code: number = ${code};
     description: string = '${escapeQuotes(error.description)}';
@@ -50,9 +35,8 @@ const generateDefinition = (code, subclassName, errorName, error) => `\
     constructor(originalError: Error);
     constructor(message: string, originalError?: Error);
     constructor(messageOrError?: string | Error, originalError?: Error) {
-      super('');
+      super(messageOrError, originalError);
       Object.setPrototypeOf(this, ${subclassName}Errors.${errorName}.prototype);
-      construct(this, messageOrError, originalError);
     }
   }`;
 

@@ -646,7 +646,7 @@ describe('Device', function() {
         device.emit = sinon.spy();
         pstream.emit('error', { error: { twilioError } });
         sinon.assert.calledOnce(device.emit as any);
-        sinon.assert.calledWith(device.emit as any, 'error', { twilioError });
+        sinon.assert.calledWith(device.emit as any, 'error', twilioError);
       });
 
       it('should emit Device.error with connection if payload.callsid is present', () => {
@@ -656,7 +656,7 @@ describe('Device', function() {
         device.emit = sinon.spy();
         pstream.emit('error', { error: { twilioError }, callsid: 'foo' });
         sinon.assert.calledOnce(device.emit as any);
-        sinon.assert.calledWith(device.emit as any, 'error', { connection: conn, twilioError });
+        sinon.assert.calledWith(device.emit as any, 'error', twilioError, conn);
       });
 
       it('should not stop registrations if code is not 31205', () => {

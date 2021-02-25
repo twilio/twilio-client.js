@@ -13,6 +13,8 @@ import {
   AuthorizationErrors,
   ClientErrors,
   GeneralErrors,
+  getErrorByCode,
+  hasErrorByCode,
   InvalidArgumentError,
   InvalidStateError,
   NotSupportedError,
@@ -1004,28 +1006,39 @@ class Device extends EventEmitter {
    * Called when an 'error' event is received from the signaling stream.
    */
   private _onSignalingError = (payload: Record<string, any>) => {
-    if (!payload.error) { return; }
+    if (typeof payload !== 'object') { return; }
 
-    const error = { ...payload.error };
-    const sid = payload.callsid;
-    if (sid) {
-      error.connection = this._findConnection(sid);
+    const { error, callsid } = payload;
+
+    if (typeof error !== 'object') { return; }
+
+    const connection: Connection | undefined =
+      (typeof callsid === 'string' && this._findConnection(callsid)) || undefined;
+
+    const { code } = error;
+    let { twilioError } = error;
+
+    if (typeof code === 'number') {
+      if (code === 31201) {
+        twilioError = new AuthorizationErrors.AuthenticationFailed();
+      } else if (code === 31204) {
+        twilioError = new AuthorizationErrors.AccessTokenInvalid();
+      } else if (code === 31205) {
+        // Stop trying to register presence after token expires
+        this._stopRegistrationTimer();
+        twilioError = new AuthorizationErrors.AccessTokenExpired();
+      } else if (hasErrorByCode(code)) {
+        twilioError = new (getErrorByCode(code))();
+      }
     }
 
-    if (error.code === 31201) {
-      error.twilioError = new AuthorizationErrors.AuthenticationFailed();
-    } else if (error.code === 31204) {
-      error.twilioError = new AuthorizationErrors.AccessTokenInvalid();
-    } else if (error.code === 31205) {
-      // Stop trying to register presence after token expires
-      this._stopRegistrationTimer();
-      error.twilioError = new AuthorizationErrors.AccessTokenExpired();
-    } else if (!error.twilioError) {
-      error.twilioError = new GeneralErrors.UnknownError();
+    if (!twilioError) {
+      this._log.error('Unknown signaling error: ', error);
+      twilioError = new GeneralErrors.UnknownError();
     }
 
-    this._log.info('Received error: ', error);
-    this.emit('error', error);
+    this._log.info('Received error: ', twilioError);
+    this.emit('error', twilioError, connection);
   }
 
   /**
@@ -1039,7 +1052,7 @@ class Device extends EventEmitter {
     }
 
     if (!payload.callsid || !payload.sdp) {
-      this.emit('error', { message: 'Malformed invite from gateway', twilioError: new ClientErrors.BadRequest() });
+      this.emit('error', new ClientErrors.BadRequest('Malformed invite from gateway'));
       return;
     }
 
@@ -1315,7 +1328,7 @@ namespace Device {
    * @example `device.on('error', connection => { })`
    * @event
    */
-  declare function errorEvent(error: Connection): void;
+  declare function errorEvent(error: TwilioError, connection?: Connection): void;
 
   /**
    * Emitted when an incoming {@link Connection} is received.
