@@ -332,7 +332,7 @@ describe('Device', function() {
             ...device['options'].rtcConfiguration,
             iceServers: [{ urls: 'foo-url' }],
           };
-          device.connect(undefined, undefined, overrideRtcConfiguration);
+          device.connect({ rtcConfiguration: overrideRtcConfiguration });
           assert(connectOptions && connectOptions.rtcConfiguration);
           assert.deepEqual((connectOptions || {}).rtcConfiguration, overrideRtcConfiguration);
         });
