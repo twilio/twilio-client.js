@@ -81,7 +81,7 @@ maybeSkip('ICE Nomination', function() {
       return conn;
     };
 
-    (device1.connect as any)({ params: { To: identity2 } });
+    device1.connect({ To: identity2 });
     const conn2 = await expectEvent('incoming', device2);
 
     conn2.accept();

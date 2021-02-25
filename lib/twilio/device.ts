@@ -444,14 +444,13 @@ class Device extends EventEmitter {
 
   /**
    * Make an outgoing Call.
-   * @param Options - Options to pass to the `Device` for making an outgoing connection.
-   * See [Device.ConnectOptions] for more details.
+   * @param [params] - A flat object containing key:value pairs to be sent to the TwiML app.
+   * @param [audioConstraints]
+   * @param [rtcConfiguration] - An RTCConfiguration to override the one set in `Device.setup`.
    */
-  connect({
-    audioConstraints,
-    params,
-    rtcConfiguration,
-  }: Device.ConnectOptions = {}): Connection {
+  connect(params?: Record<string, string>,
+          audioConstraints?: MediaTrackConstraints | boolean,
+          rtcConfiguration?: RTCConfiguration): Connection {
     this._throwUnlessSetup('connect');
 
     if (this._activeConnection) {
@@ -461,11 +460,7 @@ class Device extends EventEmitter {
     audioConstraints = audioConstraints || this.options && this.options.audioConstraints || { };
     params = params || {};
 
-    const connection = this._activeConnection = this._makeConnection({
-      audioConstraints,
-      rtcConfiguration,
-      twimlParams: params,
-    });
+    const connection = this._activeConnection = this._makeConnection(params, { rtcConfiguration });
 
     // Make sure any incoming connections are ignored
     this.connections.splice(0).forEach(conn => conn.ignore());
@@ -864,7 +859,7 @@ class Device extends EventEmitter {
    * @param twimlParams - A flat object containing key:value pairs to be sent to the TwiML app.
    * @param [options] - Options to be used to instantiate the {@link Connection}.
    */
-  private _makeConnection(options: Connection.Options = {}): Connection {
+  private _makeConnection(twimlParams: Record<string, string>, options?: Connection.Options): Connection {
     if (typeof Device._isUnifiedPlanDefault === 'undefined') {
       throw new InvalidStateError('Device has not been initialized.');
     }
@@ -901,6 +896,7 @@ class Device extends EventEmitter {
       preflight: this.options.preflight,
       rtcConstraints: this.options.rtcConstraints,
       shouldPlayDisconnect: () => this._enabledSounds.disconnect,
+      twimlParams,
     }, options);
 
     const connection = new this.options.connectionFactory(config, options);
@@ -1051,10 +1047,9 @@ class Device extends EventEmitter {
     callParameters.CallSid = callParameters.CallSid || payload.callsid;
 
     const customParameters = Object.assign({ }, queryToJson(callParameters.Params));
-    const connection = this._makeConnection({
+    const connection = this._makeConnection(customParameters, {
       callParameters,
       offerSdp: payload.sdp,
-      twimlParams: customParameters,
     });
 
     this.connections.push(connection);
@@ -1514,24 +1509,6 @@ namespace Device {
      * A mapping of custom sound URLs by sound name.
      */
     sounds?: Partial<Record<Device.SoundName, string>>;
-  }
-
-  export interface ConnectOptions {
-    /**
-     * Audio Constraints to pass to getUserMedia when making a Call.
-     * This is placed directly under `audio` of the MediaStreamConstraints object.
-     */
-    audioConstraints?: MediaTrackConstraints | boolean;
-
-    /**
-     * A flat object containing key:value pairs to be sent to the TwiML app.
-     */
-    params?: Record<string, string>;
-
-    /**
-     * An RTCConfiguration to pass to the RTCPeerConnection constructor.
-     */
-    rtcConfiguration?: RTCConfiguration;
   }
 }
 
