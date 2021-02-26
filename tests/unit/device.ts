@@ -514,54 +514,6 @@ describe('Device', function() {
       });
     });
 
-    describe('.sounds', () => {
-      it('should log a deprecation warning the first time a child method is called', () => {
-        const spy: SinonSpy = sinon.spy();
-        device['_log'].warn = spy;
-        assert(device.sounds.incoming);
-        if (device.sounds.incoming) {
-          device.sounds.incoming(false);
-        }
-        sinon.assert.calledOnce(spy);
-      });
-
-      it('should not log a deprecation warning the second time a child method is called', () => {
-        const spy: SinonSpy = sinon.spy();
-        device['_log'].warn = spy;
-        if (device.sounds.incoming) {
-          device.sounds.incoming(false);
-        }
-        sinon.assert.notCalled(spy);
-      });
-
-      it('should contain a working get/set method for .incoming()', () => {
-        if (device.sounds.incoming) {
-          device.sounds.incoming(true);
-          assert.equal(device.sounds.incoming(), true);
-          device.sounds.incoming(false);
-          assert.equal(device.sounds.incoming(), false);
-        }
-      });
-
-      it('should contain a working get/set method for .outgoing()', () => {
-        if (device.sounds.outgoing) {
-          device.sounds.outgoing(true);
-          assert.equal(device.sounds.outgoing(), true);
-          device.sounds.outgoing(false);
-          assert.equal(device.sounds.outgoing(), false);
-        }
-      });
-
-      it('should contain a working get/set method for .disconnect()', () => {
-        if (device.sounds.disconnect) {
-          device.sounds.disconnect(true);
-          assert.equal(device.sounds.disconnect(), true);
-          device.sounds.disconnect(false);
-          assert.equal(device.sounds.disconnect(), false);
-        }
-      });
-    });
-
     describe('.status()', () => {
       it('should return offline before registering', () => {
         assert.equal(device.status(), Device.Status.Offline);

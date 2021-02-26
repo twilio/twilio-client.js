@@ -62,8 +62,6 @@ const RINGTONE_PLAY_TIMEOUT = 2000;
 declare const RTCRtpTransceiver: any;
 declare const webkitAudioContext: typeof AudioContext;
 
-let hasBeenWarnedSounds: boolean = false;
-
 /**
  * Options that may be passed to the {@link Device} constructor for internal testing.
  * @private
@@ -617,25 +615,6 @@ class Device extends EventEmitter {
     if (this.options.dscp) {
       (this.options.rtcConstraints as any).optional = [{ googDscp: true }];
     }
-
-    const getOrSetSound = (key: Device.ToggleableSound, value?: boolean) => {
-      if (!hasBeenWarnedSounds) {
-        this._log.warn('Device.sounds is deprecated and will be removed in the next breaking ' +
-          'release. Please use the new functionality available on Device.audio.');
-        hasBeenWarnedSounds = true;
-      }
-
-      if (typeof value !== 'undefined') {
-        this._enabledSounds[key] = value;
-      }
-
-      return this._enabledSounds[key];
-    };
-
-    [Device.SoundName.Disconnect, Device.SoundName.Incoming, Device.SoundName.Outgoing]
-        .forEach((eventName: Device.SoundName) => {
-      this.sounds[eventName] = getOrSetSound.bind(null, eventName);
-    });
 
     const defaultSounds: Record<string, ISoundDefinition> = {
       disconnect: { filename: 'disconnect', maxDuration: 3000 },
