@@ -35,6 +35,18 @@ describe('Device', function() {
     ]);
   });
 
+  after(() => {
+    if (device1) {
+      device1.disconnectAll();
+      device1.destroy();
+    }
+
+    if (device2) {
+      device2.disconnectAll();
+      device2.destroy();
+    }
+  });
+
   describe('device 1 calls device 2', () => {
     before(done => {
       device2.once(Device.EventName.Incoming, () => done());

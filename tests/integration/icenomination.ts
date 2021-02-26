@@ -23,10 +23,7 @@ maybeSkip('ICE Nomination', function() {
   let highDelayEdge: string;
   let lowDelayEdge: string;
 
-  const defaultOptions: Device.Options = {
-    warnings: false,
-    debug: false,
-  };
+  const defaultOptions: Device.Options = {};
 
   const setupDevices = () => {
     identity1 = 'id1-' + Date.now();

@@ -59,6 +59,7 @@ describe('Device', function() {
     clock = sinon.useFakeTimers(Date.now());
     token = createToken('alice');
     device = new Device();
+    device.on('error', () => { /* no-op */ });
   });
 
   describe('constructor', () => {

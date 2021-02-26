@@ -702,15 +702,6 @@ class Device extends EventEmitter {
       }
     }
 
-    // (rrowland) This maintains backward compatibility, but we should look at
-    // removing this next breaking change. Any error should be caught by the
-    // customer, and anything that's not a fatal error should not be emitted
-    // via error event.
-    this.on(Device.EventName.Error, () => {
-      if (this.listenerCount('error') > 1) { return; }
-      this._log.info('Uncaught error event suppressed.');
-    });
-
     return this;
   }
 
@@ -997,7 +988,7 @@ class Device extends EventEmitter {
     const { code } = error;
     let { twilioError } = error;
 
-    if (typeof code === 'number') {
+    if (!twilioError && typeof code === 'number') {
       if (code === 31201) {
         twilioError = new AuthorizationErrors.AuthenticationFailed();
       } else if (code === 31204) {

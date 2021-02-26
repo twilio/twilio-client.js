@@ -24,14 +24,24 @@ describe('SHAKEN/STIR', function() {
     device1 = new Device();
     device2 = new Device();
 
-    options = {
-      warnings: false,
-    };
+    options = {};
 
     return Promise.all([
       expectEvent('ready', device1.setup(token1, options)),
       expectEvent('ready', device2.setup(token2, options)),
     ]);
+  });
+
+  after(() => {
+    if (device1) {
+      device1.disconnectAll();
+      device1.destroy();
+    }
+
+    if (device2) {
+      device2.disconnectAll();
+      device2.destroy();
+    }
   });
 
   describe('device 1 calls device 2', () => {

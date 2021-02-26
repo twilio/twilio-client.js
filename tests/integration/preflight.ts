@@ -45,7 +45,12 @@ describe('Preflight Test', function() {
     return expectEvent('ready', receiverDevice.setup(receiverToken, { debug: false }));
   };
 
-  const destroyReceiver = () => {
+  const destroyDevices = () => {
+    if (callerDevice) {
+      callerDevice.disconnectAll();
+      callerDevice.destroy();
+    }
+
     if (receiverDevice) {
       receiverDevice.disconnectAll();
       receiverDevice.destroy();
@@ -68,7 +73,7 @@ describe('Preflight Test', function() {
     });
 
     after(() => {
-      destroyReceiver();
+      destroyDevices();
     });
 
     it('should set status to connecting', () => {
@@ -149,7 +154,7 @@ describe('Preflight Test', function() {
     });
 
     after(() => {
-      destroyReceiver();
+      destroyDevices();
     });
 
     it('should use codecPreferences passed in', () => {
@@ -190,7 +195,7 @@ describe('Preflight Test', function() {
         });
 
         after(() => {
-          destroyReceiver();
+          destroyDevices();
         });
 
         it('should use edge passed in', () => {
@@ -218,7 +223,7 @@ describe('Preflight Test', function() {
     });
 
     after(() => {
-      destroyReceiver();
+      destroyDevices();
     });
 
     it('should emit connected event', () => {
@@ -269,7 +274,7 @@ describe('Preflight Test', function() {
         });
 
         after(() => {
-          destroyReceiver();
+          destroyDevices();
         });
 
         it('should emit connected event', () => {
