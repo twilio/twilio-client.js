@@ -1,3 +1,64 @@
+2.0.0 (In Progress)
+===================
+
+New Features
+------------
+
+### LogLevel Module
+
+The SDK now uses the [`loglevel`](https://github.com/pimterry/loglevel) module. This exposes several new features for the SDK, including the ability to intercept log messages with custom handlers and the ability to set logging levels after instantiating a `Device`. To get an instance of the `loglevel` `Logger` class used internally by the SDK, there are several options.
+
+If your project uses the `Twilio` window global:
+```js
+const logger = Twilio.Logger;
+...
+logger.setLogLevel('DEBUG');
+```
+
+Or if you use the `NPM` package in a JS or TS project:
+```ts
+import { Logger as TwilioClientLogger } from 'twilio-client.js`;
+...
+TwilioClientLogger.setLogLevel('DEBUG');
+```
+
+Please see the original [`loglevel`](https://github.com/pimterry/loglevel) project for more documentation on usage.
+
+
+Changes
+-------
+
+### Removal of Deprecated Device Options
+
+As part of 2.x, some deprecated `Device` options have been removed. This includes:
+
+* `enableIceRestart`
+* `enableRingingState`
+* `fakeLocalDtmf`
+
+The above three removed options are now assumed `true`. The new `Device.Options` interface is now:
+
+```ts
+export interface Options {
+  allowIncomingWhileBusy?: boolean;
+  appName?: string;
+  appVersion?: string;
+  audioConstraints?: MediaTrackConstraints | boolean;
+  closeProtection?: boolean | string;
+  codecPreferences?: Connection.Codec[];
+  debug?: boolean;
+  disableAudioContextSounds?: boolean;
+  dscp?: boolean;
+  edge?: string[] | string;
+  forceAggressiveIceNomination?: boolean;
+  maxAverageBitrate?: number;
+  region?: string;
+  rtcConfiguration?: RTCConfiguration;
+  sounds?: Partial<Record<Device.SoundName, string>>;
+  warnings?: boolean;
+}
+```
+
 1.14.0 (Jan 27, 2021)
 ====================
 

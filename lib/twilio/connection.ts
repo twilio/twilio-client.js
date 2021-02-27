@@ -243,7 +243,6 @@ class Connection extends EventEmitter {
    */
   private options: Connection.Options = {
     MediaStream: PeerConnection,
-    enableRingingState: false,
     offerSdp: null,
     shouldPlayDisconnect: () => true,
   };
@@ -324,7 +323,6 @@ class Connection extends EventEmitter {
       (config.audioHelper, config.pstream, config.getUserMedia, {
         codecPreferences: this.options.codecPreferences,
         dscp: this.options.dscp,
-        enableIceRestart: this.options.enableIceRestart,
         forceAggressiveIceNomination: this.options.forceAggressiveIceNomination,
         isUnifiedPlan: this._isUnifiedPlanDefault,
         maxAverageBitrate: this.options.maxAverageBitrate,
@@ -1079,20 +1077,11 @@ class Connection extends EventEmitter {
     // These types signifies the end of a single ICE cycle
     const isEndOfIceCycle = type === ConnectionFailed || type === IceGatheringFailed;
 
-    // Default behavior on ice failures with disabled ice restart.
-    if ((!this.options.enableIceRestart && isEndOfIceCycle)
-
-      // All browsers except chrome doesn't update pc.iceConnectionState and pc.connectionState
-      // after issuing an ICE Restart, which we use to determine if ICE Restart is complete.
-      // Since we cannot detect if ICE Restart is complete, we will not retry.
-      || (!isChrome(window, window.navigator) && type === ConnectionFailed)) {
-
-        return this.mediaStream.onerror(MEDIA_DISCONNECT_ERROR);
-    }
-
-    // Ignore any other type of media failure if ice restart is disabled
-    if (!this.options.enableIceRestart) {
-      return;
+    // All browsers except chrome doesn't update pc.iceConnectionState and pc.connectionState
+    // after issuing an ICE Restart, which we use to determine if ICE Restart is complete.
+    // Since we cannot detect if ICE Restart is complete, we will not retry.
+    if (!isChrome(window, window.navigator) && type === ConnectionFailed) {
+      return this.mediaStream.onerror(MEDIA_DISCONNECT_ERROR);
     }
 
     // Ignore subsequent requests if ice restart is in progress
@@ -1108,7 +1097,16 @@ class Connection extends EventEmitter {
         }
 
         // Issue ICE restart with backoff
-        this._mediaReconnectBackoff.backoff();
+        try {
+          this._mediaReconnectBackoff.backoff();
+        } catch (error) {
+          // Catch and ignore 'Backoff in progress.' errors. If a backoff is
+          // ongoing and we try to start another one, there shouldn't be a
+          // problem.
+          if (!(error.message && error.message === 'Backoff in progress.')) {
+            throw error;
+          }
+        }
       }
 
       return;
@@ -1171,15 +1169,9 @@ class Connection extends EventEmitter {
     }
 
     const hasEarlyMedia = !!payload.sdp;
-    if (this.options.enableRingingState) {
-      this._status = Connection.State.Ringing;
-      this._publisher.info('connection', 'outgoing-ringing', { hasEarlyMedia }, this);
-      this.emit('ringing', hasEarlyMedia);
-    // answerOnBridge=false will send a 183, which we need to interpret as `answer` when
-    // the enableRingingState flag is disabled in order to maintain a non-breaking API from 1.4.24
-    } else if (hasEarlyMedia) {
-      this._onAnswer(payload);
-    }
+    this._status = Connection.State.Ringing;
+    this._publisher.info('connection', 'outgoing-ringing', { hasEarlyMedia }, this);
+    this.emit('ringing', hasEarlyMedia);
   }
 
   /**
@@ -1548,16 +1540,6 @@ namespace Connection {
      * Whether or not to enable DSCP.
      */
     dscp?: boolean;
-
-    /**
-     * Whether to automatically restart ICE when media connection fails
-     */
-    enableIceRestart?: boolean;
-
-    /**
-     * Whether the ringing state should be enabled.
-     */
-    enableRingingState?: boolean;
 
     /**
      * Experimental feature.

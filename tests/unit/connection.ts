@@ -80,7 +80,6 @@ describe('Connection', function() {
     options = {
       MediaStream: MediaHandler,
       StatsMonitor,
-      enableIceRestart: true,
     };
 
     conn = new Connection(config, options);
@@ -1522,69 +1521,9 @@ describe('Connection', function() {
 
     describe('pstream.ringing event', () => {
       [Connection.State.Connecting, Connection.State.Ringing].forEach((state: Connection.State) => {
-        context(`when state is ${state} and enableRingingState is false`, () => {
+        context(`when state is ${state}`, () => {
           beforeEach(() => {
-            (conn as any)['_status'] = state;
-          });
-
-          context('and sdp is present', () => {
-            it('should transition to open if mediastream is open', () => {
-              mediaStream.status = 'open';
-              pstream.emit('ringing', { sdp: 'foo' });
-              assert.equal(conn.status(), Connection.State.Open);
-            });
-
-            it('should emit accept if mediastream is open', (done) => {
-              mediaStream.status = 'open';
-              conn.on('accept', () => done());
-              pstream.emit('ringing', { sdp: 'foo' });
-            });
-
-            it('should not transition to open if mediastream is not open', () => {
-              mediaStream.status = 'closed';
-              pstream.emit('ringing', { sdp: 'foo' });
-              assert.equal(conn.status(), state);
-            });
-
-            it('should not emit accept if mediastream is not open', () => {
-              mediaStream.status = 'closed';
-              conn.on('accept', () => { throw new Error('Was expecting accept to not be emitted'); });
-              pstream.emit('ringing', { sdp: 'foo' });
-            });
-          });
-
-          context('and sdp is not present', () => {
-            it('should not transition to open if mediastream is open', () => {
-              mediaStream.status = 'open';
-              pstream.emit('ringing', { });
-              assert.equal(conn.status(), state);
-            });
-
-            it('should not emit accept if mediastream is open', () => {
-              mediaStream.status = 'open';
-              conn.on('accept', () => { throw new Error('Was expecting accept to not be emitted'); });
-              pstream.emit('ringing', { });
-            });
-
-            it('should not transition to open if mediastream is not open', () => {
-              mediaStream.status = 'closed';
-              pstream.emit('ringing', { });
-              assert.equal(conn.status(), state);
-            });
-
-            it('should not emit accept if mediastream is not open', () => {
-              mediaStream.status = 'closed';
-              conn.on('accept', () => { throw new Error('Was expecting accept to not be emitted'); });
-              pstream.emit('ringing', { });
-            });
-          });
-        });
-
-        context(`when state is ${state} and enableRingingState is true`, () => {
-          beforeEach(() => {
-            conn = new Connection(config, Object.assign({
-              enableRingingState: true,
-            }, options));
+            conn = new Connection(config, options);
             (conn as any)['_status'] = state;
           });
 
@@ -1882,7 +1821,7 @@ describe('Connection', function() {
   describe('on media failed', () => {
     beforeEach(() => {
       mediaStream.iceRestart = sinon.stub();
-      conn = new Connection(config, Object.assign(options, { enableIceRestart: true }));
+      conn = new Connection(config, Object.assign(options));
       conn['_mediaReconnectBackoff'] = {
         backoff: () => mediaStream.iceRestart(),
         reset: sinon.stub(),

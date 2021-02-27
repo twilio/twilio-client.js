@@ -4,7 +4,7 @@
  * @publicapi
  * @internal
  */
-export default interface TwilioError {
+export default class TwilioError extends Error {
   /**
    * A list of possible causes for the Error.
    */
@@ -44,4 +44,18 @@ export default interface TwilioError {
    * A list of potential solutions for the Error.
    */
   solutions: string[];
+
+  constructor(messageOrError?: string | Error, originalError?: Error) {
+    super();
+    if (typeof messageOrError === 'string') {
+      this.message = messageOrError;
+      if (originalError instanceof Error) {
+        this.originalError = originalError;
+      }
+    } else if (messageOrError instanceof Error) {
+      this.originalError = messageOrError;
+    }
+
+    Object.setPrototypeOf(this, TwilioError.prototype);
+  }
 }
