@@ -65,7 +65,9 @@ describe('SHAKEN/STIR', function() {
           return devShim.stream.transport.__onSocketMessage(message);
         }
 
-        (device1['connect'] as any)({ CallerId: (env as any).callerId });
+        (device1['connect'] as any)({
+          params: { CallerId: (env as any).callerId }
+        });
       });
 
       describe('and device 2 accepts', () => {

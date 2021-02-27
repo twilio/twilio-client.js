@@ -531,7 +531,7 @@ class Connection extends EventEmitter {
     options = options || { };
     const rtcConfiguration = options.rtcConfiguration || this.options.rtcConfiguration;
     const rtcConstraints = options.rtcConstraints || this.options.rtcConstraints || { };
-    const audioConstraints = rtcConstraints.audio;
+    const audioConstraints = rtcConstraints.audio || { audio: true };
 
     this._status = Connection.State.Connecting;
 

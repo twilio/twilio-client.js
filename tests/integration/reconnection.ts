@@ -61,7 +61,9 @@ describe('Reconnection', function() {
         connection.accept();
         resolve();
       });
-      connection1 = (device1['connect'] as any)({ To: identity2, Custom1: 'foo + bar', Custom2: undefined, Custom3: '我不吃蛋' });
+      connection1 = (device1['connect'] as any)({
+        params: { To: identity2, Custom1: 'foo + bar', Custom2: undefined, Custom3: '我不吃蛋' }
+      });
     }));
   };
 

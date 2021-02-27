@@ -602,6 +602,9 @@ class Device extends EventEmitter {
     this.isInitialized = true;
 
     if (this.options.dscp) {
+      if (!this.options.rtcConstraints) {
+        this.options.rtcConstraints = { };
+      }
       (this.options.rtcConstraints as any).optional = [{ googDscp: true }];
     }
 

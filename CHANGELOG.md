@@ -25,8 +25,48 @@ TwilioClientLogger.setLogLevel('DEBUG');
 Please see the original [`loglevel`](https://github.com/pimterry/loglevel) project for more documentation on usage.
 
 
-Changes
+API Changes
 -------
+
+### Device#ConnectOptions and Connection#AcceptOptions
+The arguments for `Device.connect()` and `Connection.accept()` have been standardized
+to the following options objects:
+
+```
+interface Device.ConnectOptions extends Connection.AcceptOptions {
+ /**
+  * A flat object containing key:value pairs to be sent to the TwiML app.
+  */
+  params?: Record<string, string>;
+}
+```
+
+```
+interface Connection.AcceptOptions {
+  /**
+   * An RTCConfiguration to pass to the RTCPeerConnection constructor.
+   */
+  rtcConfiguration?: RTCConfiguration;
+
+  /**
+   * MediaStreamConstraints to pass to getUserMedia when making or accepting a Call.
+   */
+  rtcConstraints?: MediaStreamConstraints;
+}
+```
+
+Note that these now take a [MediaStreamConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamConstraints) rather than just the audio constraints. For example:
+```
+device.connect({ To: 'client:alice' }, { deviceId: 'default' });
+```
+
+might be re-written as:
+```
+device.connect({
+  params: { To: 'client:alice' },
+  rtcConstraints: { audio: { deviceId: 'default' } },
+});
+```
 
 ### Removal of Deprecated Device Options
 
@@ -46,7 +86,6 @@ export interface Options {
   audioConstraints?: MediaTrackConstraints | boolean;
   closeProtection?: boolean | string;
   codecPreferences?: Connection.Codec[];
-  debug?: boolean;
   disableAudioContextSounds?: boolean;
   dscp?: boolean;
   edge?: string[] | string;
@@ -55,7 +94,6 @@ export interface Options {
   region?: string;
   rtcConfiguration?: RTCConfiguration;
   sounds?: Partial<Record<Device.SoundName, string>>;
-  warnings?: boolean;
 }
 ```
 
