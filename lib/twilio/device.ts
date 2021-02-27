@@ -13,6 +13,8 @@ import {
   AuthorizationErrors,
   ClientErrors,
   GeneralErrors,
+  getErrorByCode,
+  hasErrorByCode,
   InvalidArgumentError,
   InvalidStateError,
   NotSupportedError,
@@ -60,9 +62,6 @@ const RINGTONE_PLAY_TIMEOUT = 2000;
 declare const RTCRtpTransceiver: any;
 declare const webkitAudioContext: typeof AudioContext;
 
-let hasBeenWarnedHandlers: boolean = false;
-let hasBeenWarnedSounds: boolean = false;
-
 /**
  * Options that may be passed to the {@link Device} constructor for internal testing.
  * @private
@@ -92,12 +91,6 @@ export interface IExtendedDeviceOptions extends Device.Options {
    * File input stream to use instead of reading from mic
    */
   fileInputStream?: MediaStream;
-
-  /**
-   * A list of specific ICE servers to use. Overridden by {@link Device.Options.rtcConfiguration}.
-   * @deprecated
-   */
-  iceServers?: Object[];
 
   /**
    * Ignore browser support, disabling the exception that is thrown when neither WebRTC nor
@@ -374,7 +367,6 @@ class Device extends EventEmitter {
     dscp: true,
     eventgw: 'eventgw.twilio.com',
     forceAggressiveIceNomination: false,
-    iceServers: [],
     logLevel: LogLevels.ERROR,
     noRegister: false,
     pStreamFactory: PStream,
@@ -447,21 +439,7 @@ class Device extends EventEmitter {
    * Return the active {@link Connection}. Null or undefined for backward compatibility.
    */
   activeConnection(): Connection | null | undefined {
-    if (!this.isInitialized) {
-      return null;
-    }
-    // @rrowland This should only return activeConnection, but customers have built around this
-    // broken behavior and in order to not break their apps we are including this until
-    // the next big release.
-    return this._activeConnection || this.connections[0];
-  }
-
-  /**
-   * @deprecated Set a handler for the cancel event.
-   * @param handler
-   */
-  cancel(handler: (connection: Connection) => any): this {
-    return this._addHandler(Device.EventName.Cancel, handler);
+    return this.isInitialized ? this._activeConnection : null;
   }
 
   /**
@@ -472,29 +450,15 @@ class Device extends EventEmitter {
    */
   connect(params?: Record<string, string>,
           audioConstraints?: MediaTrackConstraints | boolean,
-          rtcConfiguration?: RTCConfiguration): Connection;
-  /**
-   * Add a listener for the connect event.
-   * @param handler - A handler to set on the connect event.
-   */
-  connect(handler: (connection: Connection) => any): null;
-  connect(paramsOrHandler?: Record<string, string> | ((connection: Connection) => any),
-          audioConstraints?: MediaTrackConstraints | boolean,
-          rtcConfiguration?: RTCConfiguration): Connection | null {
-    if (typeof paramsOrHandler === 'function') {
-      this._addHandler(Device.EventName.Connect, paramsOrHandler);
-      return null;
-    }
-
+          rtcConfiguration?: RTCConfiguration): Connection {
     this._throwUnlessSetup('connect');
 
     if (this._activeConnection) {
       throw new InvalidStateError('A Connection is already active');
     }
 
-    const params: Record<string, string> = paramsOrHandler || { };
     audioConstraints = audioConstraints || this.options && this.options.audioConstraints || { };
-    rtcConfiguration = rtcConfiguration || this.options.rtcConfiguration;
+    params = params || {};
 
     const connection = this._activeConnection = this._makeConnection(params, { rtcConfiguration });
 
@@ -537,15 +501,6 @@ class Device extends EventEmitter {
   }
 
   /**
-   * Set a handler for the disconnect event.
-   * @deprecated Use {@link Device.on}.
-   * @param handler
-   */
-  disconnect(handler: (connection: Connection) => any): this {
-    return this._addHandler(Device.EventName.Disconnect, handler);
-  }
-
-  /**
    * Disconnect all {@link Connection}s.
    */
   disconnectAll(): void {
@@ -559,55 +514,6 @@ class Device extends EventEmitter {
    */
   get edge(): string | null {
     return this._edge;
-  }
-
-  /**
-   * Set a handler for the error event.
-   * @deprecated Use {@link Device.on}.
-   * @param handler
-   */
-  error(handler: (error: Connection) => any): this {
-    return this._addHandler(Device.EventName.Error, handler);
-  }
-
-  /**
-   * Set a handler for the incoming event.
-   * @deprecated Use {@link Device.on}.
-   * @param handler
-   */
-  incoming(handler: (connection: Connection) => any): this {
-    return this._addHandler(Device.EventName.Incoming, handler);
-  }
-
-  /**
-   * Set a handler for the offline event.
-   * @deprecated Use {@link Device.on}.
-   * @param handler
-   */
-  offline(handler: (device: Device) => any): this {
-    return this._addHandler(Device.EventName.Offline, handler);
-  }
-
-  /**
-   * Set a handler for the ready event.
-   * @deprecated Use {@link Device.on}.
-   * @param handler
-   */
-  ready(handler: (device: Device) => any): this {
-    return this._addHandler(Device.EventName.Ready, handler);
-  }
-
-  /**
-   * Get the {@link Region} string the {@link Device} is currently connected to, or 'offline'
-   * if not connected.
-   */
-  region(): string {
-    this._log.warn(
-      '`Device.region` is deprecated and will be removed in the next major ' +
-      'release. Please use `Device.edge` instead.',
-    );
-    this._throwUnlessSetup('region');
-    return typeof this._region === 'string' ? this._region : 'offline';
   }
 
   /**
@@ -675,7 +581,7 @@ class Device extends EventEmitter {
       ? [`wss://${this.options.chunderw}/signal`]
       : getChunderURIs(
           this.options.edge,
-          this.options.region,
+          undefined,
           this._log.warn.bind(this._log),
         ).map((uri: string) => `wss://${uri}/signal`);
 
@@ -709,25 +615,6 @@ class Device extends EventEmitter {
     if (this.options.dscp) {
       (this.options.rtcConstraints as any).optional = [{ googDscp: true }];
     }
-
-    const getOrSetSound = (key: Device.ToggleableSound, value?: boolean) => {
-      if (!hasBeenWarnedSounds) {
-        this._log.warn('Device.sounds is deprecated and will be removed in the next breaking ' +
-          'release. Please use the new functionality available on Device.audio.');
-        hasBeenWarnedSounds = true;
-      }
-
-      if (typeof value !== 'undefined') {
-        this._enabledSounds[key] = value;
-      }
-
-      return this._enabledSounds[key];
-    };
-
-    [Device.SoundName.Disconnect, Device.SoundName.Incoming, Device.SoundName.Outgoing]
-        .forEach((eventName: Device.SoundName) => {
-      this.sounds[eventName] = getOrSetSound.bind(null, eventName);
-    });
 
     const defaultSounds: Record<string, ISoundDefinition> = {
       disconnect: { filename: 'disconnect', maxDuration: 3000 },
@@ -815,15 +702,6 @@ class Device extends EventEmitter {
       }
     }
 
-    // (rrowland) This maintains backward compatibility, but we should look at
-    // removing this next breaking change. Any error should be caught by the
-    // customer, and anything that's not a fatal error should not be emitted
-    // via error event.
-    this.on(Device.EventName.Error, () => {
-      if (this.listenerCount('error') > 1) { return; }
-      this._log.info('Uncaught error event suppressed.');
-    });
-
     return this;
   }
 
@@ -862,23 +740,6 @@ class Device extends EventEmitter {
     this._throwUnlessSetup('updateToken');
     this.token = token;
     this.register(token);
-  }
-
-  /**
-   * Add a handler for an EventEmitter and emit a deprecation warning on first call.
-   * @param eventName - Name of the event
-   * @param handler - A handler to call when the event is emitted
-   */
-  private _addHandler(eventName: Device.EventName, handler: (...args: any[]) => any): this {
-    if (!hasBeenWarnedHandlers) {
-      this._log.warn(`Device callback handlers (connect, error, offline, incoming, cancel, ready, disconnect) \
-        have been deprecated and will be removed in the next breaking release. Instead, the EventEmitter \
-        interface can be used to set event listeners. Example: device.on('${eventName}', handler)`);
-      hasBeenWarnedHandlers = true;
-    }
-
-    this.addListener(eventName, handler);
-    return this;
   }
 
   /**
@@ -939,7 +800,6 @@ class Device extends EventEmitter {
     }
 
     setIfDefined('gateway', this.stream && this.stream.gateway);
-    setIfDefined('selected_region', this.options.region);
     setIfDefined('region', this.stream && this.stream.region);
 
     return payload;
@@ -1006,7 +866,6 @@ class Device extends EventEmitter {
       getSinkIds: (): string[] => this._connectionSinkIds,
       maxAverageBitrate: this.options.maxAverageBitrate,
       preflight: this.options.preflight,
-      rtcConfiguration: this.options.rtcConfiguration || { iceServers: this.options.iceServers },
       rtcConstraints: this.options.rtcConstraints,
       shouldPlayDisconnect: () => this._enabledSounds.disconnect,
       twimlParams,
@@ -1117,28 +976,39 @@ class Device extends EventEmitter {
    * Called when an 'error' event is received from the signaling stream.
    */
   private _onSignalingError = (payload: Record<string, any>) => {
-    if (!payload.error) { return; }
+    if (typeof payload !== 'object') { return; }
 
-    const error = { ...payload.error };
-    const sid = payload.callsid;
-    if (sid) {
-      error.connection = this._findConnection(sid);
+    const { error, callsid } = payload;
+
+    if (typeof error !== 'object') { return; }
+
+    const connection: Connection | undefined =
+      (typeof callsid === 'string' && this._findConnection(callsid)) || undefined;
+
+    const { code } = error;
+    let { twilioError } = error;
+
+    if (!twilioError && typeof code === 'number') {
+      if (code === 31201) {
+        twilioError = new AuthorizationErrors.AuthenticationFailed();
+      } else if (code === 31204) {
+        twilioError = new AuthorizationErrors.AccessTokenInvalid();
+      } else if (code === 31205) {
+        // Stop trying to register presence after token expires
+        this._stopRegistrationTimer();
+        twilioError = new AuthorizationErrors.AccessTokenExpired();
+      } else if (hasErrorByCode(code)) {
+        twilioError = new (getErrorByCode(code))();
+      }
     }
 
-    if (error.code === 31201) {
-      error.twilioError = new AuthorizationErrors.AuthenticationFailed();
-    } else if (error.code === 31204) {
-      error.twilioError = new AuthorizationErrors.AccessTokenInvalid();
-    } else if (error.code === 31205) {
-      // Stop trying to register presence after token expires
-      this._stopRegistrationTimer();
-      error.twilioError = new AuthorizationErrors.AccessTokenExpired();
-    } else if (!error.twilioError) {
-      error.twilioError = new GeneralErrors.UnknownError();
+    if (!twilioError) {
+      this._log.error('Unknown signaling error: ', error);
+      twilioError = new GeneralErrors.UnknownError();
     }
 
-    this._log.info('Received error: ', error);
-    this.emit('error', error);
+    this._log.info('Received error: ', twilioError);
+    this.emit('error', twilioError, connection);
   }
 
   /**
@@ -1152,7 +1022,7 @@ class Device extends EventEmitter {
     }
 
     if (!payload.callsid || !payload.sdp) {
-      this.emit('error', { message: 'Malformed invite from gateway', twilioError: new ClientErrors.BadRequest() });
+      this.emit('error', new ClientErrors.BadRequest('Malformed invite from gateway'));
       return;
     }
 
@@ -1428,7 +1298,7 @@ namespace Device {
    * @example `device.on('error', connection => { })`
    * @event
    */
-  declare function errorEvent(error: Connection): void;
+  declare function errorEvent(error: TwilioError, connection?: Connection): void;
 
   /**
    * Emitted when an incoming {@link Connection} is received.
@@ -1593,9 +1463,7 @@ namespace Device {
      * The edge value corresponds to the geographic location that the client
      * will use to connect to Twilio infrastructure. The default value is
      * "roaming" which automatically selects an edge based on the latency of the
-     * client relative to available edges. You may not specify both `edge` and
-     * `region` in the Device options. Specifying both `edge` and `region` will
-     * result in an `InvalidArgumentException`.
+     * client relative to available edges.
      */
     edge?: string[] | string;
 
@@ -1619,45 +1487,6 @@ namespace Device {
      * [RFC-7587 3.1.1](https://tools.ietf.org/html/rfc7587#section-3.1.1).
      */
     maxAverageBitrate?: number;
-
-    /**
-     * The region code of the region to connect to.
-     *
-     * @deprecated
-     *
-     * CLIENT-7519 This parameter is deprecated in favor of the `edge`
-     * parameter. You may not specify both `edge` and `region` in the Device
-     * options.
-     *
-     * This parameter will be removed in the next major version release.
-     *
-     * The following table lists the new edge names to region name mappings.
-     * Instead of passing the `region` value in `options.region`, please pass the
-     * following `edge` value in `options.edge`.
-     *
-     * | Region Value | Edge Value   |
-     * |:-------------|:-------------|
-     * | au1          | sydney       |
-     * | br1          | sao-paulo    |
-     * | ie1          | dublin       |
-     * | de1          | frankfurt    |
-     * | jp1          | tokyo        |
-     * | sg1          | singapore    |
-     * | us1          | ashburn      |
-     * | us2          | umatilla     |
-     * | gll          | roaming      |
-     * | us1-ix       | ashburn-ix   |
-     * | us2-ix       | san-jose-ix  |
-     * | ie1-ix       | london-ix    |
-     * | de1-ix       | frankfurt-ix |
-     * | sg1-ix       | singapore-ix |
-     */
-    region?: string;
-
-    /**
-     * An RTCConfiguration to pass to the RTCPeerConnection constructor.
-     */
-    rtcConfiguration?: RTCConfiguration;
 
     /**
      * A mapping of custom sound URLs by sound name.

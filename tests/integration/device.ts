@@ -2,7 +2,7 @@ import Connection from '../../lib/twilio/connection';
 import Device from '../../lib/twilio/device';
 import { generateAccessToken } from '../lib/token';
 import * as assert from 'assert';
-import { EventEmitter } from 'events';    
+import { EventEmitter } from 'events';
 
 // (rrowland) The TwiML expected by these tests can be found in the README.md
 
@@ -35,6 +35,18 @@ describe('Device', function() {
     ]);
   });
 
+  after(() => {
+    if (device1) {
+      device1.disconnectAll();
+      device1.destroy();
+    }
+
+    if (device2) {
+      device2.disconnectAll();
+      device2.destroy();
+    }
+  });
+
   describe('device 1 calls device 2', () => {
     before(done => {
       device2.once(Device.EventName.Incoming, () => done());
@@ -46,8 +58,8 @@ describe('Device', function() {
       let connection2: Connection;
 
       beforeEach(() => {
-        const conn1: Connection | undefined | null = device1.activeConnection();
-        const conn2: Connection | undefined | null = device2.activeConnection();
+        const conn1: Connection | undefined | null = device1.activeConnection() || device1.connections[0];
+        const conn2: Connection | undefined | null = device2.activeConnection() || device2.connections[0];
 
         if (!conn1 || !conn2) {
           throw new Error(`Connections weren't both open at beforeEach`);

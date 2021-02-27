@@ -59,6 +59,7 @@ describe('Device', function() {
     clock = sinon.useFakeTimers(Date.now());
     token = createToken('alice');
     device = new Device();
+    device.on('error', () => { /* no-op */ });
   });
 
   describe('constructor', () => {
@@ -142,18 +143,6 @@ describe('Device', function() {
   });
 
   context('before Device is initialized', () => {
-    describe('deprecated handler methods', () => {
-      Object.entries(Device.EventName).forEach(([eventName, eventString]) => {
-        it(`should set an event listener on Device for .${eventString}(handler)`, () => {
-          const handler = () => { };
-          (device as any)[eventString](handler);
-          assert.equal(device.listenerCount(eventString), 1);
-          assert.equal(device.listeners(eventString)[0], handler);
-          device.removeListener(eventName as Device.EventName, handler);
-        });
-      });
-    });
-
     describe('.activeConnection()', () => {
       it('should return null', () => {
         assert.equal(device.activeConnection(), null);
@@ -175,12 +164,6 @@ describe('Device', function() {
     describe('.disconnectAll()', () => {
       it('should throw an error', () => {
         assert.throws(() => device.disconnectAll(), NOT_INITIALIZED_ERROR);
-      });
-    });
-
-    describe('.region()', () => {
-      it('should throw an error', () => {
-        assert.throws(() => device.region(), NOT_INITIALIZED_ERROR);
       });
     });
 
@@ -229,11 +212,6 @@ describe('Device', function() {
         it('should throw if token is undefined', () => {
           device = new Device();
           assert.throws(() => (device.setup as any)(), /Token is required/);
-        });
-
-        it('should throw if both `edge` and `region` are defined in options', () => {
-          device = new Device();
-          assert.throws(() => device.setup(token, { edge: 'foo', region: 'bar' }));
         });
 
         it('should set device.isInitialized to true', () => {
@@ -292,19 +270,6 @@ describe('Device', function() {
       device.setup(token, Object.assign({ rtcConfiguration }, setupOptions));
     });
 
-    describe('deprecated handler methods', () => {
-      Object.entries(Device.EventName).forEach(([eventName, eventString]) => {
-        it(`should set an event listener on Device for .${eventString}(handler)`, () => {
-          const handler = () => { };
-          device.removeAllListeners(eventString);
-          (device as any)[eventString](handler);
-          assert.equal(device.listenerCount(eventString), 1);
-          assert.equal(device.listeners(eventString)[0], handler);
-          device.removeListener(eventName as Device.EventName, handler);
-        });
-      });
-    });
-
     describe('.activeConnection()', () => {
       it('should return undefined if there are no Connections', () => {
         assert.equal(device.activeConnection(), undefined);
@@ -314,11 +279,6 @@ describe('Device', function() {
         const conn: Connection = device.connect();
         assert.equal(device.activeConnection(), conn);
         assert.equal(device.activeConnection(), activeConnection);
-      });
-
-      it('should return the first connection if no Connection is active', () => {
-        (device as any)['connections'] = ['foo', 'bar'];
-        assert.equal(device.activeConnection(), 'foo');
       });
     });
 
@@ -352,10 +312,6 @@ describe('Device', function() {
 
       it('should set .activeConnection()', () => {
         assert.equal(device.connect(), device.activeConnection());
-      });
-
-      it('should pass rtcConfiguration along', () => {
-        assert.deepEqual(rtcConfiguration, connectOptions && connectOptions.rtcConfiguration);
       });
 
       it('should play outgoing sound after accepted if enabled', () => {
@@ -461,38 +417,7 @@ describe('Device', function() {
         ['FOO_BAR', ''].forEach((name: string) => {
           it(`should return the region string directly if it's '${name}'`, () => {
             pstream.emit('connected', { region: name });
-            assert.equal(device.region(), name);
-          });
-        });
-      });
-    });
-
-    describe('.region()', () => {
-      it(`should log.warn a deprecation warning`, () => {
-        const spy = sinon.spy();
-        device['_log'].warn = spy;
-        device.region();
-        assert(spy.calledOnce);
-      });
-
-      it(`should return 'offline' if not connected`, () => {
-        assert.equal(device.region(), 'offline');
-      });
-
-      context('when the Region is known to the SDK', () => {
-        Object.entries(regionShortcodes).forEach(([fullName, region]: [string, string]) => {
-          it(`should return ${region.toString()} for ${fullName}`, () => {
-            pstream.emit('connected', { region: fullName });
-            assert.equal(device.region(), region);
-          });
-        });
-      });
-
-      context('when the Region is not known to the SDK', () => {
-        ['FOO_BAR', 'sg1', ''].forEach((name: string) => {
-          it(`should return the region string directly if it's '${name}'`, () => {
-            pstream.emit('connected', { region: name });
-            assert.equal(device.region(), name);
+            assert.equal(device['_region'], name);
           });
         });
       });
@@ -569,16 +494,6 @@ describe('Device', function() {
           { backoffMaxMs: undefined });
       });
 
-      it('should use correct region', () => {
-        options.region = 'sg1';
-        device.setup(token, options);
-
-        sinon.assert.calledOnce(pStreamFactory);
-        sinon.assert.calledWithExactly(pStreamFactory,
-          token, ['wss://chunderw-vpc-gll-sg1.twilio.com/signal'],
-          { backoffMaxMs: undefined });
-      });
-
       it('should use correct edge if only one is supplied', () => {
         options.edge = 'singapore';
         device.setup(token, options);
@@ -597,54 +512,6 @@ describe('Device', function() {
         sinon.assert.calledWithExactly(pStreamFactory,
           token, ['wss://chunderw-vpc-gll-sg1.twilio.com/signal', 'wss://chunderw-vpc-gll-au1.twilio.com/signal'],
           { backoffMaxMs: undefined });
-      });
-    });
-
-    describe('.sounds', () => {
-      it('should log a deprecation warning the first time a child method is called', () => {
-        const spy: SinonSpy = sinon.spy();
-        device['_log'].warn = spy;
-        assert(device.sounds.incoming);
-        if (device.sounds.incoming) {
-          device.sounds.incoming(false);
-        }
-        sinon.assert.calledOnce(spy);
-      });
-
-      it('should not log a deprecation warning the second time a child method is called', () => {
-        const spy: SinonSpy = sinon.spy();
-        device['_log'].warn = spy;
-        if (device.sounds.incoming) {
-          device.sounds.incoming(false);
-        }
-        sinon.assert.notCalled(spy);
-      });
-
-      it('should contain a working get/set method for .incoming()', () => {
-        if (device.sounds.incoming) {
-          device.sounds.incoming(true);
-          assert.equal(device.sounds.incoming(), true);
-          device.sounds.incoming(false);
-          assert.equal(device.sounds.incoming(), false);
-        }
-      });
-
-      it('should contain a working get/set method for .outgoing()', () => {
-        if (device.sounds.outgoing) {
-          device.sounds.outgoing(true);
-          assert.equal(device.sounds.outgoing(), true);
-          device.sounds.outgoing(false);
-          assert.equal(device.sounds.outgoing(), false);
-        }
-      });
-
-      it('should contain a working get/set method for .disconnect()', () => {
-        if (device.sounds.disconnect) {
-          device.sounds.disconnect(true);
-          assert.equal(device.sounds.disconnect(), true);
-          device.sounds.disconnect(false);
-          assert.equal(device.sounds.disconnect(), false);
-        }
       });
     });
 
@@ -702,7 +569,7 @@ describe('Device', function() {
     describe('on signaling.connected', () => {
       it('should update region', () => {
         pstream.emit('connected', { region: 'EU_IRELAND' });
-        assert.equal(device.region(), regionShortcodes.EU_IRELAND);
+        assert.equal(device['_region'], regionShortcodes.EU_IRELAND);
       });
 
       it('should send a register request with audio: true', () => {
@@ -732,7 +599,7 @@ describe('Device', function() {
         device.emit = sinon.spy();
         pstream.emit('error', { error: { twilioError } });
         sinon.assert.calledOnce(device.emit as any);
-        sinon.assert.calledWith(device.emit as any, 'error', { twilioError });
+        sinon.assert.calledWith(device.emit as any, 'error', twilioError);
       });
 
       it('should emit Device.error with connection if payload.callsid is present', () => {
@@ -742,7 +609,7 @@ describe('Device', function() {
         device.emit = sinon.spy();
         pstream.emit('error', { error: { twilioError }, callsid: 'foo' });
         sinon.assert.calledOnce(device.emit as any);
-        sinon.assert.calledWith(device.emit as any, 'error', { connection: conn, twilioError });
+        sinon.assert.calledWith(device.emit as any, 'error', twilioError, conn);
       });
 
       it('should not stop registrations if code is not 31205', () => {
@@ -844,9 +711,9 @@ describe('Device', function() {
         assert.equal(device.status(), Device.Status.Offline);
       });
 
-      it(`should set Device.region() to 'offline'`, () => {
+      it(`should set Device edge to 'null'`, () => {
         pstream.emit('offline');
-        assert.equal(device.region(), 'offline');
+        assert.equal(device.edge, null);
       });
 
       it('should emit Device.offline', () => {
@@ -1030,12 +897,12 @@ describe('Device', function() {
 
         it('should remove connection from activeDevice', () => {
           const conn = device.connections[0];
-          conn.accept();
+          conn.emit('accept');
           assert.equal(typeof conn, 'object');
           assert.equal(conn, device.activeConnection());
 
-          device.connections[0].emit('disconnect');
-          assert.equal(typeof device.activeConnection(), 'undefined');
+          conn.emit('disconnect');
+          assert.equal(device.activeConnection(), null);
         });
       });
 

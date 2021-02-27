@@ -12,23 +12,8 @@
 import TwilioError from './twilioError';
 export { TwilioError };
 
-// TypeScript doesn't allow extending Error so we need to run constructor logic on every one of these
-// individually. Ideally this logic would be run in a constructor on a TwilioError class but
-// due to this limitation TwilioError is an interface.
-// https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes
-function construct(context: TwilioError, messageOrError?: string | Error, originalError?: Error) {
-  if (typeof messageOrError === 'string') {
-    context.message = messageOrError;
-    if (originalError instanceof Error) {
-      context.originalError = originalError;
-    }
-  } else if (messageOrError instanceof Error) {
-    context.originalError = messageOrError;
-  }
-}
-
 export namespace AuthorizationErrors {
-  export class AccessTokenInvalid extends Error implements TwilioError {
+  export class AccessTokenInvalid extends TwilioError {
     causes: string[] = [];
     code: number = 20101;
     description: string = 'Invalid access token';
@@ -40,13 +25,12 @@ export namespace AuthorizationErrors {
     constructor(originalError: Error);
     constructor(message: string, originalError?: Error);
     constructor(messageOrError?: string | Error, originalError?: Error) {
-      super('');
+      super(messageOrError, originalError);
       Object.setPrototypeOf(this, AuthorizationErrors.AccessTokenInvalid.prototype);
-      construct(this, messageOrError, originalError);
     }
   }
 
-  export class AccessTokenExpired extends Error implements TwilioError {
+  export class AccessTokenExpired extends TwilioError {
     causes: string[] = [];
     code: number = 20104;
     description: string = 'Access token expired or expiration date invalid';
@@ -58,13 +42,12 @@ export namespace AuthorizationErrors {
     constructor(originalError: Error);
     constructor(message: string, originalError?: Error);
     constructor(messageOrError?: string | Error, originalError?: Error) {
-      super('');
+      super(messageOrError, originalError);
       Object.setPrototypeOf(this, AuthorizationErrors.AccessTokenExpired.prototype);
-      construct(this, messageOrError, originalError);
     }
   }
 
-  export class AuthenticationFailed extends Error implements TwilioError {
+  export class AuthenticationFailed extends TwilioError {
     causes: string[] = [];
     code: number = 20151;
     description: string = 'Authentication Failed';
@@ -76,15 +59,14 @@ export namespace AuthorizationErrors {
     constructor(originalError: Error);
     constructor(message: string, originalError?: Error);
     constructor(messageOrError?: string | Error, originalError?: Error) {
-      super('');
+      super(messageOrError, originalError);
       Object.setPrototypeOf(this, AuthorizationErrors.AuthenticationFailed.prototype);
-      construct(this, messageOrError, originalError);
     }
   }
 }
 
 export namespace ClientErrors {
-  export class BadRequest extends Error implements TwilioError {
+  export class BadRequest extends TwilioError {
     causes: string[] = [];
     code: number = 31400;
     description: string = 'Bad Request (HTTP/SIP)';
@@ -96,15 +78,14 @@ export namespace ClientErrors {
     constructor(originalError: Error);
     constructor(message: string, originalError?: Error);
     constructor(messageOrError?: string | Error, originalError?: Error) {
-      super('');
+      super(messageOrError, originalError);
       Object.setPrototypeOf(this, ClientErrors.BadRequest.prototype);
-      construct(this, messageOrError, originalError);
     }
   }
 }
 
 export namespace GeneralErrors {
-  export class UnknownError extends Error implements TwilioError {
+  export class UnknownError extends TwilioError {
     causes: string[] = [];
     code: number = 31000;
     description: string = 'Unknown Error';
@@ -116,13 +97,12 @@ export namespace GeneralErrors {
     constructor(originalError: Error);
     constructor(message: string, originalError?: Error);
     constructor(messageOrError?: string | Error, originalError?: Error) {
-      super('');
+      super(messageOrError, originalError);
       Object.setPrototypeOf(this, GeneralErrors.UnknownError.prototype);
-      construct(this, messageOrError, originalError);
     }
   }
 
-  export class ConnectionError extends Error implements TwilioError {
+  export class ConnectionError extends TwilioError {
     causes: string[] = [];
     code: number = 31005;
     description: string = 'Connection error';
@@ -134,13 +114,12 @@ export namespace GeneralErrors {
     constructor(originalError: Error);
     constructor(message: string, originalError?: Error);
     constructor(messageOrError?: string | Error, originalError?: Error) {
-      super('');
+      super(messageOrError, originalError);
       Object.setPrototypeOf(this, GeneralErrors.ConnectionError.prototype);
-      construct(this, messageOrError, originalError);
     }
   }
 
-  export class TransportError extends Error implements TwilioError {
+  export class TransportError extends TwilioError {
     causes: string[] = [];
     code: number = 31009;
     description: string = 'Transport error';
@@ -152,15 +131,14 @@ export namespace GeneralErrors {
     constructor(originalError: Error);
     constructor(message: string, originalError?: Error);
     constructor(messageOrError?: string | Error, originalError?: Error) {
-      super('');
+      super(messageOrError, originalError);
       Object.setPrototypeOf(this, GeneralErrors.TransportError.prototype);
-      construct(this, messageOrError, originalError);
     }
   }
 }
 
 export namespace SignalingErrors {
-  export class ConnectionError extends Error implements TwilioError {
+  export class ConnectionError extends TwilioError {
     causes: string[] = [];
     code: number = 53000;
     description: string = 'Signaling connection error';
@@ -172,13 +150,12 @@ export namespace SignalingErrors {
     constructor(originalError: Error);
     constructor(message: string, originalError?: Error);
     constructor(messageOrError?: string | Error, originalError?: Error) {
-      super('');
+      super(messageOrError, originalError);
       Object.setPrototypeOf(this, SignalingErrors.ConnectionError.prototype);
-      construct(this, messageOrError, originalError);
     }
   }
 
-  export class ConnectionDisconnected extends Error implements TwilioError {
+  export class ConnectionDisconnected extends TwilioError {
     causes: string[] = [
       'The device running your application lost its Internet connection.',
     ];
@@ -194,15 +171,14 @@ export namespace SignalingErrors {
     constructor(originalError: Error);
     constructor(message: string, originalError?: Error);
     constructor(messageOrError?: string | Error, originalError?: Error) {
-      super('');
+      super(messageOrError, originalError);
       Object.setPrototypeOf(this, SignalingErrors.ConnectionDisconnected.prototype);
-      construct(this, messageOrError, originalError);
     }
   }
 }
 
 export namespace MediaErrors {
-  export class ClientLocalDescFailed extends Error implements TwilioError {
+  export class ClientLocalDescFailed extends TwilioError {
     causes: string[] = [
       'The Client may not be using a supported WebRTC implementation.',
       'The Client may not have the necessary resources to create or apply a new media description.',
@@ -219,13 +195,12 @@ export namespace MediaErrors {
     constructor(originalError: Error);
     constructor(message: string, originalError?: Error);
     constructor(messageOrError?: string | Error, originalError?: Error) {
-      super('');
+      super(messageOrError, originalError);
       Object.setPrototypeOf(this, MediaErrors.ClientLocalDescFailed.prototype);
-      construct(this, messageOrError, originalError);
     }
   }
 
-  export class ClientRemoteDescFailed extends Error implements TwilioError {
+  export class ClientRemoteDescFailed extends TwilioError {
     causes: string[] = [
       'The Client may not be using a supported WebRTC implementation.',
       'The Client may be connecting peer-to-peer with another Participant that is not using a supported WebRTC implementation.',
@@ -243,13 +218,12 @@ export namespace MediaErrors {
     constructor(originalError: Error);
     constructor(message: string, originalError?: Error);
     constructor(messageOrError?: string | Error, originalError?: Error) {
-      super('');
+      super(messageOrError, originalError);
       Object.setPrototypeOf(this, MediaErrors.ClientRemoteDescFailed.prototype);
-      construct(this, messageOrError, originalError);
     }
   }
 
-  export class ConnectionError extends Error implements TwilioError {
+  export class ConnectionError extends TwilioError {
     causes: string[] = [
       'The Client was unable to establish a media connection.',
       'A media connection which was active failed liveliness checks.',
@@ -268,9 +242,8 @@ export namespace MediaErrors {
     constructor(originalError: Error);
     constructor(message: string, originalError?: Error);
     constructor(messageOrError?: string | Error, originalError?: Error) {
-      super('');
+      super(messageOrError, originalError);
       Object.setPrototypeOf(this, MediaErrors.ConnectionError.prototype);
-      construct(this, messageOrError, originalError);
     }
   }
 }

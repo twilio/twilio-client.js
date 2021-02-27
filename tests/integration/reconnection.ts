@@ -7,7 +7,6 @@ import { EventEmitter } from 'events';
 
 type CB = any;
 
-const DEBUG = false;
 const EVENT_TIMEOUT = 20000;
 const RTP_TIMEOUT = 60000;
 const SUITE_TIMEOUT = 300000;
@@ -25,10 +24,7 @@ describe('Reconnection', function() {
   let token1: string;
   let token2: string;
 
-  let options = {
-    warnings: false,
-    debug: DEBUG,
-  };
+  const options = {};
 
   // Since both devices lives in the same machine, one device may receive
   // events faster than the other. We will then run the test on the device

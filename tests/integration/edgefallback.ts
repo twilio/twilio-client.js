@@ -6,6 +6,15 @@ import * as assert from 'assert';
 const MAX_TIMEOUT = 300000;
 const EVENT_TIMEOUT = 50000;
 
+const expectFailure = (device: Device) => {
+  device.on('error', (error: any) => {
+    console.log(error.code);
+    if (!(error.code && (error.code === 53000 || error.code === 53001))) {
+      throw error;
+    }
+  });
+};
+
 describe('Edge Fallback', function() {
   this.timeout(MAX_TIMEOUT);
 
@@ -15,10 +24,7 @@ describe('Edge Fallback', function() {
 
   const pause = (delay = 0) => new Promise(r => setTimeout(r, delay));
 
-  const defaultOptions: Device.Options = {
-    warnings: false,
-    debug: false,
-  };
+  const defaultOptions: Device.Options = {};
 
   const deviceReady = async () => {
     await waitFor(expectEvent('ready', device), EVENT_TIMEOUT);
@@ -37,12 +43,6 @@ describe('Edge Fallback', function() {
     }
   });
 
-  it('should connect to sg1 if region param is sg1', async () => {
-    device.setup(token, Object.assign({}, defaultOptions, { region: 'sg1' }));
-    await deviceReady();
-    assert.equal(device.stream.transport.uri, 'wss://chunderw-vpc-gll-sg1.twilio.com/signal');
-  });
-
   it('should connect to sg1 if edge param is a string and is equal to singapore', async () => {
     device.setup(token, Object.assign({}, defaultOptions, { edge: 'singapore' }));
     await deviceReady();
@@ -56,12 +56,14 @@ describe('Edge Fallback', function() {
   });
 
   it('should use new uri format if the edge supplied is not in the list of supported edges', async () => {
+    expectFailure(device);
     device.setup(token, Object.assign({}, defaultOptions, { edge: 'foo' }));
     await pause(1000);
     assert.equal(device.stream.transport.uri, 'wss://voice-js.foo.twilio.com/signal');
   });
 
   it('should fallback to the next edge value if the current region is down', async () => {
+    expectFailure(device);
     device.setup(token, Object.assign({}, defaultOptions, { edge: ['foo', 'bar', 'ashburn'] }));
     await deviceReady();
     assert.equal(device.stream.transport.uri, 'wss://chunderw-vpc-gll-us1.twilio.com/signal');
@@ -99,6 +101,7 @@ describe('Edge Fallback', function() {
   it('should not fallback to the next edge if the transport error is fallback-able while connected', async function() {
     this.timeout(MAX_TIMEOUT);
     const connectTimeout = 120000;
+    expectFailure(device);
     device.setup(token, Object.assign({}, defaultOptions, { edge: ['sydney', 'singapore'] }));
     await deviceReady();
     assert.equal(device.stream.transport.uri, 'wss://chunderw-vpc-gll-au1.twilio.com/signal');
