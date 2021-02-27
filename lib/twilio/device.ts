@@ -124,12 +124,6 @@ export interface IExtendedDeviceOptions extends Device.Options {
   publishEvents?: boolean;
 
   /**
-   * RTC Constraints to pass to getUserMedia when making or accepting a Call.
-   * The format of this object depends on browser.
-   */
-  rtcConstraints?: Object;
-
-  /**
    * Custom Sound constructor
    */
   soundFactory?: ISound;
@@ -360,7 +354,6 @@ class Device extends EventEmitter {
    */
   private options: Device.Options = {
     allowIncomingWhileBusy: false,
-    audioConstraints: true,
     closeProtection: false,
     codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
     connectionFactory: Connection,
@@ -371,7 +364,6 @@ class Device extends EventEmitter {
     noRegister: false,
     pStreamFactory: PStream,
     preflight: false,
-    rtcConstraints: { },
     soundFactory: Sound,
     sounds: { },
   };
@@ -444,23 +436,20 @@ class Device extends EventEmitter {
 
   /**
    * Make an outgoing Call.
-   * @param [params] - A flat object containing key:value pairs to be sent to the TwiML app.
-   * @param [audioConstraints]
-   * @param [rtcConfiguration] - An RTCConfiguration to override the one set in `Device.setup`.
+   * @param [options]
    */
-  connect(params?: Record<string, string>,
-          audioConstraints?: MediaTrackConstraints | boolean,
-          rtcConfiguration?: RTCConfiguration): Connection {
+  connect(options?: Device.ConnectOptions): Connection {
     this._throwUnlessSetup('connect');
 
     if (this._activeConnection) {
       throw new InvalidStateError('A Connection is already active');
     }
 
-    audioConstraints = audioConstraints || this.options && this.options.audioConstraints || { };
-    params = params || {};
+    options = options || { };
 
-    const connection = this._activeConnection = this._makeConnection(params, { rtcConfiguration });
+    const connection = this._activeConnection = this._makeConnection(options!.params || { }, {
+      rtcConfiguration: options!.rtcConfiguration,
+    });
 
     // Make sure any incoming connections are ignored
     this.connections.splice(0).forEach(conn => conn.ignore());
@@ -468,7 +457,7 @@ class Device extends EventEmitter {
     // Stop the incoming sound if it's playing
     this.soundcache.get(Device.SoundName.Incoming).stop();
 
-    connection.accept(audioConstraints);
+    connection.accept({ rtcConstraints: options.rtcConstraints });
     this._publishNetworkChange();
     return connection;
   }
@@ -613,6 +602,9 @@ class Device extends EventEmitter {
     this.isInitialized = true;
 
     if (this.options.dscp) {
+      if (!this.options.rtcConstraints) {
+        this.options.rtcConstraints = { };
+      }
       (this.options.rtcConstraints as any).optional = [{ googDscp: true }];
     }
 
@@ -849,7 +841,6 @@ class Device extends EventEmitter {
       MediaStream: this.options.MediaStream
         || this.options.mediaStreamFactory
         || rtc.PeerConnection,
-      audioConstraints: this.options.audioConstraints,
       beforeAccept: (conn: Connection) => {
         if (!this._activeConnection || this._activeConnection === conn) {
           return;
@@ -1404,6 +1395,16 @@ namespace Device {
   }
 
   /**
+   * Options to be passed to {@link Device.connect}.
+   */
+  export interface ConnectOptions extends Connection.AcceptOptions {
+   /**
+    * A flat object containing key:value pairs to be sent to the TwiML app.
+    */
+    params?: Record<string, string>;
+  }
+
+  /**
    * Options that may be passed to the {@link Device} constructor, or Device.setup via public API
    */
   export interface Options {
@@ -1428,12 +1429,6 @@ namespace Device {
      * track down when application-level bugs were introduced.
      */
     appVersion?: string;
-
-    /**
-     * Audio Constraints to pass to getUserMedia when making or accepting a Call.
-     * This is placed directly under `audio` of the MediaStreamConstraints object.
-     */
-    audioConstraints?: MediaTrackConstraints | boolean;
 
     /**
      * Whether to enable close protection, to prevent users from accidentally

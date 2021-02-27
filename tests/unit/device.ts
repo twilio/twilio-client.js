@@ -264,12 +264,10 @@ describe('Device', function() {
   });
 
   context('after Device is initialized', () => {
-    const rtcConfiguration = { foo: 'bar', abc: 123 };
-
     beforeEach(() => {
-      device.setup(token, Object.assign({ rtcConfiguration }, setupOptions));
+      device.setup(token, setupOptions);
     });
-
+    
     describe('.activeConnection()', () => {
       it('should return undefined if there are no Connections', () => {
         assert.equal(device.activeConnection(), undefined);
@@ -321,22 +319,6 @@ describe('Device', function() {
         activeConnection._direction = 'OUTGOING';
         activeConnection.emit('accept');
         sinon.assert.calledOnce(spy.play);
-      });
-
-      context('when passed an `rtcConfiguration`', () => {
-        it('should override the `rtcConfiguration` in `Device.options`', () => {
-          const overrideRtcConfiguration = {
-            ...device['options'].rtcConfiguration,
-            iceServers: [{ urls: 'bar-url' }],
-          };
-          device['options'].rtcConfiguration = {
-            ...device['options'].rtcConfiguration,
-            iceServers: [{ urls: 'foo-url' }],
-          };
-          device.connect(undefined, undefined, overrideRtcConfiguration);
-          assert(connectOptions && connectOptions.rtcConfiguration);
-          assert.deepEqual((connectOptions || {}).rtcConfiguration, overrideRtcConfiguration);
-        });
       });
     });
 

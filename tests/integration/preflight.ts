@@ -68,7 +68,7 @@ describe('Preflight Test', function() {
 
       (callerDevice as any).connectOverride = callerDevice.connect;
       callerDevice.connect = () => {
-        return (callerDevice as any).connectOverride({ To: receiverIdentity });
+        return (callerDevice as any).connectOverride({ params: { To: receiverIdentity } });
       };
     });
 
@@ -149,7 +149,9 @@ describe('Preflight Test', function() {
 
       (callerDevice as any).connectOverride = callerDevice.connect;
       callerDevice.connect = () => {
-        return (callerDevice as any).connectOverride({ To: receiverIdentity });
+        return (callerDevice as any).connectOverride({
+          params: { To: receiverIdentity }
+        });
       };
     });
 
@@ -187,7 +189,7 @@ describe('Preflight Test', function() {
 
           (callerDevice as any).connectOverride = callerDevice.connect;
           callerDevice.connect = () => {
-            return (callerDevice as any).connectOverride({ To: receiverIdentity });
+            return (callerDevice as any).connectOverride({ params: { To: receiverIdentity } });
           };
 
           setTimeout(() => receiverDevice.disconnectAll(), 5000);
@@ -218,7 +220,7 @@ describe('Preflight Test', function() {
 
       (callerDevice as any).connectOverride = callerDevice.connect;
       callerDevice.connect = () => {
-        return (callerDevice as any).connectOverride({ To: receiverIdentity });
+        return (callerDevice as any).connectOverride({ params: { To: receiverIdentity } });
       };
     });
 

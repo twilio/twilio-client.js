@@ -50,7 +50,9 @@ describe('Device', function() {
   describe('device 1 calls device 2', () => {
     before(done => {
       device2.once(Device.EventName.Incoming, () => done());
-      (device1['connect'] as any)({ To: identity2, Custom1: 'foo + bar', Custom2: undefined, Custom3: '我不吃蛋' });
+      (device1['connect'] as any)({
+        params: { To: identity2, Custom1: 'foo + bar', Custom2: undefined, Custom3: '我不吃蛋' }
+      });
     });
 
     describe('and device 2 accepts', () => {
