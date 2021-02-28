@@ -678,7 +678,7 @@ class Device extends EventEmitter {
       }, activeConnection);
 
       if (activeConnection) {
-        activeConnection.mediaStream._onInputDevicesChanged();
+        activeConnection['_mediaHandler']._onInputDevicesChanged();
       }
     });
 

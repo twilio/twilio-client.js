@@ -481,7 +481,7 @@ export class PreflightTest extends EventEmitter {
       // When volume events start emitting, it means all audio outputs have been created.
       // Let's mute them if we're using fake mic input.
       connection.once('volume', () => {
-        connection.mediaStream.outputs
+        connection['_mediaHandler'].outputs
           .forEach((output: AudioOutput) => output.audio.muted = true);
       });
     }
@@ -491,7 +491,7 @@ export class PreflightTest extends EventEmitter {
     });
 
     connection.once('accept', () => {
-      this._callSid = connection.mediaStream.callSid;
+      this._callSid = connection['_mediaHandler'].callSid;
       this._status = PreflightTest.Status.Connected;
       this.emit(PreflightTest.Events.Connected);
     });
@@ -501,7 +501,7 @@ export class PreflightTest extends EventEmitter {
       if (!this._latestSample) {
         this._rtcIceCandidateStatsReport = await (
           this._options.getRTCIceCandidateStatsReport || getRTCIceCandidateStatsReport
-        )(connection.mediaStream.version.pc);
+        )(connection['_mediaHandler'].version.pc);
       }
 
       this._latestSample = sample;
@@ -526,9 +526,9 @@ export class PreflightTest extends EventEmitter {
      }].forEach(({type, reportLabel}) => {
 
       const handlerName = `on${type}statechange`;
-      const originalHandler = connection.mediaStream[handlerName];
+      const originalHandler = connection['_mediaHandler'][handlerName];
 
-      connection.mediaStream[handlerName] = (state: string) => {
+      connection['_mediaHandler'][handlerName] = (state: string) => {
         const timing = (this._networkTiming as any)[reportLabel]
           = (this._networkTiming as any)[reportLabel] || { start: 0 };
 

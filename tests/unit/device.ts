@@ -515,7 +515,7 @@ describe('Device', function() {
       it('should call _onInputDevicesChanges on the active Connection', () => {
         device.connect();
         const spy: SinonSpy = sinon.spy();
-        activeConnection.mediaStream = { _onInputDevicesChanged: spy };
+        activeConnection['_mediaHandler'] = { _onInputDevicesChanged: spy };
         device.audio && device.audio.emit('deviceChange', []);
         sinon.assert.calledOnce(spy);
       });

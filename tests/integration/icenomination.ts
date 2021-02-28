@@ -64,12 +64,12 @@ maybeSkip('ICE Nomination', function() {
     const makeConnection = device['_makeConnection'].bind(device);
     (device['_makeConnection'] as any) = (...params: any) => {
       const conn = makeConnection(...params);
-      conn.mediaStream.oniceconnectionstatechange = (state: string) => {
+      conn['_mediaHandler'].oniceconnectionstatechange = (state: string) => {
         if (state === 'checking') {
           start = Date.now();
         }
       };
-      conn.mediaStream.onpcconnectionstatechange = (state: string) => {
+      conn['_mediaHandler'].onpcconnectionstatechange = (state: string) => {
         if (state === 'connected') {
           const duration = Date.now() - start;
           resolve(duration);
