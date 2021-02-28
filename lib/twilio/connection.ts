@@ -213,14 +213,33 @@ class Connection extends EventEmitter {
   private readonly _monitor: StatsMonitor;
 
   /**
+   * Options passed to this {@link Connection}.
+   */
+  private _options: Connection.Options = {
+    MediaHandler: PeerConnection,
+    offerSdp: null,
+    shouldPlayDisconnect: () => true,
+  };
+
+  /**
    * The number of times output volume has been the same consecutively.
    */
   private _outputVolumeStreak: number = 0;
 
   /**
+   * The PStream instance to use for Twilio call signaling.
+   */
+  private readonly _pstream: IPStream;
+
+  /**
    * An instance of EventPublisher.
    */
   private readonly _publisher: IPublisher;
+
+  /**
+   * Whether the {@link Connection} should send a hangup on disconnect.
+   */
+  private _shouldSendHangup: boolean = true;
 
   /**
    * A Map of Sounds to play.
@@ -231,25 +250,6 @@ class Connection extends EventEmitter {
    * State of the {@link Connection}.
    */
   private _status: Connection.State = Connection.State.Pending;
-
-  /**
-   * Options passed to this {@link Connection}.
-   */
-  private options: Connection.Options = {
-    MediaHandler: PeerConnection,
-    offerSdp: null,
-    shouldPlayDisconnect: () => true,
-  };
-
-  /**
-   * The PStream instance to use for Twilio call signaling.
-   */
-  private readonly pstream: IPStream;
-
-  /**
-   * Whether the {@link Connection} should send a hangup on disconnect.
-   */
-  private sendHangup: boolean = true;
 
   /**
    * @constructor
@@ -267,10 +267,10 @@ class Connection extends EventEmitter {
     this.customParameters = new Map(
       Object.entries(message).map(([key, val]: [string, any]): [string, string] => [key, String(val)]));
 
-    Object.assign(this.options, options);
+    Object.assign(this._options, options);
 
-    if (this.options.callParameters) {
-      this.parameters = this.options.callParameters;
+    if (this._options.callParameters) {
+      this.parameters = this._options.callParameters;
     }
 
     this._direction = this.parameters.CallSid ? Connection.CallDirection.Incoming : Connection.CallDirection.Outgoing;
@@ -294,10 +294,10 @@ class Connection extends EventEmitter {
     if (this._direction === Connection.CallDirection.Incoming) {
       publisher.info('connection', 'incoming', null, this);
     } else {
-      publisher.info('connection', 'outgoing', { preflight: this.options.preflight }, this);
+      publisher.info('connection', 'outgoing', { preflight: this._options.preflight }, this);
     }
 
-    const monitor = this._monitor = new (this.options.StatsMonitor || StatsMonitor)();
+    const monitor = this._monitor = new (this._options.StatsMonitor || StatsMonitor)();
     monitor.on('sample', this._onRTCSample);
 
     // First 20 seconds or so are choppy, so let's not bother with these warnings.
@@ -314,14 +314,14 @@ class Connection extends EventEmitter {
       this._reemitWarningCleared(data);
     });
 
-    this._mediaHandler = new (this.options.MediaHandler)
+    this._mediaHandler = new (this._options.MediaHandler)
       (config.audioHelper, config.pstream, config.getUserMedia, {
-        codecPreferences: this.options.codecPreferences,
-        dscp: this.options.dscp,
-        forceAggressiveIceNomination: this.options.forceAggressiveIceNomination,
+        codecPreferences: this._options.codecPreferences,
+        dscp: this._options.dscp,
+        forceAggressiveIceNomination: this._options.forceAggressiveIceNomination,
         isUnifiedPlan: this._isUnifiedPlanDefault,
-        maxAverageBitrate: this.options.maxAverageBitrate,
-        preflight: this.options.preflight,
+        maxAverageBitrate: this._options.maxAverageBitrate,
+        preflight: this._options.preflight,
       });
 
     this.on('volume', (inputVolume: number, outputVolume: number): void => {
@@ -460,7 +460,7 @@ class Connection extends EventEmitter {
 
     this._mediaHandler.onclose = () => {
       this._status = Connection.State.Closed;
-      if (this.options.shouldPlayDisconnect && this.options.shouldPlayDisconnect()
+      if (this._options.shouldPlayDisconnect && this._options.shouldPlayDisconnect()
         // Don't play disconnect sound if this was from a cancel event. i.e. the call
         // was ignored or hung up even before it was answered.
         && !this._isCancelled) {
@@ -476,17 +476,17 @@ class Connection extends EventEmitter {
       }
     };
 
-    this.pstream = config.pstream;
-    this.pstream.on('cancel', this._onCancel);
-    this.pstream.on('ringing', this._onRinging);
-    this.pstream.on('transportClose', this._onTransportClose);
+    this._pstream = config.pstream;
+    this._pstream.on('cancel', this._onCancel);
+    this._pstream.on('ringing', this._onRinging);
+    this._pstream.on('transportClose', this._onTransportClose);
 
     this.on('error', error => {
       this._publisher.error('connection', 'error', {
         code: error.code, message: error.message,
       }, this);
 
-      if (this.pstream && this.pstream.status === 'disconnected') {
+      if (this._pstream && this._pstream.status === 'disconnected') {
         this._cleanupEventListeners();
       }
     });
@@ -524,8 +524,8 @@ class Connection extends EventEmitter {
     }
 
     options = options || { };
-    const rtcConfiguration = options.rtcConfiguration || this.options.rtcConfiguration;
-    const rtcConstraints = options.rtcConstraints || this.options.rtcConstraints || { };
+    const rtcConfiguration = options.rtcConfiguration || this._options.rtcConfiguration;
+    const rtcConstraints = options.rtcConstraints || this._options.rtcConstraints || { };
     const audioConstraints = rtcConstraints.audio || { audio: true };
 
     this._status = Connection.State.Connecting;
@@ -556,7 +556,7 @@ class Connection extends EventEmitter {
         this._monitor.enable(pc);
       };
 
-      const sinkIds = typeof this.options.getSinkIds === 'function' && this.options.getSinkIds();
+      const sinkIds = typeof this._options.getSinkIds === 'function' && this._options.getSinkIds();
       if (Array.isArray(sinkIds)) {
         this._mediaHandler._setSinkIds(sinkIds).catch(() => {
           // (rrowland) We don't want this to throw to console since the customer
@@ -565,26 +565,26 @@ class Connection extends EventEmitter {
         });
       }
 
-      this.pstream.addListener('hangup', this._onHangup);
+      this._pstream.addListener('hangup', this._onHangup);
 
       if (this._direction === Connection.CallDirection.Incoming) {
         this._isAnswered = true;
-        this._mediaHandler.answerIncomingCall(this.parameters.CallSid, this.options.offerSdp,
+        this._mediaHandler.answerIncomingCall(this.parameters.CallSid, this._options.offerSdp,
           rtcConstraints, rtcConfiguration, onAnswer);
       } else {
         const params = Array.from(this.customParameters.entries()).map(pair =>
          `${encodeURIComponent(pair[0])}=${encodeURIComponent(pair[1])}`).join('&');
-        this.pstream.once('answer', this._onAnswer.bind(this));
-        this._mediaHandler.makeOutgoingCall(this.pstream.token, params, this.outboundConnectionId,
+        this._pstream.once('answer', this._onAnswer.bind(this));
+        this._mediaHandler.makeOutgoingCall(this._pstream.token, params, this.outboundConnectionId,
           rtcConstraints, rtcConfiguration, onAnswer);
       }
     };
 
-    if (this.options.beforeAccept) {
-      this.options.beforeAccept(this);
+    if (this._options.beforeAccept) {
+      this._options.beforeAccept(this);
     }
 
-    const inputStream = typeof this.options.getInputStream === 'function' && this.options.getInputStream();
+    const inputStream = typeof this._options.getInputStream === 'function' && this._options.getInputStream();
 
     const promise = inputStream
       ? this._mediaHandler.setInputTracksFromStream(inputStream)
@@ -725,7 +725,7 @@ class Connection extends EventEmitter {
       return;
     }
 
-    this.pstream.reject(this.parameters.CallSid);
+    this._pstream.reject(this.parameters.CallSid);
     this._status = Connection.State.Closed;
     this.emit('reject');
     this._mediaHandler.reject(this.parameters.CallSid);
@@ -764,7 +764,7 @@ class Connection extends EventEmitter {
       if (sequence.length) {
         setTimeout(playNextDigit.bind(null, soundCache), 200);
       }
-    })(this._soundcache, this.options.dialtonePlayer);
+    })(this._soundcache, this._options.dialtonePlayer);
 
     const dtmfSender = this._mediaHandler.getOrCreateDTMFSender();
 
@@ -795,8 +795,8 @@ class Connection extends EventEmitter {
     // send pstream message to send DTMF
     this._log.info('Sending digits over PStream');
 
-    if (this.pstream !== null && this.pstream.status !== 'disconnected') {
-      this.pstream.dtmf(this.parameters.CallSid, digits);
+    if (this._pstream !== null && this._pstream.status !== 'disconnected') {
+      this._pstream.dtmf(this.parameters.CallSid, digits);
     } else {
       const error = {
         code: 31000,
@@ -853,13 +853,13 @@ class Connection extends EventEmitter {
    */
   private _cleanupEventListeners(): void {
     const cleanup = () => {
-      if (!this.pstream) { return; }
+      if (!this._pstream) { return; }
 
-      this.pstream.removeListener('answer', this._onAnswer);
-      this.pstream.removeListener('cancel', this._onCancel);
-      this.pstream.removeListener('hangup', this._onHangup);
-      this.pstream.removeListener('ringing', this._onRinging);
-      this.pstream.removeListener('transportClose', this._onTransportClose);
+      this._pstream.removeListener('answer', this._onAnswer);
+      this._pstream.removeListener('cancel', this._onCancel);
+      this._pstream.removeListener('hangup', this._onHangup);
+      this._pstream.removeListener('ringing', this._onRinging);
+      this._pstream.removeListener('transportClose', this._onTransportClose);
     };
 
     // This is kind of a hack, but it lets us avoid rewriting more code.
@@ -884,17 +884,17 @@ class Connection extends EventEmitter {
   private _createMetricPayload(): Partial<Record<string, string|boolean>> {
     const payload: Partial<Record<string, string|boolean>> = {
       call_sid: this.parameters.CallSid,
-      dscp: !!this.options.dscp,
+      dscp: !!this._options.dscp,
       sdk_version: C.RELEASE_VERSION,
-      selected_region: this.options.selectedRegion,
+      selected_region: this._options.selectedRegion,
     };
 
-    if (this.options.gateway) {
-      payload.gateway = this.options.gateway;
+    if (this._options.gateway) {
+      payload.gateway = this._options.gateway;
     }
 
-    if (this.options.region) {
-      payload.region = this.options.region;
+    if (this._options.region) {
+      payload.region = this._options.region;
     }
 
     payload.direction = this._direction;
@@ -919,10 +919,10 @@ class Connection extends EventEmitter {
     this._log.info('Disconnecting...');
 
     // send pstream hangup message
-    if (this.pstream !== null && this.pstream.status !== 'disconnected' && this.sendHangup) {
+    if (this._pstream !== null && this._pstream.status !== 'disconnected' && this._shouldSendHangup) {
       const callsid: string | undefined = this.parameters.CallSid || this.outboundConnectionId;
       if (callsid) {
-        this.pstream.hangup(callsid, message);
+        this._pstream.hangup(callsid, message);
       }
     }
 
@@ -1018,7 +1018,7 @@ class Connection extends EventEmitter {
 
       this._status = Connection.State.Closed;
       this.emit('cancel');
-      this.pstream.removeListener('cancel', this._onCancel);
+      this._pstream.removeListener('cancel', this._onCancel);
     }
   }
 
@@ -1053,7 +1053,7 @@ class Connection extends EventEmitter {
       this._log.error('Received an error from the gateway:', error);
       this.emit('error', error);
     }
-    this.sendHangup = false;
+    this._shouldSendHangup = false;
     this._publisher.info('connection', 'disconnected-by-remote', null, this);
     this._disconnect(null, true);
     this._cleanupEventListeners();
