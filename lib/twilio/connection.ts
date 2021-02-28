@@ -233,11 +233,6 @@ class Connection extends EventEmitter {
   private _status: Connection.State = Connection.State.Pending;
 
   /**
-   * TwiML params for the call. May be set for either outgoing or incoming calls.
-   */
-  private readonly message: Record<string, string>;
-
-  /**
    * Options passed to this {@link Connection}.
    */
   private options: Connection.Options = {
@@ -267,9 +262,10 @@ class Connection extends EventEmitter {
 
     this._isUnifiedPlanDefault = config.isUnifiedPlanDefault;
     this._soundcache = config.soundcache;
-    this.message = options && options.twimlParams || { };
+
+    const message = options && options.twimlParams || { };
     this.customParameters = new Map(
-      Object.entries(this.message).map(([key, val]: [string, any]): [string, string] => [key, String(val)]));
+      Object.entries(message).map(([key, val]: [string, any]): [string, string] => [key, String(val)]));
 
     Object.assign(this.options, options);
 
