@@ -723,11 +723,6 @@ describe('Connection', function() {
         sinon.assert.calledOnce(mediaHandler.ignore);
       });
 
-      it('should emit cancel', (done) => {
-        conn.on('cancel', () => done());
-        conn.ignore();
-      });
-
       it('should transition state to closed', () => {
         conn.ignore();
         assert.equal(conn.status(), Connection.State.Closed);

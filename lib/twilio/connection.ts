@@ -660,7 +660,6 @@ class Connection extends EventEmitter {
     }
 
     this._status = Connection.State.Closed;
-    this.emit('cancel');
     this._mediaHandler.ignore(this.parameters.CallSid);
     this._publisher.info('connection', 'ignored-by-local', null, this);
   }
