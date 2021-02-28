@@ -28,6 +28,16 @@ Please see the original [`loglevel`](https://github.com/pimterry/loglevel) proje
 API Changes
 -------
 
+### Connection Deprecations
+
+- Removed `Connection.mediaStream`. To access the MediaStreams, use `Connection.getRemoteStream()` and `Connection.getLocalStream()`
+- Removed `Connection.message` in favor of the newer `Connection.customParameters`. Where `.message` was an Object, `.customParameters` is a `Map`.
+- Removed the following private members from the public interface:
+   - `Connection.options`
+   - `Connection.pstream`
+   - `Connection.sendHangup`
+- Fixed `Connection.on('cancel')` logic so that we no longer emit `cancel` in response to `Connection.ignore()`.
+
 ### Device#ConnectOptions and Connection#AcceptOptions
 The arguments for `Device.connect()` and `Connection.accept()` have been standardized
 to the following options objects:
