@@ -77,8 +77,7 @@ describe('PreflightTest', () => {
     outputs.set('default', { audio: {} });
     outputs.set('foo', { audio: {} });
     connectionContext = {
-      _monitor: monitor,
-      mediaStream: {
+      _mediaHandler: {
         callSid: CALL_SID,
         version: { pc: {} },
         onpcconnectionstatechange: sinon.stub(),
@@ -87,6 +86,7 @@ describe('PreflightTest', () => {
         onsignalingstatechange: sinon.stub(),
         outputs,
       },
+      _monitor: monitor,
       _publisher: publisher,
     };
     connection = new EventEmitter();
@@ -356,8 +356,8 @@ describe('PreflightTest', () => {
       return wait().then(() => {
         device.emit('ready');
         connection.emit('volume');
-        assert(!connectionContext.mediaStream.outputs.get('default').audio.muted);
-        assert(!connectionContext.mediaStream.outputs.get('foo').audio.muted);
+        assert(!connectionContext['_mediaHandler'].outputs.get('default').audio.muted);
+        assert(!connectionContext['_mediaHandler'].outputs.get('foo').audio.muted);
       });
     });
 
@@ -367,8 +367,8 @@ describe('PreflightTest', () => {
       return wait().then(() => {
         device.emit('ready');
         connection.emit('volume');
-        assert(connectionContext.mediaStream.outputs.get('default').audio.muted);
-        assert(connectionContext.mediaStream.outputs.get('foo').audio.muted);
+        assert(connectionContext['_mediaHandler'].outputs.get('default').audio.muted);
+        assert(connectionContext['_mediaHandler'].outputs.get('foo').audio.muted);
       });
     });
   });
@@ -614,15 +614,15 @@ describe('PreflightTest', () => {
         connection.emit('accept');
 
         // Populate network timings
-        connection.mediaStream.onpcconnectionstatechange('connecting');
-        connection.mediaStream.ondtlstransportstatechange('connecting');
-        connection.mediaStream.oniceconnectionstatechange('checking');
+        connection['_mediaHandler'].onpcconnectionstatechange('connecting');
+        connection['_mediaHandler'].ondtlstransportstatechange('connecting');
+        connection['_mediaHandler'].oniceconnectionstatechange('checking');
         clock.tick(1000);
 
-        connection.mediaStream.onpcconnectionstatechange('connected');
-        connection.mediaStream.ondtlstransportstatechange('connected');
-        connection.mediaStream.oniceconnectionstatechange('connected');
-        connection.mediaStream.onsignalingstatechange('stable');
+        connection['_mediaHandler'].onpcconnectionstatechange('connected');
+        connection['_mediaHandler'].ondtlstransportstatechange('connected');
+        connection['_mediaHandler'].oniceconnectionstatechange('connected');
+        connection['_mediaHandler'].onsignalingstatechange('stable');
 
         clock.tick(13000);
         device.emit('disconnect');

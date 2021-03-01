@@ -124,10 +124,10 @@ describe('Device', function() {
 
       it('should update network priority to high if supported', () => {
         const conn = device2 && device2.activeConnection();
-        if (!conn || !conn.mediaStream || !conn.mediaStream._sender) {
+        if (!conn || !conn['_mediaHandler'] || !conn['_mediaHandler']._sender) {
           throw new Error('Expected sender to be present');
         }
-        const sender = conn.mediaStream._sender;
+        const sender = conn['_mediaHandler']._sender;
         const params = sender.getParameters();
         const encoding = params.encodings && params.encodings[0];
 

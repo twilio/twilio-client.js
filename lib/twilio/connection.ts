@@ -130,13 +130,6 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * The MediaStream (Twilio PeerConnection) this {@link Connection} is using for
-   * media signaling.
-   * @private
-   */
-  mediaStream: IPeerConnection;
-
-  /**
    * The temporary CallSid for this call, if it's outbound.
    */
   readonly outboundConnectionId?: string;
@@ -193,6 +186,12 @@ class Connection extends EventEmitter {
   private _log: Log = Log.getInstance();
 
   /**
+   * The MediaHandler (Twilio PeerConnection) this {@link Connection} is using for
+   * media signaling.
+   */
+  private _mediaHandler: IPeerConnection;
+
+  /**
    * An instance of Backoff for media reconnection
    */
   private _mediaReconnectBackoff: any;
@@ -214,14 +213,33 @@ class Connection extends EventEmitter {
   private readonly _monitor: StatsMonitor;
 
   /**
+   * Options passed to this {@link Connection}.
+   */
+  private _options: Connection.Options = {
+    MediaHandler: PeerConnection,
+    offerSdp: null,
+    shouldPlayDisconnect: () => true,
+  };
+
+  /**
    * The number of times output volume has been the same consecutively.
    */
   private _outputVolumeStreak: number = 0;
 
   /**
+   * The PStream instance to use for Twilio call signaling.
+   */
+  private readonly _pstream: IPStream;
+
+  /**
    * An instance of EventPublisher.
    */
   private readonly _publisher: IPublisher;
+
+  /**
+   * Whether the {@link Connection} should send a hangup on disconnect.
+   */
+  private _shouldSendHangup: boolean = true;
 
   /**
    * A Map of Sounds to play.
@@ -234,30 +252,6 @@ class Connection extends EventEmitter {
   private _status: Connection.State = Connection.State.Pending;
 
   /**
-   * TwiML params for the call. May be set for either outgoing or incoming calls.
-   */
-  private readonly message: Record<string, string>;
-
-  /**
-   * Options passed to this {@link Connection}.
-   */
-  private options: Connection.Options = {
-    MediaStream: PeerConnection,
-    offerSdp: null,
-    shouldPlayDisconnect: () => true,
-  };
-
-  /**
-   * The PStream instance to use for Twilio call signaling.
-   */
-  private readonly pstream: IPStream;
-
-  /**
-   * Whether the {@link Connection} should send a hangup on disconnect.
-   */
-  private sendHangup: boolean = true;
-
-  /**
    * @constructor
    * @private
    * @param config - Mandatory configuration options
@@ -268,14 +262,15 @@ class Connection extends EventEmitter {
 
     this._isUnifiedPlanDefault = config.isUnifiedPlanDefault;
     this._soundcache = config.soundcache;
-    this.message = options && options.twimlParams || { };
+
+    const message = options && options.twimlParams || { };
     this.customParameters = new Map(
-      Object.entries(this.message).map(([key, val]: [string, any]): [string, string] => [key, String(val)]));
+      Object.entries(message).map(([key, val]: [string, any]): [string, string] => [key, String(val)]));
 
-    Object.assign(this.options, options);
+    Object.assign(this._options, options);
 
-    if (this.options.callParameters) {
-      this.parameters = this.options.callParameters;
+    if (this._options.callParameters) {
+      this.parameters = this._options.callParameters;
     }
 
     this._direction = this.parameters.CallSid ? Connection.CallDirection.Incoming : Connection.CallDirection.Outgoing;
@@ -289,7 +284,7 @@ class Connection extends EventEmitter {
     }
 
     this._mediaReconnectBackoff = Backoff.exponential(BACKOFF_CONFIG);
-    this._mediaReconnectBackoff.on('ready', () => this.mediaStream.iceRestart());
+    this._mediaReconnectBackoff.on('ready', () => this._mediaHandler.iceRestart());
 
     // temporary call sid to be used for outgoing calls
     this.outboundConnectionId = generateTempCallSid();
@@ -299,10 +294,10 @@ class Connection extends EventEmitter {
     if (this._direction === Connection.CallDirection.Incoming) {
       publisher.info('connection', 'incoming', null, this);
     } else {
-      publisher.info('connection', 'outgoing', { preflight: this.options.preflight }, this);
+      publisher.info('connection', 'outgoing', { preflight: this._options.preflight }, this);
     }
 
-    const monitor = this._monitor = new (this.options.StatsMonitor || StatsMonitor)();
+    const monitor = this._monitor = new (this._options.StatsMonitor || StatsMonitor)();
     monitor.on('sample', this._onRTCSample);
 
     // First 20 seconds or so are choppy, so let's not bother with these warnings.
@@ -319,14 +314,14 @@ class Connection extends EventEmitter {
       this._reemitWarningCleared(data);
     });
 
-    this.mediaStream = new (this.options.MediaStream)
+    this._mediaHandler = new (this._options.MediaHandler)
       (config.audioHelper, config.pstream, config.getUserMedia, {
-        codecPreferences: this.options.codecPreferences,
-        dscp: this.options.dscp,
-        forceAggressiveIceNomination: this.options.forceAggressiveIceNomination,
+        codecPreferences: this._options.codecPreferences,
+        dscp: this._options.dscp,
+        forceAggressiveIceNomination: this._options.forceAggressiveIceNomination,
         isUnifiedPlan: this._isUnifiedPlanDefault,
-        maxAverageBitrate: this.options.maxAverageBitrate,
-        preflight: this.options.preflight,
+        maxAverageBitrate: this._options.maxAverageBitrate,
+        preflight: this._options.preflight,
       });
 
     this.on('volume', (inputVolume: number, outputVolume: number): void => {
@@ -338,8 +333,8 @@ class Connection extends EventEmitter {
       this._latestOutputVolume = outputVolume;
     });
 
-    this.mediaStream.onvolume = (inputVolume: number, outputVolume: number,
-                                 internalInputVolume: number, internalOutputVolume: number) => {
+    this._mediaHandler.onvolume = (inputVolume: number, outputVolume: number,
+                                   internalInputVolume: number, internalOutputVolume: number) => {
       // (rrowland) These values mock the 0 -> 32767 format used by legacy getStats. We should look into
       // migrating to a newer standard, either 0.0 -> linear or -127 to 0 in dB, matching the range
       // chosen below.
@@ -349,14 +344,14 @@ class Connection extends EventEmitter {
       this.emit('volume', inputVolume, outputVolume);
     };
 
-    this.mediaStream.ondtlstransportstatechange = (state: string): void => {
+    this._mediaHandler.ondtlstransportstatechange = (state: string): void => {
       const level = state === 'failed' ? 'error' : 'debug';
       this._publisher.post(level, 'dtls-transport-state', state, null, this);
     };
 
-    this.mediaStream.onpcconnectionstatechange = (state: string): void => {
+    this._mediaHandler.onpcconnectionstatechange = (state: string): void => {
       let level = 'debug';
-      const dtlsTransport = this.mediaStream.getRTCDtlsTransport();
+      const dtlsTransport = this._mediaHandler.getRTCDtlsTransport();
 
       if (state === 'failed') {
         level = dtlsTransport && dtlsTransport.state === 'failed' ? 'error' : 'warning';
@@ -364,12 +359,12 @@ class Connection extends EventEmitter {
       this._publisher.post(level, 'pc-connection-state', state, null, this);
     };
 
-    this.mediaStream.onicecandidate = (candidate: RTCIceCandidate): void => {
+    this._mediaHandler.onicecandidate = (candidate: RTCIceCandidate): void => {
       const payload = new IceCandidate(candidate).toPayload();
       this._publisher.debug('ice-candidate', 'ice-candidate', payload, this);
     };
 
-    this.mediaStream.onselectedcandidatepairchange = (pair: RTCIceCandidatePair): void => {
+    this._mediaHandler.onselectedcandidatepairchange = (pair: RTCIceCandidatePair): void => {
       const localCandidatePayload = new IceCandidate(pair.local).toPayload();
       const remoteCandidatePayload = new IceCandidate(pair.remote, true).toPayload();
 
@@ -379,25 +374,25 @@ class Connection extends EventEmitter {
       }, this);
     };
 
-    this.mediaStream.oniceconnectionstatechange = (state: string): void => {
+    this._mediaHandler.oniceconnectionstatechange = (state: string): void => {
       const level = state === 'failed' ? 'error' : 'debug';
       this._publisher.post(level, 'ice-connection-state', state, null, this);
     };
 
-    this.mediaStream.onicegatheringfailure = (type: Connection.IceGatheringFailureReason): void => {
+    this._mediaHandler.onicegatheringfailure = (type: Connection.IceGatheringFailureReason): void => {
       this._publisher.warn('ice-gathering-state', type, null, this);
       this._onMediaFailure(Connection.MediaFailure.IceGatheringFailed);
     };
 
-    this.mediaStream.onicegatheringstatechange = (state: string): void => {
+    this._mediaHandler.onicegatheringstatechange = (state: string): void => {
       this._publisher.debug('ice-gathering-state', state, null, this);
     };
 
-    this.mediaStream.onsignalingstatechange = (state: string): void => {
+    this._mediaHandler.onsignalingstatechange = (state: string): void => {
       this._publisher.debug('signaling-state', state, null, this);
     };
 
-    this.mediaStream.ondisconnected = (msg: string): void => {
+    this._mediaHandler.ondisconnected = (msg: string): void => {
       this._log.info(msg);
       this._publisher.warn('network-quality-warning-raised', 'ice-connectivity-lost', {
         message: msg,
@@ -407,18 +402,18 @@ class Connection extends EventEmitter {
       this._onMediaFailure(Connection.MediaFailure.ConnectionDisconnected);
     };
 
-    this.mediaStream.onfailed = (msg: string): void => {
+    this._mediaHandler.onfailed = (msg: string): void => {
       this._onMediaFailure(Connection.MediaFailure.ConnectionFailed);
     };
 
-    this.mediaStream.onconnected = (): void => {
-      // First time mediaStream is connected, but ICE Gathering issued an ICE restart and succeeded.
+    this._mediaHandler.onconnected = (): void => {
+      // First time _mediaHandler is connected, but ICE Gathering issued an ICE restart and succeeded.
       if (this._status === Connection.State.Reconnecting) {
         this._onMediaReconnected();
       }
     };
 
-    this.mediaStream.onreconnected = (msg: string): void => {
+    this._mediaHandler.onreconnected = (msg: string): void => {
       this._log.info(msg);
       this._publisher.info('network-quality-warning-cleared', 'ice-connectivity-lost', {
         message: msg,
@@ -427,7 +422,7 @@ class Connection extends EventEmitter {
       this._onMediaReconnected();
     };
 
-    this.mediaStream.onerror = (e: any): void => {
+    this._mediaHandler.onerror = (e: any): void => {
       if (e.disconnect === true) {
         this._disconnect(e.info && e.info.message);
       }
@@ -443,7 +438,7 @@ class Connection extends EventEmitter {
       this.emit('error', error);
     };
 
-    this.mediaStream.onopen = () => {
+    this._mediaHandler.onopen = () => {
       // NOTE(mroberts): While this may have been happening in previous
       // versions of Chrome, since Chrome 45 we have seen the
       // PeerConnection's onsignalingstatechange handler invoked multiple
@@ -459,13 +454,13 @@ class Connection extends EventEmitter {
         this._maybeTransitionToOpen();
       } else {
         // call was probably canceled sometime before this
-        this.mediaStream.close();
+        this._mediaHandler.close();
       }
     };
 
-    this.mediaStream.onclose = () => {
+    this._mediaHandler.onclose = () => {
       this._status = Connection.State.Closed;
-      if (this.options.shouldPlayDisconnect && this.options.shouldPlayDisconnect()
+      if (this._options.shouldPlayDisconnect && this._options.shouldPlayDisconnect()
         // Don't play disconnect sound if this was from a cancel event. i.e. the call
         // was ignored or hung up even before it was answered.
         && !this._isCancelled) {
@@ -481,17 +476,17 @@ class Connection extends EventEmitter {
       }
     };
 
-    this.pstream = config.pstream;
-    this.pstream.on('cancel', this._onCancel);
-    this.pstream.on('ringing', this._onRinging);
-    this.pstream.on('transportClose', this._onTransportClose);
+    this._pstream = config.pstream;
+    this._pstream.on('cancel', this._onCancel);
+    this._pstream.on('ringing', this._onRinging);
+    this._pstream.on('transportClose', this._onTransportClose);
 
     this.on('error', error => {
       this._publisher.error('connection', 'error', {
         code: error.code, message: error.message,
       }, this);
 
-      if (this.pstream && this.pstream.status === 'disconnected') {
+      if (this._pstream && this._pstream.status === 'disconnected') {
         this._cleanupEventListeners();
       }
     });
@@ -507,7 +502,7 @@ class Connection extends EventEmitter {
    * @private
    */
   _setInputTracksFromStream(stream: MediaStream | null): Promise<void> {
-    return this.mediaStream.setInputTracksFromStream(stream);
+    return this._mediaHandler.setInputTracksFromStream(stream);
   }
 
   /**
@@ -516,7 +511,7 @@ class Connection extends EventEmitter {
    * @private
    */
   _setSinkIds(sinkIds: string[]): Promise<void> {
-    return this.mediaStream._setSinkIds(sinkIds);
+    return this._mediaHandler._setSinkIds(sinkIds);
   }
 
   /**
@@ -529,8 +524,8 @@ class Connection extends EventEmitter {
     }
 
     options = options || { };
-    const rtcConfiguration = options.rtcConfiguration || this.options.rtcConfiguration;
-    const rtcConstraints = options.rtcConstraints || this.options.rtcConstraints || { };
+    const rtcConfiguration = options.rtcConfiguration || this._options.rtcConfiguration;
+    const rtcConstraints = options.rtcConstraints || this._options.rtcConstraints || { };
     const audioConstraints = rtcConstraints.audio || { audio: true };
 
     this._status = Connection.State.Connecting;
@@ -539,7 +534,7 @@ class Connection extends EventEmitter {
       if (this._status !== Connection.State.Connecting) {
         // call must have been canceled
         this._cleanupEventListeners();
-        this.mediaStream.close();
+        this._mediaHandler.close();
         return;
       }
 
@@ -551,7 +546,7 @@ class Connection extends EventEmitter {
         this._publisher.info('connection', eventName, null, this);
 
         // Report the preferred codec and params as they appear in the SDP
-        const { codecName, codecParams } = getPreferredCodecInfo(this.mediaStream.version.getSDP());
+        const { codecName, codecParams } = getPreferredCodecInfo(this._mediaHandler.version.getSDP());
         this._publisher.info('settings', 'codec', {
           codec_params: codecParams,
           selected_codec: codecName,
@@ -561,39 +556,39 @@ class Connection extends EventEmitter {
         this._monitor.enable(pc);
       };
 
-      const sinkIds = typeof this.options.getSinkIds === 'function' && this.options.getSinkIds();
+      const sinkIds = typeof this._options.getSinkIds === 'function' && this._options.getSinkIds();
       if (Array.isArray(sinkIds)) {
-        this.mediaStream._setSinkIds(sinkIds).catch(() => {
+        this._mediaHandler._setSinkIds(sinkIds).catch(() => {
           // (rrowland) We don't want this to throw to console since the customer
           // can't control this. This will most commonly be rejected on browsers
           // that don't support setting sink IDs.
         });
       }
 
-      this.pstream.addListener('hangup', this._onHangup);
+      this._pstream.addListener('hangup', this._onHangup);
 
       if (this._direction === Connection.CallDirection.Incoming) {
         this._isAnswered = true;
-        this.mediaStream.answerIncomingCall(this.parameters.CallSid, this.options.offerSdp,
+        this._mediaHandler.answerIncomingCall(this.parameters.CallSid, this._options.offerSdp,
           rtcConstraints, rtcConfiguration, onAnswer);
       } else {
         const params = Array.from(this.customParameters.entries()).map(pair =>
          `${encodeURIComponent(pair[0])}=${encodeURIComponent(pair[1])}`).join('&');
-        this.pstream.once('answer', this._onAnswer.bind(this));
-        this.mediaStream.makeOutgoingCall(this.pstream.token, params, this.outboundConnectionId,
+        this._pstream.once('answer', this._onAnswer.bind(this));
+        this._mediaHandler.makeOutgoingCall(this._pstream.token, params, this.outboundConnectionId,
           rtcConstraints, rtcConfiguration, onAnswer);
       }
     };
 
-    if (this.options.beforeAccept) {
-      this.options.beforeAccept(this);
+    if (this._options.beforeAccept) {
+      this._options.beforeAccept(this);
     }
 
-    const inputStream = typeof this.options.getInputStream === 'function' && this.options.getInputStream();
+    const inputStream = typeof this._options.getInputStream === 'function' && this._options.getInputStream();
 
     const promise = inputStream
-      ? this.mediaStream.setInputTracksFromStream(inputStream)
-      : this.mediaStream.openWithConstraints(audioConstraints);
+      ? this._mediaHandler.setInputTracksFromStream(inputStream)
+      : this._mediaHandler.openWithConstraints(audioConstraints);
 
     promise.then(() => {
       this._publisher.info('get-user-media', 'succeeded', {
@@ -646,14 +641,14 @@ class Connection extends EventEmitter {
    * Get the local MediaStream, if set.
    */
   getLocalStream(): MediaStream | undefined {
-    return this.mediaStream && this.mediaStream.stream;
+    return this._mediaHandler && this._mediaHandler.stream;
   }
 
   /**
    * Get the remote MediaStream, if set.
    */
   getRemoteStream(): MediaStream | undefined {
-    return this.mediaStream && this.mediaStream._remoteStream;
+    return this._mediaHandler && this._mediaHandler._remoteStream;
   }
 
   /**
@@ -665,8 +660,7 @@ class Connection extends EventEmitter {
     }
 
     this._status = Connection.State.Closed;
-    this.emit('cancel');
-    this.mediaStream.ignore(this.parameters.CallSid);
+    this._mediaHandler.ignore(this.parameters.CallSid);
     this._publisher.info('connection', 'ignored-by-local', null, this);
   }
 
@@ -674,7 +668,7 @@ class Connection extends EventEmitter {
    * Check whether connection is muted
    */
   isMuted(): boolean {
-    return this.mediaStream.isMuted;
+    return this._mediaHandler.isMuted;
   }
 
   /**
@@ -682,10 +676,10 @@ class Connection extends EventEmitter {
    * @param shouldMute - Whether the incoming audio should be muted. Defaults to true.
    */
   mute(shouldMute: boolean = true): void {
-    const wasMuted = this.mediaStream.isMuted;
-    this.mediaStream.mute(shouldMute);
+    const wasMuted = this._mediaHandler.isMuted;
+    this._mediaHandler.mute(shouldMute);
 
-    const isMuted = this.mediaStream.isMuted;
+    const isMuted = this._mediaHandler.isMuted;
     if (wasMuted !== isMuted) {
       this._publisher.info('connection', isMuted ? 'muted' : 'unmuted', null, this);
       this.emit('mute', isMuted, this);
@@ -730,10 +724,10 @@ class Connection extends EventEmitter {
       return;
     }
 
-    this.pstream.reject(this.parameters.CallSid);
+    this._pstream.reject(this.parameters.CallSid);
     this._status = Connection.State.Closed;
     this.emit('reject');
-    this.mediaStream.reject(this.parameters.CallSid);
+    this._mediaHandler.reject(this.parameters.CallSid);
     this._publisher.info('connection', 'rejected-by-local', null, this);
   }
 
@@ -769,9 +763,9 @@ class Connection extends EventEmitter {
       if (sequence.length) {
         setTimeout(playNextDigit.bind(null, soundCache), 200);
       }
-    })(this._soundcache, this.options.dialtonePlayer);
+    })(this._soundcache, this._options.dialtonePlayer);
 
-    const dtmfSender = this.mediaStream.getOrCreateDTMFSender();
+    const dtmfSender = this._mediaHandler.getOrCreateDTMFSender();
 
     function insertDTMF(dtmfs: string[]) {
       if (!dtmfs.length) { return; }
@@ -800,8 +794,8 @@ class Connection extends EventEmitter {
     // send pstream message to send DTMF
     this._log.info('Sending digits over PStream');
 
-    if (this.pstream !== null && this.pstream.status !== 'disconnected') {
-      this.pstream.dtmf(this.parameters.CallSid, digits);
+    if (this._pstream !== null && this._pstream.status !== 'disconnected') {
+      this._pstream.dtmf(this.parameters.CallSid, digits);
     } else {
       const error = {
         code: 31000,
@@ -858,13 +852,13 @@ class Connection extends EventEmitter {
    */
   private _cleanupEventListeners(): void {
     const cleanup = () => {
-      if (!this.pstream) { return; }
+      if (!this._pstream) { return; }
 
-      this.pstream.removeListener('answer', this._onAnswer);
-      this.pstream.removeListener('cancel', this._onCancel);
-      this.pstream.removeListener('hangup', this._onHangup);
-      this.pstream.removeListener('ringing', this._onRinging);
-      this.pstream.removeListener('transportClose', this._onTransportClose);
+      this._pstream.removeListener('answer', this._onAnswer);
+      this._pstream.removeListener('cancel', this._onCancel);
+      this._pstream.removeListener('hangup', this._onHangup);
+      this._pstream.removeListener('ringing', this._onRinging);
+      this._pstream.removeListener('transportClose', this._onTransportClose);
     };
 
     // This is kind of a hack, but it lets us avoid rewriting more code.
@@ -889,17 +883,17 @@ class Connection extends EventEmitter {
   private _createMetricPayload(): Partial<Record<string, string|boolean>> {
     const payload: Partial<Record<string, string|boolean>> = {
       call_sid: this.parameters.CallSid,
-      dscp: !!this.options.dscp,
+      dscp: !!this._options.dscp,
       sdk_version: C.RELEASE_VERSION,
-      selected_region: this.options.selectedRegion,
+      selected_region: this._options.selectedRegion,
     };
 
-    if (this.options.gateway) {
-      payload.gateway = this.options.gateway;
+    if (this._options.gateway) {
+      payload.gateway = this._options.gateway;
     }
 
-    if (this.options.region) {
-      payload.region = this.options.region;
+    if (this._options.region) {
+      payload.region = this._options.region;
     }
 
     payload.direction = this._direction;
@@ -924,15 +918,15 @@ class Connection extends EventEmitter {
     this._log.info('Disconnecting...');
 
     // send pstream hangup message
-    if (this.pstream !== null && this.pstream.status !== 'disconnected' && this.sendHangup) {
+    if (this._pstream !== null && this._pstream.status !== 'disconnected' && this._shouldSendHangup) {
       const callsid: string | undefined = this.parameters.CallSid || this.outboundConnectionId;
       if (callsid) {
-        this.pstream.hangup(callsid, message);
+        this._pstream.hangup(callsid, message);
       }
     }
 
     this._cleanupEventListeners();
-    this.mediaStream.close();
+    this._mediaHandler.close();
 
     if (!wasRemote) {
       this._publisher.info('connection', 'disconnected-by-local', null, this);
@@ -984,7 +978,7 @@ class Connection extends EventEmitter {
    * Transition to {@link ConnectionStatus.Open} if criteria is met.
    */
   private _maybeTransitionToOpen(): void {
-    if (this.mediaStream && this.mediaStream.status === 'open' && this._isAnswered) {
+    if (this._mediaHandler && this._mediaHandler.status === 'open' && this._isAnswered) {
       this._status = Connection.State.Open;
       this.emit('accept', this);
     }
@@ -1019,11 +1013,11 @@ class Connection extends EventEmitter {
       this._isCancelled = true;
       this._publisher.info('connection', 'cancel', null, this);
       this._cleanupEventListeners();
-      this.mediaStream.close();
+      this._mediaHandler.close();
 
       this._status = Connection.State.Closed;
       this.emit('cancel');
-      this.pstream.removeListener('cancel', this._onCancel);
+      this._pstream.removeListener('cancel', this._onCancel);
     }
   }
 
@@ -1058,7 +1052,7 @@ class Connection extends EventEmitter {
       this._log.error('Received an error from the gateway:', error);
       this.emit('error', error);
     }
-    this.sendHangup = false;
+    this._shouldSendHangup = false;
     this._publisher.info('connection', 'disconnected-by-remote', null, this);
     this._disconnect(null, true);
     this._cleanupEventListeners();
@@ -1081,7 +1075,7 @@ class Connection extends EventEmitter {
     // after issuing an ICE Restart, which we use to determine if ICE Restart is complete.
     // Since we cannot detect if ICE Restart is complete, we will not retry.
     if (!isChrome(window, window.navigator) && type === ConnectionFailed) {
-      return this.mediaStream.onerror(MEDIA_DISCONNECT_ERROR);
+      return this._mediaHandler.onerror(MEDIA_DISCONNECT_ERROR);
     }
 
     // Ignore subsequent requests if ice restart is in progress
@@ -1093,7 +1087,7 @@ class Connection extends EventEmitter {
         // We already exceeded max retry time.
         if (Date.now() - this._mediaReconnectStartTime > BACKOFF_CONFIG.maxDelay) {
           this._log.info('Exceeded max ICE retries');
-          return this.mediaStream.onerror(MEDIA_DISCONNECT_ERROR);
+          return this._mediaHandler.onerror(MEDIA_DISCONNECT_ERROR);
         }
 
         // Issue ICE restart with backoff
@@ -1112,7 +1106,7 @@ class Connection extends EventEmitter {
       return;
     }
 
-    const pc = this.mediaStream.version.pc;
+    const pc = this._mediaHandler.version.pc;
     const isIceDisconnected = pc && pc.iceConnectionState === 'disconnected';
     const hasLowBytesWarning = this._monitor.hasActiveWarning('bytesSent', 'min')
       || this._monitor.hasActiveWarning('bytesReceived', 'min');
@@ -1274,7 +1268,7 @@ class Connection extends EventEmitter {
     if (!callSid) { return; }
 
     this.parameters.CallSid = callSid;
-    this.mediaStream.callSid = callSid;
+    this._mediaHandler.callSid = callSid;
   }
 }
 
@@ -1573,9 +1567,9 @@ namespace Connection {
     maxAverageBitrate?: number;
 
     /**
-     * Custom MediaStream (PeerConnection) constructor.
+     * Custom MediaHandler (PeerConnection) constructor.
      */
-    MediaStream?: IPeerConnection;
+    MediaHandler?: IPeerConnection;
 
     /**
      * The offer SDP, if this is an incoming call.

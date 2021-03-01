@@ -16,7 +16,7 @@ describe('Connection', function() {
   let config: Connection.Config;
   let conn: Connection;
   let getUserMedia: (constraints: MediaStreamConstraints) => Promise<MediaStream>;
-  let mediaStream: any;
+  let mediaHandler: any;
   let monitor: any;
   let options: Connection.Options;
   let pstream: any;
@@ -25,23 +25,23 @@ describe('Connection', function() {
   let soundcache: Map<Device.SoundName, any>;
 
   const MediaHandler = () => {
-    mediaStream = createEmitterStub(require('../../lib/twilio/rtc/peerconnection'));
-    mediaStream.setInputTracksFromStream = sinon.spy((rejectCode?: number) => {
+    mediaHandler = createEmitterStub(require('../../lib/twilio/rtc/peerconnection'));
+    mediaHandler.setInputTracksFromStream = sinon.spy((rejectCode?: number) => {
       return rejectCode ? Promise.reject({ code: rejectCode }) : Promise.resolve();
     });
-    mediaStream.answerIncomingCall = sinon.spy((a: any, b: any, c: any, d: RTCConfiguration, cb: Function) => {
+    mediaHandler.answerIncomingCall = sinon.spy((a: any, b: any, c: any, d: RTCConfiguration, cb: Function) => {
       callback = cb;
       rtcConfig = d;
       return Promise.reject('no');
     });
-    mediaStream.openWithConstraints = sinon.spy(() => Promise.resolve());
-    mediaStream.stream = Symbol('stream');
-    mediaStream._remoteStream = Symbol('_remoteStream');
-    mediaStream.isMuted = Symbol('isMuted');
-    mediaStream.mute = sinon.spy((shouldMute: boolean) => { mediaStream.isMuted = shouldMute; });
-    mediaStream.version = {pc: {}, getSDP: () =>
+    mediaHandler.openWithConstraints = sinon.spy(() => Promise.resolve());
+    mediaHandler.stream = Symbol('stream');
+    mediaHandler._remoteStream = Symbol('_remoteStream');
+    mediaHandler.isMuted = Symbol('isMuted');
+    mediaHandler.mute = sinon.spy((shouldMute: boolean) => { mediaHandler.isMuted = shouldMute; });
+    mediaHandler.version = {pc: {}, getSDP: () =>
       'a=rtpmap:1337 opus/48000/2\na=rtpmap:0 PCMU/8000\na=fmtp:0\na=fmtp:1337 maxaveragebitrate=12000'};
-    return mediaStream;
+    return mediaHandler;
   };
 
   const StatsMonitor: any = () => monitor = createEmitterStub(require('../../lib/twilio/statsMonitor').default);
@@ -78,7 +78,7 @@ describe('Connection', function() {
     };
 
     options = {
-      MediaStream: MediaHandler,
+      MediaHandler,
       StatsMonitor,
     };
 
@@ -346,9 +346,9 @@ describe('Connection', function() {
           assert.equal(conn.status(), state);
         });
 
-        it('should not call mediaStream.openWithConstraints', () => {
+        it('should not call mediaHandler.openWithConstraints', () => {
           conn.accept();
-          sinon.assert.notCalled(mediaStream.openWithConstraints);
+          sinon.assert.notCalled(mediaHandler.openWithConstraints);
         });
       });
     });
@@ -359,21 +359,21 @@ describe('Connection', function() {
     });
 
     context('when getInputStream is not present', () => {
-      it('should call mediaStream.openWithConstraints with rtcConstraints if passed', () => {
+      it('should call mediaHandler.openWithConstraints with rtcConstraints if passed', () => {
         conn.accept({ rtcConstraints: { audio: { foo: 'bar' } as MediaTrackConstraints } });
-        sinon.assert.calledWith(mediaStream.openWithConstraints, { foo: 'bar' });
+        sinon.assert.calledWith(mediaHandler.openWithConstraints, { foo: 'bar' });
       });
 
-      it('should call mediaStream.openWithConstraints with options.audioConstraints if no args', () => {
+      it('should call mediaHandler.openWithConstraints with options.audioConstraints if no args', () => {
         Object.assign(options, { rtcConstraints: { audio: { bar: 'baz' } } });
         conn = new Connection(config, options);
         conn.accept();
-        sinon.assert.calledWith(mediaStream.openWithConstraints, { bar: 'baz' });
+        sinon.assert.calledWith(mediaHandler.openWithConstraints, { bar: 'baz' });
       });
 
       it('should result in a `denied` error when `getUserMedia` does not allow the application to access the media', () => {
         return new Promise(resolve => {
-          mediaStream.openWithConstraints = () => {
+          mediaHandler.openWithConstraints = () => {
             const p = Promise.reject({
               code: 0,
               name: 'NotAllowedError',
@@ -399,16 +399,16 @@ describe('Connection', function() {
         Object.assign(options, { getInputStream });
         conn = new Connection(config, options);
 
-        mediaStream.setInputTracksFromStream = sinon.spy(() => {
+        mediaHandler.setInputTracksFromStream = sinon.spy(() => {
           const p = Promise.resolve();
           wait = p.then(() => Promise.resolve());
           return p;
         });
       });
 
-      it('should call mediaStream.setInputTracksFromStream', () => {
+      it('should call mediaHandler.setInputTracksFromStream', () => {
         conn.accept();
-        sinon.assert.calledWith(mediaStream.setInputTracksFromStream, 'foo');
+        sinon.assert.calledWith(mediaHandler.setInputTracksFromStream, 'foo');
       });
 
       it('should publish a get-user-media succeeded event', () => {
@@ -431,27 +431,27 @@ describe('Connection', function() {
           });
           conn = new Connection(config, options);
 
-          mediaStream.setInputTracksFromStream = sinon.spy(() => {
+          mediaHandler.setInputTracksFromStream = sinon.spy(() => {
             const p = Promise.resolve();
             wait = p.then(() => Promise.resolve());
             return p;
           });
         });
 
-        it('should call mediaStream.answerIncomingCall', () => {
+        it('should call mediaHandler.answerIncomingCall', () => {
           conn.accept();
           return wait.then(() => {
-            sinon.assert.calledOnce(mediaStream.answerIncomingCall);
+            sinon.assert.calledOnce(mediaHandler.answerIncomingCall);
           });
         });
 
-        it('should call mediaStream.answerIncomingCall with override `rtcConfiguration`', () => {
+        it('should call mediaHandler.answerIncomingCall with override `rtcConfiguration`', () => {
           const rtcConfiguration = {
             iceServers: [{ urls: 'foo-ice-server-url' }],
           };
           conn.accept({ rtcConfiguration });
           return wait.then(() => {
-            assert.deepEqual(mediaStream.answerIncomingCall.args[0][3], rtcConfiguration);
+            assert.deepEqual(mediaHandler.answerIncomingCall.args[0][3], rtcConfiguration);
           });
         });
 
@@ -508,33 +508,33 @@ describe('Connection', function() {
           };
           conn = new Connection(config, options);
 
-          mediaStream.setInputTracksFromStream = sinon.spy(() => {
+          mediaHandler.setInputTracksFromStream = sinon.spy(() => {
             const p = Promise.resolve();
             wait = p.then(() => Promise.resolve());
             return p;
           });
 
-          mediaStream.makeOutgoingCall = sinon.spy((a: any, b: any, c: any, d: any, e: any, _callback: Function) => {
+          mediaHandler.makeOutgoingCall = sinon.spy((a: any, b: any, c: any, d: any, e: any, _callback: Function) => {
             callback = _callback;
           });
         });
 
-        it('should call mediaStream.makeOutgoingCall with correctly encoded params', () => {
+        it('should call mediaHandler.makeOutgoingCall with correctly encoded params', () => {
           conn.accept();
           return wait.then(() => {
-            sinon.assert.calledOnce(mediaStream.makeOutgoingCall);
-            assert.equal(mediaStream.makeOutgoingCall.args[0][1],
+            sinon.assert.calledOnce(mediaHandler.makeOutgoingCall);
+            assert.equal(mediaHandler.makeOutgoingCall.args[0][1],
               'To=foo&a=undefined&b=true&c=false&d=&e=123&f=123&g=null&h=undefined&i=null&j=0&k=0&l=a%24b%26c%3Fd%3De');
           });
         });
 
-        it('should call mediaStream.makeOutgoingCall with an override `rtcConfiguration`', () => {
+        it('should call mediaHandler.makeOutgoingCall with an override `rtcConfiguration`', () => {
           const rtcConfiguration = {
             iceServers: [{ urls: 'foo-ice-server-url' }],
           };
           conn.accept({ rtcConfiguration });
           return wait.then(() => {
-            assert.deepEqual(mediaStream.makeOutgoingCall.args[0][4], rtcConfiguration);
+            assert.deepEqual(mediaHandler.makeOutgoingCall.args[0][4], rtcConfiguration);
           });
         });
 
@@ -570,7 +570,7 @@ describe('Connection', function() {
 
       context('if connection state transitions before connect finishes', () => {
         beforeEach(() => {
-          mediaStream.setInputTracksFromStream = sinon.spy(() => {
+          mediaHandler.setInputTracksFromStream = sinon.spy(() => {
             (conn as any)['_status'] = Connection.State.Closed;
             const p = Promise.resolve();
             wait = p.then(() => Promise.resolve());
@@ -578,10 +578,10 @@ describe('Connection', function() {
           });
         });
 
-        it('should call mediaStream.close', () => {
+        it('should call mediaHandler.close', () => {
           conn.accept();
           return wait.then(() => {
-            sinon.assert.calledOnce(mediaStream.close);
+            sinon.assert.calledOnce(mediaHandler.close);
           });
         });
 
@@ -605,7 +605,7 @@ describe('Connection', function() {
         Object.assign(options, { getInputStream });
         conn = new Connection(config, options);
 
-        mediaStream.setInputTracksFromStream = sinon.spy(() => {
+        mediaHandler.setInputTracksFromStream = sinon.spy(() => {
           const p = Promise.reject({ code: 31208 });
           wait = p.catch(() => Promise.resolve());
           return p;
@@ -630,7 +630,7 @@ describe('Connection', function() {
         Object.assign(options, { getInputStream });
         conn = new Connection(config, options);
 
-        mediaStream.setInputTracksFromStream = sinon.spy(() => {
+        mediaHandler.setInputTracksFromStream = sinon.spy(() => {
           const p = Promise.reject({ });
           wait = p.catch(() => Promise.resolve());
           return p;
@@ -662,9 +662,9 @@ describe('Connection', function() {
           sinon.assert.calledWith(pstream.hangup, conn.outboundConnectionId);
         });
 
-        it('should call mediaStream.close', () => {
+        it('should call mediaHandler.close', () => {
           conn.disconnect();
-          sinon.assert.calledOnce(mediaStream.close);
+          sinon.assert.calledOnce(mediaHandler.close);
         });
 
         [
@@ -696,9 +696,9 @@ describe('Connection', function() {
           sinon.assert.notCalled(pstream.hangup);
         });
 
-        it('should not call mediaStream.close', () => {
+        it('should not call mediaHandler.close', () => {
           conn.disconnect();
-          sinon.assert.notCalled(mediaStream.close);
+          sinon.assert.notCalled(mediaHandler.close);
         });
       });
     });
@@ -706,26 +706,21 @@ describe('Connection', function() {
 
   describe('.getLocalStream()', () => {
     it('should get the local MediaStream from the MediaHandler', () => {
-      assert.equal(conn.getLocalStream(), mediaStream.stream);
+      assert.equal(conn.getLocalStream(), mediaHandler.stream);
     });
   });
 
   describe('.getRemoteStream()', () => {
     it('should get the local MediaStream from the MediaHandler', () => {
-      assert.equal(conn.getRemoteStream(), mediaStream._remoteStream);
+      assert.equal(conn.getRemoteStream(), mediaHandler._remoteStream);
     });
   });
 
   describe('.ignore()', () => {
     context('when state is pending', () => {
-      it('should call mediaStream.ignore', () => {
+      it('should call mediaHandler.ignore', () => {
         conn.ignore();
-        sinon.assert.calledOnce(mediaStream.ignore);
-      });
-
-      it('should emit cancel', (done) => {
-        conn.on('cancel', () => done());
-        conn.ignore();
+        sinon.assert.calledOnce(mediaHandler.ignore);
       });
 
       it('should transition state to closed', () => {
@@ -750,9 +745,9 @@ describe('Connection', function() {
           (conn as any)['_status'] = state;
         });
 
-        it('should not call mediaStream.ignore', () => {
+        it('should not call mediaHandler.ignore', () => {
           conn.ignore();
-          sinon.assert.notCalled(mediaStream.ignore);
+          sinon.assert.notCalled(mediaHandler.ignore);
         });
 
         it('should not emit cancel', () => {
@@ -778,22 +773,22 @@ describe('Connection', function() {
 
   describe('.isMuted()', () => {
     it('should return isMuted from MediaHandler', () => {
-      assert.equal(conn.isMuted(), mediaStream.isMuted);
+      assert.equal(conn.isMuted(), mediaHandler.isMuted);
     });
   });
 
   describe('.mute()', () => {
-    context('when mediaStream.isMuted was previously true', () => {
+    context('when mediaHandler.isMuted was previously true', () => {
       beforeEach(() => {
-        mediaStream.isMuted = true;
+        mediaHandler.isMuted = true;
       });
 
       [true, undefined].forEach((value?: boolean) => {
         context(`when ${value}`, () => {
-          it('should call mediaStream.mute()', () => {
+          it('should call mediaHandler.mute()', () => {
             conn.mute(value);
-            sinon.assert.calledOnce(mediaStream.mute);
-            sinon.assert.calledWith(mediaStream.mute, true);
+            sinon.assert.calledOnce(mediaHandler.mute);
+            sinon.assert.calledWith(mediaHandler.mute, true);
           });
 
           it('should not call publisher.info', () => {
@@ -813,10 +808,10 @@ describe('Connection', function() {
       });
 
       context(`when false`, () => {
-        it('should call mediaStream.mute()', () => {
+        it('should call mediaHandler.mute()', () => {
           conn.mute(false);
-          sinon.assert.calledOnce(mediaStream.mute);
-          sinon.assert.calledWith(mediaStream.mute, false);
+          sinon.assert.calledOnce(mediaHandler.mute);
+          sinon.assert.calledWith(mediaHandler.mute, false);
         });
 
         it('should call publisher.info', () => {
@@ -831,17 +826,17 @@ describe('Connection', function() {
       });
     });
 
-    context('when mediaStream.isMuted was previously false', () => {
+    context('when mediaHandler.isMuted was previously false', () => {
       beforeEach(() => {
-        mediaStream.isMuted = false;
+        mediaHandler.isMuted = false;
       });
 
       [true, undefined].forEach((value?: boolean) => {
         context(`when ${value}`, () => {
-          it('should call mediaStream.mute()', () => {
+          it('should call mediaHandler.mute()', () => {
             conn.mute(value);
-            sinon.assert.calledOnce(mediaStream.mute);
-            sinon.assert.calledWith(mediaStream.mute, true);
+            sinon.assert.calledOnce(mediaHandler.mute);
+            sinon.assert.calledWith(mediaHandler.mute, true);
           });
         });
 
@@ -857,10 +852,10 @@ describe('Connection', function() {
       });
 
       context(`when false`, () => {
-        it('should call mediaStream.mute()', () => {
+        it('should call mediaHandler.mute()', () => {
           conn.mute(false);
-          sinon.assert.calledOnce(mediaStream.mute);
-          sinon.assert.calledWith(mediaStream.mute, false);
+          sinon.assert.calledOnce(mediaHandler.mute);
+          sinon.assert.calledWith(mediaHandler.mute, false);
         });
 
         it('should not call publisher.info', () => {
@@ -888,9 +883,9 @@ describe('Connection', function() {
         sinon.assert.calledWith(pstream.reject, conn.parameters.CallSid);
       });
 
-      it('should call mediaStream.reject', () => {
+      it('should call mediaHandler.reject', () => {
         conn.reject();
-        sinon.assert.calledOnce(mediaStream.reject);
+        sinon.assert.calledOnce(mediaHandler.reject);
       });
 
       it('should emit cancel', (done) => {
@@ -925,9 +920,9 @@ describe('Connection', function() {
           sinon.assert.notCalled(pstream.reject);
         });
 
-        it('should not call mediaStream.reject', () => {
+        it('should not call mediaHandler.reject', () => {
           conn.reject();
-          sinon.assert.notCalled(mediaStream.reject);
+          sinon.assert.notCalled(mediaHandler.reject);
         });
 
         it('should not emit reject', () => {
@@ -1003,7 +998,7 @@ describe('Connection', function() {
 
     it('should call dtmfSender.insertDTMF for each segment', () => {
       const sender = { insertDTMF: sinon.spy() };
-      mediaStream.getOrCreateDTMFSender = () => sender;
+      mediaHandler.getOrCreateDTMFSender = () => sender;
       conn.sendDigits('123w456w#*');
       clock.tick(1 + 500 * 3);
       sinon.assert.callCount(sender.insertDTMF, 3);
@@ -1011,7 +1006,7 @@ describe('Connection', function() {
 
     it('should play the sound for each letter', () => {
       const sender = { insertDTMF: sinon.spy() };
-      mediaStream.getOrCreateDTMFSender = () => sender;
+      mediaHandler.getOrCreateDTMFSender = () => sender;
       conn.sendDigits('123w456w#*w');
 
       clock.tick(1 + 200);
@@ -1043,7 +1038,7 @@ describe('Connection', function() {
   });
 
   context('in response to', () => {
-    describe('mediaStream.onvolume', () => {
+    describe('mediaHandler.onvolume', () => {
       it('should emit volume', (done) => {
         conn.on('volume', (input, output) => {
           assert.equal(input, 123);
@@ -1051,20 +1046,20 @@ describe('Connection', function() {
           done();
         });
 
-        mediaStream.onvolume(123, 456);
+        mediaHandler.onvolume(123, 456);
       });
     });
 
-    describe('mediaStream.onicecandidate', () => {
+    describe('mediaHandler.onicecandidate', () => {
       it('should publish a debug event', () => {
-        mediaStream.onicecandidate({ candidate: 'foo' });
+        mediaHandler.onicecandidate({ candidate: 'foo' });
         sinon.assert.calledWith(publisher.debug, 'ice-candidate', 'ice-candidate');
       });
     });
 
-    describe('mediaStream.onselectedcandidatepairchange', () => {
+    describe('mediaHandler.onselectedcandidatepairchange', () => {
       it('should publish a debug event', () => {
-        mediaStream.onselectedcandidatepairchange({
+        mediaHandler.onselectedcandidatepairchange({
           local: { candidate: 'foo' },
           remote: { candidate: 'bar' },
         });
@@ -1072,59 +1067,59 @@ describe('Connection', function() {
       });
     });
 
-    describe('mediaStream.onpcconnectionstatechange', () => {
+    describe('mediaHandler.onpcconnectionstatechange', () => {
       it('should publish an warning event if state is failed', () => {
-        mediaStream.onpcconnectionstatechange('failed');
+        mediaHandler.onpcconnectionstatechange('failed');
         sinon.assert.calledWith(publisher.post, 'warning', 'pc-connection-state', 'failed');
       });
 
       it('should publish a debug event if state is not failed', () => {
-        mediaStream.onpcconnectionstatechange('foo');
+        mediaHandler.onpcconnectionstatechange('foo');
         sinon.assert.calledWith(publisher.post, 'debug', 'pc-connection-state', 'foo');
       });
     });
 
-    describe('mediaStream.ondtlstransportstatechange', () => {
+    describe('mediaHandler.ondtlstransportstatechange', () => {
       it('should publish an error event if state is failed', () => {
-        mediaStream.ondtlstransportstatechange('failed');
+        mediaHandler.ondtlstransportstatechange('failed');
         sinon.assert.calledWith(publisher.post, 'error', 'dtls-transport-state', 'failed');
       });
 
       it('should publish a debug event if state is not failed', () => {
-        mediaStream.ondtlstransportstatechange('foo');
+        mediaHandler.ondtlstransportstatechange('foo');
         sinon.assert.calledWith(publisher.post, 'debug', 'dtls-transport-state', 'foo');
       });
     });
 
-    describe('mediaStream.oniceconnectionstatechange', () => {
+    describe('mediaHandler.oniceconnectionstatechange', () => {
       it('should publish an error event if state is failed', () => {
-        mediaStream.oniceconnectionstatechange('failed');
+        mediaHandler.oniceconnectionstatechange('failed');
         sinon.assert.calledWith(publisher.post, 'error', 'ice-connection-state', 'failed');
       });
 
       it('should publish a debug event if state is not failed', () => {
-        mediaStream.oniceconnectionstatechange('foo');
+        mediaHandler.oniceconnectionstatechange('foo');
         sinon.assert.calledWith(publisher.post, 'debug', 'ice-connection-state', 'foo');
       });
     });
 
-    describe('mediaStream.onicegatheringstatechange', () => {
+    describe('mediaHandler.onicegatheringstatechange', () => {
       it('should publish a debug event: ice-gathering-state', () => {
-        mediaStream.onicegatheringstatechange('foo');
+        mediaHandler.onicegatheringstatechange('foo');
         sinon.assert.calledWith(publisher.debug, 'ice-gathering-state', 'foo');
       });
     });
 
-    describe('mediaStream.onsignalingstatechange', () => {
+    describe('mediaHandler.onsignalingstatechange', () => {
       it('should publish a debug event: signaling-state', () => {
-        mediaStream.onsignalingstatechange('foo');
+        mediaHandler.onsignalingstatechange('foo');
         sinon.assert.calledWith(publisher.debug, 'signaling-state', 'foo');
       });
     });
 
-    describe('mediaStream.ondisconnected', () => {
+    describe('mediaHandler.ondisconnected', () => {
       it('should publish a warning event: ice-connectivity-lost', () => {
-        mediaStream.ondisconnected('foo');
+        mediaHandler.ondisconnected('foo');
         sinon.assert.calledWith(publisher.warn, 'network-quality-warning-raised',
           'ice-connectivity-lost', { message: 'foo' });
       });
@@ -1135,13 +1130,13 @@ describe('Connection', function() {
           done();
         });
 
-        mediaStream.ondisconnected('foo');
+        mediaHandler.ondisconnected('foo');
       });
     });
 
-    describe('mediaStream.onreconnected', () => {
+    describe('mediaHandler.onreconnected', () => {
       it('should publish an info event: ice-connectivity-lost', () => {
-        mediaStream.onreconnected('foo');
+        mediaHandler.onreconnected('foo');
         sinon.assert.calledWith(publisher.info, 'network-quality-warning-cleared',
           'ice-connectivity-lost', { message: 'foo' });
       });
@@ -1152,11 +1147,11 @@ describe('Connection', function() {
           done();
         });
 
-        mediaStream.onreconnected('foo');
+        mediaHandler.onreconnected('foo');
       });
     });
 
-    describe('mediaStream.onerror', () => {
+    describe('mediaHandler.onerror', () => {
       const baseError = { info: { code: 123, message: 'foo', twilioError: 'bar' } };
 
       it('should emit an error event', (done) => {
@@ -1172,7 +1167,7 @@ describe('Connection', function() {
           done();
         });
 
-        mediaStream.onerror(baseError);
+        mediaHandler.onerror(baseError);
       });
 
       context('when error.disconnect is true', () => {
@@ -1187,13 +1182,13 @@ describe('Connection', function() {
             });
 
             it('should call pstream.hangup with error message', () => {
-              mediaStream.onerror(Object.assign({ disconnect: true }, baseError));
+              mediaHandler.onerror(Object.assign({ disconnect: true }, baseError));
               sinon.assert.calledWith(pstream.hangup, conn.outboundConnectionId, 'foo');
             });
 
-            it('should call mediaStream.close', () => {
-              mediaStream.onerror(Object.assign({ disconnect: true }, baseError));
-              sinon.assert.calledOnce(mediaStream.close);
+            it('should call mediaHandler.close', () => {
+              mediaHandler.onerror(Object.assign({ disconnect: true }, baseError));
+              sinon.assert.calledOnce(mediaHandler.close);
             });
           });
         });
@@ -1208,33 +1203,33 @@ describe('Connection', function() {
             });
 
             it('should not call pstream.hangup', () => {
-              mediaStream.onerror(Object.assign({ disconnect: true }, baseError));
+              mediaHandler.onerror(Object.assign({ disconnect: true }, baseError));
               sinon.assert.notCalled(pstream.hangup);
             });
 
-            it('should not call mediaStream.close', () => {
-              mediaStream.onerror(Object.assign({ disconnect: true }, baseError));
-              sinon.assert.notCalled(mediaStream.close);
+            it('should not call mediaHandler.close', () => {
+              mediaHandler.onerror(Object.assign({ disconnect: true }, baseError));
+              sinon.assert.notCalled(mediaHandler.close);
             });
           });
         });
       });
     });
 
-    describe('mediaStream.onopen', () => {
+    describe('mediaHandler.onopen', () => {
       context('when state is open', () => {
         beforeEach(() => {
           (conn as any)['_status'] = Connection.State.Open;
         });
 
-        it(`should not call mediaStream.close`, () => {
-          mediaStream.onopen();
-          sinon.assert.notCalled(mediaStream.close);
+        it(`should not call mediaHandler.close`, () => {
+          mediaHandler.onopen();
+          sinon.assert.notCalled(mediaHandler.close);
         });
 
         it(`should not call connection.mute(false)`, () => {
           conn.mute = sinon.spy();
-          mediaStream.onopen();
+          mediaHandler.onopen();
           sinon.assert.notCalled(conn.mute as SinonSpy);
         });
       });
@@ -1248,47 +1243,47 @@ describe('Connection', function() {
             (conn as any)['_status'] = state;
           });
 
-          it(`should not call mediaStream.close`, () => {
-            mediaStream.onopen();
-            sinon.assert.notCalled(mediaStream.close);
+          it(`should not call mediaHandler.close`, () => {
+            mediaHandler.onopen();
+            sinon.assert.notCalled(mediaHandler.close);
           });
 
           it(`should call connection.mute(false)`, () => {
             conn.mute = sinon.spy();
-            mediaStream.onopen();
+            mediaHandler.onopen();
             sinon.assert.calledWith(conn.mute as SinonSpy, false);
           });
 
           context('when this connection is answered', () => {
             beforeEach(() => {
-              mediaStream.status = 'open';
+              mediaHandler.status = 'open';
               conn['_isAnswered'] = true;
             });
 
             it('should emit Connection.accept event', (done) => {
               conn.on('accept', () => done());
-              mediaStream.onopen();
+              mediaHandler.onopen();
             });
 
             it('should transition to open', () => {
-              mediaStream.onopen();
+              mediaHandler.onopen();
               assert.equal(conn.status(), Connection.State.Open);
             });
           });
 
           context('when this connection is not answered', () => {
             beforeEach(() => {
-              mediaStream.status = 'open';
+              mediaHandler.status = 'open';
             });
 
             it('should not emit Connection.accept event', () => {
               conn.on('accept', () => { throw new Error('Expected to not emit accept event'); });
-              mediaStream.onopen();
+              mediaHandler.onopen();
               clock.tick(1);
             });
 
             it('should not transition to open', () => {
-              mediaStream.onopen();
+              mediaHandler.onopen();
               assert.equal(conn.status(), state);
             });
           });
@@ -1304,28 +1299,28 @@ describe('Connection', function() {
             (conn as any)['_status'] = state;
           });
 
-          it(`should call mediaStream.close`, () => {
-            mediaStream.onopen();
-            sinon.assert.calledOnce(mediaStream.close);
+          it(`should call mediaHandler.close`, () => {
+            mediaHandler.onopen();
+            sinon.assert.calledOnce(mediaHandler.close);
           });
 
           it(`should not call connection.mute(false)`, () => {
             conn.mute = sinon.spy();
-            mediaStream.onopen();
+            mediaHandler.onopen();
             sinon.assert.notCalled(conn.mute as SinonSpy);
           });
         });
       });
     });
 
-    describe('mediaStream.onclose', () => {
+    describe('mediaHandler.onclose', () => {
       it('should transition to closed', () => {
-        mediaStream.onclose();
+        mediaHandler.onclose();
         assert.equal(conn.status(), Connection.State.Closed);
       });
 
       it('should call monitor.disable', () => {
-        mediaStream.onclose();
+        mediaHandler.onclose();
         sinon.assert.calledOnce(monitor.disable);
       });
 
@@ -1335,23 +1330,23 @@ describe('Connection', function() {
           done();
         });
 
-        mediaStream.onclose();
+        mediaHandler.onclose();
       });
 
       it('should play the disconnect ringtone if shouldPlayDisconnect is not specified', () => {
-        mediaStream.onclose();
+        mediaHandler.onclose();
         sinon.assert.calledOnce(soundcache.get(Device.SoundName.Disconnect).play);
       });
 
       it('should play the disconnect ringtone if shouldPlayDisconnect returns true', () => {
         conn = new Connection(config, Object.assign({ shouldPlayDisconnect: () => true }, options));
-        mediaStream.onclose();
+        mediaHandler.onclose();
         sinon.assert.calledOnce(soundcache.get(Device.SoundName.Disconnect).play);
       });
 
       it('should not play the disconnect ringtone if shouldPlayDisconnect returns false', () => {
         conn = new Connection(config, Object.assign({ shouldPlayDisconnect: () => false }, options));
-        mediaStream.onclose();
+        mediaHandler.onclose();
         sinon.assert.notCalled(soundcache.get(Device.SoundName.Disconnect).play);
       });
     });
@@ -1391,7 +1386,7 @@ describe('Connection', function() {
         }, options));
 
         conn._cleanupEventListeners = cleanupStub;
-        conn.mediaStream.close = () => {
+        conn['_mediaHandler'].close = () => {
           closeStub();
           conn.emit('disconnect');
         };
@@ -1422,7 +1417,7 @@ describe('Connection', function() {
 
         it('should not emit a disconnect event', () => {
           const callback = sinon.stub();
-          conn.mediaStream.close = () => mediaStream.onclose();
+          conn['_mediaHandler'].close = () => mediaHandler.onclose();
           conn.on('disconnect', callback);
           pstream.emit('cancel', { callsid: 'CA123' });
 
@@ -1432,7 +1427,7 @@ describe('Connection', function() {
         it('should not play disconnect sound', () => {
           options.shouldPlayDisconnect = () => true;
           initConnection();
-          conn.mediaStream.close = () => mediaStream.onclose();
+          conn['_mediaHandler'].close = () => mediaHandler.onclose();
           pstream.emit('cancel', { callsid: 'CA123' });
 
           return wait().then(() => {
@@ -1460,8 +1455,8 @@ describe('Connection', function() {
           conn = new Connection(config, Object.assign({
             callParameters: { CallSid: 'CA123' }
           }, options));
-          mediaStream.makeOutgoingCall = () => done();
-          mediaStream.answerIncomingCall = () => done();
+          mediaHandler.makeOutgoingCall = () => done();
+          mediaHandler.answerIncomingCall = () => done();
           conn.accept();
         });
 
@@ -1501,8 +1496,8 @@ describe('Connection', function() {
           conn = new Connection(config, Object.assign({
             callParameters: { CallSid: 'CA987' }
           }, options));
-          mediaStream.makeOutgoingCall = () => done();
-          mediaStream.answerIncomingCall = () => done();
+          mediaHandler.makeOutgoingCall = () => done();
+          mediaHandler.answerIncomingCall = () => done();
           conn.accept();
         });
 
@@ -1625,10 +1620,10 @@ describe('Connection', function() {
           const internalAudioIn = i;
           const internalAudioOut = i * 2;
 
-          mediaStream.onvolume(i, i, internalAudioIn, internalAudioOut);
+          mediaHandler.onvolume(i, i, internalAudioIn, internalAudioOut);
 
           // This helps determine that levels are averaging correctly
-          mediaStream.onvolume(i, i, 2, 2);
+          mediaHandler.onvolume(i, i, 2, 2);
 
           const sample = {
             ...sampleData,
@@ -1717,7 +1712,7 @@ describe('Connection', function() {
     });
 
     it('should properly translate `minStandardDeviation`', () => {
-      mediaStream.isMuted = false;
+      mediaHandler.isMuted = false;
       monitor.emit('warning', {
         name: 'audioInputLevel',
         threshold: { name: 'minStandardDeviation', value: 3 },
@@ -1738,7 +1733,7 @@ describe('Connection', function() {
 
       it('should emit a warning event', (done) => {
         const data = { name: 'audioInputLevel', threshold: { name: 'maxDuration', value: 1 }, values: [1, 2, 3] };
-        mediaStream.isMuted = false;
+        mediaHandler.isMuted = false;
         conn.on('warning', (name, warningData) => {
           assert.equal(name, 'constant-audio-input-level');
           assert.deepStrictEqual(data, warningData);
@@ -1820,10 +1815,10 @@ describe('Connection', function() {
 
   describe('on media failed', () => {
     beforeEach(() => {
-      mediaStream.iceRestart = sinon.stub();
+      mediaHandler.iceRestart = sinon.stub();
       conn = new Connection(config, Object.assign(options));
       conn['_mediaReconnectBackoff'] = {
-        backoff: () => mediaStream.iceRestart(),
+        backoff: () => mediaHandler.iceRestart(),
         reset: sinon.stub(),
       }
       Util.isChrome = sinon.stub().returns(true);
@@ -1834,7 +1829,7 @@ describe('Connection', function() {
         const callback = sinon.stub();
 
         conn.on('reconnecting', callback);
-        mediaStream.onicegatheringfailure();
+        mediaHandler.onicegatheringfailure();
 
         sinon.assert.callCount(callback, 1);
         sinon.assert.calledWithMatch(callback, {
@@ -1847,13 +1842,13 @@ describe('Connection', function() {
       });
 
       it('should publish warning on ICE Gathering timeout', () => {
-        mediaStream.onicegatheringfailure(Connection.IceGatheringFailureReason.Timeout);
+        mediaHandler.onicegatheringfailure(Connection.IceGatheringFailureReason.Timeout);
         sinon.assert.calledWith(publisher.warn, 'ice-gathering-state',
           Connection.IceGatheringFailureReason.Timeout, null);
       });
 
       it('should publish warning on ICE Gathering none', () => {
-        mediaStream.onicegatheringfailure(Connection.IceGatheringFailureReason.None);
+        mediaHandler.onicegatheringfailure(Connection.IceGatheringFailureReason.None);
         sinon.assert.calledWith(publisher.warn, 'ice-gathering-state',
           Connection.IceGatheringFailureReason.None, null);
       });
@@ -1861,62 +1856,62 @@ describe('Connection', function() {
 
     context('on low bytes', () => {
       it('should restart ice if ice connection state is disconnected and bytes received is low', () => {
-        mediaStream.version.pc.iceConnectionState = 'disconnected';
+        mediaHandler.version.pc.iceConnectionState = 'disconnected';
         monitor.hasActiveWarning = sinon.stub().returns(true);
         monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
-        sinon.assert.callCount(mediaStream.iceRestart, 1);
+        sinon.assert.callCount(mediaHandler.iceRestart, 1);
       });
 
       it('should restart ice if ice connection state is disconnected and bytes sent is low', () => {
-        mediaStream.version.pc.iceConnectionState = 'disconnected';
+        mediaHandler.version.pc.iceConnectionState = 'disconnected';
         monitor.hasActiveWarning = sinon.stub().returns(true);
         monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
-        sinon.assert.callCount(mediaStream.iceRestart, 1);
+        sinon.assert.callCount(mediaHandler.iceRestart, 1);
       });
 
       it('should not restart ice if ice connection state is not disconnected and bytes received is low', () => {
-        mediaStream.version.pc.iceConnectionState = 'connected';
+        mediaHandler.version.pc.iceConnectionState = 'connected';
         monitor.hasActiveWarning = sinon.stub().returns(true);
         monitor.emit('warning', { name: 'bytesReceived', threshold: { name: 'min' } });
-        sinon.assert.callCount(mediaStream.iceRestart, 0);
+        sinon.assert.callCount(mediaHandler.iceRestart, 0);
       });
 
       it('should not restart ice if ice connection state is not disconnected and bytes sent is low', () => {
-        mediaStream.version.pc.iceConnectionState = 'connected';
+        mediaHandler.version.pc.iceConnectionState = 'connected';
         monitor.hasActiveWarning = sinon.stub().returns(true);
         monitor.emit('warning', { name: 'bytesSent', threshold: { name: 'min' } });
-        sinon.assert.callCount(mediaStream.iceRestart, 0);
+        sinon.assert.callCount(mediaHandler.iceRestart, 0);
       });
     });
 
     context('on ice disconnected', () => {
       it('should restart ice if has low bytes', () => {
-        mediaStream.version.pc.iceConnectionState = 'disconnected';
+        mediaHandler.version.pc.iceConnectionState = 'disconnected';
         monitor.hasActiveWarning = sinon.stub().returns(true);
-        mediaStream.ondisconnected();
-        sinon.assert.callCount(mediaStream.iceRestart, 1);
+        mediaHandler.ondisconnected();
+        sinon.assert.callCount(mediaHandler.iceRestart, 1);
       });
       it('should not restart ice if no low bytes warning', () => {
-        mediaStream.version.pc.iceConnectionState = 'disconnected';
+        mediaHandler.version.pc.iceConnectionState = 'disconnected';
         monitor.hasActiveWarning = sinon.stub().returns(false);
-        mediaStream.ondisconnected();
-        sinon.assert.callCount(mediaStream.iceRestart, 0);
+        mediaHandler.ondisconnected();
+        sinon.assert.callCount(mediaHandler.iceRestart, 0);
       });
     });
 
     it('should restart on ice failed', () => {
-      mediaStream.onfailed();
-      sinon.assert.callCount(mediaStream.iceRestart, 1);
+      mediaHandler.onfailed();
+      sinon.assert.callCount(mediaHandler.iceRestart, 1);
     });
 
     it('should emit reconnecting once', () => {
       const callback = sinon.stub();
-      mediaStream.version.pc.iceConnectionState = 'disconnected';
+      mediaHandler.version.pc.iceConnectionState = 'disconnected';
       monitor.hasActiveWarning = sinon.stub().returns(true);
 
       conn.on('reconnecting', callback);
-      mediaStream.ondisconnected();
-      mediaStream.onfailed();
+      mediaHandler.ondisconnected();
+      mediaHandler.onfailed();
 
       sinon.assert.callCount(callback, 1);
       sinon.assert.calledWithMatch(callback, {
@@ -1930,18 +1925,18 @@ describe('Connection', function() {
 
     it('should emit reconnected on ice reconnected', () => {
       const callback = sinon.stub();
-      mediaStream.onfailed();
+      mediaHandler.onfailed();
       conn.on('reconnected', callback);
-      mediaStream.onreconnected();
+      mediaHandler.onreconnected();
 
       sinon.assert.callCount(callback, 1);
     });
 
     it('should emit reconnected on initial ice connected after ice gathering failure', () => {
       const callback = sinon.stub();
-      mediaStream.onicegatheringfailure();
+      mediaHandler.onicegatheringfailure();
       conn.on('reconnected', callback);
-      mediaStream.onconnected();
+      mediaHandler.onconnected();
 
       sinon.assert.callCount(callback, 1);
     });
