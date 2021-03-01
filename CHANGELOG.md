@@ -4,6 +4,26 @@
 New Features
 ------------
 
+### Mutable Device Options
+
+The SDK now allows `Device.options` to be mutated after initial set up. Example usage:
+
+```ts
+const device = new Device();
+const token = '...';
+const options1 = { ... };
+
+device.setup(token, options1);
+device.on(Device.EventName.Ready, (dev: Device) => { /* use device here */ });
+
+...
+
+const options2 = { ... };
+
+device.setup(token, options2);
+device.on(Device.EventName.Ready, (dev: Device) => { /* use device here */ });
+```
+
 ### LogLevel Module
 
 The SDK now uses the [`loglevel`](https://github.com/pimterry/loglevel) module. This exposes several new features for the SDK, including the ability to intercept log messages with custom handlers and the ability to set logging levels after instantiating a `Device`. To get an instance of the `loglevel` `Logger` class used internally by the SDK, there are several options.

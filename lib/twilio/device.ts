@@ -58,6 +58,7 @@ export type ISound = any;
 
 const REGISTRATION_INTERVAL = 30000;
 const RINGTONE_PLAY_TIMEOUT = 2000;
+const PUBLISHER_PRODUCT_NAME = 'twilio-js-sdk';
 
 declare const RTCRtpTransceiver: any;
 declare const webkitAudioContext: typeof AudioContext;
@@ -225,6 +226,24 @@ class Device extends EventEmitter {
    * An AudioContext to share between {@link Device}s.
    */
   private static _audioContext?: AudioContext;
+
+  private static _defaultSounds: Record<string, ISoundDefinition> = {
+    disconnect: { filename: 'disconnect', maxDuration: 3000 },
+    dtmf0: { filename: 'dtmf-0', maxDuration: 1000 },
+    dtmf1: { filename: 'dtmf-1', maxDuration: 1000 },
+    dtmf2: { filename: 'dtmf-2', maxDuration: 1000 },
+    dtmf3: { filename: 'dtmf-3', maxDuration: 1000 },
+    dtmf4: { filename: 'dtmf-4', maxDuration: 1000 },
+    dtmf5: { filename: 'dtmf-5', maxDuration: 1000 },
+    dtmf6: { filename: 'dtmf-6', maxDuration: 1000 },
+    dtmf7: { filename: 'dtmf-7', maxDuration: 1000 },
+    dtmf8: { filename: 'dtmf-8', maxDuration: 1000 },
+    dtmf9: { filename: 'dtmf-9', maxDuration: 1000 },
+    dtmfh: { filename: 'dtmf-hash', maxDuration: 1000 },
+    dtmfs: { filename: 'dtmf-star', maxDuration: 1000 },
+    incoming: { filename: 'incoming', shouldLoop: true },
+    outgoing: { filename: 'outgoing', maxDuration: 3000 },
+  };
 
   /**
    * A DialtonePlayer to play mock DTMF sounds through.
@@ -401,6 +420,10 @@ class Device extends EventEmitter {
   constructor(token?: string, options?: Device.Options) {
     super();
 
+    if (!token && options) {
+      throw new InvalidArgumentError('Cannot construct a Device with options but without a token');
+    }
+
     if (window) {
       const root: any = window as any;
       const browser: any = root.msBrowser || root.browser || root.chrome;
@@ -420,10 +443,20 @@ class Device extends EventEmitter {
         || n.webkitConnection;
     }
 
+    if (this._networkInformation && typeof this._networkInformation.addEventListener === 'function') {
+      this._networkInformation.addEventListener('change', this._publishNetworkChange);
+    }
+
+    Device._getOrCreateAudioContext();
+
+    if (Device._audioContext) {
+      if (!Device._dialtonePlayer) {
+        Device._dialtonePlayer = new DialtonePlayer(Device._audioContext);
+      }
+    }
+
     if (token) {
       this.setup(token, options);
-    } else if (options) {
-      throw new InvalidArgumentError('Cannot construct a Device with options but without a token');
     }
   }
 
@@ -474,8 +507,7 @@ class Device extends EventEmitter {
     }
 
     if (this.stream) {
-      this.stream.destroy();
-      this.stream = null;
+      this._destroyStream();
     }
 
     if (this._networkInformation && typeof this._networkInformation.removeEventListener === 'function') {
@@ -558,7 +590,18 @@ class Device extends EventEmitter {
       throw new InvalidArgumentError('Token is required for Device.setup()');
     }
 
+    if (
+      this.isInitialized &&
+      (this.connections.length > 0 || this.activeConnection())
+    ) {
+      this._log.info('Existing Device has ongoing connections; using new token but ignoring options');
+      this.updateToken(token);
+      return this;
+    }
+
     Object.assign(this.options, options);
+
+    this._status = Device.Status.Offline;
 
     this._log.setDefaultLevel(
       typeof this.options.logLevel === 'number'
@@ -582,25 +625,6 @@ class Device extends EventEmitter {
       : false;
     }
 
-    Device._getOrCreateAudioContext();
-
-    if (Device._audioContext) {
-      if (!Device._dialtonePlayer) {
-        Device._dialtonePlayer = new DialtonePlayer(Device._audioContext);
-      }
-    } else if (Device._dialtonePlayer) {
-      Device._dialtonePlayer.cleanup();
-      delete Device._dialtonePlayer;
-    }
-
-    if (this.isInitialized) {
-      this._log.info('Found existing Device; using new token but ignoring options');
-      this.updateToken(token);
-      return this;
-    }
-
-    this.isInitialized = true;
-
     if (this.options.dscp) {
       if (!this.options.rtcConstraints) {
         this.options.rtcConstraints = { };
@@ -608,26 +632,8 @@ class Device extends EventEmitter {
       (this.options.rtcConstraints as any).optional = [{ googDscp: true }];
     }
 
-    const defaultSounds: Record<string, ISoundDefinition> = {
-      disconnect: { filename: 'disconnect', maxDuration: 3000 },
-      dtmf0: { filename: 'dtmf-0', maxDuration: 1000 },
-      dtmf1: { filename: 'dtmf-1', maxDuration: 1000 },
-      dtmf2: { filename: 'dtmf-2', maxDuration: 1000 },
-      dtmf3: { filename: 'dtmf-3', maxDuration: 1000 },
-      dtmf4: { filename: 'dtmf-4', maxDuration: 1000 },
-      dtmf5: { filename: 'dtmf-5', maxDuration: 1000 },
-      dtmf6: { filename: 'dtmf-6', maxDuration: 1000 },
-      dtmf7: { filename: 'dtmf-7', maxDuration: 1000 },
-      dtmf8: { filename: 'dtmf-8', maxDuration: 1000 },
-      dtmf9: { filename: 'dtmf-9', maxDuration: 1000 },
-      dtmfh: { filename: 'dtmf-hash', maxDuration: 1000 },
-      dtmfs: { filename: 'dtmf-star', maxDuration: 1000 },
-      incoming: { filename: 'incoming', shouldLoop: true },
-      outgoing: { filename: 'outgoing', maxDuration: 3000 },
-    };
-
-    for (const name of Object.keys(defaultSounds)) {
-      const soundDef: ISoundDefinition = defaultSounds[name];
+    for (const name of Object.keys(Device._defaultSounds)) {
+      const soundDef: ISoundDefinition = Device._defaultSounds[name];
 
       const defaultUrl: string = `${C.SOUNDS_BASE_URL}/${soundDef.filename}.${Device.extension}`
         + `?cache=${C.RELEASE_VERSION}`;
@@ -642,14 +648,18 @@ class Device extends EventEmitter {
       this.soundcache.set(name as Device.SoundName, sound);
     }
 
-    this._publisher = (this.options.Publisher || Publisher)('twilio-js-sdk', token, {
-      defaultPayload: this._createDefaultPayload,
-      host: this.options.eventgw,
-      metadata: {
-        app_name: this.options.appName,
-        app_version: this.options.appVersion,
+    this._publisher = (this.options.Publisher || Publisher)(
+      PUBLISHER_PRODUCT_NAME,
+      token,
+      {
+        defaultPayload: this._createDefaultPayload,
+        host: this.options.eventgw,
+        metadata: {
+          app_name: this.options.appName,
+          app_version: this.options.appVersion,
+        },
       },
-    } as any);
+    );
 
     if (this.options.publishEvents === false) {
       this._publisher.disable();
@@ -659,31 +669,34 @@ class Device extends EventEmitter {
       });
     }
 
-    if (this._networkInformation && typeof this._networkInformation.addEventListener === 'function') {
-      this._networkInformation.addEventListener('change', this._publishNetworkChange);
+    this.audio = new (this.options.AudioHelper || AudioHelper)(
+      this._updateSinkIds,
+      this._updateInputStream,
+      getUserMedia,
+      {
+        audioContext: Device.audioContext,
+        enabledSounds: this._enabledSounds,
+      },
+    );
+
+    if (this.audio) {
+      this.audio.on('deviceChange', (lostActiveDevices: MediaDeviceInfo[]) => {
+        const activeConnection: Connection | null = this._activeConnection;
+        const deviceIds: string[] = lostActiveDevices.map((device: MediaDeviceInfo) => device.deviceId);
+
+        this._publisher.info('audio', 'device-change', {
+          lost_active_device_ids: deviceIds,
+        }, activeConnection);
+
+        if (activeConnection) {
+          activeConnection['_mediaHandler']._onInputDevicesChanged();
+        }
+      });
+    } else {
+      this._log.warn('Unable to instantiate an `AudioHelper`.');
     }
 
-    this.audio = new (this.options.AudioHelper || AudioHelper)
-        (this._updateSinkIds, this._updateInputStream, getUserMedia, {
-      audioContext: Device.audioContext,
-      enabledSounds: this._enabledSounds,
-    }) as AudioHelper;
-
-    this.audio.on('deviceChange', (lostActiveDevices: MediaDeviceInfo[]) => {
-      const activeConnection: Connection | null = this._activeConnection;
-      const deviceIds: string[] = lostActiveDevices.map((device: MediaDeviceInfo) => device.deviceId);
-
-      this._publisher.info('audio', 'device-change', {
-        lost_active_device_ids: deviceIds,
-      }, activeConnection);
-
-      if (activeConnection) {
-        activeConnection['_mediaHandler']._onInputDevicesChanged();
-      }
-    });
-
     this.mediaPresence.audio = !this.options.noRegister;
-    this.updateToken(token);
 
     // Setup close protection and make sure we clean up ongoing calls on unload.
     if (typeof window !== 'undefined' && window.addEventListener) {
@@ -693,6 +706,13 @@ class Device extends EventEmitter {
         window.addEventListener('beforeunload', this._confirmClose);
       }
     }
+
+    if (this.stream) {
+      this._destroyStream();
+    }
+
+    this.isInitialized = true;
+    this.updateToken(token);
 
     return this;
   }
@@ -795,6 +815,18 @@ class Device extends EventEmitter {
     setIfDefined('region', this.stream && this.stream.region);
 
     return payload;
+  }
+
+  /**
+   * Destroy the connection to the signaling server.
+   */
+  private _destroyStream() {
+    if (!this.stream) {
+      throw new InvalidStateError('Attempt to destroy non-existent stream.');
+    }
+
+    this.stream.destroy();
+    this.stream = null;
   }
 
   /**

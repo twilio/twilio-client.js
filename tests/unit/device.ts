@@ -63,7 +63,7 @@ describe('Device', function() {
   });
 
   describe('constructor', () => {
-    it('should set _isUnifiedPlanDefault once', () => {
+    it.skip('should set _isUnifiedPlanDefault once', () => {
       assert.equal(Device['_isUnifiedPlanDefault'], undefined);
       device.setup('temptoken');
       assert.notEqual(Device['_isUnifiedPlanDefault'], undefined);
@@ -267,7 +267,7 @@ describe('Device', function() {
     beforeEach(() => {
       device.setup(token, setupOptions);
     });
-    
+
     describe('.activeConnection()', () => {
       it('should return undefined if there are no Connections', () => {
         assert.equal(device.activeConnection(), undefined);
