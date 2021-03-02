@@ -49,12 +49,12 @@ describe('Reconnection', function() {
     identity2 = 'id2-' + Date.now();
     token1 = generateAccessToken(identity1);
     token2 = generateAccessToken(identity2);
-    device1 = new Device();
-    device2 = new Device();
+    device1 = new Device(token1, options);
+    device2 = new Device(token2, options);
 
     return Promise.all([
-      expectEvent('ready', device1.setup(token1, options)),
-      expectEvent('ready', device2.setup(token2, options)),
+      expectEvent('ready', device1),
+      expectEvent('ready', device2),
     ]).then(() => new Promise((resolve) => {
       device2.once(Device.EventName.Incoming, (connection) => {
         connection2 = connection;

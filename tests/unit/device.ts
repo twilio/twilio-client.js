@@ -13,6 +13,8 @@ import { EventEmitter } from 'events';
 import { SinonFakeTimers, SinonSpy, SinonStubbedInstance } from 'sinon';
 import * as sinon from 'sinon';
 
+declare var root: any;
+
 const ClientCapability = require('twilio').jwt.ClientCapability;
 
 const NOT_INITIALIZED_ERROR = /Call Device.setup/;
@@ -58,216 +60,84 @@ describe('Device', function() {
   beforeEach(() => {
     clock = sinon.useFakeTimers(Date.now());
     token = createToken('alice');
-    device = new Device();
+    device = new Device(token, setupOptions);
     device.on('error', () => { /* no-op */ });
   });
 
   describe('constructor', () => {
-    it.skip('should set _isUnifiedPlanDefault once', () => {
+    it('should throw an error if options are passed but no token', () => {
+      assert.throws(() => new (Device as any)(undefined, {}), /Cannot construct a Device/);
+    });
+
+    it('should set _isUnifiedPlanDefault once', () => {
+      Device['_isUnifiedPlanDefault'] = undefined;
+
       assert.equal(Device['_isUnifiedPlanDefault'], undefined);
-      device.setup('temptoken');
+      const tempDev1 = new Device(token, setupOptions);
       assert.notEqual(Device['_isUnifiedPlanDefault'], undefined);
 
       const isUnifiedPlan = Device['_isUnifiedPlanDefault'];
       Device['_isUnifiedPlanDefault'] = !isUnifiedPlan;
-      device.setup('temptoken');
+      const tempDev2 = new Device(token, setupOptions);
       assert.equal(Device['_isUnifiedPlanDefault'], !isUnifiedPlan);
     });
 
-    it('should not call setup if no token is passed', () => {
-      stub = sinon.stub(device);
+    context('should always call updateOptions', () => {
+      it('when passed options', () => {
+        stub = sinon.createStubInstance(Device);
+        Device.prototype.constructor.call(stub, token, setupOptions);
+        sinon.assert.calledOnce(stub.updateOptions);
+      });
+
+      it('when not passed options', () => {
+        stub = sinon.createStubInstance(Device);
+        Device.prototype.constructor.call(stub, token);
+        sinon.assert.calledOnce(stub.updateOptions);
+      });
+    });
+
+    it('should not call updateToken if no token is passed', () => {
+      stub = sinon.createStubInstance(Device);
       Device.prototype.constructor.call(stub);
-      sinon.assert.notCalled(stub.setup);
+      sinon.assert.notCalled(stub.updateToken);
     });
 
-    it('should call setup if token and no options are passed', () => {
-      stub = sinon.stub(device);
+    it('should call updateToken if token and no options are passed', () => {
+      stub = sinon.createStubInstance(Device);
       Device.prototype.constructor.call(stub, token);
-      sinon.assert.calledOnce(stub.setup);
-    });
-
-    it('should call setup if token and options are passed', () => {
-      stub = sinon.stub(device);
-      Device.prototype.constructor.call(stub, token, { } as any);
-      sinon.assert.calledOnce(stub.setup);
-    });
-
-    it('should throw an error if options are passed but no token', () => {
-      assert.throws(() => new (Device as any)(undefined, { } as any), /Cannot construct a Device/);
+      sinon.assert.calledOnce(stub.updateToken);
     });
 
     it('should set preflight to false by default', () => {
-      const conn = device.setup(token, setupOptions);
-      assert.equal(conn['options'].preflight, false);
+      assert.equal(device['options'].preflight, false);
     });
 
     it('should set preflight to false if passed in as false', () => {
-      const conn = device.setup(token, Object.assign({ preflight: false }, setupOptions));
-      assert.equal(conn['options'].preflight, false);
+      device = new Device(token, { ...setupOptions, preflight: false });
+      assert.equal(device['options'].preflight, false);
     });
 
     it('should set preflight to true if passed in as true', () => {
-      const conn = device.setup(token, Object.assign({ preflight: true }, setupOptions));
-      assert.equal(conn['options'].preflight, true);
+      device = new Device(token, { ...setupOptions, preflight: true });
+      assert.equal(device['options'].preflight, true);
     });
 
     it('should set forceAggressiveIceNomination to false by default', () => {
-      const conn = device.setup(token, setupOptions);
-      assert.equal(conn['options'].forceAggressiveIceNomination, false);
+      assert.equal(device['options'].forceAggressiveIceNomination, false);
     });
 
     it('should set forceAggressiveIceNomination to false if passed in as false', () => {
-      const conn = device.setup(token, Object.assign({ forceAggressiveIceNomination: false}, setupOptions));
-      assert.equal(conn['options'].forceAggressiveIceNomination, false);
+      device = new Device(token, { ...setupOptions, forceAggressiveIceNomination: false });
+      assert.equal(device['options'].forceAggressiveIceNomination, false);
     });
 
     it('should set forceAggressiveIceNomination to true if passed in as true', () => {
-      const conn = device.setup(token, Object.assign({ forceAggressiveIceNomination: true}, setupOptions));
-      assert.equal(conn['options'].forceAggressiveIceNomination, true);
-    });
-
-    describe('log', () => {
-      let setDefaultLevelStub: any;
-      beforeEach(() => {
-        setDefaultLevelStub = sinon.stub();
-        device['_log'].setDefaultLevel = setDefaultLevelStub;
-      });
-
-      Object.entries(LogLevels).forEach(([level, number]) => {
-        it(`should set log level to '${level}'`, () => {
-          device.setup(token, Object.assign({ logLevel: number }, setupOptions));
-          sinon.assert.calledWith(setDefaultLevelStub, number);
-        });
-      });
-    });
-  });
-
-  context('before Device is initialized', () => {
-    describe('.activeConnection()', () => {
-      it('should return null', () => {
-        assert.equal(device.activeConnection(), null);
-      });
-    });
-
-    describe('.connect(params?, audioConstraints?, iceServers?)', () => {
-      it('should throw an error', () => {
-        assert.throws(() => device.connect(), NOT_INITIALIZED_ERROR);
-      });
-    });
-
-    describe('.destroy()', () => {
-      it('should not throw', () => {
-        device.destroy();
-      });
-    });
-
-    describe('.disconnectAll()', () => {
-      it('should throw an error', () => {
-        assert.throws(() => device.disconnectAll(), NOT_INITIALIZED_ERROR);
-      });
-    });
-
-    describe('.registerPresence()', () => {
-      it('should throw an error', () => {
-        assert.throws(() => device.registerPresence(), NOT_INITIALIZED_ERROR);
-      });
-    });
-
-    describe('.setup()', () => {
-      context('when not supported', () => {
-        const original: any = (window as any).RTCPeerConnection;
-
-        before(() => Promise.resolve((window as any).RTCPeerConnection = null));
-
-        it('should throw an exception if not supported', () => {
-          assert.throws(() => device.setup(token, setupOptions), /require WebRTC browser support/);
-        });
-
-        after(() => (window as any).RTCPeerConnection = original);
-      });
-
-      context('when legacy edge', () => {
-        const original: any = (window as any).navigator;
-
-        before(() => Promise.resolve((window as any).navigator = { userAgent: 'foo edge/123 bar' }));
-
-        it('should throw an exception if not supported', () => {
-          assert.throws(() => device.setup(token, setupOptions), /Microsoft Edge Legacy/);
-        });
-
-        after(() => (window as any).navigator = original);
-      });
-
-      context('when supported', () => {
-        let d: Device;
-
-        beforeEach(() => {
-          d = device.setup(token, setupOptions);
-        });
-
-        it('should return the device instance', () => {
-          assert.equal(d, device);
-        });
-
-        it('should throw if token is undefined', () => {
-          device = new Device();
-          assert.throws(() => (device.setup as any)(), /Token is required/);
-        });
-
-        it('should set device.isInitialized to true', () => {
-          assert.equal(device.isInitialized, true);
-        });
-
-        it('should disable the publisher when publishEvents: false is passed', () => {
-          device = new Device();
-          device.setup(token, Object.assign(setupOptions, { publishEvents: false }));
-          sinon.assert.calledOnce(publisher.disable);
-        });
-
-        it('should call updateToken with the passed token', () => {
-          const spy = sinon.spy(device.updateToken);
-          device.updateToken = spy;
-          device.setup(token);
-          sinon.assert.calledOnce(spy);
-          sinon.assert.calledWith(spy, token);
-        });
-
-        it('should set close protection on the page if closeProtection: true', () => {
-          const original = (window as any).addEventListener;
-          const spy = sinon.spy();
-          (window as any).addEventListener = spy;
-          device = new Device();
-          device.setup(token, Object.assign(setupOptions, { closeProtection: true }));
-          (window as any).addEventListener = original;
-          sinon.assert.calledWith(spy, 'beforeunload');
-        });
-      });
-    });
-
-    describe('.status()', () => {
-      it('should throw an error', () => {
-        assert.throws(() => device.status(), NOT_INITIALIZED_ERROR);
-      });
-    });
-
-    describe('.unregisterPresence()', () => {
-      it('should throw an error', () => {
-        assert.throws(() => device.unregisterPresence(), NOT_INITIALIZED_ERROR);
-      });
-    });
-
-    describe('.toString()', () => {
-      it('should return the correct string', () => {
-        assert.equal(device.toString(), '[Twilio.Device instance]');
-      });
+      device = new Device(token, { ...setupOptions, forceAggressiveIceNomination: true });
+      assert.equal(device['options'].forceAggressiveIceNomination, true);
     });
   });
 
   context('after Device is initialized', () => {
-    beforeEach(() => {
-      device.setup(token, setupOptions);
-    });
-
     describe('.activeConnection()', () => {
       it('should return undefined if there are no Connections', () => {
         assert.equal(device.activeConnection(), undefined);
@@ -435,31 +305,37 @@ describe('Device', function() {
       });
     });
 
-    describe('.setup()', () => {
-      let device: any;
+    describe('.updateOptions()', () => {
       let options: any;
       let pStreamFactory: any;
 
       beforeEach(() => {
         pStreamFactory = sinon.stub().returns({
-          addListener: sinon.stub()
+          addListener: sinon.stub(),
+          destroy: sinon.stub(),
+          setToken: sinon.stub(),
         });
-
-        device = new Device();
-        options = Object.assign({}, setupOptions, { pStreamFactory });
+        options = { ...setupOptions, pStreamFactory };
+        device = new Device(token, options);
+        pStreamFactory.resetHistory();
       });
 
-      it('should call updateToken with the passed token', () => {
-        const spy = sinon.spy(device.updateToken);
-        device.updateToken = spy;
-        device.setup(token);
-        sinon.assert.calledOnce(spy);
-        sinon.assert.calledWith(spy, token);
+      it('should reinitialize an existing stream and publisher', () => {
+        const streamSpy = device['_setupStream'] = sinon.spy();
+        const publisherSpy = device['_setupPublisher'] = sinon.spy();
+
+        device.updateOptions(options);
+
+        sinon.assert.calledOnce(streamSpy);
+        sinon.assert.calledWith(streamSpy, token);
+
+        sinon.assert.calledOnce(publisherSpy);
+        sinon.assert.calledWith(publisherSpy, token);
       });
 
       it('should use chunderw regardless', () => {
         options.chunderw = 'foo';
-        device.setup(token, options);
+        device.updateOptions(options);
 
         sinon.assert.calledOnce(pStreamFactory);
         sinon.assert.calledWithExactly(pStreamFactory,
@@ -468,7 +344,7 @@ describe('Device', function() {
       });
 
       it('should use default chunder uri if no region or edge is passed in', () => {
-        device.setup(token, options);
+        device.updateOptions(options);
 
         sinon.assert.calledOnce(pStreamFactory);
         sinon.assert.calledWithExactly(pStreamFactory,
@@ -478,7 +354,7 @@ describe('Device', function() {
 
       it('should use correct edge if only one is supplied', () => {
         options.edge = 'singapore';
-        device.setup(token, options);
+        device.updateOptions(options);
 
         sinon.assert.calledOnce(pStreamFactory);
         sinon.assert.calledWithExactly(pStreamFactory,
@@ -488,12 +364,85 @@ describe('Device', function() {
 
       it('should use correct edges if more than one is supplied', () => {
         options.edge = ['singapore', 'sydney'];
-        device.setup(token, options);
+        device.updateOptions(options);
 
         sinon.assert.calledOnce(pStreamFactory);
         sinon.assert.calledWithExactly(pStreamFactory,
           token, ['wss://chunderw-vpc-gll-sg1.twilio.com/signal', 'wss://chunderw-vpc-gll-au1.twilio.com/signal'],
           { backoffMaxMs: undefined });
+      });
+
+      describe('log', () => {
+        let setDefaultLevelStub: any;
+
+        beforeEach(() => {
+          setDefaultLevelStub = sinon.stub();
+        });
+
+        Object.entries(LogLevels).forEach(([level, number]) => {
+          it(`should set log level to '${level}'`, () => {
+            device['_log'].setDefaultLevel = setDefaultLevelStub;
+            device.updateOptions({ logLevel: number });
+            sinon.assert.calledWith(setDefaultLevelStub, number);
+          });
+        });
+      });
+    });
+
+    describe('.updateToken()', () => {
+      const newToken = 'foo-bar-token';
+
+      let options: any;
+      let pStreamFactory: sinon.SinonStub;
+      let Publisher: sinon.SinonStub;
+
+      const pStreamStubs = {
+        addListener: sinon.stub(),
+        destroy: sinon.stub(),
+        setToken: sinon.stub(),
+      };
+      const PublisherStubs = {
+        disable: sinon.stub(),
+        on: sinon.stub(),
+        setToken: sinon.stub(),
+      };
+
+      beforeEach(() => {
+        pStreamFactory = sinon.stub().returns(pStreamStubs);
+        Publisher = sinon.stub().returns(PublisherStubs);
+        options = { ...setupOptions, pStreamFactory, Publisher };
+        device = new Device(token, options);
+
+        pStreamFactory.resetHistory();
+        Publisher.resetHistory();
+
+        pStreamStubs.setToken.resetHistory();
+        PublisherStubs.setToken.resetHistory();
+      });
+
+      it('should set the token', () => {
+        device.updateToken(newToken);
+        assert.equal(device.token, newToken);
+      });
+
+      it('should create a new stream and publisher', () => {
+        device['stream'] = null;
+        device['_publisher'] = null;
+
+        device.updateToken(newToken);
+
+        sinon.assert.calledOnce(pStreamFactory);
+        sinon.assert.calledOnce(Publisher);
+      });
+
+      it('should update an existing stream and publisher', () => {
+        device.updateToken(newToken);
+
+        sinon.assert.notCalled(pStreamFactory);
+        sinon.assert.notCalled(Publisher);
+
+        sinon.assert.calledOnce(pStreamStubs.setToken);
+        sinon.assert.calledOnce(PublisherStubs.setToken);
       });
     });
 
@@ -666,8 +615,7 @@ describe('Device', function() {
 
       context('when allowIncomingWhileBusy is true', () => {
         beforeEach(() => {
-          device = new Device();
-          device.setup(token, Object.assign(setupOptions, { allowIncomingWhileBusy: true }));
+          device = new Device(token, { ...setupOptions, allowIncomingWhileBusy: true });
           pstream.emit('ready');
           device.connect();
         });
@@ -727,18 +675,15 @@ describe('Device', function() {
     });
 
     describe('on unload or pagehide', () => {
-      beforeEach(() => {
-        device = new Device();
-      });
       it('should call destroy once on pagehide', () => {
         device.destroy = sinon.spy();
-        device.setup(token, setupOptions);
+        device.updateOptions({});
         root.window.dispatchEvent('pagehide');
         sinon.assert.calledOnce(device.destroy as any);
       });
       it('should call destroy once on unload', () => {
         device.destroy = sinon.spy();
-        device.setup(token, setupOptions);
+        device.updateOptions({});
         root.window.dispatchEvent('unload');
         sinon.assert.calledOnce(device.destroy as any);
       });

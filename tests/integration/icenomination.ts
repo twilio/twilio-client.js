@@ -1,8 +1,8 @@
+import * as assert from 'assert';
 import Connection from '../../lib/twilio/connection';
 import Device from '../../lib/twilio/device';
 import { generateAccessToken } from '../lib/token';
 import { expectEvent, isFirefox } from '../lib/util';
-import * as assert from 'assert';
 
 const CONNECTION_DELAY_THRESHOLD = 1000;
 const SUITE_TIMEOUT = 20000;
@@ -30,12 +30,13 @@ maybeSkip('ICE Nomination', function() {
     identity2 = 'id2-' + Date.now();
     const token1 = generateAccessToken(identity1);
     const token2 = generateAccessToken(identity2);
-    device1 = new Device();
-    device2 = new Device();
+
+    device1 = new Device(token1, { ...defaultOptions, ...device1Options });
+    device2 = new Device(token2, { ...defaultOptions, ...device2Options });
 
     return Promise.all([
-      expectEvent('ready', device1.setup(token1, Object.assign({}, defaultOptions, device1Options))),
-      expectEvent('ready', device2.setup(token2, Object.assign({}, defaultOptions, device2Options))),
+      expectEvent('ready', device1),
+      expectEvent('ready', device2),
     ]);
   };
 

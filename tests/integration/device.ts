@@ -1,8 +1,8 @@
+import * as assert from 'assert';
+import { EventEmitter } from 'events';
 import Connection from '../../lib/twilio/connection';
 import Device from '../../lib/twilio/device';
 import { generateAccessToken } from '../lib/token';
-import * as assert from 'assert';
-import { EventEmitter } from 'events';
 
 // (rrowland) The TwiML expected by these tests can be found in the README.md
 
@@ -13,7 +13,6 @@ describe('Device', function() {
   let device2: Device;
   let identity1: string;
   let identity2: string;
-  let options;
   let token1: string;
   let token2: string;
 
@@ -25,14 +24,15 @@ describe('Device', function() {
     device1 = new Device();
     device2 = new Device();
 
-    options = {
-      warnings: false,
-    };
-
-    return Promise.all([
-      expectEvent('ready', device1.setup(token1, options)),
-      expectEvent('ready', device2.setup(token2, options)),
+    const devicePromises = Promise.all([
+      expectEvent('ready', device1),
+      expectEvent('ready', device2),
     ]);
+
+    device1.updateToken(token1);
+    device2.updateToken(token2);
+
+    return devicePromises;
   });
 
   after(() => {

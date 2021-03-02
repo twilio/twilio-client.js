@@ -14,10 +14,10 @@ describe('Preflight Test', function() {
 
   let callerIdentity: string;
   let callerToken: string;
-  let callerDevice: any;
+  let callerDevice: Device;
   let callerConnection: Connection;
   let receiverIdentity: string;
-  let receiverDevice: any;
+  let receiverDevice: Device;
   let preflight: PreflightTest;
 
   const expectEvent = (eventName: string, emitter: EventEmitter) => {
@@ -40,9 +40,9 @@ describe('Preflight Test', function() {
 
     const receiverToken = generateAccessToken(receiverIdentity);
     callerToken = generateAccessToken(callerIdentity);
-    receiverDevice = new Device();
+    receiverDevice = new Device(receiverToken);
 
-    return expectEvent('ready', receiverDevice.setup(receiverToken, { debug: false }));
+    return expectEvent('ready', receiverDevice);
   };
 
   const destroyDevices = () => {

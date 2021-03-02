@@ -8,28 +8,27 @@ function waitFor(n: number, reject?: boolean) {
   return new Promise((res, rej) => setTimeout(reject ? rej : res, n));
 }
 
-describe.only('mutable options', function() {
+describe('mutable options', function() {
   let device: Device;
   let token: string;
 
   beforeEach(() => {
     const id = `device-id-${Date.now()}`;
     token = generateAccessToken(id);
-    device = new Device();
   });
 
   it('should update edge', async function() {
     this.timeout(10000);
 
     const edge1 = await new Promise(resolve => {
-      device.setup(token, { edge: 'sydney' });
+      device = new Device(token, { edge: 'sydney' });
       device.on(Device.EventName.Ready, d => resolve(d.edge));
     });
 
     assert.equal(edge1, 'sydney');
 
     const edge2 = await new Promise(resolve => {
-      device.setup(token, { edge: 'ashburn' });
+      device = new Device(token, { edge: 'ashburn' });
       device.on(Device.EventName.Ready, d => resolve(d.edge));
     });
 
@@ -59,9 +58,8 @@ describe.only('mutable options', function() {
         ['caller', 'receiver'].map(n => new Promise<[Device, string, string]>(resolve => {
           const id = `device-${n}-${timestamp}`;
           const t = generateAccessToken(id);
-          const dev = new Device();
+          const dev = new Device(t);
           dev.once(Device.EventName.Ready, d => resolve([d, id, t]));
-          dev.setup(t);
         })),
       );
 
@@ -85,23 +83,23 @@ describe.only('mutable options', function() {
 
     it('should not allow updating options while connections are ongoing', function() {
       const logSpy = sinon.spy();
-      caller['_log'].info = logSpy;
+      caller['_log'].warn = logSpy;
 
-      caller.setup(callerToken, {});
+      caller.updateOptions({});
       assert.equal(logSpy.args.filter(
-        ([message]) => message === 'Existing Device has ongoing connections; using new token but ignoring options',
+        ([message]) => message === 'Existing Device has ongoing connections; ignoring new options.',
       ).length, 1);
     });
 
     it('should allow updating options after all connections have ended', function() {
       const logSpy = sinon.spy();
-      caller['_log'].info = logSpy;
+      caller['_log'].warn = logSpy;
 
       callerConnection.disconnect();
 
-      caller.setup(callerToken, {});
+      caller.updateOptions({});
       assert.equal(logSpy.args.filter(
-        ([message]) => message === 'Existing Device has ongoing connections; using new token but ignoring options',
+        ([message]) => message === 'Existing Device has ongoing connections; ignoring new options.',
       ).length, 0);
     });
   });

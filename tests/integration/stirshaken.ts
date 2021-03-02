@@ -1,9 +1,9 @@
-import Connection from '../../lib/twilio/connection';
-import Device from '../../lib/twilio/device';
-import { generateAccessToken } from '../lib/token';
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
+import Connection from '../../lib/twilio/connection';
+import Device from '../../lib/twilio/device';
 import * as env from '../env';
+import { generateAccessToken } from '../lib/token';
 
 describe('SHAKEN/STIR', function() {
   this.timeout(10000);
@@ -12,7 +12,6 @@ describe('SHAKEN/STIR', function() {
   let device2: Device;
   let identity1: string;
   let identity2: string;
-  let options;
   let token1: string;
   let token2: string;
 
@@ -21,14 +20,12 @@ describe('SHAKEN/STIR', function() {
     identity2 = 'aliceStir';
     token1 = generateAccessToken(identity1, undefined, (env as any).appSidStir);
     token2 = generateAccessToken(identity2, undefined, (env as any).appSidStir);
-    device1 = new Device();
-    device2 = new Device();
-
-    options = {};
+    device1 = new Device(token1);
+    device2 = new Device(token2);
 
     return Promise.all([
-      expectEvent('ready', device1.setup(token1, options)),
-      expectEvent('ready', device2.setup(token2, options)),
+      expectEvent('ready', device1),
+      expectEvent('ready', device2),
     ]);
   });
 
@@ -66,7 +63,7 @@ describe('SHAKEN/STIR', function() {
         }
 
         (device1['connect'] as any)({
-          params: { CallerId: (env as any).callerId }
+          params: { CallerId: (env as any).callerId },
         });
       });
 

@@ -18,7 +18,6 @@ import {
   InvalidArgumentError,
   InvalidStateError,
   NotSupportedError,
-  SignalingErrors,
   TwilioError,
 } from './errors';
 import Log from './log';
@@ -403,11 +402,9 @@ class Device extends EventEmitter {
   private stream: IPStream | null = null;
 
   /**
-   * Construct a {@link Device} instance, without setting up up. {@link Device.setup} must
+   * Construct a {@link Device} instance, without setting up up. {@link Device.setToken} must
    * be called later to initialize the {@link Device}.
    * @constructor
-   * @param [token] - A Twilio JWT token string granting this {@link Device} access.
-   * @param [options]
    */
   constructor();
   /**
@@ -422,6 +419,31 @@ class Device extends EventEmitter {
 
     if (!token && options) {
       throw new InvalidArgumentError('Cannot construct a Device with options but without a token');
+    }
+
+    options = options || {};
+
+    if (isLegacyEdge()) {
+      throw new NotSupportedError(
+        'Microsoft Edge Legacy (https://support.microsoft.com/en-us/help/4533505/what-is-microsoft-edge-legacy) ' +
+        'is deprecated and will not be able to connect to Twilio to make or receive calls after September 1st, 2020. ' +
+        'Please see this documentation for a list of supported browsers ' +
+        'https://www.twilio.com/docs/voice/client/javascript#supported-browsers',
+      );
+    }
+
+    if (!Device.isSupported && options.ignoreBrowserSupport) {
+      if (window && window.location && window.location.protocol === 'http:') {
+        throw new NotSupportedError(`twilio.js wasn't able to find WebRTC browser support. \
+          This is most likely because this page is served over http rather than https, \
+          which does not support WebRTC in many browsers. Please load this page over https and \
+          try again.`);
+      }
+
+      throw new NotSupportedError(`twilio.js 1.3+ SDKs require WebRTC browser support. \
+        For more information, see <https://www.twilio.com/docs/api/client/twilio-js>. \
+        If you have any questions about this announcement, please contact \
+        Twilio Support at <help@twilio.com>.`);
     }
 
     if (window) {
@@ -455,8 +477,18 @@ class Device extends EventEmitter {
       }
     }
 
+    if (typeof Device._isUnifiedPlanDefault === 'undefined') {
+      Device._isUnifiedPlanDefault = typeof window !== 'undefined'
+        && typeof RTCPeerConnection !== 'undefined'
+        && typeof RTCRtpTransceiver !== 'undefined'
+      ? isUnifiedPlanDefault(window, window.navigator, RTCPeerConnection, RTCRtpTransceiver)
+      : false;
+    }
+
+    this.updateOptions(options);
+
     if (token) {
-      this.setup(token, options);
+      this.updateToken(token);
     }
   }
 
@@ -559,49 +591,46 @@ class Device extends EventEmitter {
   }
 
   /**
-   * Initialize the {@link Device}.
-   * @param token - A Twilio JWT token string granting this {@link Device} access.
+   * Get the status of this {@link Device} instance
+   */
+  status(): Device.Status {
+    this._throwUnlessSetup('status');
+    return this._activeConnection ? Device.Status.Busy : this._status;
+  }
+
+  /**
+   * String representation of {@link Device} instance.
+   * @private
+   */
+  toString() {
+    return '[Twilio.Device instance]';
+  }
+
+  /**
+   * Unregister to receiving incoming calls.
+   */
+  unregisterPresence(): this {
+    this._throwUnlessSetup('unregisterPresence');
+
+    this.mediaPresence.audio = false;
+    this._sendPresence();
+    return this;
+  }
+
+  /**
+   * Update the options used within the {@link Device}.
    * @param [options]
    */
-  setup(token: string, options: Device.Options = { }): this {
-    if (isLegacyEdge()) {
-      throw new NotSupportedError(
-        'Microsoft Edge Legacy (https://support.microsoft.com/en-us/help/4533505/what-is-microsoft-edge-legacy) ' +
-        'is deprecated and will not be able to connect to Twilio to make or receive calls after September 1st, 2020. ' +
-        'Please see this documentation for a list of supported browsers ' +
-        'https://www.twilio.com/docs/voice/client/javascript#supported-browsers',
-      );
-    }
-    if (!Device.isSupported && !options.ignoreBrowserSupport) {
-      if (window && window.location && window.location.protocol === 'http:') {
-        throw new NotSupportedError(`twilio.js wasn't able to find WebRTC browser support. \
-          This is most likely because this page is served over http rather than https, \
-          which does not support WebRTC in many browsers. Please load this page over https and \
-          try again.`);
-      }
-
-      throw new NotSupportedError(`twilio.js 1.3+ SDKs require WebRTC browser support. \
-        For more information, see <https://www.twilio.com/docs/api/client/twilio-js>. \
-        If you have any questions about this announcement, please contact \
-        Twilio Support at <help@twilio.com>.`);
-    }
-
-    if (!token) {
-      throw new InvalidArgumentError('Token is required for Device.setup()');
-    }
-
+  updateOptions(options: Device.Options = {}): void {
     if (
       this.isInitialized &&
       (this.connections.length > 0 || this.activeConnection())
     ) {
-      this._log.info('Existing Device has ongoing connections; using new token but ignoring options');
-      this.updateToken(token);
-      return this;
+      this._log.warn('Existing Device has ongoing connections; ignoring new options.');
+      return;
     }
 
     Object.assign(this.options, options);
-
-    this._status = Device.Status.Offline;
 
     this._log.setDefaultLevel(
       typeof this.options.logLevel === 'number'
@@ -616,14 +645,6 @@ class Device extends EventEmitter {
           undefined,
           this._log.warn.bind(this._log),
         ).map((uri: string) => `wss://${uri}/signal`);
-
-    if (typeof Device._isUnifiedPlanDefault === 'undefined') {
-      Device._isUnifiedPlanDefault = typeof window !== 'undefined'
-        && typeof RTCPeerConnection !== 'undefined'
-        && typeof RTCRtpTransceiver !== 'undefined'
-      ? isUnifiedPlanDefault(window, window.navigator, RTCPeerConnection, RTCRtpTransceiver)
-      : false;
-    }
 
     if (this.options.dscp) {
       if (!this.options.rtcConstraints) {
@@ -646,27 +667,6 @@ class Device extends EventEmitter {
       });
 
       this.soundcache.set(name as Device.SoundName, sound);
-    }
-
-    this._publisher = (this.options.Publisher || Publisher)(
-      PUBLISHER_PRODUCT_NAME,
-      token,
-      {
-        defaultPayload: this._createDefaultPayload,
-        host: this.options.eventgw,
-        metadata: {
-          app_name: this.options.appName,
-          app_version: this.options.appVersion,
-        },
-      },
-    );
-
-    if (this.options.publishEvents === false) {
-      this._publisher.disable();
-    } else {
-      this._publisher.on('error', (error: Error) => {
-        this._log.warn('Cannot connect to insights.', error);
-      });
     }
 
     this.audio = new (this.options.AudioHelper || AudioHelper)(
@@ -700,58 +700,50 @@ class Device extends EventEmitter {
 
     // Setup close protection and make sure we clean up ongoing calls on unload.
     if (typeof window !== 'undefined' && window.addEventListener) {
+      window.removeEventListener('unload', this.destroy);
       window.addEventListener('unload', this.destroy);
+
+      window.removeEventListener('pagehide', this.destroy);
       window.addEventListener('pagehide', this.destroy);
+
       if (this.options.closeProtection) {
+        window.removeEventListener('beforeunload', this._confirmClose);
         window.addEventListener('beforeunload', this._confirmClose);
       }
     }
 
-    if (this.stream) {
-      this._destroyStream();
-    }
-
     this.isInitialized = true;
-    this.updateToken(token);
 
-    return this;
+    if (this.token) {
+      if (this.stream) {
+        this._setupStream(this.token);
+      }
+      if (this._publisher) {
+        this._setupPublisher(this.token);
+      }
+    }
   }
 
   /**
-   * Get the status of this {@link Device} instance
-   */
-  status(): Device.Status {
-    this._throwUnlessSetup('status');
-    return this._activeConnection ? Device.Status.Busy : this._status;
-  }
-
-  /**
-   * String representation of {@link Device} instance.
-   * @private
-   */
-  toString() {
-    return '[Twilio.Device instance]';
-  }
-
-  /**
-   * Unregister to receiving incoming calls.
-   */
-  unregisterPresence(): this {
-    this._throwUnlessSetup('unregisterPresence');
-
-    this.mediaPresence.audio = false;
-    this._sendPresence();
-    return this;
-  }
-
-  /**
-   * Update the token and re-register.
-   * @param token - The new token JWT string to register with.
+   * Register the {@link Device}, updating the token if already registered.
+   * @param token
    */
   updateToken(token: string): void {
-    this._throwUnlessSetup('updateToken');
+    this._throwUnlessSetup('register');
+
     this.token = token;
-    this.register(token);
+
+    if (this.stream) {
+      this.stream.setToken(token);
+    } else {
+      this._setupStream(token);
+    }
+
+    if (this._publisher) {
+      this._publisher.setToken(token);
+    } else {
+      this._setupPublisher(token);
+    }
   }
 
   /**
@@ -821,9 +813,10 @@ class Device extends EventEmitter {
    * Destroy the connection to the signaling server.
    */
   private _destroyStream() {
-    if (!this.stream) {
-      throw new InvalidStateError('Attempt to destroy non-existent stream.');
-    }
+    // Attempt to destroy non-existent stream.
+    if (!this.stream) { return; }
+
+    this._status = Device.Status.Offline;
 
     this.stream.destroy();
     this.stream = null;
@@ -1142,10 +1135,41 @@ class Device extends EventEmitter {
   }
 
   /**
+   * Create and set a publisher for the {@link Device} to use.
+   */
+  private _setupPublisher(token: string) {
+    this._publisher = (this.options.Publisher || Publisher)(
+      PUBLISHER_PRODUCT_NAME,
+      token,
+      {
+        defaultPayload: this._createDefaultPayload,
+        host: this.options.eventgw,
+        metadata: {
+          app_name: this.options.appName,
+          app_version: this.options.appVersion,
+        },
+      },
+    );
+
+    if (this.options.publishEvents === false) {
+      this._publisher.disable();
+    } else {
+      this._publisher.on('error', (error: Error) => {
+        this._log.warn('Cannot connect to insights.', error);
+      });
+    }
+  }
+
+  /**
    * Set up the connection to the signaling server.
    * @param token
    */
   private _setupStream(token: string) {
+    if (this.stream) {
+      this._log.info('Found existing stream; destroying...');
+      this._destroyStream();
+    }
+
     this._log.info('Setting up VSP');
     this.stream = this.options.pStreamFactory(token, this._chunderURIs, {
       backoffMaxMs: this.options.backoffMaxMs,
@@ -1274,19 +1298,6 @@ class Device extends EventEmitter {
     return connection
       ? connection._setSinkIds(sinkIds)
       : Promise.resolve();
-  }
-
-  /**
-   * Register the {@link Device}
-   * @param token
-   */
-  private register(token: string): void {
-    if (this.stream) {
-      this.stream.setToken(token);
-      this._publisher.setToken(token);
-    } else {
-      this._setupStream(token);
-    }
   }
 }
 
