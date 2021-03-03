@@ -109,31 +109,31 @@ describe('Device', function() {
     });
 
     it('should set preflight to false by default', () => {
-      assert.equal(device['options'].preflight, false);
+      assert.equal(device['_options'].preflight, false);
     });
 
     it('should set preflight to false if passed in as false', () => {
       device = new Device(token, { ...setupOptions, preflight: false });
-      assert.equal(device['options'].preflight, false);
+      assert.equal(device['_options'].preflight, false);
     });
 
     it('should set preflight to true if passed in as true', () => {
       device = new Device(token, { ...setupOptions, preflight: true });
-      assert.equal(device['options'].preflight, true);
+      assert.equal(device['_options'].preflight, true);
     });
 
     it('should set forceAggressiveIceNomination to false by default', () => {
-      assert.equal(device['options'].forceAggressiveIceNomination, false);
+      assert.equal(device['_options'].forceAggressiveIceNomination, false);
     });
 
     it('should set forceAggressiveIceNomination to false if passed in as false', () => {
       device = new Device(token, { ...setupOptions, forceAggressiveIceNomination: false });
-      assert.equal(device['options'].forceAggressiveIceNomination, false);
+      assert.equal(device['_options'].forceAggressiveIceNomination, false);
     });
 
     it('should set forceAggressiveIceNomination to true if passed in as true', () => {
       device = new Device(token, { ...setupOptions, forceAggressiveIceNomination: true });
-      assert.equal(device['options'].forceAggressiveIceNomination, true);
+      assert.equal(device['_options'].forceAggressiveIceNomination, true);
     });
   });
 
@@ -169,7 +169,7 @@ describe('Device', function() {
 
       it('should stop playing the incoming sound', () => {
         const spy: any = { stop: sinon.spy() };
-        device['soundcache'].set(Device.SoundName.Incoming, spy);
+        device['_soundcache'].set(Device.SoundName.Incoming, spy);
         device.connect();
         sinon.assert.calledOnce(spy.stop);
       });
@@ -184,7 +184,7 @@ describe('Device', function() {
 
       it('should play outgoing sound after accepted if enabled', () => {
         const spy: any = { play: sinon.spy() };
-        device['soundcache'].set(Device.SoundName.Outgoing, spy);
+        device['_soundcache'].set(Device.SoundName.Outgoing, spy);
         device.connect();
         activeConnection._direction = 'OUTGOING';
         activeConnection.emit('accept');
@@ -320,17 +320,38 @@ describe('Device', function() {
         pStreamFactory.resetHistory();
       });
 
-      it('should reinitialize an existing stream and publisher', () => {
+      it('should reinitialize an existing stream if necessary', () => {
         const streamSpy = device['_setupStream'] = sinon.spy();
+
+        device.updateOptions({ ...options, edge: 'ashburn' });
+
+        sinon.assert.calledOnce(streamSpy);
+        sinon.assert.calledWith(streamSpy, token);
+      });
+
+      it('should reinitialize an existing publisher if necessary', () => {
+        const publisherSpy = device['_setupPublisher'] = sinon.spy();
+
+        device.updateOptions({ ...options, appName: 'foo' });
+
+        sinon.assert.calledOnce(publisherSpy);
+        sinon.assert.calledWith(publisherSpy, token);
+      });
+
+      it('should not reinitialize an existing stream if unnecessary', () => {
+        const streamSpy = device['_setupStream'] = sinon.spy();
+
+        device.updateOptions(options);
+
+        sinon.assert.notCalled(streamSpy);
+      });
+
+      it('should not reinitialize an existing publisher if unnecessary', () => {
         const publisherSpy = device['_setupPublisher'] = sinon.spy();
 
         device.updateOptions(options);
 
-        sinon.assert.calledOnce(streamSpy);
-        sinon.assert.calledWith(streamSpy, token);
-
-        sinon.assert.calledOnce(publisherSpy);
-        sinon.assert.calledWith(publisherSpy, token);
+        sinon.assert.notCalled(publisherSpy);
       });
 
       it('should use chunderw regardless', () => {
@@ -344,6 +365,10 @@ describe('Device', function() {
       });
 
       it('should use default chunder uri if no region or edge is passed in', () => {
+        device.updateOptions({ ...options, edge: 'singapore' });
+
+        pStreamFactory.resetHistory();
+
         device.updateOptions(options);
 
         sinon.assert.calledOnce(pStreamFactory);
@@ -426,7 +451,7 @@ describe('Device', function() {
       });
 
       it('should create a new stream and publisher', () => {
-        device['stream'] = null;
+        device['_stream'] = null;
         device['_publisher'] = null;
 
         device.updateToken(newToken);
@@ -493,7 +518,7 @@ describe('Device', function() {
     describe('on signaling.close', () => {
       it('should set stream to null', () => {
         pstream.emit('close');
-        assert.equal(device['stream'], null);
+        assert.equal(device['_stream'], null);
       });
     });
 
@@ -608,7 +633,7 @@ describe('Device', function() {
 
       it('should play the incoming sound', () => {
         const spy = { play: sinon.spy() };
-        device['soundcache'].set(Device.SoundName.Incoming, spy);
+        device['_soundcache'].set(Device.SoundName.Incoming, spy);
         pstream.emit('invite', { callsid: 'foo', sdp: 'bar' });
         sinon.assert.calledOnce(spy.play);
       });
@@ -628,7 +653,7 @@ describe('Device', function() {
 
         it('should not play the incoming sound', () => {
           const spy = { play: sinon.spy() };
-          device['soundcache'].set(Device.SoundName.Incoming, spy);
+          device['_soundcache'].set(Device.SoundName.Incoming, spy);
           pstream.emit('invite', { callsid: 'foo', sdp: 'bar' });
           sinon.assert.notCalled(spy.play);
         });
@@ -763,7 +788,7 @@ describe('Device', function() {
 
         it('should not play outgoing sound', () => {
           const spy: any = { play: sinon.spy() };
-          device['soundcache'].set(Device.SoundName.Outgoing, spy);
+          device['_soundcache'].set(Device.SoundName.Outgoing, spy);
           device.connections[0].emit('accept');
           sinon.assert.notCalled(spy.play);
         });

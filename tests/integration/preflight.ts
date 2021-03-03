@@ -91,7 +91,7 @@ describe('Preflight Test', function() {
     });
 
     it('should set default codePreferences', () => {
-      assert.deepEqual(callerDevice['options'].codecPreferences, [Connection.Codec.PCMU, Connection.Codec.Opus]);
+      assert.deepEqual(callerDevice['_options'].codecPreferences, [Connection.Codec.PCMU, Connection.Codec.Opus]);
     });
 
     it('should emit warning event', () => {
@@ -160,7 +160,7 @@ describe('Preflight Test', function() {
     });
 
     it('should use codecPreferences passed in', () => {
-      assert.deepEqual(callerDevice['options'].codecPreferences, [Connection.Codec.PCMU]);
+      assert.deepEqual(callerDevice['_options'].codecPreferences, [Connection.Codec.PCMU]);
     });
   });
 

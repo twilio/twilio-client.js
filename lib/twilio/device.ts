@@ -318,6 +318,25 @@ class Device extends EventEmitter {
   private _connectionSinkIds: string[] = ['default'];
 
   /**
+   * Default options used by {@link Device}.
+   */
+  private readonly _defaultOptions: Device.Options = {
+    allowIncomingWhileBusy: false,
+    closeProtection: false,
+    codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
+    connectionFactory: Connection,
+    dscp: true,
+    eventgw: 'eventgw.twilio.com',
+    forceAggressiveIceNomination: false,
+    logLevel: LogLevels.ERROR,
+    noRegister: false,
+    pStreamFactory: PStream,
+    preflight: false,
+    soundFactory: Sound,
+    sounds: {},
+  };
+
+  /**
    * The name of the edge the {@link Device} is connected to.
    */
   private _edge: string | null = null;
@@ -342,10 +361,20 @@ class Device extends EventEmitter {
   private _log: Log = Log.getInstance();
 
   /**
+   * Value of 'audio' determines whether we should be registered for incoming calls.
+   */
+  private _mediaPresence: { audio: boolean } = { audio: true };
+
+  /**
    * Network related information
    * See https://developer.mozilla.org/en-US/docs/Web/API/Network_Information_API
    */
   private _networkInformation: any;
+
+  /**
+   * The options passed to {@link Device} constructor or Device.setup.
+   */
+  private _options: Device.Options = {};
 
   /**
    * An Insights Event Publisher.
@@ -358,48 +387,24 @@ class Device extends EventEmitter {
   private _region: string | null = null;
 
   /**
+   * A timeout ID for a setTimeout schedule to re-register the {@link Device}.
+   */
+  private _regTimer: NodeJS.Timer | null = null;
+
+  /**
+   * A Map of Sounds to play.
+   */
+  private _soundcache: Map<Device.SoundName, ISound> = new Map();
+
+  /**
    * The current status of the {@link Device}.
    */
   private _status: Device.Status = Device.Status.Offline;
 
   /**
-   * Value of 'audio' determines whether we should be registered for incoming calls.
-   */
-  private mediaPresence: { audio: boolean } = { audio: true };
-
-  /**
-   * The options passed to {@link Device} constructor or Device.setup.
-   */
-  private options: Device.Options = {
-    allowIncomingWhileBusy: false,
-    closeProtection: false,
-    codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
-    connectionFactory: Connection,
-    dscp: true,
-    eventgw: 'eventgw.twilio.com',
-    forceAggressiveIceNomination: false,
-    logLevel: LogLevels.ERROR,
-    noRegister: false,
-    pStreamFactory: PStream,
-    preflight: false,
-    soundFactory: Sound,
-    sounds: { },
-  };
-
-  /**
-   * A timeout ID for a setTimeout schedule to re-register the {@link Device}.
-   */
-  private regTimer: NodeJS.Timer | null = null;
-
-  /**
-   * A Map of Sounds to play.
-   */
-  private soundcache: Map<Device.SoundName, ISound> = new Map();
-
-  /**
    * The Signaling stream.
    */
-  private stream: IPStream | null = null;
+  private _stream: IPStream | null = null;
 
   /**
    * Construct a {@link Device} instance, without setting up up. {@link Device.setToken} must
@@ -421,7 +426,7 @@ class Device extends EventEmitter {
       throw new InvalidArgumentError('Cannot construct a Device with options but without a token');
     }
 
-    options = options || {};
+    options = { ...options };
 
     if (isLegacyEdge()) {
       throw new NotSupportedError(
@@ -520,7 +525,7 @@ class Device extends EventEmitter {
     this.connections.splice(0).forEach(conn => conn.ignore());
 
     // Stop the incoming sound if it's playing
-    this.soundcache.get(Device.SoundName.Incoming).stop();
+    this._soundcache.get(Device.SoundName.Incoming).stop();
 
     connection.accept({ rtcConstraints: options.rtcConstraints });
     this._publishNetworkChange();
@@ -538,7 +543,7 @@ class Device extends EventEmitter {
       this.audio._unbind();
     }
 
-    if (this.stream) {
+    if (this._stream) {
       this._destroyStream();
     }
 
@@ -575,7 +580,7 @@ class Device extends EventEmitter {
    */
   registerPresence(): this {
     this._throwUnlessSetup('registerPresence');
-    this.mediaPresence.audio = true;
+    this._mediaPresence.audio = true;
     this._sendPresence();
     return this;
   }
@@ -612,7 +617,7 @@ class Device extends EventEmitter {
   unregisterPresence(): this {
     this._throwUnlessSetup('unregisterPresence');
 
-    this.mediaPresence.audio = false;
+    this._mediaPresence.audio = false;
     this._sendPresence();
     return this;
   }
@@ -630,27 +635,44 @@ class Device extends EventEmitter {
       return;
     }
 
-    Object.assign(this.options, options);
+    const originalOptions = { ...this._options };
+    const newOptions = this._options = { ...this._defaultOptions, ...options };
 
     this._log.setDefaultLevel(
-      typeof this.options.logLevel === 'number'
-        ? this.options.logLevel
+      typeof this._options.logLevel === 'number'
+        ? this._options.logLevel
         : LogLevels.ERROR,
     );
 
-    this._chunderURIs = this.options.chunderw
-      ? [`wss://${this.options.chunderw}/signal`]
+    const originalChunderURIs: Set<string> = new Set(this._chunderURIs);
+
+    const newChunderURIs = this._options.chunderw
+      ? [`wss://${this._options.chunderw}/signal`]
       : getChunderURIs(
-          this.options.edge,
+          this._options.edge,
           undefined,
           this._log.warn.bind(this._log),
         ).map((uri: string) => `wss://${uri}/signal`);
 
-    if (this.options.dscp) {
-      if (!this.options.rtcConstraints) {
-        this.options.rtcConstraints = { };
+    this._chunderURIs = newChunderURIs;
+
+    let hasChunderURIsChanged =
+      originalChunderURIs.size !== newChunderURIs.length;
+
+    if (!hasChunderURIsChanged) {
+      for (const uri of newChunderURIs) {
+        if (!originalChunderURIs.has(uri)) {
+          hasChunderURIsChanged = true;
+          break;
+        }
       }
-      (this.options.rtcConstraints as any).optional = [{ googDscp: true }];
+    }
+
+    if (this._options.dscp) {
+      if (!this._options.rtcConstraints) {
+        this._options.rtcConstraints = { };
+      }
+      (this._options.rtcConstraints as any).optional = [{ googDscp: true }];
     }
 
     for (const name of Object.keys(Device._defaultSounds)) {
@@ -659,17 +681,17 @@ class Device extends EventEmitter {
       const defaultUrl: string = `${C.SOUNDS_BASE_URL}/${soundDef.filename}.${Device.extension}`
         + `?cache=${C.RELEASE_VERSION}`;
 
-      const soundUrl: string = this.options.sounds && this.options.sounds[name as Device.SoundName] || defaultUrl;
-      const sound: any = new this.options.soundFactory(name, soundUrl, {
-        audioContext: this.options.disableAudioContextSounds ? null : Device.audioContext,
+      const soundUrl: string = this._options.sounds && this._options.sounds[name as Device.SoundName] || defaultUrl;
+      const sound: any = new this._options.soundFactory(name, soundUrl, {
+        audioContext: this._options.disableAudioContextSounds ? null : Device.audioContext,
         maxDuration: soundDef.maxDuration,
         shouldLoop: soundDef.shouldLoop,
       });
 
-      this.soundcache.set(name as Device.SoundName, sound);
+      this._soundcache.set(name as Device.SoundName, sound);
     }
 
-    this.audio = new (this.options.AudioHelper || AudioHelper)(
+    this.audio = new (this._options.AudioHelper || AudioHelper)(
       this._updateSinkIds,
       this._updateInputStream,
       getUserMedia,
@@ -696,7 +718,7 @@ class Device extends EventEmitter {
       this._log.warn('Unable to instantiate an `AudioHelper`.');
     }
 
-    this.mediaPresence.audio = !this.options.noRegister;
+    this._mediaPresence.audio = !this._options.noRegister;
 
     // Setup close protection and make sure we clean up ongoing calls on unload.
     if (typeof window !== 'undefined' && window.addEventListener) {
@@ -706,7 +728,7 @@ class Device extends EventEmitter {
       window.removeEventListener('pagehide', this.destroy);
       window.addEventListener('pagehide', this.destroy);
 
-      if (this.options.closeProtection) {
+      if (this._options.closeProtection) {
         window.removeEventListener('beforeunload', this._confirmClose);
         window.addEventListener('beforeunload', this._confirmClose);
       }
@@ -715,10 +737,21 @@ class Device extends EventEmitter {
     this.isInitialized = true;
 
     if (this.token) {
-      if (this.stream) {
+      const shouldReinitializeStream: boolean = this._stream &&
+        (hasChunderURIsChanged ||
+        originalOptions.pStreamFactory !== newOptions.pStreamFactory ||
+        originalOptions.backoffMaxMs !== newOptions.backoffMaxMs);
+
+      if (shouldReinitializeStream) {
         this._setupStream(this.token);
       }
-      if (this._publisher) {
+
+      const shouldReinitializePublisher: boolean = this._publisher &&
+        (originalOptions.eventgw !== newOptions.eventgw ||
+        originalOptions.appName !== newOptions.appName ||
+        originalOptions.appVersion !== newOptions.appVersion);
+
+      if (shouldReinitializePublisher) {
         this._setupPublisher(this.token);
       }
     }
@@ -733,8 +766,8 @@ class Device extends EventEmitter {
 
     this.token = token;
 
-    if (this.stream) {
-      this.stream.setToken(token);
+    if (this._stream) {
+      this._stream.setToken(token);
     } else {
       this._setupStream(token);
     }
@@ -768,7 +801,7 @@ class Device extends EventEmitter {
   private _confirmClose = (event: any): string => {
     if (!this._activeConnection) { return ''; }
 
-    const closeProtection: boolean | string = this.options.closeProtection || false;
+    const closeProtection: boolean | string = this._options.closeProtection || false;
     const confirmationMsg: string = typeof closeProtection !== 'string'
       ? 'A call is currently in-progress. Leaving or reloading this page will end the call.'
       : closeProtection;
@@ -783,9 +816,9 @@ class Device extends EventEmitter {
    */
   private _createDefaultPayload = (connection?: Connection): Record<string, any> => {
     const payload: Record<string, any> = {
-      aggressive_nomination: this.options.forceAggressiveIceNomination,
+      aggressive_nomination: this._options.forceAggressiveIceNomination,
       browser_extension: this._isBrowserExtension,
-      dscp: !!this.options.dscp,
+      dscp: !!this._options.dscp,
       ice_restart_enabled: true,
       platform: rtc.getMediaEngine(),
       sdk_version: C.RELEASE_VERSION,
@@ -803,10 +836,21 @@ class Device extends EventEmitter {
       payload.direction = connection.direction;
     }
 
-    setIfDefined('gateway', this.stream && this.stream.gateway);
-    setIfDefined('region', this.stream && this.stream.region);
+    setIfDefined('gateway', this._stream && this._stream.gateway);
+    setIfDefined('region', this._stream && this._stream.region);
 
     return payload;
+  }
+
+  /**
+   * Destroy the publisher.
+   */
+  private _destroyPublisher() {
+    // Attempt to destroy non-existent publisher.
+    if (!this._publisher) { return; }
+
+    this._publisher.removeAllListeners();
+    this._publisher = null;
   }
 
   /**
@@ -814,12 +858,12 @@ class Device extends EventEmitter {
    */
   private _destroyStream() {
     // Attempt to destroy non-existent stream.
-    if (!this.stream) { return; }
+    if (!this._stream) { return; }
 
     this._status = Device.Status.Offline;
 
-    this.stream.destroy();
-    this.stream = null;
+    this._stream.destroy();
+    this._stream = null;
   }
 
   /**
@@ -857,14 +901,14 @@ class Device extends EventEmitter {
       audioHelper: this.audio,
       getUserMedia,
       isUnifiedPlanDefault: Device._isUnifiedPlanDefault,
-      pstream: this.stream,
+      pstream: this._stream,
       publisher: this._publisher,
-      soundcache: this.soundcache,
+      soundcache: this._soundcache,
     };
 
     options = Object.assign({
-      MediaStream: this.options.MediaStream
-        || this.options.mediaStreamFactory
+      MediaStream: this._options.MediaStream
+        || this._options.mediaStreamFactory
         || rtc.PeerConnection,
       beforeAccept: (conn: Connection) => {
         if (!this._activeConnection || this._activeConnection === conn) {
@@ -874,20 +918,20 @@ class Device extends EventEmitter {
         this._activeConnection.disconnect();
         this._removeConnection(this._activeConnection);
       },
-      codecPreferences: this.options.codecPreferences,
+      codecPreferences: this._options.codecPreferences,
       dialtonePlayer: Device._dialtonePlayer,
-      dscp: this.options.dscp,
-      forceAggressiveIceNomination: this.options.forceAggressiveIceNomination,
-      getInputStream: (): MediaStream | null => this.options.fileInputStream || this._connectionInputStream,
+      dscp: this._options.dscp,
+      forceAggressiveIceNomination: this._options.forceAggressiveIceNomination,
+      getInputStream: (): MediaStream | null => this._options.fileInputStream || this._connectionInputStream,
       getSinkIds: (): string[] => this._connectionSinkIds,
-      maxAverageBitrate: this.options.maxAverageBitrate,
-      preflight: this.options.preflight,
-      rtcConstraints: this.options.rtcConstraints,
+      maxAverageBitrate: this._options.maxAverageBitrate,
+      preflight: this._options.preflight,
+      rtcConstraints: this._options.rtcConstraints,
       shouldPlayDisconnect: () => this._enabledSounds.disconnect,
       twimlParams,
     }, options);
 
-    const connection = new this.options.connectionFactory(config, options);
+    const connection = new this._options.connectionFactory(config, options);
 
     connection.once('accept', () => {
       this._removeConnection(connection);
@@ -897,11 +941,11 @@ class Device extends EventEmitter {
       }
 
       if (connection.direction === Connection.CallDirection.Outgoing && this._enabledSounds.outgoing) {
-        this.soundcache.get(Device.SoundName.Outgoing).play();
+        this._soundcache.get(Device.SoundName.Outgoing).play();
       }
 
       const data: any = { edge: this._edge || this._region };
-      const selectedEdge = this.options.edge;
+      const selectedEdge = this._options.edge;
       if (selectedEdge) {
         data['selected_edge'] = Array.isArray(selectedEdge) ? selectedEdge : [selectedEdge];
       }
@@ -967,7 +1011,7 @@ class Device extends EventEmitter {
    */
   private _maybeStopIncomingSound(): void {
     if (!this.connections.length) {
-      this.soundcache.get(Device.SoundName.Incoming).stop();
+      this._soundcache.get(Device.SoundName.Incoming).stop();
     }
   }
 
@@ -975,7 +1019,7 @@ class Device extends EventEmitter {
    * Called when a 'close' event is received from the signaling stream.
    */
   private _onSignalingClose = () => {
-    this.stream = null;
+    this._stream = null;
   }
 
   /**
@@ -1032,7 +1076,7 @@ class Device extends EventEmitter {
    */
   private _onSignalingInvite = (payload: Record<string, any>) => {
     const wasBusy = !!this._activeConnection;
-    if (wasBusy && !this.options.allowIncomingWhileBusy) {
+    if (wasBusy && !this._options.allowIncomingWhileBusy) {
       this._log.info('Device busy; ignoring incoming invite');
       return;
     }
@@ -1054,12 +1098,12 @@ class Device extends EventEmitter {
     this.connections.push(connection);
 
     connection.once('accept', () => {
-      this.soundcache.get(Device.SoundName.Incoming).stop();
+      this._soundcache.get(Device.SoundName.Incoming).stop();
       this._publishNetworkChange();
     });
 
     const play = (this._enabledSounds.incoming && !wasBusy)
-      ? () => this.soundcache.get(Device.SoundName.Incoming).play()
+      ? () => this._soundcache.get(Device.SoundName.Incoming).play()
       : () => Promise.resolve();
 
     this._showIncomingConnection(connection, play);
@@ -1124,10 +1168,10 @@ class Device extends EventEmitter {
    * Register with the signaling server.
    */
   private _sendPresence(): void {
-    if (!this.stream) { return; }
+    if (!this._stream) { return; }
 
-    this.stream.register({ audio: this.mediaPresence.audio });
-    if (this.mediaPresence.audio) {
+    this._stream.register({ audio: this._mediaPresence.audio });
+    if (this._mediaPresence.audio) {
       this._startRegistrationTimer();
     } else {
       this._stopRegistrationTimer();
@@ -1136,22 +1180,28 @@ class Device extends EventEmitter {
 
   /**
    * Create and set a publisher for the {@link Device} to use.
+   * @param token
    */
   private _setupPublisher(token: string) {
-    this._publisher = (this.options.Publisher || Publisher)(
+    if (this._publisher) {
+      this._log.info('Found existing publisher; destroying...');
+      this._destroyPublisher();
+    }
+
+    this._publisher = (this._options.Publisher || Publisher)(
       PUBLISHER_PRODUCT_NAME,
       token,
       {
         defaultPayload: this._createDefaultPayload,
-        host: this.options.eventgw,
+        host: this._options.eventgw,
         metadata: {
-          app_name: this.options.appName,
-          app_version: this.options.appVersion,
+          app_name: this._options.appName,
+          app_version: this._options.appVersion,
         },
       },
     );
 
-    if (this.options.publishEvents === false) {
+    if (this._options.publishEvents === false) {
       this._publisher.disable();
     } else {
       this._publisher.on('error', (error: Error) => {
@@ -1165,22 +1215,22 @@ class Device extends EventEmitter {
    * @param token
    */
   private _setupStream(token: string) {
-    if (this.stream) {
+    if (this._stream) {
       this._log.info('Found existing stream; destroying...');
       this._destroyStream();
     }
 
     this._log.info('Setting up VSP');
-    this.stream = this.options.pStreamFactory(token, this._chunderURIs, {
-      backoffMaxMs: this.options.backoffMaxMs,
+    this._stream = this._options.pStreamFactory(token, this._chunderURIs, {
+      backoffMaxMs: this._options.backoffMaxMs,
     });
 
-    this.stream.addListener('close', this._onSignalingClose);
-    this.stream.addListener('connected', this._onSignalingConnected);
-    this.stream.addListener('error', this._onSignalingError);
-    this.stream.addListener('invite', this._onSignalingInvite);
-    this.stream.addListener('offline', this._onSignalingOffline);
-    this.stream.addListener('ready', this._onSignalingReady);
+    this._stream.addListener('close', this._onSignalingClose);
+    this._stream.addListener('connected', this._onSignalingConnected);
+    this._stream.addListener('error', this._onSignalingError);
+    this._stream.addListener('invite', this._onSignalingInvite);
+    this._stream.addListener('offline', this._onSignalingOffline);
+    this._stream.addListener('ready', this._onSignalingReady);
   }
 
   /**
@@ -1211,7 +1261,7 @@ class Device extends EventEmitter {
    */
   private _startRegistrationTimer(): void {
     this._stopRegistrationTimer();
-    this.regTimer = setTimeout(() => {
+    this._regTimer = setTimeout(() => {
       this._sendPresence();
     }, REGISTRATION_INTERVAL);
   }
@@ -1220,8 +1270,8 @@ class Device extends EventEmitter {
    * Stop sending registration messages to the signaling server.
    */
   private _stopRegistrationTimer(): void {
-    if (this.regTimer) {
-      clearTimeout(this.regTimer);
+    if (this._regTimer) {
+      clearTimeout(this._regTimer);
     }
   }
 
@@ -1256,7 +1306,7 @@ class Device extends EventEmitter {
    * @param sinkIds - An array of device IDs
    */
   private _updateRingtoneSinkIds(sinkIds: string[]): Promise<void> {
-    return Promise.resolve(this.soundcache.get(Device.SoundName.Incoming).setSinkIds(sinkIds));
+    return Promise.resolve(this._soundcache.get(Device.SoundName.Incoming).setSinkIds(sinkIds));
   }
 
   /**
@@ -1289,7 +1339,7 @@ class Device extends EventEmitter {
    * @param sinkIds - An array of device IDs
    */
   private _updateSpeakerSinkIds(sinkIds: string[]): Promise<void> {
-    Array.from(this.soundcache.entries())
+    Array.from(this._soundcache.entries())
       .filter(entry => entry[0] !== Device.SoundName.Incoming)
       .forEach(entry => entry[1].setSinkIds(sinkIds));
 
