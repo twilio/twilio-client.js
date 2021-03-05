@@ -6,7 +6,7 @@
  */
 import { EventEmitter } from 'events';
 import Connection from '../connection';
-import Device from '../device';
+import Device, { IExtendedDeviceOptions } from '../device';
 import { NotSupportedError } from '../errors';
 import { RTCSampleTotals } from '../rtc/sample';
 import RTCSample from '../rtc/sample';
@@ -130,9 +130,9 @@ export class PreflightTest extends EventEmitter {
    */
   private _options: PreflightTest.ExtendedOptions = {
     codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
-    debug: false,
     edge: 'roaming',
     fakeMicInput: false,
+    logLevel: 'error',
     signalingTimeoutMs: 10000,
   };
 
@@ -345,15 +345,22 @@ export class PreflightTest extends EventEmitter {
    */
   private _initDevice(token: string, options: PreflightTest.ExtendedOptions): void {
     try {
-      this._device = new (options.deviceFactory || Device)(token, {
+      this._device = new (options.deviceFactory || Device)({
         codecPreferences: options.codecPreferences,
-        debug: options.debug,
-        edge: options.edge,
         fileInputStream: options.fileInputStream,
-        iceServers: options.iceServers,
+        logLevel: options.logLevel,
         preflight: true,
-        rtcConfiguration: options.rtcConfiguration,
+      } as IExtendedDeviceOptions);
+
+      this._device.once('ready', () => {
+        this._onDeviceReady();
       });
+
+      this._device.once('error', (error: Device.Error) => {
+        this._onDeviceError(error);
+      });
+
+      this._device.register(token, { edge: options.edge });
     } catch (error) {
       // We want to return before failing so the consumer can capture the event
       setTimeout(() => {
@@ -361,14 +368,6 @@ export class PreflightTest extends EventEmitter {
       });
       return;
     }
-
-    this._device.once('ready', () => {
-      this._onDeviceReady();
-    });
-
-    this._device.once('error', (error: Device.Error) => {
-      this._onDeviceError(error);
-    });
 
     this._signalingTimeoutTimer = setTimeout(() => {
       this._onDeviceError({
@@ -394,7 +393,9 @@ export class PreflightTest extends EventEmitter {
     clearTimeout(this._echoTimer);
     clearTimeout(this._signalingTimeoutTimer);
 
-    this._connection = this._device.connect();
+    this._connection = this._device.connect({
+      rtcConfiguration: this._options.rtcConfiguration,
+    });
     this._networkTiming.signaling = { start: Date.now() };
     this._setupConnectionHandlers(this._connection);
 
@@ -693,7 +694,7 @@ export namespace PreflightTest {
     /**
      * Device class to use.
      */
-    deviceFactory?: new (token: string, options: Device.Options) => Device;
+    deviceFactory?: typeof Device;
 
     /**
      * File input stream to use instead of reading from mic
@@ -706,7 +707,7 @@ export namespace PreflightTest {
     getRTCIceCandidateStatsReport?: Function;
 
     /**
-     * An RTCConfiguration to pass to the RTCPeerConnection constructor during `Device.setup`.
+     * An RTCConfiguration to pass to the RTCPeerConnection constructor.
      */
     rtcConfiguration?: RTCConfiguration;
   }
@@ -736,12 +737,6 @@ export namespace PreflightTest {
      * @default ['pcmu','opus']
      */
     codecPreferences?: Connection.Codec[];
-
-    /**
-     * Whether to enable debug logging.
-     * @default false
-     */
-    debug?: boolean;
 
     /**
      * Specifies which Twilio Data Center to use when initiating the test call.
@@ -799,6 +794,12 @@ export namespace PreflightTest {
      * @default null
      */
     iceServers?: RTCIceServer[];
+
+    /**
+     * Log level to use in the Device.
+     * @default 'error'
+     */
+    logLevel?: string;
 
     /**
      * Amount of time to wait for setting up signaling connection.

@@ -34,15 +34,15 @@ describe('Preflight Test', function() {
     return Promise.race([promise, timeoutPromise]).then(() => clearTimeout(timer));
   };
 
-  const setupDevices = () => {
+  const setupDevices = async () => {
     receiverIdentity = 'id1-' + Date.now();
     callerIdentity = 'id2-' + Date.now();
 
     const receiverToken = generateAccessToken(receiverIdentity);
     callerToken = generateAccessToken(callerIdentity);
-    receiverDevice = new Device(receiverToken);
-
-    return expectEvent('ready', receiverDevice);
+    receiverDevice = new Device();
+    receiverDevice.on('error', () => { });
+    await receiverDevice.register(receiverToken);
   };
 
   const destroyDevices = () => {

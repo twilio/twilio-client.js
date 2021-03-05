@@ -24,15 +24,10 @@ describe('Device', function() {
     device1 = new Device();
     device2 = new Device();
 
-    const devicePromises = Promise.all([
-      expectEvent('ready', device1),
-      expectEvent('ready', device2),
+    return Promise.all([
+      device1.register(token1),
+      device2.register(token2),
     ]);
-
-    device1.updateToken(token1);
-    device2.updateToken(token2);
-
-    return devicePromises;
   });
 
   after(() => {
@@ -60,8 +55,8 @@ describe('Device', function() {
       let connection2: Connection;
 
       beforeEach(() => {
-        const conn1: Connection | undefined | null = device1.activeConnection() || device1.connections[0];
-        const conn2: Connection | undefined | null = device2.activeConnection() || device2.connections[0];
+        const conn1: Connection | undefined | null = device1.activeConnection || device1.connections[0];
+        const conn2: Connection | undefined | null = device2.activeConnection || device2.connections[0];
 
         if (!conn1 || !conn2) {
           throw new Error(`Connections weren't both open at beforeEach`);
@@ -123,7 +118,7 @@ describe('Device', function() {
       });
 
       it('should update network priority to high if supported', () => {
-        const conn = device2 && device2.activeConnection();
+        const conn = device2 && device2.activeConnection;
         if (!conn || !conn['_mediaHandler'] || !conn['_mediaHandler']._sender) {
           throw new Error('Expected sender to be present');
         }

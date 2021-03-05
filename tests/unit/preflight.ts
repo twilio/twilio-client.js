@@ -25,11 +25,9 @@ describe('PreflightTest', () => {
   let wait: any;
 
   const getDeviceFactory = (context: any) => {
-    const factory = function(this: any, token: string, options: PreflightTest.Options) {
+    const factory = function(this: any, options: PreflightTest.Options) {
       Object.assign(this, context);
-      if (token) {
-        this.setup(token, options);
-      }
+      this.setOptions(options);
       device = this;
     };
     inherits(factory, EventEmitter);
@@ -97,12 +95,13 @@ describe('PreflightTest', () => {
         disconnect: sinon.stub(),
         outgoing: sinon.stub(),
       },
-      setup: sinon.stub(),
       connect: sinon.stub().returns(connection),
       destroy: sinon.stub(),
       disconnectAll: sinon.stub(),
-      region: sinon.stub().returns('foobar-region'),
       edge: null,
+      region: sinon.stub().returns('foobar-region'),
+      register: sinon.stub(),
+      setOptions: sinon.stub(),
     };
     edgeStub = sinon.stub().returns('foobar-edge');
     sinon.stub(deviceContext, 'edge').get(edgeStub);
@@ -130,85 +129,77 @@ describe('PreflightTest', () => {
   describe('constructor', () => {
     it('should pass defaults to device', () => {
       const preflight = new PreflightTest('foo', options);
-      sinon.assert.calledWith(deviceContext.setup, 'foo', {
+      sinon.assert.calledWith(deviceContext.setOptions, {
         codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
-        debug: false,
-        edge: 'roaming',
         fileInputStream: undefined,
-        iceServers: undefined,
+        logLevel: 'error',
         preflight: true,
-        rtcConfiguration: undefined,
+      });
+      sinon.assert.calledWith(deviceContext.register, 'foo', {
+        edge: 'roaming',
       });
     });
 
     it('should pass codecPreferences to device', () => {
       options.codecPreferences = [Connection.Codec.PCMU];
       const preflight = new PreflightTest('foo', options);
-      sinon.assert.calledWith(deviceContext.setup, 'foo', {
+      sinon.assert.calledWith(deviceContext.setOptions, {
         codecPreferences: options.codecPreferences,
-        debug: false,
-        edge: 'roaming',
         fileInputStream: undefined,
-        iceServers: undefined,
+        logLevel: 'error',
         preflight: true,
-        rtcConfiguration: undefined,
+      });
+      sinon.assert.calledWith(deviceContext.register, 'foo', {
+        edge: 'roaming',
       });
     });
 
-    it('should pass debug to device', () => {
-      options.debug = true;
+    it('should pass logLevel to device', () => {
+      options.logLevel = 'debug';
       const preflight = new PreflightTest('foo', options);
-      sinon.assert.calledWith(deviceContext.setup, 'foo', {
+      sinon.assert.calledWith(deviceContext.setOptions, {
         codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
-        debug: true,
-        edge: 'roaming',
         fileInputStream: undefined,
-        iceServers: undefined,
+        logLevel: 'debug',
         preflight: true,
-        rtcConfiguration: undefined,
+      });
+      sinon.assert.calledWith(deviceContext.register, 'foo', {
+        edge: 'roaming',
       });
     });
 
     it('should pass edge to device', () => {
       options.edge = 'ashburn';
       const preflight = new PreflightTest('foo', options);
-      sinon.assert.calledWith(deviceContext.setup, 'foo', {
+      sinon.assert.calledWith(deviceContext.setOptions, {
         codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
-        debug: false,
-        edge: options.edge,
         fileInputStream: undefined,
-        iceServers: undefined,
+        logLevel: 'error',
         preflight: true,
-        rtcConfiguration: undefined,
       });
       sinon.assert.calledOnce(edgeStub);
-    });
-
-    it('should pass iceServers to device', () => {
-      options.iceServers = 'foo';
-      const preflight = new PreflightTest('foo', options);
-      sinon.assert.calledWith(deviceContext.setup, 'foo', {
-        codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
-        debug: false,
-        edge: 'roaming',
-        fileInputStream: undefined,
-        iceServers: 'foo',
-        preflight: true,
-        rtcConfiguration: undefined,
+      sinon.assert.calledWith(deviceContext.register, 'foo', {
+        edge: options.edge,
       });
     });
 
-    it('should pass rtcConfiguration to device', () => {
+    it('should pass rtcConfiguration to device.connect', () => {
       options.rtcConfiguration = {foo: 'foo', iceServers: 'bar'};
       const preflight = new PreflightTest('foo', options);
-      sinon.assert.calledWith(deviceContext.setup, 'foo', {
-        codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
-        debug: false,
-        edge: 'roaming',
-        fileInputStream: undefined,
-        iceServers: undefined,
-        preflight: true,
-        rtcConfiguration: {foo: 'foo', iceServers: 'bar'},
+      device.emit('ready');
+      return wait().then(() => {
+        sinon.assert.calledWith(deviceContext.setOptions, {
+          codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
+          fileInputStream: undefined,
+          logLevel: 'error',
+          preflight: true,
+        });
+        sinon.assert.calledWith(deviceContext.register, 'foo', {
+          edge: 'roaming',
+        });
+        sinon.assert.calledWith(deviceContext.connect, {
+          rtcConfiguration: options.rtcConfiguration,
+        });
       });
     });
   });
@@ -222,9 +213,7 @@ describe('PreflightTest', () => {
 
     beforeEach(() => {
       originalAudio = root.Audio;
-      stream = {
-        name: 'foo'
-      };
+      stream = { name: 'foo' };
       root.Audio = function() {
         this.addEventListener = (name: string, handler: Function) => {
           handler();
@@ -236,7 +225,7 @@ describe('PreflightTest', () => {
       options.audioContext = {
         createMediaElementSource: () => ({connect: sinon.stub()}),
         createMediaStreamDestination: () => ({stream}),
-      }
+      };
     });
 
     afterEach(() => {
@@ -250,28 +239,28 @@ describe('PreflightTest', () => {
 
     it('should set fakeMicInput to false by default', () => {
       preflight = new PreflightTest('foo', options);
-      sinon.assert.calledWith(deviceContext.setup, 'foo', {
+      sinon.assert.calledWith(deviceContext.setOptions, {
         codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
-        debug: false,
-        edge: 'roaming',
         fileInputStream: undefined,
-        iceServers: undefined,
+        logLevel: 'error',
         preflight: true,
-        rtcConfiguration: undefined,
+      });
+      sinon.assert.calledWith(deviceContext.register, 'foo', {
+        edge: 'roaming',
       });
     });
 
     it('should pass file input if fakeMicInput is true', () => {
       preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
       return wait().then(() => {
-        sinon.assert.calledWith(deviceContext.setup, 'foo', {
+        sinon.assert.calledWith(deviceContext.setOptions, {
           codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
-          debug: false,
-          edge: 'roaming',
           fileInputStream: stream,
-          iceServers: undefined,
+          logLevel: 'error',
           preflight: true,
-          rtcConfiguration: undefined,
+        });
+        sinon.assert.calledWith(deviceContext.register, 'foo', {
+          edge: 'roaming',
         });
       });
     });
@@ -848,7 +837,7 @@ describe('PreflightTest', () => {
     });
 
     it('should emit failed if Device failed to initialized', () => {
-      deviceContext.setup = () => {
+      deviceContext.setOptions = () => {
         throw 'foo';
       };
 
