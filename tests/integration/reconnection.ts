@@ -49,10 +49,10 @@ describe('Reconnection', function() {
     identity2 = 'id2-' + Date.now();
     token1 = generateAccessToken(identity1);
     token2 = generateAccessToken(identity2);
-    device1 = new Device(token1, options);
-    device2 = new Device(token2, options);
+    device1 = new Device(options);
+    device2 = new Device(options);
 
-    return Promise.all([
+    const testReady = Promise.all([
       expectEvent('ready', device1),
       expectEvent('ready', device2),
     ]).then(() => new Promise((resolve) => {
@@ -65,6 +65,14 @@ describe('Reconnection', function() {
         params: { To: identity2, Custom1: 'foo + bar', Custom2: undefined, Custom3: '我不吃蛋' }
       });
     }));
+
+    device1.on('error', () => { });
+    device2.on('error', () => { });
+
+    device1.register(token1);
+    device2.register(token2);
+
+    return testReady;
   };
 
   const destroyDevices = () => {

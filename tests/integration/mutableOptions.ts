@@ -17,22 +17,23 @@ describe('mutable options', function() {
     token = generateAccessToken(id);
   });
 
+  afterEach(() => {
+    if (device) {
+      device.disconnectAll();
+      device.destroy();
+    }
+  });
+
   it('should update edge', async function() {
     this.timeout(10000);
 
-    const edge1 = await new Promise(resolve => {
-      device = new Device(token, { edge: 'sydney' });
-      device.on(Device.EventName.Ready, d => resolve(d.edge));
-    });
+    device = new Device();
 
-    assert.equal(edge1, 'sydney');
+    await device.register(token, { edge: 'sydney' });
+    assert.equal(device.edge, 'sydney');
 
-    const edge2 = await new Promise(resolve => {
-      device = new Device(token, { edge: 'ashburn' });
-      device.on(Device.EventName.Ready, d => resolve(d.edge));
-    });
-
-    assert.equal(edge2, 'ashburn');
+    await device.register(token, { edge: 'ashburn' });
+    assert.equal(device.edge, 'ashburn');
   });
 
   context('ongoing connections', function() {
@@ -54,14 +55,13 @@ describe('mutable options', function() {
       [
         [caller, callerId, callerToken],
         [receiver, receiverId, receiverToken],
-      ] = await Promise.all(
-        ['caller', 'receiver'].map(n => new Promise<[Device, string, string]>(resolve => {
-          const id = `device-${n}-${timestamp}`;
-          const t = generateAccessToken(id);
-          const dev = new Device(t);
-          dev.once(Device.EventName.Ready, d => resolve([d, id, t]));
-        })),
-      );
+      ] = await Promise.all(['caller', 'receiver'].map(async (n): Promise<[Device, string, string]> => {
+        const id = `device-${n}-${timestamp}`;
+        const t = generateAccessToken(id);
+        const dev = new Device();
+        await dev.register(t);
+        return [dev, id, t];
+      }));
 
       const receiverConnPromise = new Promise<Connection>(resolve => {
         receiver.once(Device.EventName.Incoming, resolve);
@@ -77,7 +77,10 @@ describe('mutable options', function() {
     afterEach(async function() {
       await waitFor(1000);
 
+      caller.disconnectAll();
       caller.destroy();
+
+      receiver.disconnectAll();
       receiver.destroy();
     });
 
@@ -85,7 +88,7 @@ describe('mutable options', function() {
       const logSpy = sinon.spy();
       caller['_log'].warn = logSpy;
 
-      caller.updateOptions({});
+      caller.setOptions({});
       assert.equal(logSpy.args.filter(
         ([message]) => message === 'Existing Device has ongoing connections; ignoring new options.',
       ).length, 1);
@@ -97,7 +100,7 @@ describe('mutable options', function() {
 
       callerConnection.disconnect();
 
-      caller.updateOptions({});
+      caller.setOptions({});
       assert.equal(logSpy.args.filter(
         ([message]) => message === 'Existing Device has ongoing connections; ignoring new options.',
       ).length, 0);

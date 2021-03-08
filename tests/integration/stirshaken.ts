@@ -20,13 +20,18 @@ describe('SHAKEN/STIR', function() {
     identity2 = 'aliceStir';
     token1 = generateAccessToken(identity1, undefined, (env as any).appSidStir);
     token2 = generateAccessToken(identity2, undefined, (env as any).appSidStir);
-    device1 = new Device(token1);
-    device2 = new Device(token2);
+    device1 = new Device();
+    device2 = new Device();
 
-    return Promise.all([
+    const deviceReadyPromise = Promise.all([
       expectEvent('ready', device1),
       expectEvent('ready', device2),
     ]);
+
+    device1.register(token1);
+    device2.register(token2);
+
+    return deviceReadyPromise;
   });
 
   after(() => {
@@ -48,8 +53,8 @@ describe('SHAKEN/STIR', function() {
       before(done => {
         device2.once(Device.EventName.Incoming, () => done());
         const devShim = device2 as any;
-        devShim.stream.transport.__onSocketMessage = devShim.stream.transport._onSocketMessage;
-        devShim.stream.transport._onSocketMessage = (message: any) => {
+        devShim._stream.transport.__onSocketMessage = devShim._stream.transport._onSocketMessage;
+        devShim._stream.transport._onSocketMessage = (message: any) => {
           if (message && message.data && typeof message.data === 'string') {
             const data = JSON.parse(message.data);
             const text = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
@@ -59,7 +64,7 @@ describe('SHAKEN/STIR', function() {
             data.payload.parameters.longProp = Array(100).fill(text).join(',');
             message.data = JSON.stringify(data);
           }
-          return devShim.stream.transport.__onSocketMessage(message);
+          return devShim._stream.transport.__onSocketMessage(message);
         }
 
         (device1['connect'] as any)({
@@ -72,8 +77,8 @@ describe('SHAKEN/STIR', function() {
         let connection2: Connection;
 
         beforeEach(() => {
-          const conn1: Connection | undefined | null = device1.activeConnection() || device1.connections[0];
-          const conn2: Connection | undefined | null = device2.activeConnection() || device2.connections[0];
+          const conn1: Connection | undefined | null = device1.activeConnection || device1.connections[0];
+          const conn2: Connection | undefined | null = device2.activeConnection || device2.connections[0];
 
           if (!conn1 || !conn2) {
             throw new Error(`Connections weren't both open at beforeEach`);
