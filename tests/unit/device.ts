@@ -1,5 +1,5 @@
 import { levels as LogLevels } from 'loglevel';
-import Connection from '../../lib/twilio/connection';
+import ConnectionType from '../../lib/twilio/connection';
 import Device from '../../lib/twilio/device';
 import { GeneralErrors } from '../../lib/twilio/errors';
 import {
@@ -12,6 +12,8 @@ import * as assert from 'assert';
 import { EventEmitter } from 'events';
 import { SinonFakeTimers, SinonSpy, SinonStubbedInstance } from 'sinon';
 import * as sinon from 'sinon';
+
+declare var root: any;
 
 const ClientCapability = require('twilio').jwt.ClientCapability;
 
@@ -38,17 +40,17 @@ describe('Device', function() {
     updateSinkIds = _updateSinkIds;
     return audioHelper = createEmitterStub(require('../../lib/twilio/audiohelper').default);
   };
-  const connectionFactory = (_?: any, _connectOptions?: Record<string, any>) => {
+  const Connection = (_?: any, _connectOptions?: Record<string, any>) => {
     connectOptions = _connectOptions;
     return activeConnection = createEmitterStub(require('../../lib/twilio/connection').default);
   };
-  const pStreamFactory = () =>
+  const PStream = () =>
     pstream = createEmitterStub(require('../../lib/twilio/pstream'));
   const Publisher = () =>
     publisher = createEmitterStub(require('../../lib/twilio/eventpublisher'));
-  const soundFactory = (name: Device.SoundName) =>
+  const Sound = (name: Device.SoundName) =>
     sounds[name] = sinon.createStubInstance(require('../../lib/twilio/sound'));
-  const setupOptions = { AudioHelper, connectionFactory, pStreamFactory, Publisher, soundFactory };
+  const setupOptions: any = { AudioHelper, Connection, PStream, Publisher, Sound };
 
   afterEach(() => {
     clock.restore();
@@ -58,225 +60,83 @@ describe('Device', function() {
   beforeEach(() => {
     clock = sinon.useFakeTimers(Date.now());
     token = createToken('alice');
-    device = new Device();
+    device = new Device(setupOptions);
     device.on('error', () => { /* no-op */ });
   });
 
   describe('constructor', () => {
     it('should set _isUnifiedPlanDefault once', () => {
+      Device['_isUnifiedPlanDefault'] = undefined;
+
       assert.equal(Device['_isUnifiedPlanDefault'], undefined);
-      device.setup('temptoken');
+      const tempDev1 = new Device();
       assert.notEqual(Device['_isUnifiedPlanDefault'], undefined);
 
       const isUnifiedPlan = Device['_isUnifiedPlanDefault'];
       Device['_isUnifiedPlanDefault'] = !isUnifiedPlan;
-      device.setup('temptoken');
+      const tempDev2 = new Device();
       assert.equal(Device['_isUnifiedPlanDefault'], !isUnifiedPlan);
     });
 
-    it('should not call setup if no token is passed', () => {
-      stub = sinon.stub(device);
-      Device.prototype.constructor.call(stub);
-      sinon.assert.notCalled(stub.setup);
-    });
+    context('should always call setOptions', () => {
+      it('when passed options', () => {
+        stub = sinon.createStubInstance(Device);
+        Device.prototype.constructor.call(stub, setupOptions);
+        sinon.assert.calledOnce(stub.setOptions);
+      });
 
-    it('should call setup if token and no options are passed', () => {
-      stub = sinon.stub(device);
-      Device.prototype.constructor.call(stub, token);
-      sinon.assert.calledOnce(stub.setup);
-    });
-
-    it('should call setup if token and options are passed', () => {
-      stub = sinon.stub(device);
-      Device.prototype.constructor.call(stub, token, { } as any);
-      sinon.assert.calledOnce(stub.setup);
-    });
-
-    it('should throw an error if options are passed but no token', () => {
-      assert.throws(() => new (Device as any)(undefined, { } as any), /Cannot construct a Device/);
+      it('when not passed options', () => {
+        stub = sinon.createStubInstance(Device);
+        Device.prototype.constructor.call(stub);
+        sinon.assert.calledOnce(stub.setOptions);
+      });
     });
 
     it('should set preflight to false by default', () => {
-      const conn = device.setup(token, setupOptions);
-      assert.equal(conn['options'].preflight, false);
+      assert.equal(device['_options'].preflight, false);
     });
 
     it('should set preflight to false if passed in as false', () => {
-      const conn = device.setup(token, Object.assign({ preflight: false }, setupOptions));
-      assert.equal(conn['options'].preflight, false);
+      device = new Device({ ...setupOptions, preflight: false });
+      assert.equal(device['_options'].preflight, false);
     });
 
     it('should set preflight to true if passed in as true', () => {
-      const conn = device.setup(token, Object.assign({ preflight: true }, setupOptions));
-      assert.equal(conn['options'].preflight, true);
+      device = new Device({ ...setupOptions, preflight: true });
+      assert.equal(device['_options'].preflight, true);
     });
 
     it('should set forceAggressiveIceNomination to false by default', () => {
-      const conn = device.setup(token, setupOptions);
-      assert.equal(conn['options'].forceAggressiveIceNomination, false);
+      assert.equal(device['_options'].forceAggressiveIceNomination, false);
     });
 
     it('should set forceAggressiveIceNomination to false if passed in as false', () => {
-      const conn = device.setup(token, Object.assign({ forceAggressiveIceNomination: false}, setupOptions));
-      assert.equal(conn['options'].forceAggressiveIceNomination, false);
+      device = new Device({ ...setupOptions, forceAggressiveIceNomination: false });
+      assert.equal(device['_options'].forceAggressiveIceNomination, false);
     });
 
     it('should set forceAggressiveIceNomination to true if passed in as true', () => {
-      const conn = device.setup(token, Object.assign({ forceAggressiveIceNomination: true}, setupOptions));
-      assert.equal(conn['options'].forceAggressiveIceNomination, true);
-    });
-
-    describe('log', () => {
-      let setDefaultLevelStub: any;
-      beforeEach(() => {
-        setDefaultLevelStub = sinon.stub();
-        device['_log'].setDefaultLevel = setDefaultLevelStub;
-      });
-
-      Object.entries(LogLevels).forEach(([level, number]) => {
-        it(`should set log level to '${level}'`, () => {
-          device.setup(token, Object.assign({ logLevel: number }, setupOptions));
-          sinon.assert.calledWith(setDefaultLevelStub, number);
-        });
-      });
+      device = new Device({ ...setupOptions, forceAggressiveIceNomination: true });
+      assert.equal(device['_options'].forceAggressiveIceNomination, true);
     });
   });
 
-  context('before Device is initialized', () => {
-    describe('.activeConnection()', () => {
-      it('should return null', () => {
-        assert.equal(device.activeConnection(), null);
-      });
+  context('after Device is registered', () => {
+    beforeEach(async () => {
+      const registerPromise = device.register(token);
+      pstream.emit('ready');
+      await registerPromise;
     });
 
-    describe('.connect(params?, audioConstraints?, iceServers?)', () => {
-      it('should throw an error', () => {
-        assert.throws(() => device.connect(), NOT_INITIALIZED_ERROR);
-      });
-    });
-
-    describe('.destroy()', () => {
-      it('should not throw', () => {
-        device.destroy();
-      });
-    });
-
-    describe('.disconnectAll()', () => {
-      it('should throw an error', () => {
-        assert.throws(() => device.disconnectAll(), NOT_INITIALIZED_ERROR);
-      });
-    });
-
-    describe('.registerPresence()', () => {
-      it('should throw an error', () => {
-        assert.throws(() => device.registerPresence(), NOT_INITIALIZED_ERROR);
-      });
-    });
-
-    describe('.setup()', () => {
-      context('when not supported', () => {
-        const original: any = (window as any).RTCPeerConnection;
-
-        before(() => Promise.resolve((window as any).RTCPeerConnection = null));
-
-        it('should throw an exception if not supported', () => {
-          assert.throws(() => device.setup(token, setupOptions), /require WebRTC browser support/);
-        });
-
-        after(() => (window as any).RTCPeerConnection = original);
-      });
-
-      context('when legacy edge', () => {
-        const original: any = (window as any).navigator;
-
-        before(() => Promise.resolve((window as any).navigator = { userAgent: 'foo edge/123 bar' }));
-
-        it('should throw an exception if not supported', () => {
-          assert.throws(() => device.setup(token, setupOptions), /Microsoft Edge Legacy/);
-        });
-
-        after(() => (window as any).navigator = original);
-      });
-
-      context('when supported', () => {
-        let d: Device;
-
-        beforeEach(() => {
-          d = device.setup(token, setupOptions);
-        });
-
-        it('should return the device instance', () => {
-          assert.equal(d, device);
-        });
-
-        it('should throw if token is undefined', () => {
-          device = new Device();
-          assert.throws(() => (device.setup as any)(), /Token is required/);
-        });
-
-        it('should set device.isInitialized to true', () => {
-          assert.equal(device.isInitialized, true);
-        });
-
-        it('should disable the publisher when publishEvents: false is passed', () => {
-          device = new Device();
-          device.setup(token, Object.assign(setupOptions, { publishEvents: false }));
-          sinon.assert.calledOnce(publisher.disable);
-        });
-
-        it('should call updateToken with the passed token', () => {
-          const spy = sinon.spy(device.updateToken);
-          device.updateToken = spy;
-          device.setup(token);
-          sinon.assert.calledOnce(spy);
-          sinon.assert.calledWith(spy, token);
-        });
-
-        it('should set close protection on the page if closeProtection: true', () => {
-          const original = (window as any).addEventListener;
-          const spy = sinon.spy();
-          (window as any).addEventListener = spy;
-          device = new Device();
-          device.setup(token, Object.assign(setupOptions, { closeProtection: true }));
-          (window as any).addEventListener = original;
-          sinon.assert.calledWith(spy, 'beforeunload');
-        });
-      });
-    });
-
-    describe('.status()', () => {
-      it('should throw an error', () => {
-        assert.throws(() => device.status(), NOT_INITIALIZED_ERROR);
-      });
-    });
-
-    describe('.unregisterPresence()', () => {
-      it('should throw an error', () => {
-        assert.throws(() => device.unregisterPresence(), NOT_INITIALIZED_ERROR);
-      });
-    });
-
-    describe('.toString()', () => {
-      it('should return the correct string', () => {
-        assert.equal(device.toString(), '[Twilio.Device instance]');
-      });
-    });
-  });
-
-  context('after Device is initialized', () => {
-    beforeEach(() => {
-      device.setup(token, setupOptions);
-    });
-    
-    describe('.activeConnection()', () => {
+    describe('.activeConnection', () => {
       it('should return undefined if there are no Connections', () => {
-        assert.equal(device.activeConnection(), undefined);
+        assert.equal(device.activeConnection, undefined);
       });
 
       it('should return the active Connection if one exists', () => {
-        const conn: Connection = device.connect();
-        assert.equal(device.activeConnection(), conn);
-        assert.equal(device.activeConnection(), activeConnection);
+        const conn = device.connect();
+        assert.equal(device.activeConnection, conn);
+        assert.equal(device.activeConnection, activeConnection);
       });
     });
 
@@ -291,7 +151,7 @@ describe('Device', function() {
         for (let i = 0; i < 10; i++) {
           connections.push({ ignore: sinon.spy() });
         }
-        device['connections'] = connections;
+        device['_connections'] = connections;
         device.connect();
         connections.forEach((conn: any) => sinon.assert.calledOnce(conn.incoming));
         assert.equal(device.connections.length, 0);
@@ -299,7 +159,7 @@ describe('Device', function() {
 
       it('should stop playing the incoming sound', () => {
         const spy: any = { stop: sinon.spy() };
-        device['soundcache'].set(Device.SoundName.Incoming, spy);
+        device['_soundcache'].set(Device.SoundName.Incoming, spy);
         device.connect();
         sinon.assert.calledOnce(spy.stop);
       });
@@ -308,13 +168,13 @@ describe('Device', function() {
         assert.equal(device.connect(), activeConnection);
       });
 
-      it('should set .activeConnection()', () => {
-        assert.equal(device.connect(), device.activeConnection());
+      it('should set .activeConnection', () => {
+        assert.equal(device.connect(), device.activeConnection);
       });
 
       it('should play outgoing sound after accepted if enabled', () => {
         const spy: any = { play: sinon.spy() };
-        device['soundcache'].set(Device.SoundName.Outgoing, spy);
+        device['_soundcache'].set(Device.SoundName.Outgoing, spy);
         device.connect();
         activeConnection._direction = 'OUTGOING';
         activeConnection.emit('accept');
@@ -337,7 +197,7 @@ describe('Device', function() {
 
       it('should disconnect all connections', () => {
         const disconnect = sinon.spy();
-        (device as any)['connections'] = [
+        (device as any)['_connections'] = [
           { disconnect },
           { disconnect },
         ];
@@ -353,8 +213,8 @@ describe('Device', function() {
     });
 
     describe('.disconnectAll()', () => {
-      it('should clear device.connections', () => {
-        (device as any)['connections'] = [
+      it('should clear device._connections', () => {
+        (device as any)['_connections'] = [
           { disconnect: () => { } },
           { disconnect: () => { } },
         ];
@@ -364,7 +224,7 @@ describe('Device', function() {
 
       it('should call disconnect on all connections', () => {
         const disconnect = sinon.spy();
-        (device as any)['connections'] = [
+        (device as any)['_connections'] = [
           { disconnect },
           { disconnect },
         ];
@@ -405,100 +265,223 @@ describe('Device', function() {
       });
     });
 
-    describe('.registerPresence()', () => {
+    describe('.listen()', () => {
       it('should send a register request with audio: true', () => {
-        device.registerPresence();
+        device.listen(true);
         sinon.assert.calledOnce(pstream.register);
         sinon.assert.calledWith(pstream.register, { audio: true });
       });
 
-      it('should start the registration timer', () => {
-        device.registerPresence();
-        sinon.assert.calledOnce(pstream.register);
-        clock.tick(30000 + 1);
-        sinon.assert.calledTwice(pstream.register);
-      });
-    });
-
-    describe('.unregisterPresence()', () => {
       it('should send a register request with audio: false', () => {
-        device.unregisterPresence();
+        device.listen(false);
         sinon.assert.calledOnce(pstream.register);
         sinon.assert.calledWith(pstream.register, { audio: false });
       });
 
+      it('should start the registration timer', () => {
+        device.listen(true);
+        sinon.assert.calledOnce(pstream.register);
+        clock.tick(30000 + 1);
+        sinon.assert.calledTwice(pstream.register);
+      });
+
       it('should stop the registration timer', () => {
-        device.unregisterPresence();
+        device.listen(false);
         sinon.assert.calledOnce(pstream.register);
         clock.tick(30000 + 1);
         sinon.assert.calledOnce(pstream.register);
       });
     });
 
-    describe('.setup()', () => {
-      let device: any;
-      let options: any;
-      let pStreamFactory: any;
+    describe('.register()', () => {
+      const PStreamMock: any = new (class PStreamMock extends EventEmitter {
+        destroy = sinon.stub();
+        setToken = sinon.stub();
+      })();
+      const PStream = sinon.stub().returns(PStreamMock);
+
+      const PublisherStubs = {
+        disable: sinon.stub(),
+        on: sinon.stub(),
+        setToken: sinon.stub(),
+      };
+      const Publisher = sinon.stub().returns(PublisherStubs);
+
+      const options = { ...setupOptions, PStream, Publisher };
 
       beforeEach(() => {
-        pStreamFactory = sinon.stub().returns({
-          addListener: sinon.stub()
+        device = new Device(options);
+        PStreamMock.removeAllListeners();
+        PStream.resetHistory();
+        Publisher.resetHistory();
+      });
+
+      it('should return a Promise-like', () => {
+        const devicePromise = device.register(token);
+        assert(typeof devicePromise.then === 'function');
+        assert(typeof devicePromise.catch === 'function');
+        assert(typeof devicePromise.finally === 'function');
+      });
+
+      it('should resolve with the device', async () => {
+        const devicePromise = device.register(token);
+        PStreamMock.emit('ready');
+        const resolvedDevice = await devicePromise;
+        assert(resolvedDevice === device);
+      });
+
+      it('should create a new stream and publisher', () => {
+        device.register(token);
+
+        sinon.assert.calledOnce(PStream);
+        sinon.assert.calledWith(PStream, token);
+
+        sinon.assert.calledOnce(Publisher);
+        sinon.assert.calledWith(Publisher, 'twilio-js-sdk', token);
+      });
+
+      it('should update an existing stream and publisher', () => {
+        device.register(token);
+
+        PStream.resetHistory();
+        Publisher.resetHistory();
+
+        device.register(token);
+
+        sinon.assert.notCalled(PStream);
+        sinon.assert.notCalled(Publisher);
+
+        sinon.assert.calledOnce(PStreamMock.setToken);
+        sinon.assert.calledWith(PStreamMock.setToken, token);
+
+        sinon.assert.calledOnce(PublisherStubs.setToken);
+        sinon.assert.calledWith(PublisherStubs.setToken, token);
+      });
+
+      it('should reconstruct an existing stream if necessary', () => {
+        const streamSpy = device['_setupStream'] = sinon.spy();
+
+        device.register(token, { edge: 'ashburn' });
+
+        sinon.assert.calledOnce(streamSpy);
+      });
+
+      it('should reconstruct an existing publisher if necessary', () => {
+        const publisherSpy = device['_setupPublisher'] = sinon.spy();
+
+        device.register(token, { appName: 'foo' });
+
+        sinon.assert.calledOnce(publisherSpy);
+      });
+
+      it('should not reconstruct an existing stream if unnecessary', () => {
+        device.register(token);
+
+        const streamSpy = device['_setupStream'] = sinon.spy();
+
+        device.register(token);
+
+        sinon.assert.notCalled(streamSpy);
+      });
+
+      it('should not reconstruct an existing publisher if unnecessary', () => {
+        device.register(token);
+
+        const publisherSpy = device['_setupPublisher'] = sinon.spy();
+
+        device.register(token);
+
+        sinon.assert.notCalled(publisherSpy);
+      });
+
+      describe('should use chunderw regardless', () => {
+        it('when it is a string', () => {
+          device.register(token, { chunderw: 'foo' } as any);
+
+          sinon.assert.calledOnce(PStream);
+          sinon.assert.calledWithExactly(PStream,
+            token, ['wss://foo/signal'],
+            { backoffMaxMs: undefined });
         });
 
-        device = new Device();
-        options = Object.assign({}, setupOptions, { pStreamFactory });
-      });
+        it('when it is an array', () => {
+          device.register(token, { chunderw: ['foo', 'bar'] } as any);
 
-      it('should call updateToken with the passed token', () => {
-        const spy = sinon.spy(device.updateToken);
-        device.updateToken = spy;
-        device.setup(token);
-        sinon.assert.calledOnce(spy);
-        sinon.assert.calledWith(spy, token);
-      });
-
-      it('should use chunderw regardless', () => {
-        options.chunderw = 'foo';
-        device.setup(token, options);
-
-        sinon.assert.calledOnce(pStreamFactory);
-        sinon.assert.calledWithExactly(pStreamFactory,
-          token, ['wss://foo/signal'],
-          { backoffMaxMs: undefined });
+          sinon.assert.calledOnce(PStream);
+          sinon.assert.calledWithExactly(PStream,
+            token, ['wss://foo/signal', 'wss://bar/signal'],
+            { backoffMaxMs: undefined });
+        });
       });
 
       it('should use default chunder uri if no region or edge is passed in', () => {
-        device.setup(token, options);
+        device.register(token, { edge: 'singapore' });
 
-        sinon.assert.calledOnce(pStreamFactory);
-        sinon.assert.calledWithExactly(pStreamFactory,
+        PStream.resetHistory();
+
+        device.register(token);
+
+        sinon.assert.calledOnce(PStream);
+        sinon.assert.calledWithExactly(PStream,
           token, ['wss://chunderw-vpc-gll.twilio.com/signal'],
           { backoffMaxMs: undefined });
       });
 
       it('should use correct edge if only one is supplied', () => {
-        options.edge = 'singapore';
-        device.setup(token, options);
+        device.register(token, { edge: 'singapore' });
 
-        sinon.assert.calledOnce(pStreamFactory);
-        sinon.assert.calledWithExactly(pStreamFactory,
+        sinon.assert.calledOnce(PStream);
+        sinon.assert.calledWithExactly(PStream,
           token, ['wss://chunderw-vpc-gll-sg1.twilio.com/signal'],
           { backoffMaxMs: undefined });
       });
 
       it('should use correct edges if more than one is supplied', () => {
-        options.edge = ['singapore', 'sydney'];
-        device.setup(token, options);
+        device.register(token, { edge: ['singapore', 'sydney'] });
 
-        sinon.assert.calledOnce(pStreamFactory);
-        sinon.assert.calledWithExactly(pStreamFactory,
-          token, ['wss://chunderw-vpc-gll-sg1.twilio.com/signal', 'wss://chunderw-vpc-gll-au1.twilio.com/signal'],
-          { backoffMaxMs: undefined });
+        sinon.assert.calledOnce(PStream);
+        sinon.assert.calledWithExactly(PStream, token, [
+          'wss://chunderw-vpc-gll-sg1.twilio.com/signal',
+          'wss://chunderw-vpc-gll-au1.twilio.com/signal',
+        ], { backoffMaxMs: undefined });
+      });
+    });
+
+    describe('.setOptions()', () => {
+      it('should set up an audio helper', () => {
+        const spy = device['_setupAudioHelper'] = sinon.spy(device['_setupAudioHelper']);
+        device.setOptions({});
+        sinon.assert.calledOnce(spy);
+      });
+
+      describe('log', () => {
+        let setDefaultLevelStub: any;
+
+        beforeEach(() => {
+          setDefaultLevelStub = sinon.stub();
+        });
+
+        Object.entries(LogLevels).forEach(([level, number]) => {
+          it(`should set log level to '${level}'`, () => {
+            device['_log'].setDefaultLevel = setDefaultLevelStub;
+            device.setOptions({ logLevel: number });
+            sinon.assert.calledWith(setDefaultLevelStub, number);
+          });
+        });
+      });
+    });
+
+    describe('._setupAudioHelper()', () => {
+      it('should destroy an existing audio helper', () => {
+        const spy = device['_destroyAudioHelper'] = sinon.spy(device['_destroyAudioHelper']);
+        device.setOptions({});
+        sinon.assert.calledOnce(spy);
       });
     });
 
     describe('.status()', () => {
       it('should return offline before registering', () => {
+        device = new Device(setupOptions);
         assert.equal(device.status(), Device.Status.Offline);
       });
     });
@@ -544,7 +527,7 @@ describe('Device', function() {
     describe('on signaling.close', () => {
       it('should set stream to null', () => {
         pstream.emit('close');
-        assert.equal(device['stream'], null);
+        assert.equal(device['_stream'], null);
       });
     });
 
@@ -595,7 +578,7 @@ describe('Device', function() {
       });
 
       it('should not stop registrations if code is not 31205', () => {
-        device.registerPresence();
+        device.listen(true);
         pstream.emit('error', { error: { } });
         pstream.register.reset();
         clock.tick(30000 + 1);
@@ -603,7 +586,7 @@ describe('Device', function() {
       });
 
       it('should stop registrations if code is 31205', () => {
-        device.registerPresence();
+        device.listen(true);
         pstream.emit('error', { error: { code: 31205 } });
         pstream.register.reset();
         clock.tick(30000 + 1);
@@ -659,28 +642,29 @@ describe('Device', function() {
 
       it('should play the incoming sound', () => {
         const spy = { play: sinon.spy() };
-        device['soundcache'].set(Device.SoundName.Incoming, spy);
+        device['_soundcache'].set(Device.SoundName.Incoming, spy);
         pstream.emit('invite', { callsid: 'foo', sdp: 'bar' });
         sinon.assert.calledOnce(spy.play);
       });
 
       context('when allowIncomingWhileBusy is true', () => {
-        beforeEach(() => {
-          device = new Device();
-          device.setup(token, Object.assign(setupOptions, { allowIncomingWhileBusy: true }));
+        beforeEach(async () => {
+          device = new Device({ ...setupOptions, allowIncomingWhileBusy: true });
+          const registerPromise = device.register(token);
           pstream.emit('ready');
+          await registerPromise;
           device.connect();
         });
 
         it('should create a new connection', () => {
           pstream.emit('invite', { callsid: 'foo', sdp: 'bar' });
           assert.equal(device.connections.length, 1);
-          assert.notEqual(device.connections[0], device.activeConnection());
+          assert.notEqual(device.connections[0], device.activeConnection);
         });
 
         it('should not play the incoming sound', () => {
           const spy = { play: sinon.spy() };
-          device['soundcache'].set(Device.SoundName.Incoming, spy);
+          device['_soundcache'].set(Device.SoundName.Incoming, spy);
           pstream.emit('invite', { callsid: 'foo', sdp: 'bar' });
           sinon.assert.notCalled(spy.play);
         });
@@ -727,20 +711,18 @@ describe('Device', function() {
     });
 
     describe('on unload or pagehide', () => {
-      beforeEach(() => {
-        device = new Device();
-      });
       it('should call destroy once on pagehide', () => {
-        device.destroy = sinon.spy();
-        device.setup(token, setupOptions);
+        stub = sinon.createStubInstance(Device);
+        Device.prototype.constructor.call(stub);
         root.window.dispatchEvent('pagehide');
-        sinon.assert.calledOnce(device.destroy as any);
+        sinon.assert.calledOnce(stub.destroy);
       });
+
       it('should call destroy once on unload', () => {
-        device.destroy = sinon.spy();
-        device.setup(token, setupOptions);
+        stub = sinon.createStubInstance(Device);
+        Device.prototype.constructor.call(stub);
         root.window.dispatchEvent('unload');
-        sinon.assert.calledOnce(device.destroy as any);
+        sinon.assert.calledOnce(stub.destroy);
       });
     });
 
@@ -800,7 +782,7 @@ describe('Device', function() {
         it('should should set the active connection', () => {
           const conn = device.connections[0];
           conn.emit('accept');
-          assert.equal(conn, device.activeConnection());
+          assert.equal(conn, device.activeConnection);
         });
 
         it('should should remove the connection', () => {
@@ -818,7 +800,7 @@ describe('Device', function() {
 
         it('should not play outgoing sound', () => {
           const spy: any = { play: sinon.spy() };
-          device['soundcache'].set(Device.SoundName.Outgoing, spy);
+          device['_soundcache'].set(Device.SoundName.Outgoing, spy);
           device.connections[0].emit('accept');
           sinon.assert.notCalled(spy.play);
         });
@@ -826,7 +808,7 @@ describe('Device', function() {
 
       describe('on connection.error', () => {
         it('should should remove the connection if closed', () => {
-          device.connections[0].status = () => Connection.State.Closed;
+          device.connections[0].status = () => ConnectionType.State.Closed;
           device.connections[0].emit('error');
           assert.equal(device.connections.length, 0);
         });
@@ -842,12 +824,12 @@ describe('Device', function() {
 
       describe('on connection.transportClose', () => {
         it('should remove the connection if the connection was pending', () => {
-          device.connections[0].status = () => Connection.State.Pending;
+          device.connections[0].status = () => ConnectionType.State.Pending;
           device.connections[0].emit('transportClose');
           assert.equal(device.connections.length, 0);
         });
         it('should not remove the connection if the connection was open', () => {
-          device.connections[0].status = () => Connection.State.Open;
+          device.connections[0].status = () => ConnectionType.State.Open;
           device.connections[0].emit('transportClose');
           assert.equal(device.connections.length, 1);
         });
@@ -881,10 +863,10 @@ describe('Device', function() {
           const conn = device.connections[0];
           conn.emit('accept');
           assert.equal(typeof conn, 'object');
-          assert.equal(conn, device.activeConnection());
+          assert.equal(conn, device.activeConnection);
 
           conn.emit('disconnect');
-          assert.equal(device.activeConnection(), null);
+          assert.equal(device.activeConnection, null);
         });
       });
 

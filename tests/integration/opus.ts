@@ -22,17 +22,21 @@ describe('Opus', function() {
     identity2 = 'id2-' + Date.now();
     token1 = generateAccessToken(identity1);
     token2 = generateAccessToken(identity2);
-    device1 = new Device();
-    device2 = new Device();
-
     options = {
       codecPreferences: [Connection.Codec.Opus, Connection.Codec.PCMU],
     };
+    device1 = new Device(options);
+    device2 = new Device(options);
 
-    return Promise.all([
-      expectEvent('ready', device1.setup(token1, options)),
-      expectEvent('ready', device2.setup(token2, options)),
+    const deviceReadyPromise = Promise.all([
+      expectEvent('ready', device1),
+      expectEvent('ready', device2),
     ]);
+
+    device1.register(token1);
+    device2.register(token2);
+
+    return deviceReadyPromise;
   });
 
   after(() => {
@@ -60,8 +64,8 @@ describe('Opus', function() {
       let connection2: Connection;
 
       beforeEach(() => {
-        const conn1: Connection | undefined | null = device1.activeConnection() || device1.connections[0];
-        const conn2: Connection | undefined | null = device2.activeConnection() || device2.connections[0];
+        const conn1: Connection | undefined | null = device1.activeConnection || device1.connections[0];
+        const conn2: Connection | undefined | null = device2.activeConnection || device2.connections[0];
 
         if (!conn1 || !conn2) {
           throw new Error(`Connections weren't both open at beforeEach`);

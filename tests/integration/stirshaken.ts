@@ -1,9 +1,9 @@
-import Connection from '../../lib/twilio/connection';
-import Device from '../../lib/twilio/device';
-import { generateAccessToken } from '../lib/token';
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
+import Connection from '../../lib/twilio/connection';
+import Device from '../../lib/twilio/device';
 import * as env from '../env';
+import { generateAccessToken } from '../lib/token';
 
 describe('SHAKEN/STIR', function() {
   this.timeout(10000);
@@ -12,7 +12,6 @@ describe('SHAKEN/STIR', function() {
   let device2: Device;
   let identity1: string;
   let identity2: string;
-  let options;
   let token1: string;
   let token2: string;
 
@@ -24,12 +23,15 @@ describe('SHAKEN/STIR', function() {
     device1 = new Device();
     device2 = new Device();
 
-    options = {};
-
-    return Promise.all([
-      expectEvent('ready', device1.setup(token1, options)),
-      expectEvent('ready', device2.setup(token2, options)),
+    const deviceReadyPromise = Promise.all([
+      expectEvent('ready', device1),
+      expectEvent('ready', device2),
     ]);
+
+    device1.register(token1);
+    device2.register(token2);
+
+    return deviceReadyPromise;
   });
 
   after(() => {
@@ -51,8 +53,8 @@ describe('SHAKEN/STIR', function() {
       before(done => {
         device2.once(Device.EventName.Incoming, () => done());
         const devShim = device2 as any;
-        devShim.stream.transport.__onSocketMessage = devShim.stream.transport._onSocketMessage;
-        devShim.stream.transport._onSocketMessage = (message: any) => {
+        devShim._stream.transport.__onSocketMessage = devShim._stream.transport._onSocketMessage;
+        devShim._stream.transport._onSocketMessage = (message: any) => {
           if (message && message.data && typeof message.data === 'string') {
             const data = JSON.parse(message.data);
             const text = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
@@ -62,11 +64,11 @@ describe('SHAKEN/STIR', function() {
             data.payload.parameters.longProp = Array(100).fill(text).join(',');
             message.data = JSON.stringify(data);
           }
-          return devShim.stream.transport.__onSocketMessage(message);
+          return devShim._stream.transport.__onSocketMessage(message);
         }
 
         (device1['connect'] as any)({
-          params: { CallerId: (env as any).callerId }
+          params: { CallerId: (env as any).callerId },
         });
       });
 
@@ -75,8 +77,8 @@ describe('SHAKEN/STIR', function() {
         let connection2: Connection;
 
         beforeEach(() => {
-          const conn1: Connection | undefined | null = device1.activeConnection() || device1.connections[0];
-          const conn2: Connection | undefined | null = device2.activeConnection() || device2.connections[0];
+          const conn1: Connection | undefined | null = device1.activeConnection || device1.connections[0];
+          const conn2: Connection | undefined | null = device2.activeConnection || device2.connections[0];
 
           if (!conn1 || !conn2) {
             throw new Error(`Connections weren't both open at beforeEach`);

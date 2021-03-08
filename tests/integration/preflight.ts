@@ -14,10 +14,10 @@ describe('Preflight Test', function() {
 
   let callerIdentity: string;
   let callerToken: string;
-  let callerDevice: any;
+  let callerDevice: Device;
   let callerConnection: Connection;
   let receiverIdentity: string;
-  let receiverDevice: any;
+  let receiverDevice: Device;
   let preflight: PreflightTest;
 
   const expectEvent = (eventName: string, emitter: EventEmitter) => {
@@ -34,15 +34,15 @@ describe('Preflight Test', function() {
     return Promise.race([promise, timeoutPromise]).then(() => clearTimeout(timer));
   };
 
-  const setupDevices = () => {
+  const setupDevices = async () => {
     receiverIdentity = 'id1-' + Date.now();
     callerIdentity = 'id2-' + Date.now();
 
     const receiverToken = generateAccessToken(receiverIdentity);
     callerToken = generateAccessToken(callerIdentity);
     receiverDevice = new Device();
-
-    return expectEvent('ready', receiverDevice.setup(receiverToken, { debug: false }));
+    receiverDevice.on('error', () => { });
+    await receiverDevice.register(receiverToken);
   };
 
   const destroyDevices = () => {
@@ -91,7 +91,7 @@ describe('Preflight Test', function() {
     });
 
     it('should set default codePreferences', () => {
-      assert.deepEqual(callerDevice['options'].codecPreferences, [Connection.Codec.PCMU, Connection.Codec.Opus]);
+      assert.deepEqual(callerDevice['_options'].codecPreferences, [Connection.Codec.PCMU, Connection.Codec.Opus]);
     });
 
     it('should emit warning event', () => {
@@ -160,7 +160,7 @@ describe('Preflight Test', function() {
     });
 
     it('should use codecPreferences passed in', () => {
-      assert.deepEqual(callerDevice['options'].codecPreferences, [Connection.Codec.PCMU]);
+      assert.deepEqual(callerDevice['_options'].codecPreferences, [Connection.Codec.PCMU]);
     });
   });
 

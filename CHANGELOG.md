@@ -1,8 +1,90 @@
 2.0.0 (In Progress)
 ===================
 
+Changes
+-------
+
+### Device Call Signature
+
+To modernize the SDK, the call signature and usage of `Device` has changed.
+
+```ts
+new Device();
+new Device(token: string, options?: Device.Options);
+Device.updateOptions(options: Device.Options);
+Device.updateToken(token: string);
+```
+
+If `Device` is constructed without any parameters, then it will be instantiated
+with default options. Then, to connect the `Device` to the Twilio servers, a
+call to `Device.updateToken(token: string)` must be performed.
+`Device.updateOptions(options: Device.Options)` may be called when there are no
+connections maintained by the `Device`.
+
+Example Usage:
+
+To make a device with default options:
+
+```ts
+const token = '...';
+const device = new Device();
+device.on(Device.EventName.Ready, () => { /* use device here */ });
+device.updateToken(token);
+
+// Or...
+
+const token = '...';
+const device = new Device(token);
+device.on(Device.EventName.Ready, () => { /* use device here */ });
+```
+
+To make a device with non-default options:
+
+```ts
+const token = '...';
+const customOptions = { ... };
+const device = new Device();
+device.on(Device.EventName.Ready, () => { /* use device here */ });
+device.updateOptions(customOptions);
+device.updateToken(token);
+
+// Or...
+
+const token = '...';
+const customOptions = { ... };
+const device = new Device(token, customOptions);
+device.on(Device.EventName.Ready, () => { /* use device here */ });
+```
+
+However, it is invalid to construct a `Device` with options and without a token.
+
+```ts
+// This will throw an error...
+const customOptions = { ... };
+const device = new Device(undefined, customOptions);
+```
+
 New Features
 ------------
+
+### Update Device Options
+
+The SDK now allows `Device.options` to be mutated after initial set up. Example usage:
+
+```ts
+const token = '...';
+const device = new Device(token);
+
+const options1 = { ... };
+device.updateOptions(options1);
+device.once(Device.EventName.Ready, (dev: Device) => { /* use device here */ });
+
+...
+
+const options2 = { ... };
+device.updateOptions(options2);
+device.once(Device.EventName.Ready, (dev: Device) => { /* use device here */ });
+```
 
 ### LogLevel Module
 

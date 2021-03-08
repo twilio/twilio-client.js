@@ -1,8 +1,8 @@
+import * as assert from 'assert';
+import { EventEmitter } from 'events';
 import Connection from '../../lib/twilio/connection';
 import Device from '../../lib/twilio/device';
 import { generateAccessToken } from '../lib/token';
-import * as assert from 'assert';
-import { EventEmitter } from 'events';
 
 // (rrowland) The TwiML expected by these tests can be found in the README.md
 
@@ -13,7 +13,6 @@ describe('Device', function() {
   let device2: Device;
   let identity1: string;
   let identity2: string;
-  let options;
   let token1: string;
   let token2: string;
 
@@ -25,13 +24,9 @@ describe('Device', function() {
     device1 = new Device();
     device2 = new Device();
 
-    options = {
-      warnings: false,
-    };
-
     return Promise.all([
-      expectEvent('ready', device1.setup(token1, options)),
-      expectEvent('ready', device2.setup(token2, options)),
+      device1.register(token1),
+      device2.register(token2),
     ]);
   });
 
@@ -60,8 +55,8 @@ describe('Device', function() {
       let connection2: Connection;
 
       beforeEach(() => {
-        const conn1: Connection | undefined | null = device1.activeConnection() || device1.connections[0];
-        const conn2: Connection | undefined | null = device2.activeConnection() || device2.connections[0];
+        const conn1: Connection | undefined | null = device1.activeConnection || device1.connections[0];
+        const conn2: Connection | undefined | null = device2.activeConnection || device2.connections[0];
 
         if (!conn1 || !conn2) {
           throw new Error(`Connections weren't both open at beforeEach`);
@@ -123,7 +118,7 @@ describe('Device', function() {
       });
 
       it('should update network priority to high if supported', () => {
-        const conn = device2 && device2.activeConnection();
+        const conn = device2 && device2.activeConnection;
         if (!conn || !conn['_mediaHandler'] || !conn['_mediaHandler']._sender) {
           throw new Error('Expected sender to be present');
         }
