@@ -1,7 +1,7 @@
 {
-  "name": "twilio-client",
-  "version": "1.14.0-dev",
-  "description": "Javascript SDK for Twilio Client",
+  "name": "@twilio/voice-client",
+  "version": "2.0.0-dev",
+  "description": "Twilio Voice Client SDK",
   "main": "./es5/twilio.js",
   "types": "./es5/twilio.d.ts",
   "license": "Apache-2.0",

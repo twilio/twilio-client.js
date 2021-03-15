@@ -1,9 +1,9 @@
-twilio-client.js
-================
+@twilio/voice-client
+====================
 
 [![Travis Build Status](https://travis-ci.org/twilio/twilio-client.js.svg?branch=master)](https://travis-ci.org/twilio/twilio-client.js) [![NPM](https://img.shields.io/npm/v/twilio-client.svg)](https://www.npmjs.com/package/twilio-client)
 
-twilio-client.js allows you to add real-time voice and PSTN calling to your web apps.
+Twilio Voice Client SDK allows you to add real-time voice and PSTN calling to your web apps.
 
 * [API Docs](https://twilio.github.io/twilio-client.js/index.html)
 * [More Docs](https://www.twilio.com/docs/voice/client/javascript/overview)
@@ -22,36 +22,24 @@ Installation
 We recommend using `npm` to add the Client SDK as a dependency.
 
 ```
-npm install twilio-client --save
+npm install @twilio/voice-client --save
 ```
 
-Using this method, you can `import` twilio-client.js using ES Module or TypeScript syntax:
+Using this method, you can `import` the Voice Client SDK using ES Module or TypeScript syntax:
 
 ```js
-import { Device } from 'twilio-client';
+import { Device } from '@twilio/voice-client';
 
 ```
 
 Or using CommonJS:
 
 ```js
-const Device = require('twilio-client').Device;
+const Device = require('@twilio/voice-client').Device;
 ```
 
 ### CDN
-
-Though not recommended, releases of twilio-client.js are also hosted on a CDN and you can include
-these directly in your web app using a &lt;script&gt; tag.
-
-```html
-<script src="https://sdk.twilio.com/js/client/v1.13/twilio.js"></script>
-```
-
-Using this method, twilio-client.js will set a browser global:
-
-```js
-const Device = Twilio.Device;
-```
+As of 2.0, the Twilio Voice Client SDK is no longer hosted via CDN.
 
 Testing
 -------
@@ -105,21 +93,15 @@ media-src mediastream https://media.twiliocdn.com https://sdk.twilio.com
 connect-src https://eventgw.twilio.com wss://chunderw-vpc-gll.twilio.com https://media.twiliocdn.com https://sdk.twilio.com
 ```
 
-If you are providing a non-default value for `Device.Options.edge` or `Device.Options.region` parameter, you need to add the Signaling URI `wss://chunderw-vpc-gll-{regionId}.twilio.com` in your `connect-src` directive where `regionId` is the `Region ID` as defined in this [page](https://www.twilio.com/docs/global-infrastructure/edge-locations/legacy-regions). See examples below.
+If you are providing a non-default value for `Device.ConnectOptions.edge` parameter, you need to add the Signaling URI `wss://chunderw-vpc-gll-{regionId}.twilio.com` in your `connect-src` directive where `regionId` is the `Region ID` as defined in this [page](https://www.twilio.com/docs/global-infrastructure/edge-locations/legacy-regions). See examples below.
 
-**If `Device.Options.region` is `us1`**
-
-```
-connect-src https://eventgw.twilio.com https://media.twiliocdn.com https://sdk.twilio.com wss://chunderw-vpc-gll-us1.twilio.com
-```
-
-**If `Device.Options.edge` is `ashburn`**
+**If `Device.ConnectOptions.edge` is `ashburn`**
 
 ```
 connect-src https://eventgw.twilio.com https://media.twiliocdn.com https://sdk.twilio.com wss://chunderw-vpc-gll-us1.twilio.com
 ```
 
-**If `Device.Options.edge` is `['ashburn', 'sydney', 'roaming']`**
+**If `Device.ConnectOptions.edge` is `['ashburn', 'sydney', 'roaming']`**
 
 ```
 connect-src https://eventgw.twilio.com https://media.twiliocdn.com https://sdk.twilio.com wss://chunderw-vpc-gll-us1.twilio.com wss://chunderw-vpc-gll-au1.twilio.com wss://chunderw-vpc-gll.twilio.com
