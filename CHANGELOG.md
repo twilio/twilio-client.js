@@ -6,7 +6,7 @@ Changes
 
 ### MOS Calculation Formula
 
-As part of `2.x`, the formula used to calculate the mean-opinion score (MOS) has
+The formula used to calculate the mean-opinion score (MOS) has
 been fixed for extreme network conditions. These fixes should not change score
 values for nominal network conditions.
 

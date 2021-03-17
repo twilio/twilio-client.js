@@ -68,3 +68,8 @@ export function calculate(
 export function isNonNegativeNumber(n: any): boolean {
   return typeof n === 'number' && !isNaN(n) && isFinite(n) && n >= 0;
 }
+
+export default {
+  calculate,
+  isNonNegativeNumber,
+};

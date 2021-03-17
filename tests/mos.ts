@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import * as mos from '../lib/twilio/rtc/mos';
+import mos from '../lib/twilio/rtc/mos';
 
 describe('MOS', () => {
   describe('.isNonNegativeNumber', () => {
