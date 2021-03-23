@@ -6,12 +6,12 @@
 
 import { EventEmitter } from 'events';
 import { InvalidArgumentError } from './errors';
+import Mos from './rtc/mos';
 import RTCSample from './rtc/sample';
 import RTCWarning from './rtc/warning';
 import { average } from './util';
 
 const { getRTCStats } = require('./rtc/stats');
-const Mos = require('./rtc/mos');
 
 // How many samples we use when testing metric thresholds
 const SAMPLE_COUNT_METRICS = 5;
@@ -55,7 +55,7 @@ export type IRTCStats = any;
 /**
  * @private
  */
-export type IMos = any;
+export type IMos = typeof Mos;
 
 /**
  * Count the number of values that cross the max threshold.
