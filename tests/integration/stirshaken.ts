@@ -20,16 +20,16 @@ describe('SHAKEN/STIR', function() {
     identity2 = 'aliceStir';
     token1 = generateAccessToken(identity1, undefined, (env as any).appSidStir);
     token2 = generateAccessToken(identity2, undefined, (env as any).appSidStir);
-    device1 = new Device();
-    device2 = new Device();
+    device1 = new Device(token1);
+    device2 = new Device(token2);
 
     const deviceReadyPromise = Promise.all([
-      expectEvent('ready', device1),
-      expectEvent('ready', device2),
+      expectEvent(Device.EventName.Registered, device1),
+      expectEvent(Device.EventName.Registered, device2),
     ]);
 
-    device1.register(token1);
-    device2.register(token2);
+    device1.register();
+    device2.register();
 
     return deviceReadyPromise;
   });

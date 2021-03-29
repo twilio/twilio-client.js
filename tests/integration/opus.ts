@@ -13,7 +13,7 @@ describe('Opus', function() {
   let device2: Device;
   let identity1: string;
   let identity2: string;
-  let options;
+  let options: any;
   let token1: string;
   let token2: string;
 
@@ -25,16 +25,16 @@ describe('Opus', function() {
     options = {
       codecPreferences: [Connection.Codec.Opus, Connection.Codec.PCMU],
     };
-    device1 = new Device(options);
-    device2 = new Device(options);
+    device1 = new Device(token1, options);
+    device2 = new Device(token2, options);
 
     const deviceReadyPromise = Promise.all([
-      expectEvent('ready', device1),
-      expectEvent('ready', device2),
+      expectEvent(Device.EventName.Registered, device1),
+      expectEvent(Device.EventName.Registered, device2),
     ]);
 
-    device1.register(token1);
-    device2.register(token2);
+    device1.register();
+    device2.register();
 
     return deviceReadyPromise;
   });

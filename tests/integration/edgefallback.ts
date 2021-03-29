@@ -1,13 +1,12 @@
 import * as assert from 'assert';
 import Device from '../../lib/twilio/device';
 import { generateAccessToken } from '../lib/token';
-import { expectEvent, runDockerCommand, waitFor } from '../lib/util';
+import { runDockerCommand, waitFor } from '../lib/util';
 
 const MAX_TIMEOUT = 300000;
-const EVENT_TIMEOUT = 50000;
 
 const expectFailure = (device: Device) => {
-  device.on('error', (error: any) => {
+  device.on(Device.EventName.Error, (error: any) => {
     if (!(error.code && (error.code === 53000 || error.code === 53001))) {
       throw error;
     }
@@ -25,14 +24,9 @@ describe('Edge Fallback', function() {
 
   const defaultOptions: Device.Options = {};
 
-  const deviceReady = async () => {
-    await waitFor(expectEvent('ready', device), EVENT_TIMEOUT);
-  };
-
   beforeEach(() => {
     identity = 'id1-' + Date.now();
     token = generateAccessToken(identity);
-    device = new Device(defaultOptions);
   });
 
   afterEach(() => {
@@ -43,41 +37,44 @@ describe('Edge Fallback', function() {
   });
 
   it('should connect to sg1 if edge param is a string and is equal to singapore', async () => {
-    device.register(token, { edge: 'singapore' });
-    await deviceReady();
+    device = new Device(token, { ...defaultOptions, edge: 'singapore' });
+    await device.register();
     assert.equal(device['_stream'].transport.uri, 'wss://chunderw-vpc-gll-sg1.twilio.com/signal');
   });
 
   it('should connect to the first edge if edge param is an array', async () => {
-    device.register(token, { edge: ['sydney', 'singapore'] });
-    await deviceReady();
+    device = new Device(token, { ...defaultOptions, edge: ['sydney', 'singapore'] });
+    await device.register();
     assert.equal(device['_stream'].transport.uri, 'wss://chunderw-vpc-gll-au1.twilio.com/signal');
   });
 
   it('should use new uri format if the edge supplied is not in the list of supported edges', async () => {
+    device = new Device(token, { ...defaultOptions, edge: 'foo' });
     expectFailure(device);
-    device.register(token, { edge: 'foo' });
-    await pause(1000);
+    device.register();
     assert.equal(device['_stream'].transport.uri, 'wss://voice-js.foo.twilio.com/signal');
   });
 
   it('should fallback to the next edge value if the current region is down', async () => {
+    device = new Device(token, { ...defaultOptions, edge: ['foo', 'bar', 'ashburn'] });
     expectFailure(device);
-    device.register(token, { edge: ['foo', 'bar', 'ashburn'] });
-    await deviceReady();
+    await device.register();
     assert.equal(device['_stream'].transport.uri, 'wss://chunderw-vpc-gll-us1.twilio.com/signal');
   });
 
   it('should not fallback to the next edge if the transport error is not fallback-able', async () => {
-    device.register(token, { edge: ['sydney', 'singapore', 'ashburn'] });
-    await deviceReady();
+    device = new Device(token, { ...defaultOptions, edge: ['sydney', 'singapore', 'ashburn'] });
+    await device.register();
     assert.equal(device['_stream'].transport.uri, 'wss://chunderw-vpc-gll-au1.twilio.com/signal');
+    device.destroy();
 
     // A capability token with an invalid account sid triggers the server to close the connection.
     // This is not a 1006 nor 1015 error so sdk should not reconnect to fallback edges.
     const res = await runDockerCommand('getInvalidCapabilityToken');
     const invalidToken = (JSON.parse(res) as any).token;
-    device.register(invalidToken, { edge: ['sydney', 'singapore', 'ashburn'] });
+    device = new Device(invalidToken, { ...defaultOptions, edge: ['sydney', 'singapore', 'ashburn'] });
+    expectFailure(device);
+    device.register();
 
     const usedUris: string[] = [];
     const timeout = 100000;
@@ -100,11 +97,15 @@ describe('Edge Fallback', function() {
   it('should not fallback to the next edge if the transport error is fallback-able while connected', async function() {
     this.timeout(MAX_TIMEOUT);
     const connectTimeout = 120000;
+
+    device = new Device(token, { edge: ['sydney', 'singapore'] });
     expectFailure(device);
-    device.register(token, { edge: ['sydney', 'singapore'] });
-    await deviceReady();
+    const regPromise = device.register();
+
     assert.equal(device['_stream'].transport.uri, 'wss://chunderw-vpc-gll-au1.twilio.com/signal');
     device['_stream'].transport['_connectTimeoutMs'] = connectTimeout;
+
+    await regPromise;
 
     // Trigger network error
     await runDockerCommand('disconnectFromAllNetworks');

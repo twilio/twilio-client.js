@@ -19,13 +19,9 @@ maybeSkip('ICE Nomination', function() {
   let identity2: string;
   let device1Options: Device.Options = {};
   let device2Options: Device.Options = {};
-  let device1RegisterOptions: Device.RegisterOptions = {};
-  let device2RegisterOptions: Device.RegisterOptions = {};
 
   let highDelayEdge: string;
   let lowDelayEdge: string;
-
-  const defaultOptions: Device.Options = {};
 
   const setupDevices = () => {
     identity1 = 'id1-' + Date.now();
@@ -33,16 +29,16 @@ maybeSkip('ICE Nomination', function() {
     const token1 = generateAccessToken(identity1);
     const token2 = generateAccessToken(identity2);
 
-    device1 = new Device(defaultOptions);
-    device2 = new Device(defaultOptions);
+    device1 = new Device(token1, device1Options);
+    device2 = new Device(token2, device2Options);
 
     const devicePromises = Promise.all([
-      expectEvent('ready', device1),
-      expectEvent('ready', device2),
+      expectEvent(Device.EventName.Registered, device1),
+      expectEvent(Device.EventName.Registered, device2),
     ]);
 
-    device1.register(token1, device1RegisterOptions);
-    device2.register(token2, device2RegisterOptions);
+    device1.register();
+    device2.register();
 
     return devicePromises;
   };
@@ -99,7 +95,7 @@ maybeSkip('ICE Nomination', function() {
 
     for (let i = 0; i < edges.length; i++) {
       const edge = edges[i];
-      device2RegisterOptions.edge = edge;
+      device2Options.edge = edge;
       await setupDevices();
 
       const duration = await getConnectionDuration(Connection.CallDirection.Incoming);
@@ -108,7 +104,7 @@ maybeSkip('ICE Nomination', function() {
 
       console.log(`${edge}: ${duration}`);
     }
-    delete device2RegisterOptions.edge;
+    delete device2Options.edge;
 
     lowDelayEdge = edges[durations.indexOf(Math.min(...durations))];
     highDelayEdge = edges[durations.indexOf(Math.max(...durations))];
@@ -121,21 +117,19 @@ maybeSkip('ICE Nomination', function() {
       this.timeout(SUITE_TIMEOUT);
 
       let deviceOptions: Device.Options;
-      let deviceRegisterOptions: Device.RegisterOptions;
 
       beforeEach(() => {
         deviceOptions = direction === Connection.CallDirection.Outgoing ? device1Options : device2Options;
-        deviceRegisterOptions = direction === Connection.CallDirection.Outgoing ? device1RegisterOptions : device2RegisterOptions;
       });
 
       afterEach(() => {
-        device1RegisterOptions = {};
-        device2RegisterOptions = {};
+        device1Options = {};
+        device2Options = {};
         destroyDevices();
       });
 
       it('should not have a significant dtls handshake delay when using low-delay region and aggressive nomination is false', async () => {
-        deviceRegisterOptions.edge = lowDelayEdge;
+        deviceOptions.edge = lowDelayEdge;
         await setupDevices();
         await getConnectionDuration(direction).then(duration => {
           assert(duration < CONNECTION_DELAY_THRESHOLD);
@@ -143,7 +137,7 @@ maybeSkip('ICE Nomination', function() {
       });
 
       it('should not have a significant dtls handshake delay when using low-delay region and aggressive nomination is true', async () => {
-        deviceRegisterOptions.edge = lowDelayEdge;
+        deviceOptions.edge = lowDelayEdge;
         deviceOptions.forceAggressiveIceNomination = true;
         await setupDevices();
         await getConnectionDuration(direction).then(duration => {
@@ -153,14 +147,14 @@ maybeSkip('ICE Nomination', function() {
 
       // These two tests are flaky. Disable for now. We need to re-run/update them once media server deploys a fix.
       it.skip('should have a significant dtls handshake delay when using high-delay region and aggressive nomination is false', async () => {
-        deviceRegisterOptions.edge = highDelayEdge;
+        deviceOptions.edge = highDelayEdge;
         await setupDevices();
         await getConnectionDuration(direction).then(duration => {
           assert(duration > CONNECTION_DELAY_THRESHOLD);
         });
       });
       it.skip('should not have a significant dtls handshake delay when using high-delay region and aggressive nomination is true', async () => {
-        deviceRegisterOptions.edge = highDelayEdge;
+        deviceOptions.edge = highDelayEdge;
         deviceOptions.forceAggressiveIceNomination = true;
         await setupDevices();
         await getConnectionDuration(direction).then(duration => {

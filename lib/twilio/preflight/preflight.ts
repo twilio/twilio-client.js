@@ -202,7 +202,7 @@ export class PreflightTest extends EventEmitter {
       message: 'Call cancelled',
     };
     if (this._device) {
-      this._device.once('offline', () => this._onFailed(error));
+      this._device.once(Device.EventName.Unregistered, () => this._onFailed(error));
       this._device.destroy();
     } else {
       this._onFailed(error);
@@ -345,22 +345,23 @@ export class PreflightTest extends EventEmitter {
    */
   private _initDevice(token: string, options: PreflightTest.ExtendedOptions): void {
     try {
-      this._device = new (options.deviceFactory || Device)({
+      this._device = new (options.deviceFactory || Device)(token, {
         codecPreferences: options.codecPreferences,
+        edge: options.edge,
         fileInputStream: options.fileInputStream,
         logLevel: options.logLevel,
         preflight: true,
       } as IExtendedDeviceOptions);
 
-      this._device.once('ready', () => {
-        this._onDeviceReady();
+      this._device.once(Device.EventName.Registered, () => {
+        this._onDeviceRegistered();
       });
 
-      this._device.once('error', (error: Device.Error) => {
+      this._device.once(Device.EventName.Error, (error: Device.Error) => {
         this._onDeviceError(error);
       });
 
-      this._device.register(token, { edge: options.edge });
+      this._device.register();
     } catch (error) {
       // We want to return before failing so the consumer can capture the event
       setTimeout(() => {
@@ -389,11 +390,11 @@ export class PreflightTest extends EventEmitter {
   /**
    * Called on {@link Device} ready event
    */
-  private _onDeviceReady(): void {
+  private async _onDeviceRegistered(): Promise<void> {
     clearTimeout(this._echoTimer);
     clearTimeout(this._signalingTimeoutTimer);
 
-    this._connection = this._device.connect({
+    this._connection = await this._device.connect({
       rtcConfiguration: this._options.rtcConfiguration,
     });
     this._networkTiming.signaling = { start: Date.now() };
@@ -410,8 +411,8 @@ export class PreflightTest extends EventEmitter {
       }
     }
 
-    this._device.once('disconnect', () => {
-      this._device.once('offline', () => this._onOffline());
+    this._device.once(Device.EventName.Disconnect, () => {
+      this._device.once(Device.EventName.Unregistered, () => this._onUnregistered());
       this._device.destroy();
     });
 
@@ -443,7 +444,7 @@ export class PreflightTest extends EventEmitter {
    * This indicates that the test has been completed, but we won't know if it failed or not.
    * The onError event will be the indicator whether the test failed.
    */
-  private _onOffline(): void {
+  private _onUnregistered(): void {
     // We need to make sure we always execute preflight.on('completed') last
     // as client SDK sometimes emits 'offline' event before emitting fatal errors.
     setTimeout(() => {
