@@ -8,7 +8,7 @@ import * as sinon from 'sinon';
 import { inherits } from 'util';
 import RTCSample from '../../lib/twilio/rtc/sample';
 
-describe.only('PreflightTest', () => {
+describe('PreflightTest', () => {
   const CALL_SID = 'foo-bar';
 
   let clock: SinonFakeTimers;
@@ -303,7 +303,7 @@ describe.only('PreflightTest', () => {
       await clock.tickAsync(5000);
       device.emit('disconnect');
       await clock.tickAsync(1000);
-      device.emit('offline');
+      device.emit(Device.EventName.Unregistered);
 
       await clock.tickAsync(20000);
       sinon.assert.notCalled(deviceContext.disconnectAll);
@@ -315,7 +315,7 @@ describe.only('PreflightTest', () => {
       device.emit(Device.EventName.Registered);
       await clock.tickAsync(5000);
       preflight.stop();
-      device.emit('offline');
+      device.emit(Device.EventName.Unregistered);
       await clock.tickAsync(20000);
       sinon.assert.notCalled(deviceContext.disconnectAll);
     });
@@ -462,7 +462,7 @@ describe.only('PreflightTest', () => {
       await clock.tickAsync(5000);
       device.emit('disconnect');
       await clock.tickAsync(1000);
-      device.emit('offline');
+      device.emit(Device.EventName.Unregistered);
 
       await clock.tickAsync(15000);
       sinon.assert.notCalled(onFailed);
@@ -475,7 +475,7 @@ describe.only('PreflightTest', () => {
       await clock.tickAsync(14000);
       device.emit('disconnect');
       await clock.tickAsync(1000);
-      device.emit('offline');
+      device.emit(Device.EventName.Unregistered);
       await clock.tickAsync(10);
 
       // endTime - startTime = duration. Should be equal to the total clock ticks
@@ -491,7 +491,7 @@ describe.only('PreflightTest', () => {
       await clock.tickAsync(14000);
       device.emit('disconnect');
       await clock.tickAsync(1000);
-      device.emit('offline');
+      device.emit(Device.EventName.Unregistered);
       await clock.tickAsync(1000);
       assert.equal(device.eventNames().length, 0);
       assert.equal(connection.eventNames().length, 0);
@@ -609,7 +609,7 @@ describe.only('PreflightTest', () => {
         device.emit('disconnect');
 
         await clock.tickAsync(1000);
-        device.emit('offline');
+        device.emit(Device.EventName.Unregistered);
         await clock.tickAsync(1000);
       });
     });
@@ -628,7 +628,7 @@ describe.only('PreflightTest', () => {
         await clock.tickAsync(13000);
         device.emit('disconnect');
         await clock.tickAsync(1000);
-        device.emit('offline');
+        device.emit(Device.EventName.Unregistered);
         await clock.tickAsync(1000);
 
         await completePromise;
@@ -674,7 +674,7 @@ describe.only('PreflightTest', () => {
           await clock.tickAsync(13000);
           device.emit('disconnect');
           await clock.tickAsync(5000);
-          device.emit('offline');
+          device.emit(Device.EventName.Unregistered);
           await clock.tickAsync(5000);
 
           await completePromise;
@@ -691,7 +691,7 @@ describe.only('PreflightTest', () => {
         await clock.tickAsync(25000);
         device.emit('disconnect');
         await clock.tickAsync(1000);
-        device.emit('offline');
+        device.emit(Device.EventName.Unregistered);
         await clock.tickAsync(1000);
       };
 
@@ -803,7 +803,7 @@ describe.only('PreflightTest', () => {
       await clock.tickAsync(5000);
 
       preflight.stop();
-      device.emit('offline');
+      device.emit(Device.EventName.Unregistered);
 
       await clock.tickAsync(15000);
 
@@ -856,7 +856,7 @@ describe.only('PreflightTest', () => {
       await clock.tickAsync(0);
 
       preflight.stop();
-      device.emit('offline');
+      device.emit(Device.EventName.Unregistered);
       await clock.tickAsync(1000);
 
       assert.equal(preflight.status, PreflightTest.Status.Failed);
@@ -919,10 +919,10 @@ describe.only('PreflightTest', () => {
 
       await clock.tickAsync(5000);
       preflight.stop();
-      device.emit('offline');
+      device.emit(Device.EventName.Unregistered);
 
       await clock.tickAsync(15000);
-      device.emit('offline');
+      device.emit(Device.EventName.Unregistered);
       await clock.tickAsync(1000);
       assert.equal(preflight.status, PreflightTest.Status.Failed);
       sinon.assert.notCalled(onCompleted);
@@ -934,7 +934,7 @@ describe.only('PreflightTest', () => {
       await clock.tickAsync(0);
 
       preflight.stop();
-      device.emit('offline');
+      device.emit(Device.EventName.Unregistered);
       await clock.tickAsync(1000);
 
       assert.equal(device.eventNames().length, 0);
@@ -953,7 +953,7 @@ describe.only('PreflightTest', () => {
       await clock.tickAsync(1000);
       device.emit('disconnect');
       await clock.tickAsync(1000);
-      device.emit('offline');
+      device.emit(Device.EventName.Unregistered);
       await clock.tickAsync(1);
       device.emit('error', { code: 123 });
       await clock.tickAsync(1000);

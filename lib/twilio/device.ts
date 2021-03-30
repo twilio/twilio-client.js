@@ -411,7 +411,7 @@ class Device extends EventEmitter {
   /**
    * A promise that will resolve when the Signaling stream is ready.
    */
-  private _streamReadyPromise: Promise<IPStream> | null = null;
+  private _streamConnectedPromise: Promise<IPStream> | null = null;
 
   /**
    * The JWT string currently being used to authenticate this {@link Device}.
@@ -882,7 +882,7 @@ class Device extends EventEmitter {
       audioHelper: this._audio,
       getUserMedia,
       isUnifiedPlanDefault: Device._isUnifiedPlanDefault,
-      pstream: await (this._streamReadyPromise || this._setupStream()),
+      pstream: await (this._streamConnectedPromise || this._setupStream()),
       publisher: this._publisher,
       soundcache: this._soundcache,
     };
@@ -1009,7 +1009,6 @@ class Device extends EventEmitter {
     const region = getRegionShortcode(payload.region);
     this._edge = regionToEdge[region as Region] || payload.region;
     this._region = region || payload.region;
-    this._sendPresence();
   }
 
   /**
@@ -1148,7 +1147,7 @@ class Device extends EventEmitter {
    * Register with the signaling server.
    */
   private async _sendPresence(): Promise<void> {
-    const stream = await (this._streamReadyPromise || this._setupStream());
+    const stream = await (this._streamConnectedPromise || this._setupStream());
     stream.register({ audio: this._mediaPresence.audio });
     if (this._mediaPresence.audio) {
       this._startRegistrationTimer();
@@ -1249,7 +1248,7 @@ class Device extends EventEmitter {
     this._stream.addListener('offline', this._onSignalingOffline);
     this._stream.addListener('ready', this._onSignalingReady);
 
-    return this._streamReadyPromise = new Promise<this>(resolve =>
+    return this._streamConnectedPromise = new Promise<this>(resolve =>
       this._stream.once('connected', () => {
         resolve(this._stream);
       }),

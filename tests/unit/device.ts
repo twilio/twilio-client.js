@@ -43,10 +43,10 @@ describe('Device', function() {
     connectOptions = _connectOptions;
     return activeConnection = createEmitterStub(require('../../lib/twilio/connection').default);
   };
-  const PStream = () =>
-    pstream = createEmitterStub(require('../../lib/twilio/pstream'));
-  const Publisher = () =>
-    publisher = createEmitterStub(require('../../lib/twilio/eventpublisher'));
+  const PStream = sinon.spy((...args: any[]) =>
+    pstream = createEmitterStub(require('../../lib/twilio/pstream')));
+  const Publisher = sinon.spy((...args: any[]) =>
+    publisher = createEmitterStub(require('../../lib/twilio/eventpublisher')));
   const Sound = (name: Device.SoundName) =>
     sounds[name] = sinon.createStubInstance(require('../../lib/twilio/sound'));
   const setupOptions: any = { AudioHelper, Connection, PStream, Publisher, Sound };
@@ -54,6 +54,9 @@ describe('Device', function() {
   afterEach(() => {
     clock.restore();
     root.resetEvents();
+
+    PStream.resetHistory();
+    Publisher.resetHistory();
   });
 
   beforeEach(() => {
@@ -132,7 +135,7 @@ describe('Device', function() {
     describe('after the Device has been connected to signaling', () => {
       beforeEach(async () => {
         const setupPromise = device['_setupStream']();
-        pstream.emit('ready');
+        pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
         await setupPromise;
       });
 
@@ -149,30 +152,6 @@ describe('Device', function() {
       });
 
       describe('.connect(params?, audioConstraints?, iceServers?)', () => {
-        let pStreamMock: EventEmitter & {
-          destroy: sinon.SinonSpy;
-          setToken: sinon.SinonSpy;
-        };
-        let PStream: sinon.SinonSpy;
-
-        beforeEach(async () => {
-          pStreamMock = new (class PStreamMock extends EventEmitter {
-            destroy = sinon.stub();
-            setToken = sinon.stub();
-          })();
-
-          PStream = sinon.stub().returns(pStreamMock);
-
-          device = new Device(token, {
-            ...setupOptions,
-            PStream,
-          });
-
-          const setupPromise = device['_setupStream']();
-          pStreamMock.emit('ready');
-          await setupPromise;
-        });
-
         it('should reject if there is already an active connection', async () => {
           await device.connect();
           await assert.rejects(() => device.connect(), /A Connection is already active/);
@@ -279,10 +258,6 @@ describe('Device', function() {
       });
 
       describe('.edge', () => {
-        it(`should return 'null' if not connected`, () => {
-          assert.equal(device.edge, null);
-        });
-
         // these unit tests will need to be changed for Phase 2 Regional
         context('when the region is mapped to a known edge', () => {
           Object.entries(regionShortcodes).forEach(([fullName, region]: [string, string]) => {
@@ -305,32 +280,6 @@ describe('Device', function() {
       });
 
       describe('.register()', () => {
-        let pStreamMock: EventEmitter & {
-          destroy: sinon.SinonSpy;
-          register: sinon.SinonSpy;
-          setToken: sinon.SinonSpy;
-        };
-        let PStream: sinon.SinonSpy;
-
-        beforeEach(async () => {
-          pStreamMock = new (class PStreamMock extends EventEmitter {
-            destroy = sinon.stub();
-            register = sinon.stub();
-            setToken = sinon.stub();
-          })();
-
-          PStream = sinon.stub().returns(pStreamMock);
-
-          device = new Device(token, {
-            ...setupOptions,
-            PStream,
-          });
-
-          const setupPromise = device['_setupStream']();
-          pStreamMock.emit('ready');
-          await setupPromise;
-        });
-
         it('should not set up a signaling connection if unnecessary', async () => {
           await device.register();
           sinon.assert.calledOnce(PStream);
@@ -343,15 +292,15 @@ describe('Device', function() {
 
         it('should send a register request with audio: true', async () => {
           await device.register();
-          sinon.assert.calledOnce(pStreamMock.register);
-          sinon.assert.calledWith(pStreamMock.register, { audio: true });
+          sinon.assert.calledOnce(pstream.register);
+          sinon.assert.calledWith(pstream.register, { audio: true });
         });
 
         it('should start the registration timer', async () => {
           await device.register();
-          sinon.assert.calledOnce(pStreamMock.register);
+          sinon.assert.calledOnce(pstream.register);
           await clock.tickAsync(30000 + 1);
-          sinon.assert.calledTwice(pStreamMock.register);
+          sinon.assert.calledTwice(pstream.register);
         });
       });
 
@@ -363,46 +312,22 @@ describe('Device', function() {
       });
 
       describe('.unregister()', () => {
-        let pStreamMock: EventEmitter & {
-          destroy: sinon.SinonSpy;
-          register: sinon.SinonSpy;
-          setToken: sinon.SinonSpy;
-        };
-        let PStream: sinon.SinonSpy;
-
         beforeEach(async () => {
-          pStreamMock = new (class PStreamMock extends EventEmitter {
-            destroy = sinon.stub();
-            register = sinon.stub();
-            setToken = sinon.stub();
-          })();
-
-          PStream = sinon.stub().returns(pStreamMock);
-
-          device = new Device(token, {
-            ...setupOptions,
-            PStream,
-          });
-
-          const regPromise = device.register();
-          pStreamMock.emit('ready');
-          await regPromise;
-
+          await device.register();
+          pstream.register.resetHistory();
         });
 
         it('should send a register request with audio: false', async () => {
-          pStreamMock.register.resetHistory();
           await device.unregister();
-          sinon.assert.calledOnce(pStreamMock.register);
-          sinon.assert.calledWith(pStreamMock.register, { audio: false });
+          sinon.assert.calledOnce(pstream.register);
+          sinon.assert.calledWith(pstream.register, { audio: false });
         });
 
         it('should stop the registration timer', async () => {
-          pStreamMock.register.resetHistory();
           await device.unregister();
-          sinon.assert.calledOnce(pStreamMock.register);
+          sinon.assert.calledOnce(pstream.register);
           await clock.tickAsync(30000 + 1);
-          sinon.assert.calledOnce(pStreamMock.register);
+          sinon.assert.calledOnce(pstream.register);
         });
       });
 
@@ -415,7 +340,7 @@ describe('Device', function() {
 
         it('should reconstruct an existing stream if necessary', async () => {
           const regPromise = device.register();
-          pstream.emit('ready');
+          pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
           await regPromise;
 
           const setupStreamSpy = device['_setupStream'] = sinon.spy(device['_setupStream']);
@@ -441,46 +366,16 @@ describe('Device', function() {
       });
 
       describe('.updateToken()', () => {
-        const pStreamMock = new (class PStreamMock extends EventEmitter {
-          destroy = sinon.stub();
-          setToken = sinon.stub();
-        })();
-        const PStream = sinon.stub().returns(pStreamMock);
-
-        const publisherMock = new (class PublisherMock extends EventEmitter {
-          destroy = sinon.stub();
-          setToken = sinon.stub();
-        })();
-        const Publisher = sinon.stub().returns(publisherMock);
-
-        const options = {
-          ...setupOptions,
-          PStream,
-          Publisher,
-        };
-
-        beforeEach(() => {
-          pStreamMock.removeAllListeners();
-          publisherMock.removeAllListeners();
-
-          PStream.resetHistory();
-          Publisher.resetHistory();
-
-          device = new Device(token, options);
-        });
-
         it('should update the tokens for an existing stream and publisher', () => {
-          device.register();
-
           const newToken = 'foobar-token';
 
           device.updateToken(newToken);
 
-          sinon.assert.calledOnce(pStreamMock.setToken);
-          sinon.assert.calledWith(pStreamMock.setToken, newToken);
+          sinon.assert.calledOnce(pstream.setToken);
+          sinon.assert.calledWith(pstream.setToken, newToken);
 
-          sinon.assert.calledOnce(publisherMock.setToken);
-          sinon.assert.calledWith(publisherMock.setToken, newToken);
+          sinon.assert.calledOnce(publisher.setToken);
+          sinon.assert.calledWith(publisher.setToken, newToken);
         });
       });
 
@@ -612,7 +507,7 @@ describe('Device', function() {
           beforeEach(async () => {
             device = new Device(token, { ...setupOptions, allowIncomingWhileBusy: true });
             const setupPromise = device['_setupStream']();
-            pstream.emit('ready');
+            pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
             await setupPromise;
             await device.connect();
           });
@@ -876,7 +771,7 @@ describe('Device', function() {
               beforeEach(async () => {
                 await device.connect();
                 sinkIds = ['default'];
-                activeConnection._setSinkIds = sinon.spy(() => Promise.resolve())
+                activeConnection._setSinkIds = sinon.spy(() => Promise.resolve());
                 return updateSinkIds('speaker', sinkIds);
               });
 
@@ -894,7 +789,7 @@ describe('Device', function() {
                 sinkIds = ['default'];
                 activeConnection._setSinkIds = sinon.spy(() => Promise.reject(new Error('foo')));
                 return updateSinkIds('speaker', sinkIds).then(
-                  () => { throw Error('Expected a rejection') },
+                  () => { throw Error('Expected a rejection'); },
                   () => Promise.resolve());
               });
 
@@ -919,7 +814,7 @@ describe('Device', function() {
               beforeEach(async () => {
                 await device.connect();
                 sinkIds = ['default'];
-                activeConnection._setSinkIds = sinon.spy(() => Promise.resolve())
+                activeConnection._setSinkIds = sinon.spy(() => Promise.resolve());
                 return updateSinkIds('ringtone', sinkIds);
               });
 
@@ -935,26 +830,6 @@ describe('Device', function() {
     });
 
     describe('before the Device has been connected to signaling', () => {
-      let pStreamMock: EventEmitter & {
-        destroy: sinon.SinonSpy;
-        setToken: sinon.SinonSpy;
-      };
-      let PStream: sinon.SinonSpy;
-
-      beforeEach(() => {
-        pStreamMock = new (class PStreamMock extends EventEmitter {
-          destroy = sinon.stub();
-          setToken = sinon.stub();
-        })();
-
-        PStream = sinon.stub().returns(pStreamMock);
-
-        device = new Device(token, {
-          ...setupOptions,
-          PStream,
-        });
-      });
-
       it('should lazy create a signaling connection', () => {
         assert.equal(device['_stream'], null);
       });
@@ -969,31 +844,19 @@ describe('Device', function() {
         it('should not set the active connection until the stream resolves', async () => {
           const connectPromise = device.connect();
           assert.equal(device.activeConnection, null);
-          pStreamMock.emit('ready');
+          pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
           await connectPromise;
           assert(device.activeConnection);
         });
       });
 
-      describe('.register()', () => {
-        const pStreamMock = new (class PStreamMock extends EventEmitter {
-          destroy = sinon.stub();
-          register = sinon.stub();
-          setToken = sinon.stub();
-        })();
-        const PStream = sinon.stub().returns(pStreamMock);
-
-        const options = {
-          ...setupOptions,
-          PStream,
-        };
-
-        beforeEach(() => {
-          device = new Device(token, options);
-
-          PStream.resetHistory();
+      describe('.edge', () => {
+        it(`should return 'null' if not connected`, () => {
+          assert.equal(device.edge, null);
         });
+      });
 
+      describe('.register()', () => {
         it('should set up a signaling connection if necessary', () => {
           device.register();
           sinon.assert.calledOnce(PStream);
@@ -1007,7 +870,7 @@ describe('Device', function() {
 
         it('should set state to "registered" after the stream resolves', async () => {
           const regPromise = device.register();
-          pStreamMock.emit('ready');
+          pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
           await regPromise;
           assert.equal(device.state, Device.State.Registered);
         });
@@ -1023,33 +886,12 @@ describe('Device', function() {
     });
 
     describe('when creating a signaling connection', () => {
-      let pStreamMock: EventEmitter & {
-        destroy: sinon.SinonSpy;
-        register: sinon.SinonSpy;
-        setToken: sinon.SinonSpy;
-      };
-      let PStream: sinon.SinonSpy;
-      let options: any;
-
-      beforeEach(() => {
-        pStreamMock = new (class PStreamMock extends EventEmitter {
-          destroy = sinon.stub();
-          register = sinon.stub();
-          setToken = sinon.stub();
-        })();
-        PStream = sinon.stub().returns(pStreamMock);
-        options = {
-          ...setupOptions,
-          PStream,
-        };
-      });
-
       describe('should use chunderw regardless', () => {
         it('when it is a string', async () => {
-          device = new Device(token, { ...options, chunderw: 'foo' });
+          device = new Device(token, { ...setupOptions, chunderw: 'foo' });
 
           const setupPromise = device['_setupStream']();
-          pStreamMock.emit('ready');
+          pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
           await setupPromise;
 
           sinon.assert.calledOnce(PStream);
@@ -1059,10 +901,10 @@ describe('Device', function() {
         });
 
         it('when it is an array', async () => {
-          device = new Device(token, { ...options, chunderw: ['foo', 'bar'] });
+          device = new Device(token, { ...setupOptions, chunderw: ['foo', 'bar'] });
 
           const setupPromise = device['_setupStream']();
-          pStreamMock.emit('ready');
+          pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
           await setupPromise;
 
           sinon.assert.calledOnce(PStream);
@@ -1073,10 +915,10 @@ describe('Device', function() {
       });
 
       it('should use default chunder uri if no region or edge is passed in', async () => {
-        device = new Device(token, options);
+        device = new Device(token, setupOptions);
 
         const setupPromise = device['_setupStream']();
-        pStreamMock.emit('ready');
+        pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
         await setupPromise;
 
         sinon.assert.calledOnce(PStream);
@@ -1086,10 +928,10 @@ describe('Device', function() {
       });
 
       it('should use correct edge if only one is supplied', async () => {
-        device = new Device(token, { ...options, edge: 'singapore' });
+        device = new Device(token, { ...setupOptions, edge: 'singapore' });
 
         const setupPromise = device['_setupStream']();
-        pStreamMock.emit('ready');
+        pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
         await setupPromise;
 
         sinon.assert.calledOnce(PStream);
@@ -1099,10 +941,10 @@ describe('Device', function() {
       });
 
       it('should use correct edges if more than one is supplied', async () => {
-        device = new Device(token, { ...options, edge: ['singapore', 'sydney'] });
+        device = new Device(token, { ...setupOptions, edge: ['singapore', 'sydney'] });
 
         const setupPromise = device['_setupStream']();
-        pStreamMock.emit('ready');
+        pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
         await setupPromise;
 
         sinon.assert.calledOnce(PStream);
@@ -1125,42 +967,19 @@ describe('Device', function() {
     });
 
     describe('signaling agnostic', () => {
-      let pStreamMock: EventEmitter & {
-        destroy: sinon.SinonSpy;
-        register: sinon.SinonSpy;
-        setToken: sinon.SinonSpy;
-      };
-      let PStream: sinon.SinonSpy;
-      let options: any;
-
       [{
         afterEachHook: () => async () => {
           sinon.assert.calledOnce(PStream);
         },
         beforeEachHook: () => async () => {
-          pStreamMock = new (class PStreamMock extends EventEmitter {
-            destroy = sinon.stub();
-            register = sinon.stub();
-            setToken = sinon.stub();
-          })();
-          PStream = sinon.stub().returns(pStreamMock);
-          options = {
-            ...setupOptions,
-            PStream,
-          };
-          device = new Device(token, options);
           const setupPromise = device['_setupStream']();
-          pStreamMock.emit('ready');
+          pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
           await setupPromise;
         },
         title: 'signaling connected',
       }, {
         afterEachHook: async () => {},
-        beforeEachHook: async () => {
-          options = {
-            ...setupOptions,
-          };
-        },
+        beforeEachHook: async () => {},
         title: 'signaling not connected',
       }].forEach(({ afterEachHook, beforeEachHook, title }) => {
         describe(title, () => {
