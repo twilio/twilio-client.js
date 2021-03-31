@@ -6,7 +6,7 @@ import { generateAccessToken } from '../lib/token';
 
 // (rrowland) The TwiML expected by these tests can be found in the README.md
 
-describe.only('Device', function() {
+describe('Device', function() {
   this.timeout(10000);
 
   let device1: Device;

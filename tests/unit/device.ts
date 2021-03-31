@@ -32,6 +32,8 @@ describe('Device', function() {
   let updateInputStream: Function;
   let updateSinkIds: Function;
 
+  let setupStream: () => Promise<void>;
+
   const sounds: Partial<Record<Device.SoundName, any>> = { };
 
   const AudioHelper = (_updateSinkIds: Function, _updateInputStream: Function) => {
@@ -64,6 +66,11 @@ describe('Device', function() {
     token = createToken('alice');
     device = new Device(token, setupOptions);
     device.on('error', () => { /* no-op */ });
+    setupStream = async () => {
+      const setupPromise = device['_setupStream']();
+      pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
+      await setupPromise;
+    };
   });
 
   describe('constructor', () => {
@@ -133,10 +140,23 @@ describe('Device', function() {
     });
 
     describe('after the Device has been connected to signaling', () => {
+      let registerDevice: () => Promise<void>;
+      let unregisterDevice: () => Promise<void>;
+
       beforeEach(async () => {
-        const setupPromise = device['_setupStream']();
-        pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
-        await setupPromise;
+        await setupStream();
+        registerDevice = async () => {
+          const regPromise = device.register();
+          await clock.tickAsync(0);
+          pstream.emit('ready');
+          await regPromise;
+        };
+        unregisterDevice = async () => {
+          const regPromise = device.unregister();
+          await clock.tickAsync(0);
+          pstream.emit('offline');
+          await regPromise;
+        };
       });
 
       describe('.activeConnection', () => {
@@ -281,23 +301,18 @@ describe('Device', function() {
 
       describe('.register()', () => {
         it('should not set up a signaling connection if unnecessary', async () => {
-          await device.register();
+          await registerDevice();
           sinon.assert.calledOnce(PStream);
         });
 
-        it('should set state to "registered" immediately', async () => {
-          await device.register();
-          assert.equal(device.state, Device.State.Registered);
-        });
-
         it('should send a register request with audio: true', async () => {
-          await device.register();
+          await registerDevice();
           sinon.assert.calledOnce(pstream.register);
           sinon.assert.calledWith(pstream.register, { audio: true });
         });
 
         it('should start the registration timer', async () => {
-          await device.register();
+          await registerDevice();
           sinon.assert.calledOnce(pstream.register);
           await clock.tickAsync(30000 + 1);
           sinon.assert.calledTwice(pstream.register);
@@ -306,25 +321,25 @@ describe('Device', function() {
 
       describe('.state', () => {
         it('should return "registered" after registering', async () => {
-          await device.register();
+          await registerDevice();
           assert.equal(device.state, Device.State.Registered);
         });
       });
 
       describe('.unregister()', () => {
         beforeEach(async () => {
-          await device.register();
+          await registerDevice();
           pstream.register.resetHistory();
         });
 
         it('should send a register request with audio: false', async () => {
-          await device.unregister();
+          await unregisterDevice();
           sinon.assert.calledOnce(pstream.register);
           sinon.assert.calledWith(pstream.register, { audio: false });
         });
 
         it('should stop the registration timer', async () => {
-          await device.unregister();
+          await unregisterDevice();
           sinon.assert.calledOnce(pstream.register);
           await clock.tickAsync(30000 + 1);
           sinon.assert.calledOnce(pstream.register);
@@ -339,10 +354,7 @@ describe('Device', function() {
         });
 
         it('should reconstruct an existing stream if necessary', async () => {
-          const regPromise = device.register();
-          pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
-          await regPromise;
-
+          await registerDevice();
           const setupStreamSpy = device['_setupStream'] = sinon.spy(device['_setupStream']);
           device.updateOptions({ edge: 'ashburn' });
           sinon.assert.calledOnce(setupStreamSpy);
@@ -401,6 +413,18 @@ describe('Device', function() {
           pstream.emit('connected', { region: 'EU_IRELAND' });
           assert.equal(device['_region'], regionShortcodes.EU_IRELAND);
         });
+
+        it('should attempt a re-register if the device was registered', async () => {
+          await registerDevice();
+
+          const spy = device.register = sinon.spy(device.register);
+          pstream.emit('offline');
+          await clock.tickAsync(0);
+          pstream.emit('connected', { region: 'EU_IRELAND' });
+          await clock.tickAsync(0);
+
+          sinon.assert.calledOnce(spy);
+        });
       });
 
       describe('on signaling.error', () => {
@@ -431,7 +455,7 @@ describe('Device', function() {
         });
 
         it('should not stop registrations if code is not 31205', async () => {
-          await device.register();
+          await registerDevice();
           pstream.emit('error', { error: { } });
           pstream.register.reset();
           await clock.tickAsync(30000 + 1);
@@ -439,7 +463,7 @@ describe('Device', function() {
         });
 
         it('should stop registrations if code is 31205', async () => {
-          await device.register();
+          await registerDevice();
           pstream.emit('error', { error: { code: 31205 } });
           pstream.register.reset();
           await clock.tickAsync(30000 + 1);
@@ -506,9 +530,7 @@ describe('Device', function() {
         context('when allowIncomingWhileBusy is true', () => {
           beforeEach(async () => {
             device = new Device(token, { ...setupOptions, allowIncomingWhileBusy: true });
-            const setupPromise = device['_setupStream']();
-            pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
-            await setupPromise;
+            await setupStream();
             await device.connect();
           });
 
@@ -548,13 +570,12 @@ describe('Device', function() {
         });
       });
 
-      // TODO, do we want to get rid of this?
-      describe.skip('on signaling.ready', () => {
-        it('should emit Device.ready', () => {
+      describe('on signaling.ready', () => {
+        it('should emit Device.registered', () => {
           device.emit = sinon.spy();
           pstream.emit('ready');
           sinon.assert.calledOnce(device.emit as any);
-          sinon.assert.calledWith(device.emit as any, 'ready');
+          sinon.assert.calledWith(device.emit as any, 'registered');
         });
       });
 
@@ -870,9 +891,28 @@ describe('Device', function() {
 
         it('should set state to "registered" after the stream resolves', async () => {
           const regPromise = device.register();
+          await clock.tickAsync(0);
+
           pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
+          await clock.tickAsync(0);
+
+          pstream.emit('ready');
+          await clock.tickAsync(0);
+
           await regPromise;
+
           assert.equal(device.state, Device.State.Registered);
+        });
+      });
+
+      describe('.updateOptions()', () => {
+        it('should not create a stream', async () => {
+          const setupSpy = device['_setupStream'] = sinon.spy(device['_setupStream']);
+          device.updateOptions();
+          await new Promise(resolve => {
+            sinon.assert.notCalled(setupSpy);
+            resolve();
+          });
         });
       });
 
@@ -886,14 +926,14 @@ describe('Device', function() {
     });
 
     describe('when creating a signaling connection', () => {
+      const testWithOptions = async (options: Record<any, any>) => {
+        device = new Device(token, { ...setupOptions, ...options });
+        await setupStream();
+      };
+
       describe('should use chunderw regardless', () => {
         it('when it is a string', async () => {
-          device = new Device(token, { ...setupOptions, chunderw: 'foo' });
-
-          const setupPromise = device['_setupStream']();
-          pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
-          await setupPromise;
-
+          await testWithOptions({ chunderw: 'foo' });
           sinon.assert.calledOnce(PStream);
           sinon.assert.calledWithExactly(PStream,
             token, ['wss://foo/signal'],
@@ -901,12 +941,7 @@ describe('Device', function() {
         });
 
         it('when it is an array', async () => {
-          device = new Device(token, { ...setupOptions, chunderw: ['foo', 'bar'] });
-
-          const setupPromise = device['_setupStream']();
-          pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
-          await setupPromise;
-
+          await testWithOptions({ chunderw: ['foo', 'bar'] });
           sinon.assert.calledOnce(PStream);
           sinon.assert.calledWithExactly(PStream,
             token, ['wss://foo/signal', 'wss://bar/signal'],
@@ -915,12 +950,7 @@ describe('Device', function() {
       });
 
       it('should use default chunder uri if no region or edge is passed in', async () => {
-        device = new Device(token, setupOptions);
-
-        const setupPromise = device['_setupStream']();
-        pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
-        await setupPromise;
-
+        await setupStream();
         sinon.assert.calledOnce(PStream);
         sinon.assert.calledWithExactly(PStream,
           token, ['wss://chunderw-vpc-gll.twilio.com/signal'],
@@ -928,12 +958,7 @@ describe('Device', function() {
       });
 
       it('should use correct edge if only one is supplied', async () => {
-        device = new Device(token, { ...setupOptions, edge: 'singapore' });
-
-        const setupPromise = device['_setupStream']();
-        pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
-        await setupPromise;
-
+        await testWithOptions({ edge: 'singapore' });
         sinon.assert.calledOnce(PStream);
         sinon.assert.calledWithExactly(PStream,
           token, ['wss://chunderw-vpc-gll-sg1.twilio.com/signal'],
@@ -941,28 +966,12 @@ describe('Device', function() {
       });
 
       it('should use correct edges if more than one is supplied', async () => {
-        device = new Device(token, { ...setupOptions, edge: ['singapore', 'sydney'] });
-
-        const setupPromise = device['_setupStream']();
-        pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
-        await setupPromise;
-
+        await testWithOptions({ edge: ['singapore', 'sydney'] });
         sinon.assert.calledOnce(PStream);
         sinon.assert.calledWithExactly(PStream, token, [
           'wss://chunderw-vpc-gll-sg1.twilio.com/signal',
           'wss://chunderw-vpc-gll-au1.twilio.com/signal',
         ], { backoffMaxMs: undefined });
-      });
-
-      describe('.updateOptions()', () => {
-        it('should not create a stream', async () => {
-          const setupSpy = device['_setupStream'] = sinon.spy(device['_setupStream']);
-          device.updateOptions();
-          await new Promise(resolve => {
-            sinon.assert.notCalled(setupSpy);
-            resolve();
-          });
-        });
       });
     });
 
@@ -971,11 +980,7 @@ describe('Device', function() {
         afterEachHook: () => async () => {
           sinon.assert.calledOnce(PStream);
         },
-        beforeEachHook: () => async () => {
-          const setupPromise = device['_setupStream']();
-          pstream.emit('connected', { region: 'US_EAST_VIRGINIA' });
-          await setupPromise;
-        },
+        beforeEachHook: () => setupStream(),
         title: 'signaling connected',
       }, {
         afterEachHook: async () => {},

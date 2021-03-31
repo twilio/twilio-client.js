@@ -394,6 +394,14 @@ class Device extends EventEmitter {
   private _regTimer: NodeJS.Timer | null = null;
 
   /**
+   * Boolean representing whether or not the {@link Device} was registered when
+   * receiving a signaling `offline`. Determines if the {@link Device} attempts
+   * a `re-register` once signaling is re-established when receiving a
+   * `connected` event from the stream.
+   */
+  private _shouldReRegister: boolean = false;
+
+  /**
    * A Map of Sounds to play.
    */
   private _soundcache: Map<Device.SoundName, ISound> = new Map();
@@ -499,6 +507,16 @@ class Device extends EventEmitter {
       window.addEventListener('pagehide', this._boundDestroy);
     }
 
+    ([
+      [Device.EventName.Unregistered, Device.State.Unregistered],
+      [Device.EventName.Registering, Device.State.Registering],
+      [Device.EventName.Registered, Device.State.Registered],
+    ] as const).forEach(([event, state]) => {
+      this.on(event, () => {
+        this._state = state;
+      });
+    });
+
     this.updateOptions(options);
   }
 
@@ -597,22 +615,23 @@ class Device extends EventEmitter {
    * Register the `Device` to the Twilio backend, allowing it to receive calls.
    */
   async register(): Promise<void> {
-    if (this._state !== Device.State.Unregistered) {
+    if (this.state !== Device.State.Unregistered) {
       this._log.error(
-        `Attempt to register when device is in state "${this._state}". ` +
+        `Attempt to register when device is in state "${this.state}". ` +
         `Must be "${Device.State.Unregistered}".`,
       );
       return;
     }
 
-    this._state = Device.State.Registering;
     this.emit(Device.EventName.Registering);
 
     this._mediaPresence.audio = true;
+    const stream = await (this._streamConnectedPromise || this._setupStream());
+    const streamReadyPromise = new Promise(resolve => {
+      stream.on('ready', resolve);
+    });
     await this._sendPresence();
-
-    this._state = Device.State.Registered;
-    this.emit(Device.EventName.Registered);
+    await streamReadyPromise;
   }
 
   /**
@@ -642,19 +661,23 @@ class Device extends EventEmitter {
    * calls.
    */
   async unregister(): Promise<void> {
-    if (this._state !== Device.State.Registered) {
+    if (this.state !== Device.State.Registered) {
       this._log.error(
-        `Attempt to unregister when device is in state "${this._state}". ` +
+        `Attempt to unregister when device is in state "${this.state}". ` +
         `Must be "${Device.State.Registered}".`,
       );
       return;
     }
 
-    this._mediaPresence.audio = false;
-    await this._sendPresence();
+    this._shouldReRegister = false;
 
-    this._state = Device.State.Unregistered;
-    this.emit(Device.EventName.Unregistered, '"Device.unregister" called.');
+    this._mediaPresence.audio = false;
+    const stream = await this._streamConnectedPromise;
+    const streamOfflinePromise = new Promise(resolve => {
+      stream.on('offline', resolve);
+    });
+    await this._sendPresence();
+    await streamOfflinePromise;
   }
 
   /**
@@ -728,7 +751,7 @@ class Device extends EventEmitter {
       }
     }
 
-    if (hasChunderURIsChanged && this._stream) {
+    if (hasChunderURIsChanged && this._streamConnectedPromise) {
       const shouldReRegister = this.state === Device.State.Registered;
       await this._setupStream();
       if (shouldReRegister) {
@@ -830,6 +853,9 @@ class Device extends EventEmitter {
     return payload;
   }
 
+  /**
+   * Destroy the AudioHelper.
+   */
   private _destroyAudioHelper() {
     if (!this._audio) { return; }
 
@@ -844,7 +870,6 @@ class Device extends EventEmitter {
     // Attempt to destroy non-existent publisher.
     if (!this._publisher) { return; }
 
-    this._publisher.removeAllListeners();
     this._publisher = null;
   }
 
@@ -852,11 +877,12 @@ class Device extends EventEmitter {
    * Destroy the connection to the signaling server.
    */
   private _destroyStream() {
-    // Attempt to destroy non-existent stream.
-    if (!this._stream) { return; }
+    if (this._stream) {
+      this._stream.destroy();
+      this._stream = null;
+    }
 
-    this._stream.destroy();
-    this._stream = null;
+    this._streamConnectedPromise = null;
   }
 
   /**
@@ -1000,6 +1026,7 @@ class Device extends EventEmitter {
    */
   private _onSignalingClose = () => {
     this._stream = null;
+    this._streamConnectedPromise = null;
   }
 
   /**
@@ -1009,6 +1036,12 @@ class Device extends EventEmitter {
     const region = getRegionShortcode(payload.region);
     this._edge = regionToEdge[region as Region] || payload.region;
     this._region = region || payload.region;
+
+    // The signaling stream emits a `connected` event after reconnection, if the
+    // device was registered before this, then register again.
+    if (this._shouldReRegister) {
+      this.register();
+    }
   }
 
   /**
@@ -1097,8 +1130,9 @@ class Device extends EventEmitter {
     this._edge = null;
     this._region = null;
 
-    this._state = Device.State.Unregistered;
-    this.emit(Device.EventName.Unregistered, this);
+    this._shouldReRegister = this.state !== Device.State.Unregistered;
+
+    this.emit(Device.EventName.Unregistered);
   }
 
   /**
@@ -1106,6 +1140,8 @@ class Device extends EventEmitter {
    */
   private _onSignalingReady = () => {
     this._log.info('Stream is ready');
+
+    this.emit(Device.EventName.Registered);
   }
 
   /**
@@ -1147,7 +1183,10 @@ class Device extends EventEmitter {
    * Register with the signaling server.
    */
   private async _sendPresence(): Promise<void> {
-    const stream = await (this._streamConnectedPromise || this._setupStream());
+    const stream = await this._streamConnectedPromise;
+
+    if (!stream) { return; }
+
     stream.register({ audio: this._mediaPresence.audio });
     if (this._mediaPresence.audio) {
       this._startRegistrationTimer();
@@ -1407,20 +1446,28 @@ namespace Device {
   declare function incomingEvent(connection: Connection): void;
 
   /**
-   * Emitted when the {@link Device} goes offline.
+   * Emitted when the {@link Device} is unregistered.
    * @param device
-   * @example `device.on('offline', device => { })`
+   * @example `device.on('unregistered', device => { })`
    * @event
    */
-  declare function offlineEvent(device: Device): void;
+  declare function unregisteredEvent(device: Device): void;
 
   /**
-   * Emitted when the {@link Device} is connected to signaling and ready.
+   * Emitted when the {@link Device} is registering.
    * @param device
-   * @example `device.on('ready', device => { })`
+   * @example `device.on('registering', device => { })`
    * @event
    */
-  declare function readyEvent(device: Device): void;
+  declare function registeringEvent(device: Device): void;
+
+  /**
+   * Emitted when the {@link Device} is registered.
+   * @param device
+   * @example `device.on('registered', device => { })`
+   * @event
+   */
+  declare function registeredEvent(device: Device): void;
 
   /**
    * All valid {@link Device} event names.

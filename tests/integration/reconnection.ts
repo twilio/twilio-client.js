@@ -142,22 +142,21 @@ describe('Reconnection', function() {
       return runDockerCommand('resetNetwork');
     });
 
-    it('should trigger device.offline', async () => {
+    it('should trigger device.unregistered', async () => {
       await runDockerCommand('disconnectFromAllNetworks');
-      await waitFor(bindTestPerDevice((device: Device) => expectEvent('offline', device)), EVENT_TIMEOUT);
+      await waitFor(bindTestPerDevice((device: Device) => expectEvent(Device.EventName.Unregistered, device)), EVENT_TIMEOUT);
     });
 
     it('should disconnect call with error 31003', () => {
       return waitFor(bindTestPerConnection((conn: Connection) => Promise.all([
         expectEvent('disconnect', conn),
-        new Promise((resolve) => conn.once('error', (error) => error.code === 31003 && resolve()))
+        new Promise((resolve) => conn.once('error', (error) => error.code === 31003 && resolve())),
       ]).then(() =>  assert(conn.status() === Connection.State.Closed))), RTP_TIMEOUT);
     });
 
-    // TODO, does this change with lazy connection?
-    it.skip('should trigger device.registered after network resumes', async () => {
+    it('should trigger device.registered after network resumes', async () => {
       await runDockerCommand('resetNetwork');
-      await waitFor(bindTestPerDevice((device: Device) => expectEvent('registered', device)), EVENT_TIMEOUT);
+      await waitFor(bindTestPerDevice((device: Device) => expectEvent(Device.EventName.Registered, device)), EVENT_TIMEOUT);
     });
   });
 });

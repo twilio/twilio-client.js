@@ -66,8 +66,8 @@ maybeSkip('ICE Nomination', function() {
     // We don't currently expose ice connection state changes.
     // Let's hook to makeConnection and subscribe to events
     const makeConnection = device['_makeConnection'].bind(device);
-    (device['_makeConnection'] as any) = (...params: any) => {
-      const conn = makeConnection(...params);
+    (device['_makeConnection'] as any) = async (...params: any) => {
+      const conn = await makeConnection(...params);
       conn['_mediaHandler'].oniceconnectionstatechange = (state: string) => {
         if (state === 'checking') {
           start = Date.now();
@@ -82,7 +82,7 @@ maybeSkip('ICE Nomination', function() {
       return conn;
     };
 
-    device1.connect({ params: { To: identity2 } });
+    await device1.connect({ params: { To: identity2 } });
     const conn2 = await expectEvent('incoming', device2);
 
     conn2.accept();

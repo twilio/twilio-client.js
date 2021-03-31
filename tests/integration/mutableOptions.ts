@@ -8,7 +8,7 @@ function waitFor(n: number, reject?: boolean) {
   return new Promise((res, rej) => setTimeout(reject ? rej : res, n));
 }
 
-describe.only('mutable options', function() {
+describe('mutable options', function() {
   let device: Device;
   let token: string;
 
