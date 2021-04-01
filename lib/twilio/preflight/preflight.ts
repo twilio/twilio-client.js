@@ -411,7 +411,7 @@ export class PreflightTest extends EventEmitter {
       }
     }
 
-    this._device.once(Device.EventName.Disconnect, () => {
+    this._connection.once('disconnect', () => {
       this._device.once(Device.EventName.Unregistered, () => this._onUnregistered());
       this._device.destroy();
     });

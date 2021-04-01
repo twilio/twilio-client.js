@@ -319,6 +319,20 @@ describe('Device', function() {
         });
       });
 
+      describe('._sendPresence(presence)', () => {
+        beforeEach(() => setupStream());
+
+        [true, false].forEach(presence => {
+          describe(`when "presence=${presence}"`, () => {
+            it(`should call pstream.register(${presence})`, async () => {
+              device['_sendPresence'](presence);
+              await clock.tickAsync(0);
+              sinon.assert.calledOnceWithExactly(pstream.register, { audio: presence });
+            });
+          });
+        });
+      });
+
       describe('.state', () => {
         it('should return "registered" after registering', async () => {
           await registerDevice();
@@ -396,7 +410,7 @@ describe('Device', function() {
           await device.connect();
           const spy: SinonSpy = sinon.spy();
           activeConnection['_mediaHandler'] = { _onInputDevicesChanged: spy };
-          device.audio && device.audio.emit('deviceChange', []);
+          device.audio?.emit('deviceChange', []);
           sinon.assert.calledOnce(spy);
         });
       });
@@ -563,6 +577,7 @@ describe('Device', function() {
         });
 
         it('should emit Device.EventName.Unregistered', () => {
+          device['_state'] = Device.State.Registered;
           device.emit = sinon.spy();
           pstream.emit('offline');
           sinon.assert.calledOnce(device.emit as any);
@@ -576,49 +591,6 @@ describe('Device', function() {
           pstream.emit('ready');
           sinon.assert.calledOnce(device.emit as any);
           sinon.assert.calledWith(device.emit as any, 'registered');
-        });
-      });
-
-      describe('on event subscriptions coming from connection', () => {
-        let connection: any;
-
-        beforeEach(async () => {
-          const incomingPromise = new Promise(resolve =>
-            device.once(Device.EventName.Incoming, () => {
-              device.connections[0].parameters = { };
-              connection = device.connections[0];
-              resolve();
-            }),
-          );
-
-          pstream.emit('invite', {
-            callsid: 'CA1234',
-            sdp: 'foobar',
-          });
-
-          await incomingPromise;
-        });
-
-        it('should emit device:connect asynchronously', () => {
-          const stub = sinon.stub();
-          device.on('connect', stub);
-          connection.emit('accept');
-
-          sinon.assert.notCalled(stub);
-          clock.tick(1);
-          sinon.assert.calledOnce(stub);
-        });
-
-        ['error', 'cancel', 'disconnect'].forEach(event => {
-          it(`should emit device:${event} asynchronously`, () => {
-            const stub = sinon.stub();
-            device.on(event, stub);
-            connection.emit(event);
-
-            sinon.assert.notCalled(stub);
-            clock.tick(1);
-            sinon.assert.calledOnce(stub);
-          });
         });
       });
 
@@ -652,14 +624,6 @@ describe('Device', function() {
             assert.equal(device.connections.length, 0);
           });
 
-          it('should emit Device.connect', () => {
-            device.connections[0].emit('accept');
-            clock.tick(1);
-
-            sinon.assert.calledOnce(device.emit as any);
-            sinon.assert.calledWith(device.emit as any, 'connect');
-          });
-
           it('should not play outgoing sound', () => {
             const spy: any = { play: sinon.spy() };
             device['_soundcache'].set(Device.SoundName.Outgoing, spy);
@@ -673,14 +637,6 @@ describe('Device', function() {
             device.connections[0].status = () => ConnectionType.State.Closed;
             device.connections[0].emit('error');
             assert.equal(device.connections.length, 0);
-          });
-
-          it('should emit Device.error', () => {
-            device.connections[0].emit('error');
-            clock.tick(1);
-
-            sinon.assert.calledOnce(device.emit as any);
-            sinon.assert.calledWith(device.emit as any, 'error');
           });
         });
 
@@ -697,30 +653,7 @@ describe('Device', function() {
           });
         });
 
-        describe('on connection.cancel', () => {
-          it('should emit Device.cancel', () => {
-            it('should should remove the connection', () => {
-              device.connections[0].emit('cancel');
-              assert.equal(device.connections.length, 0);
-            });
-
-            device.connections[0].emit('cancel');
-            clock.tick(1);
-
-            sinon.assert.calledOnce(device.emit as any);
-            sinon.assert.calledWith(device.emit as any, 'cancel');
-          });
-        });
-
         describe('on connection.disconnect', () => {
-          it('should emit Device.disconnect', () => {
-            device.connections[0].emit('disconnect');
-            clock.tick(1);
-
-            sinon.assert.calledOnce(device.emit as any);
-            sinon.assert.calledWith(device.emit as any, 'disconnect');
-          });
-
           it('should remove connection from activeDevice', () => {
             const conn = device.connections[0];
             conn.emit('accept');
@@ -992,6 +925,24 @@ describe('Device', function() {
 
           afterEach(afterEachHook);
 
+          describe('._setState(state?)', () => {
+            const eventStates: Array<[Device.EventName, Device.State, Device.State]> = [
+              [Device.EventName.Unregistered, Device.State.Registered, Device.State.Unregistered],
+              [Device.EventName.Registering, Device.State.Unregistered, Device.State.Registering],
+              [Device.EventName.Registered, Device.State.Registering, Device.State.Registered],
+            ];
+
+            eventStates.forEach(([event, preState, postState]) => {
+              it(`should emit "${event}" when transitioning from "${preState}" to "${postState}"`, () => {
+                device['_state'] = preState;
+
+                const spy = device.emit = sinon.spy(device.emit);
+                device['_setState'](postState);
+                sinon.assert.calledOnceWithExactly(spy, event);
+              });
+            });
+          });
+
           describe('._setupAudioHelper()', () => {
             it('should destroy an existing audio helper', () => {
               const spy = device['_destroyAudioHelper'] = sinon.spy(device['_destroyAudioHelper']);
@@ -1008,7 +959,7 @@ describe('Device', function() {
 
           describe('on device change', () => {
             it('should publish a device-change event', () => {
-              device.audio && device.audio.emit('deviceChange', [{ deviceId: 'foo' }]);
+              device.audio?.emit('deviceChange', [{ deviceId: 'foo' }]);
               sinon.assert.calledOnce(publisher.info);
               sinon.assert.calledWith(publisher.info, 'audio', 'device-change', {
                 lost_active_device_ids: ['foo'],

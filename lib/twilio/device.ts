@@ -363,11 +363,6 @@ class Device extends EventEmitter {
   private _log: Log = Log.getInstance();
 
   /**
-   * Value of 'audio' determines whether we should be registered for incoming calls.
-   */
-  private _mediaPresence: { audio: boolean } = { audio: true };
-
-  /**
    * Network related information
    * See https://developer.mozilla.org/en-US/docs/Web/API/Network_Information_API
    */
@@ -410,6 +405,15 @@ class Device extends EventEmitter {
    * The current status of the {@link Device}.
    */
   private _state: Device.State = Device.State.Unregistered;
+
+  /**
+   * A map from {@link Device.State} to {@link Device.EventName}.
+   */
+  private readonly _stateEventMapping: Record<Device.State, Device.EventName> = {
+    [Device.State.Unregistered]: Device.EventName.Unregistered,
+    [Device.State.Registering]: Device.EventName.Registering,
+    [Device.State.Registered]: Device.EventName.Registered,
+  };
 
   /**
    * The Signaling stream.
@@ -506,16 +510,6 @@ class Device extends EventEmitter {
       window.addEventListener('unload', this._boundDestroy);
       window.addEventListener('pagehide', this._boundDestroy);
     }
-
-    ([
-      [Device.EventName.Unregistered, Device.State.Unregistered],
-      [Device.EventName.Registering, Device.State.Registering],
-      [Device.EventName.Registered, Device.State.Registered],
-    ] as const).forEach(([event, state]) => {
-      this.on(event, () => {
-        this._state = state;
-      });
-    });
 
     this.updateOptions(options);
   }
@@ -623,14 +617,13 @@ class Device extends EventEmitter {
       return;
     }
 
-    this.emit(Device.EventName.Registering);
+    this._setState(Device.State.Registering);
 
-    this._mediaPresence.audio = true;
     const stream = await (this._streamConnectedPromise || this._setupStream());
     const streamReadyPromise = new Promise(resolve => {
       stream.on('ready', resolve);
     });
-    await this._sendPresence();
+    await this._sendPresence(true);
     await streamReadyPromise;
   }
 
@@ -671,12 +664,11 @@ class Device extends EventEmitter {
 
     this._shouldReRegister = false;
 
-    this._mediaPresence.audio = false;
     const stream = await this._streamConnectedPromise;
     const streamOfflinePromise = new Promise(resolve => {
       stream.on('offline', resolve);
     });
-    await this._sendPresence();
+    await this._sendPresence(false);
     await streamOfflinePromise;
   }
 
@@ -788,20 +780,6 @@ class Device extends EventEmitter {
     if (this._publisher) {
       this._publisher.setToken(this._token);
     }
-  }
-
-  /**
-   * Calls the emit API such that it is asynchronous.
-   * Only use this internal API if you don't want to break the execution after raising an event.
-   * This prevents the issue where events are not dispatched to all handlers when one of the handlers throws an error.
-   * For example, our connection:accept is not triggered if the handler for device:connect handler throws an error.
-   * As a side effect, we are not able to perform our internal routines such as stopping incoming sounds.
-   * See connection:accept inside _makeConnection where we call emit('connect'). This can throw an error.
-   * See connection:accept inside _onSignalingInvite. This handler won't get called if the error above is thrown.
-   * @private
-   */
-  private _asyncEmit(event: string | symbol, ...args: any[]): void {
-    setTimeout(() => this.emit(event, ...args));
   }
 
   /**
@@ -957,7 +935,6 @@ class Device extends EventEmitter {
       }
 
       this._publisher.info('settings', 'edge', data, connection);
-      this._asyncEmit('connect', connection);
     });
 
     connection.addListener('error', (error: Connection.Error) => {
@@ -968,7 +945,6 @@ class Device extends EventEmitter {
         this._audio._maybeStopPollingVolume();
       }
       this._maybeStopIncomingSound();
-      this._asyncEmit('error', error);
     });
 
     connection.once('cancel', () => {
@@ -978,7 +954,6 @@ class Device extends EventEmitter {
         this._audio._maybeStopPollingVolume();
       }
       this._maybeStopIncomingSound();
-      this._asyncEmit('cancel', connection);
     });
 
     connection.once('disconnect', () => {
@@ -986,7 +961,6 @@ class Device extends EventEmitter {
         this._audio._maybeStopPollingVolume();
       }
       this._removeConnection(connection);
-      this._asyncEmit('disconnect', connection);
     });
 
     connection.once('reject', () => {
@@ -1132,7 +1106,7 @@ class Device extends EventEmitter {
 
     this._shouldReRegister = this.state !== Device.State.Unregistered;
 
-    this.emit(Device.EventName.Unregistered);
+    this._setState(Device.State.Unregistered);
   }
 
   /**
@@ -1141,7 +1115,7 @@ class Device extends EventEmitter {
   private _onSignalingReady = () => {
     this._log.info('Stream is ready');
 
-    this.emit(Device.EventName.Registered);
+    this._setState(Device.State.Registered);
   }
 
   /**
@@ -1182,17 +1156,30 @@ class Device extends EventEmitter {
   /**
    * Register with the signaling server.
    */
-  private async _sendPresence(): Promise<void> {
+  private async _sendPresence(presence: boolean): Promise<void> {
     const stream = await this._streamConnectedPromise;
 
     if (!stream) { return; }
 
-    stream.register({ audio: this._mediaPresence.audio });
-    if (this._mediaPresence.audio) {
+    stream.register({ audio: presence });
+    if (presence) {
       this._startRegistrationTimer();
     } else {
       this._stopRegistrationTimer();
     }
+  }
+
+  /**
+   * Helper function that sets and emits the state of the device.
+   * @param state The new state of the device.
+   */
+   private _setState(state: Device.State): void {
+    if (state === this.state) {
+      return;
+    }
+
+    this._state = state;
+    this.emit(this._stateEventMapping[state]);
   }
 
   /**
@@ -1323,7 +1310,7 @@ class Device extends EventEmitter {
   private _startRegistrationTimer(): void {
     this._stopRegistrationTimer();
     this._regTimer = setTimeout(() => {
-      this._sendPresence();
+      this._sendPresence(true);
     }, REGISTRATION_INTERVAL);
   }
 
@@ -1406,30 +1393,6 @@ class Device extends EventEmitter {
 
 namespace Device {
   /**
-   * Emitted when an incoming {@link Connection} is canceled.
-   * @param connection - The canceled {@link Connection}.
-   * @example `device.on('cancel', connection => { })`
-   * @event
-   */
-  declare function cancelEvent(connection: Connection): void;
-
-  /**
-   * Emitted when a {@link Connection} has been opened.
-   * @param connection - The {@link Connection} that was opened.
-   * @example `device.on('connect', connection => { })`
-   * @event
-   */
-  declare function connectEvent(connection: Connection): void;
-
-  /**
-   * Emitted when a {@link Connection} has been disconnected.
-   * @param connection - The {@link Connection} that was disconnected.
-   * @example `device.on('disconnect', connection => { })`
-   * @event
-   */
-  declare function disconnectEvent(connection: Connection): void;
-
-  /**
    * Emitted when the {@link Device} receives an error.
    * @param error
    * @example `device.on('error', connection => { })`
@@ -1473,9 +1436,6 @@ namespace Device {
    * All valid {@link Device} event names.
    */
   export enum EventName {
-    Cancel = 'cancel',
-    Connect = 'connect',
-    Disconnect = 'disconnect',
     Error = 'error',
     Incoming = 'incoming',
     Unregistered = 'unregistered',

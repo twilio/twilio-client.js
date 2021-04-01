@@ -17,16 +17,8 @@ enum.
 
 ```ts
 export enum EventName {
-  // Device and Connection errors.
   Error = 'error',
-
-  // Connection events.
-  Cancel = 'cancel',
-  Connect = 'connect',
-  Disconnect = 'disconnect',
   Incoming = 'incoming',
-
-  // Device Registration events.
   Unregistered = 'unregistered',
   Registering = 'registering',
   Registered = 'registered',
@@ -48,22 +40,19 @@ async Device.register(): Promise<void>;
 async Device.connect(options?: Device.ConnectOptions): Promise<Call>;
 ```
 
-- `Device.updateOptions` may be called when there are no connections maintained by
+- `Device.updateOptions` may be called when there are no calls maintained by
 the `Device`. Updating options that change the `Device`'s connection to the
 Twilio backend will cause a re-registration if the `Device` is registered when
 calling `Device.updateOptions`.
 
-- `Device.register` returns a `Promise<void>` such that when the `Device` has
-received a signal from the Twilio backend that the signaling service has
-successfully connected and the `Device` is registered, the returned
-`Promise<void>` will resolve.
+- `Device.register` returns a Promise that resolves when the `Device` has
+successfully connected to the Twilio backend and the `Device` is registered.
 
-- `Device.connect` returns a `Promise<Call>` such that when the `Device` has
-received a signal from the Twilio backend that the signaling service has
-successfully connected and a call has been made, the returned `Promise<Call>`
-will resolve.
+- `Device.connect` returns a Promise that resolves with a `Call` when the
+`Device` has successfully connected to the Twilio backend and a call has been
+made.
 
-Listening for incoming calls:
+#### Listening for incoming calls:
 ```ts
 const token = '...';
 const options = { edge: 'ashburn', ... };
@@ -73,7 +62,7 @@ device.on(Device.EventName.Incoming, call => { /* use `call` here */ });
 await device.register(token, customRegisterOptions);
 ```
 
-Making an outgoing call:
+#### Making an outgoing call:
 ```ts
 const token = '...';
 const options = { edge: 'ashburn', ... };
@@ -82,7 +71,7 @@ const device = new Device(token, options);
 const call = await device.call({ To: 'foobar' });
 ```
 
-Using a device for both incoming and outgoing calls:
+#### Using a device for both incoming and outgoing calls:
 ```ts
 const token = '...';
 const options = { edge: 'ashburn', ... };
@@ -99,7 +88,11 @@ New Features
 
 ### Device Options
 
-The SDK now allows `Device` options to be changed after initial set up.
+The SDK now allows `Device` options to be changed after initial set up using
+`async Device.updateOptions(options?: Device.Options)`. It will return a Promise
+that resolves when the options have been successfully updated within the
+`Device`. If the `Device` is registered before calling `Device.updateOptions`,
+the `Device` will re-register before resolving the returned Promise.
 
 Example usage:
 

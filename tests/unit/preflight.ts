@@ -301,7 +301,7 @@ describe('PreflightTest', () => {
       await clock.tickAsync(1000);
 
       await clock.tickAsync(5000);
-      device.emit('disconnect');
+      connection.emit('disconnect');
       await clock.tickAsync(1000);
       device.emit(Device.EventName.Unregistered);
 
@@ -460,7 +460,7 @@ describe('PreflightTest', () => {
 
       device.emit(Device.EventName.Registered);
       await clock.tickAsync(5000);
-      device.emit('disconnect');
+      connection.emit('disconnect');
       await clock.tickAsync(1000);
       device.emit(Device.EventName.Unregistered);
 
@@ -473,7 +473,7 @@ describe('PreflightTest', () => {
       preflight.on('completed', onCompleted);
       device.emit(Device.EventName.Registered);
       await clock.tickAsync(14000);
-      device.emit('disconnect');
+      connection.emit('disconnect');
       await clock.tickAsync(1000);
       device.emit(Device.EventName.Unregistered);
       await clock.tickAsync(10);
@@ -489,7 +489,7 @@ describe('PreflightTest', () => {
       preflight.on('completed', onCompleted);
       device.emit(Device.EventName.Registered);
       await clock.tickAsync(14000);
-      device.emit('disconnect');
+      connection.emit('disconnect');
       await clock.tickAsync(1000);
       device.emit(Device.EventName.Unregistered);
       await clock.tickAsync(1000);
@@ -606,7 +606,7 @@ describe('PreflightTest', () => {
         connection['_mediaHandler'].onsignalingstatechange('stable');
 
         await clock.tickAsync(13000);
-        device.emit('disconnect');
+        connection.emit('disconnect');
 
         await clock.tickAsync(1000);
         device.emit(Device.EventName.Unregistered);
@@ -626,7 +626,7 @@ describe('PreflightTest', () => {
         device.emit(Device.EventName.Registered);
 
         await clock.tickAsync(13000);
-        device.emit('disconnect');
+        connection.emit('disconnect');
         await clock.tickAsync(1000);
         device.emit(Device.EventName.Unregistered);
         await clock.tickAsync(1000);
@@ -672,7 +672,7 @@ describe('PreflightTest', () => {
           }
 
           await clock.tickAsync(13000);
-          device.emit('disconnect');
+          connection.emit('disconnect');
           await clock.tickAsync(5000);
           device.emit(Device.EventName.Unregistered);
           await clock.tickAsync(5000);
@@ -689,7 +689,7 @@ describe('PreflightTest', () => {
 
         connection.emit('sample', testSamples[0]);
         await clock.tickAsync(25000);
-        device.emit('disconnect');
+        connection.emit('disconnect');
         await clock.tickAsync(1000);
         device.emit(Device.EventName.Unregistered);
         await clock.tickAsync(1000);
@@ -951,7 +951,7 @@ describe('PreflightTest', () => {
 
       device.emit(Device.EventName.Registered);
       await clock.tickAsync(1000);
-      device.emit('disconnect');
+      connection.emit('disconnect');
       await clock.tickAsync(1000);
       device.emit(Device.EventName.Unregistered);
       await clock.tickAsync(1);
