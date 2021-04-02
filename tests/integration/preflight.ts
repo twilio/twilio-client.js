@@ -40,9 +40,9 @@ describe('Preflight Test', function() {
 
     const receiverToken = generateAccessToken(receiverIdentity);
     callerToken = generateAccessToken(callerIdentity);
-    receiverDevice = new Device();
+    receiverDevice = new Device(receiverToken);
     receiverDevice.on('error', () => { });
-    await receiverDevice.register(receiverToken);
+    await receiverDevice.register();
   };
 
   const destroyDevices = () => {

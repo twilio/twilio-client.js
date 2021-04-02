@@ -21,12 +21,12 @@ describe('Device', function() {
     identity2 = 'id2-' + Date.now();
     token1 = generateAccessToken(identity1);
     token2 = generateAccessToken(identity2);
-    device1 = new Device();
-    device2 = new Device();
+    device1 = new Device(token1);
+    device2 = new Device(token2);
 
     return Promise.all([
-      device1.register(token1),
-      device2.register(token2),
+      device1.register(),
+      device2.register(),
     ]);
   });
 

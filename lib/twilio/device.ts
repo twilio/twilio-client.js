@@ -58,6 +58,7 @@ export type ISound = any;
 const REGISTRATION_INTERVAL = 30000;
 const RINGTONE_PLAY_TIMEOUT = 2000;
 const PUBLISHER_PRODUCT_NAME = 'twilio-js-sdk';
+const INVALID_TOKEN_MESSAGE = 'Parameter "token" must be of type "string".';
 
 declare const RTCRtpTransceiver: any;
 declare const webkitAudioContext: typeof AudioContext;
@@ -73,14 +74,25 @@ export interface IExtendedDeviceOptions extends Device.Options {
   AudioHelper?: typeof AudioHelper;
 
   /**
+   * The max amount of time in milliseconds to allow stream (re)-connect
+   * backoffs.
+   */
+  backoffMaxMs?: number;
+
+  /**
    * Hostname of the signaling gateway to connect to.
    */
-  chunderw?: string;
+  chunderw?: string | string[];
 
   /**
    * Custom {@link Connection} constructor
    */
   Connection?: typeof Connection;
+
+  /**
+   * Hostname of the event gateway to connect to.
+   */
+  eventgw?: string;
 
   /**
    * File input stream to use instead of reading from mic
@@ -114,14 +126,14 @@ export interface IExtendedDeviceOptions extends Device.Options {
   Publisher?: IPublisher;
 
   /**
-   * Whether Insights events should be published
+   * Whether or not to publish events to insights using {@link Device._publisher}.
    */
   publishEvents?: boolean;
 
   /**
-   * Whether to disable audio flag in MediaPresence (rrowland: Do we need this?)
+   * MediaStreamConstraints to pass to getUserMedia when making or accepting a Call.
    */
-  shouldListen?: boolean;
+  rtcConstraints?: Connection.AcceptOptions['rtcConstraints'];
 
   /**
    * Custom Sound constructor
@@ -279,8 +291,14 @@ class Device extends EventEmitter {
    */
   private _audio: AudioHelper | null = null;
 
+  /**
+   * {@link Device._confirmClose} bound to the specific {@link Device} instance.
+   */
   private _boundConfirmClose: typeof Device.prototype._confirmClose;
 
+  /**
+   * {@link Device.destroy} bound to the specific {@link Device} instance.
+   */
   private _boundDestroy: typeof Device.prototype.destroy;
 
   /**
@@ -313,18 +331,11 @@ class Device extends EventEmitter {
     closeProtection: false,
     codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
     dscp: true,
+    eventgw: 'eventgw.twilio.com',
     forceAggressiveIceNomination: false,
     logLevel: LogLevels.ERROR,
     preflight: false,
-    shouldListen: true,
     sounds: { },
-  };
-
-  /**
-   * Default options used by {@link Device} within {@link Device.register}.
-   */
-  private readonly _defaultRegistrationOptions: Device.RegisterOptions = {
-    eventgw: 'eventgw.twilio.com',
   };
 
   /**
@@ -347,19 +358,9 @@ class Device extends EventEmitter {
   private _isBrowserExtension: boolean;
 
   /**
-   * Whether or not {@link Device.register} has been called.
-   */
-  private _isRegistered: boolean = false;
-
-  /**
    * An instance of Logger to use.
    */
   private _log: Log = Log.getInstance();
-
-  /**
-   * Value of 'audio' determines whether we should be registered for incoming calls.
-   */
-  private _mediaPresence: { audio: boolean } = { audio: true };
 
   /**
    * Network related information
@@ -368,7 +369,7 @@ class Device extends EventEmitter {
   private _networkInformation: any;
 
   /**
-   * The options passed to {@link Device} constructor or {@link Device.setOptions}.
+   * The options passed to {@link Device} constructor or {@link Device.updateOptions}.
    */
   private _options: IExtendedDeviceOptions = { };
 
@@ -383,14 +384,17 @@ class Device extends EventEmitter {
   private _region: string | null = null;
 
   /**
-   * The options passed to {@link Device.register}.
-   */
-  private _registerOptions: Device.RegisterOptions = { };
-
-  /**
    * A timeout ID for a setTimeout schedule to re-register the {@link Device}.
    */
   private _regTimer: NodeJS.Timer | null = null;
+
+  /**
+   * Boolean representing whether or not the {@link Device} was registered when
+   * receiving a signaling `offline`. Determines if the {@link Device} attempts
+   * a `re-register` once signaling is re-established when receiving a
+   * `connected` event from the stream.
+   */
+  private _shouldReRegister: boolean = false;
 
   /**
    * A Map of Sounds to play.
@@ -400,7 +404,16 @@ class Device extends EventEmitter {
   /**
    * The current status of the {@link Device}.
    */
-  private _status: Device.Status = Device.Status.Offline;
+  private _state: Device.State = Device.State.Unregistered;
+
+  /**
+   * A map from {@link Device.State} to {@link Device.EventName}.
+   */
+  private readonly _stateEventMapping: Record<Device.State, Device.EventName> = {
+    [Device.State.Unregistered]: Device.EventName.Unregistered,
+    [Device.State.Registering]: Device.EventName.Registering,
+    [Device.State.Registered]: Device.EventName.Registered,
+  };
 
   /**
    * The Signaling stream.
@@ -408,9 +421,14 @@ class Device extends EventEmitter {
   private _stream: IPStream | null = null;
 
   /**
+   * A promise that will resolve when the Signaling stream is ready.
+   */
+  private _streamConnectedPromise: Promise<IPStream> | null = null;
+
+  /**
    * The JWT string currently being used to authenticate this {@link Device}.
    */
-  private _token: string | null = null;
+  private _token: string;
 
   /**
    * Construct a {@link Device} instance. The {@link Device} can be registered
@@ -418,8 +436,10 @@ class Device extends EventEmitter {
    * @constructor
    * @param options
    */
-  constructor(options: Device.Options = { }) {
+  constructor(token: string, options: Device.Options = { }) {
     super();
+
+    this.updateToken(token);
 
     if (isLegacyEdge()) {
       throw new NotSupportedError(
@@ -491,7 +511,7 @@ class Device extends EventEmitter {
       window.addEventListener('pagehide', this._boundDestroy);
     }
 
-    this.setOptions(options);
+    this.updateOptions(options);
   }
 
   /**
@@ -512,17 +532,13 @@ class Device extends EventEmitter {
    * Make an outgoing Call.
    * @param options
    */
-  connect(options?: Device.ConnectOptions): Connection {
-    this._throwUnlessRegistered('connect');
-
+  async connect(options: Device.ConnectOptions = { }): Promise<Connection> {
     if (this._activeConnection) {
       throw new InvalidStateError('A Connection is already active');
     }
 
-    options = options || { };
-
-    const connection = this._activeConnection = this._makeConnection(options!.params || { }, {
-      rtcConfiguration: options!.rtcConfiguration,
+    const connection = this._activeConnection = await this._makeConnection(options.params || { }, {
+      rtcConfiguration: options.rtcConfiguration,
     });
 
     // Make sure any incoming connections are ignored
@@ -547,16 +563,16 @@ class Device extends EventEmitter {
    * Destroy the {@link Device}, freeing references to be garbage collected.
    */
   destroy(): void {
-    this._disconnectAll();
+    this.disconnectAll();
     this._stopRegistrationTimer();
 
     if (this._audio) {
       this._audio._unbind();
     }
 
-    if (this._stream) {
-      this._destroyStream();
-    }
+    this._destroyStream();
+    this._destroyPublisher();
+    this._destroyAudioHelper();
 
     if (this._networkInformation && typeof this._networkInformation.removeEventListener === 'function') {
       this._networkInformation.removeEventListener('change', this._publishNetworkChange);
@@ -573,9 +589,12 @@ class Device extends EventEmitter {
    * Disconnect all {@link Connection}s.
    */
   disconnectAll(): void {
-    this._throwUnlessRegistered('disconnectAll');
+    const connections = this._connections.splice(0);
+    connections.forEach((conn: Connection) => conn.disconnect());
 
-    this._disconnectAll();
+    if (this._activeConnection) {
+      this._activeConnection.disconnect();
+    }
   }
 
   /**
@@ -587,99 +606,78 @@ class Device extends EventEmitter {
   }
 
   /**
-   * Whether or not to tell the signaling stream that this {@link Device} would
-   * like to receive calls. It is not necessary to call this after calling
-   * {@link Device.register}, the {@link Device} will be listening by default.
-   * @param shouldListen
+   * Register the `Device` to the Twilio backend, allowing it to receive calls.
    */
-  listen(shouldListen: boolean): this {
-    this._throwUnlessRegistered('listen');
+  async register(): Promise<void> {
+    if (this.state !== Device.State.Unregistered) {
+      this._log.error(
+        `Attempt to register when device is in state "${this.state}". ` +
+        `Must be "${Device.State.Unregistered}".`,
+      );
+      return;
+    }
 
-    this._mediaPresence.audio = shouldListen;
-    this._sendPresence();
+    this._setState(Device.State.Registering);
 
-    return this;
+    const stream = await (this._streamConnectedPromise || this._setupStream());
+    const streamReadyPromise = new Promise(resolve => {
+      stream.on('ready', resolve);
+    });
+    await this._sendPresence(true);
+    await streamReadyPromise;
   }
 
   /**
-   * Register the `Device` to the Twilio backend, allowing it send and receive
-   * calls. If the `Device` is already registered, this will allow the user to
-   * update the token or any other registration options. See
-   * {@link Device.RegisterOptions} for more details.
-   * @param token
-   * @param options
+   * Get the state of this {@link Device} instance
    */
-  async register(token: string, options: Device.RegisterOptions = { }): Promise<this> {
-    if (typeof token !== 'string') {
-      throw new InvalidArgumentError('Parameter `token` must be of type `string`.');
+  get state(): Device.State {
+    return this._state;
+  }
+
+  /**
+   * Get the token used by this {@link Device}.
+   */
+  get token(): string | null {
+    return this._token;
+  }
+
+  /**
+   * String representation of {@link Device} instance.
+   * @private
+   */
+  toString() {
+    return '[Twilio.Device instance]';
+  }
+
+  /**
+   * Unregister the `Device` to the Twilio backend, disallowing it to receive
+   * calls.
+   */
+  async unregister(): Promise<void> {
+    if (this.state !== Device.State.Registered) {
+      this._log.error(
+        `Attempt to unregister when device is in state "${this.state}". ` +
+        `Must be "${Device.State.Registered}".`,
+      );
+      return;
     }
 
-    this._isRegistered = false;
+    this._shouldReRegister = false;
 
-    this._token = token;
-
-    const originalOptions = this._registerOptions;
-    const newOptions = this._registerOptions = {
-      ...this._defaultRegistrationOptions,
-      ...options,
-    };
-
-    const originalChunderURIs: Set<string> = new Set(this._chunderURIs);
-
-    const chunderw = typeof this._registerOptions.chunderw === 'string'
-      ? [this._registerOptions.chunderw]
-      : Array.isArray(this._registerOptions.chunderw) && this._registerOptions.chunderw;
-
-    const newChunderURIs = this._chunderURIs = (
-      chunderw || getChunderURIs(
-        this._registerOptions.edge,
-        undefined,
-        this._log.warn.bind(this._log),
-      )
-    ).map((uri: string) => `wss://${uri}/signal`);
-
-    let hasChunderURIsChanged =
-      originalChunderURIs.size !== newChunderURIs.length;
-
-    if (!hasChunderURIsChanged) {
-      for (const uri of newChunderURIs) {
-        if (!originalChunderURIs.has(uri)) {
-          hasChunderURIsChanged = true;
-          break;
-        }
-      }
-    }
-
-    this._isRegistered = true;
-
-    const havePublisherOptionsChanged =
-      originalOptions.appName !== newOptions.appName ||
-      originalOptions.appVersion !== newOptions.appVersion;
-
-    if (!havePublisherOptionsChanged && this._publisher) {
-      this._publisher.setToken(this._token);
-    } else {
-      this._setupPublisher();
-    }
-
-    if (!hasChunderURIsChanged && this._stream) {
-      this._stream.setToken(this._token);
-    } else {
-      await this._setupStream();
-    }
-
-    return this;
+    const stream = await this._streamConnectedPromise;
+    const streamOfflinePromise = new Promise(resolve => {
+      stream.on('offline', resolve);
+    });
+    await this._sendPresence(false);
+    await streamOfflinePromise;
   }
 
   /**
    * Set the options used within the {@link Device}.
    * @param options
    */
-  setOptions(options: Device.Options = { }): void {
-    if (
-      this._isRegistered &&
-      (this._connections.length > 0 || this.activeConnection)
-    ) {
+  async updateOptions(options: Device.Options = { }): Promise<void> {
+    if (this._connections.length > 0 || this.activeConnection) {
       this._log.warn('Existing Device has ongoing connections; ignoring new options.');
       return;
     }
@@ -717,7 +715,41 @@ class Device extends EventEmitter {
 
     this._setupAudioHelper();
 
-    this._mediaPresence.audio = Boolean(this._options.shouldListen);
+    this._setupPublisher();
+
+    const originalChunderURIs: Set<string> = new Set(this._chunderURIs);
+
+    const chunderw = typeof this._options.chunderw === 'string'
+      ? [this._options.chunderw]
+      : Array.isArray(this._options.chunderw) && this._options.chunderw;
+
+    const newChunderURIs = this._chunderURIs = (
+      chunderw || getChunderURIs(
+        this._options.edge,
+        undefined,
+        this._log.warn.bind(this._log),
+      )
+    ).map((uri: string) => `wss://${uri}/signal`);
+
+    let hasChunderURIsChanged =
+      originalChunderURIs.size !== newChunderURIs.length;
+
+    if (!hasChunderURIsChanged) {
+      for (const uri of newChunderURIs) {
+        if (!originalChunderURIs.has(uri)) {
+          hasChunderURIsChanged = true;
+          break;
+        }
+      }
+    }
+
+    if (hasChunderURIsChanged && this._streamConnectedPromise) {
+      const shouldReRegister = this.state === Device.State.Registered;
+      await this._setupStream();
+      if (shouldReRegister) {
+        await this.register();
+      }
+    }
 
     // Setup close protection and make sure we clean up ongoing calls on unload.
     if (
@@ -731,39 +763,23 @@ class Device extends EventEmitter {
   }
 
   /**
-   * Get the status of this {@link Device} instance
+   * Update the token used by this {@link Device} to connect to Twilio.
+   * @param token
    */
-  status(): Device.Status {
-    return this._activeConnection ? Device.Status.Busy : this._status;
-  }
+  updateToken(token: string) {
+    if (typeof token !== 'string') {
+      throw new InvalidArgumentError(INVALID_TOKEN_MESSAGE);
+    }
 
-  /**
-   * Get the token used by this {@link Device}.
-   */
-  get token(): string | null {
-    return this._token;
-  }
+    this._token = token;
 
-  /**
-   * String representation of {@link Device} instance.
-   * @private
-   */
-  toString() {
-    return '[Twilio.Device instance]';
-  }
+    if (this._stream) {
+      this._stream.setToken(this._token);
+    }
 
-  /**
-   * Calls the emit API such that it is asynchronous.
-   * Only use this internal API if you don't want to break the execution after raising an event.
-   * This prevents the issue where events are not dispatched to all handlers when one of the handlers throws an error.
-   * For example, our connection:accept is not triggered if the handler for device:connect handler throws an error.
-   * As a side effect, we are not able to perform our internal routines such as stopping incoming sounds.
-   * See connection:accept inside _makeConnection where we call emit('connect'). This can throw an error.
-   * See connection:accept inside _onSignalingInvite. This handler won't get called if the error above is thrown.
-   * @private
-   */
-  private _asyncEmit(event: string | symbol, ...args: any[]): void {
-    setTimeout(() => this.emit(event, ...args));
+    if (this._publisher) {
+      this._publisher.setToken(this._token);
+    }
   }
 
   /**
@@ -815,6 +831,9 @@ class Device extends EventEmitter {
     return payload;
   }
 
+  /**
+   * Destroy the AudioHelper.
+   */
   private _destroyAudioHelper() {
     if (!this._audio) { return; }
 
@@ -829,7 +848,6 @@ class Device extends EventEmitter {
     // Attempt to destroy non-existent publisher.
     if (!this._publisher) { return; }
 
-    this._publisher.removeAllListeners();
     this._publisher = null;
   }
 
@@ -837,25 +855,12 @@ class Device extends EventEmitter {
    * Destroy the connection to the signaling server.
    */
   private _destroyStream() {
-    // Attempt to destroy non-existent stream.
-    if (!this._stream) { return; }
-
-    this._status = Device.Status.Offline;
-
-    this._stream.destroy();
-    this._stream = null;
-  }
-
-  /**
-   * Disconnect all {@link Connection}s.
-   */
-  private _disconnectAll = (): void => {
-    const connections = this._connections.splice(0);
-    connections.forEach((conn: Connection) => conn.disconnect());
-
-    if (this._activeConnection) {
-      this._activeConnection.disconnect();
+    if (this._stream) {
+      this._stream.destroy();
+      this._stream = null;
     }
+
+    this._streamConnectedPromise = null;
   }
 
   /**
@@ -872,7 +877,7 @@ class Device extends EventEmitter {
    * @param twimlParams - A flat object containing key:value pairs to be sent to the TwiML app.
    * @param options - Options to be used to instantiate the {@link Connection}.
    */
-  private _makeConnection(twimlParams: Record<string, string>, options?: Connection.Options): Connection {
+  private async _makeConnection(twimlParams: Record<string, string>, options?: Connection.Options): Promise<Connection> {
     if (typeof Device._isUnifiedPlanDefault === 'undefined') {
       throw new InvalidStateError('Device has not been initialized.');
     }
@@ -881,7 +886,7 @@ class Device extends EventEmitter {
       audioHelper: this._audio,
       getUserMedia,
       isUnifiedPlanDefault: Device._isUnifiedPlanDefault,
-      pstream: this._stream,
+      pstream: await (this._streamConnectedPromise || this._setupStream()),
       publisher: this._publisher,
       soundcache: this._soundcache,
     };
@@ -923,14 +928,13 @@ class Device extends EventEmitter {
       }
 
       const data: any = { edge: this._edge || this._region };
-      if (this._registerOptions.edge) {
-        data['selected_edge'] = Array.isArray(this._registerOptions.edge)
-          ? this._registerOptions.edge
-          : [this._registerOptions.edge];
+      if (this._options.edge) {
+        data['selected_edge'] = Array.isArray(this._options.edge)
+          ? this._options.edge
+          : [this._options.edge];
       }
 
       this._publisher.info('settings', 'edge', data, connection);
-      this._asyncEmit('connect', connection);
     });
 
     connection.addListener('error', (error: Connection.Error) => {
@@ -941,7 +945,6 @@ class Device extends EventEmitter {
         this._audio._maybeStopPollingVolume();
       }
       this._maybeStopIncomingSound();
-      this._asyncEmit('error', error);
     });
 
     connection.once('cancel', () => {
@@ -951,7 +954,6 @@ class Device extends EventEmitter {
         this._audio._maybeStopPollingVolume();
       }
       this._maybeStopIncomingSound();
-      this._asyncEmit('cancel', connection);
     });
 
     connection.once('disconnect', () => {
@@ -959,7 +961,6 @@ class Device extends EventEmitter {
         this._audio._maybeStopPollingVolume();
       }
       this._removeConnection(connection);
-      this._asyncEmit('disconnect', connection);
     });
 
     connection.once('reject', () => {
@@ -999,6 +1000,7 @@ class Device extends EventEmitter {
    */
   private _onSignalingClose = () => {
     this._stream = null;
+    this._streamConnectedPromise = null;
   }
 
   /**
@@ -1008,7 +1010,12 @@ class Device extends EventEmitter {
     const region = getRegionShortcode(payload.region);
     this._edge = regionToEdge[region as Region] || payload.region;
     this._region = region || payload.region;
-    this._sendPresence();
+
+    // The signaling stream emits a `connected` event after reconnection, if the
+    // device was registered before this, then register again.
+    if (this._shouldReRegister) {
+      this.register();
+    }
   }
 
   /**
@@ -1047,13 +1054,13 @@ class Device extends EventEmitter {
     }
 
     this._log.info('Received error: ', twilioError);
-    this.emit('error', twilioError, connection);
+    this.emit(Device.EventName.Error, twilioError, connection);
   }
 
   /**
    * Called when an 'invite' event is received from the signaling stream.
    */
-  private _onSignalingInvite = (payload: Record<string, any>) => {
+  private _onSignalingInvite = async (payload: Record<string, any>) => {
     const wasBusy = !!this._activeConnection;
     if (wasBusy && !this._options.allowIncomingWhileBusy) {
       this._log.info('Device busy; ignoring incoming invite');
@@ -1061,7 +1068,7 @@ class Device extends EventEmitter {
     }
 
     if (!payload.callsid || !payload.sdp) {
-      this.emit('error', new ClientErrors.BadRequest('Malformed invite from gateway'));
+      this.emit(Device.EventName.Error, new ClientErrors.BadRequest('Malformed invite from gateway'));
       return;
     }
 
@@ -1069,7 +1076,7 @@ class Device extends EventEmitter {
     callParameters.CallSid = callParameters.CallSid || payload.callsid;
 
     const customParameters = Object.assign({ }, queryToJson(callParameters.Params));
-    const connection = this._makeConnection(customParameters, {
+    const connection = await this._makeConnection(customParameters, {
       callParameters,
       offerSdp: payload.sdp,
     });
@@ -1093,10 +1100,13 @@ class Device extends EventEmitter {
    */
   private _onSignalingOffline = () => {
     this._log.info('Stream is offline');
-    this._status = Device.Status.Offline;
+
     this._edge = null;
     this._region = null;
-    this.emit('offline', this);
+
+    this._shouldReRegister = this.state !== Device.State.Unregistered;
+
+    this._setState(Device.State.Unregistered);
   }
 
   /**
@@ -1104,8 +1114,8 @@ class Device extends EventEmitter {
    */
   private _onSignalingReady = () => {
     this._log.info('Stream is ready');
-    this._status = Device.Status.Ready;
-    this.emit('ready', this);
+
+    this._setState(Device.State.Registered);
   }
 
   /**
@@ -1146,18 +1156,36 @@ class Device extends EventEmitter {
   /**
    * Register with the signaling server.
    */
-  private _sendPresence(): void {
-    if (!this._stream) { return; }
+  private async _sendPresence(presence: boolean): Promise<void> {
+    const stream = await this._streamConnectedPromise;
 
-    this._stream.register({ audio: this._mediaPresence.audio });
-    if (this._mediaPresence.audio) {
+    if (!stream) { return; }
+
+    stream.register({ audio: presence });
+    if (presence) {
       this._startRegistrationTimer();
     } else {
       this._stopRegistrationTimer();
     }
   }
 
-  private _setupAudioHelper() {
+  /**
+   * Helper function that sets and emits the state of the device.
+   * @param state The new state of the device.
+   */
+   private _setState(state: Device.State): void {
+    if (state === this.state) {
+      return;
+    }
+
+    this._state = state;
+    this.emit(this._stateEventMapping[state]);
+  }
+
+  /**
+   * Set up an audio helper for usage by this {@link Device}.
+   */
+  private _setupAudioHelper(): void {
     if (this._audio) {
       this._log.info('Found existing audio helper; destroying...');
       this._destroyAudioHelper();
@@ -1190,7 +1218,7 @@ class Device extends EventEmitter {
   /**
    * Create and set a publisher for the {@link Device} to use.
    */
-  private _setupPublisher() {
+  private _setupPublisher(): IPublisher {
     if (this._publisher) {
       this._log.info('Found existing publisher; destroying...');
       this._destroyPublisher();
@@ -1201,27 +1229,30 @@ class Device extends EventEmitter {
       this.token,
       {
         defaultPayload: this._createDefaultPayload,
-        host: this._registerOptions.eventgw,
+        host: this._options.eventgw,
         metadata: {
-          app_name: this._registerOptions.appName,
-          app_version: this._registerOptions.appVersion,
+          app_name: this._options.appName,
+          app_version: this._options.appVersion,
         },
       },
     );
 
-    if (this._registerOptions.publishEvents === false) {
+    if (this._options.publishEvents === false) {
       this._publisher.disable();
     } else {
       this._publisher.on('error', (error: Error) => {
         this._log.warn('Cannot connect to insights.', error);
       });
     }
+
+    return this._publisher;
   }
 
   /**
-   * Set up the connection to the signaling server.
+   * Set up the connection to the signaling server. Tears down an existing
+   * stream if called while a stream exists.
    */
-  private _setupStream(): Promise<this> {
+  private _setupStream(): Promise<IPStream> {
     if (this._stream) {
       this._log.info('Found existing stream; destroying...');
       this._destroyStream();
@@ -1232,7 +1263,7 @@ class Device extends EventEmitter {
       this.token,
       this._chunderURIs,
       {
-        backoffMaxMs: this._registerOptions.backoffMaxMs,
+        backoffMaxMs: this._options.backoffMaxMs,
       },
     );
 
@@ -1243,8 +1274,10 @@ class Device extends EventEmitter {
     this._stream.addListener('offline', this._onSignalingOffline);
     this._stream.addListener('ready', this._onSignalingReady);
 
-    return new Promise<this>(resolve =>
-      this._stream.once('ready', () => resolve(this)),
+    return this._streamConnectedPromise = new Promise<this>(resolve =>
+      this._stream.once('connected', () => {
+        resolve(this._stream);
+      }),
     );
   }
 
@@ -1267,7 +1300,7 @@ class Device extends EventEmitter {
       this._log.info(reason.message);
     }).then(() => {
       clearTimeout(timeout);
-      this.emit('incoming', connection);
+      this.emit(Device.EventName.Incoming, connection);
     });
   }
 
@@ -1277,7 +1310,7 @@ class Device extends EventEmitter {
   private _startRegistrationTimer(): void {
     this._stopRegistrationTimer();
     this._regTimer = setTimeout(() => {
-      this._sendPresence();
+      this._sendPresence(true);
     }, REGISTRATION_INTERVAL);
   }
 
@@ -1288,14 +1321,6 @@ class Device extends EventEmitter {
     if (this._regTimer) {
       clearTimeout(this._regTimer);
     }
-  }
-
-  /**
-   * Throw an Error if Device.register has not been called for this instance.
-   * @param methodName - The name of the method being called before register()
-   */
-  private _throwUnlessRegistered(methodName: string) {
-    if (!this._isRegistered) { throw new InvalidStateError(`Call Device.register() before ${methodName}`); }
   }
 
   /**
@@ -1368,30 +1393,6 @@ class Device extends EventEmitter {
 
 namespace Device {
   /**
-   * Emitted when an incoming {@link Connection} is canceled.
-   * @param connection - The canceled {@link Connection}.
-   * @example `device.on('cancel', connection => { })`
-   * @event
-   */
-  declare function cancelEvent(connection: Connection): void;
-
-  /**
-   * Emitted when a {@link Connection} has been opened.
-   * @param connection - The {@link Connection} that was opened.
-   * @example `device.on('connect', connection => { })`
-   * @event
-   */
-  declare function connectEvent(connection: Connection): void;
-
-  /**
-   * Emitted when a {@link Connection} has been disconnected.
-   * @param connection - The {@link Connection} that was disconnected.
-   * @example `device.on('disconnect', connection => { })`
-   * @event
-   */
-  declare function disconnectEvent(connection: Connection): void;
-
-  /**
    * Emitted when the {@link Device} receives an error.
    * @param error
    * @example `device.on('error', connection => { })`
@@ -1408,41 +1409,47 @@ namespace Device {
   declare function incomingEvent(connection: Connection): void;
 
   /**
-   * Emitted when the {@link Device} goes offline.
+   * Emitted when the {@link Device} is unregistered.
    * @param device
-   * @example `device.on('offline', device => { })`
+   * @example `device.on('unregistered', device => { })`
    * @event
    */
-  declare function offlineEvent(device: Device): void;
+  declare function unregisteredEvent(device: Device): void;
 
   /**
-   * Emitted when the {@link Device} is connected to signaling and ready.
+   * Emitted when the {@link Device} is registering.
    * @param device
-   * @example `device.on('ready', device => { })`
+   * @example `device.on('registering', device => { })`
    * @event
    */
-  declare function readyEvent(device: Device): void;
+  declare function registeringEvent(device: Device): void;
+
+  /**
+   * Emitted when the {@link Device} is registered.
+   * @param device
+   * @example `device.on('registered', device => { })`
+   * @event
+   */
+  declare function registeredEvent(device: Device): void;
 
   /**
    * All valid {@link Device} event names.
    */
   export enum EventName {
-    Cancel = 'cancel',
-    Connect = 'connect',
-    Disconnect = 'disconnect',
     Error = 'error',
     Incoming = 'incoming',
-    Offline = 'offline',
-    Ready = 'ready',
+    Unregistered = 'unregistered',
+    Registering = 'registering',
+    Registered = 'registered',
   }
 
   /**
-   * All possible {@link Device} statuses.
+   * All possible {@link Device} states.
    */
-  export enum Status {
-    Busy = 'busy',
-    Offline = 'offline',
-    Ready = 'ready',
+  export enum State {
+    Unregistered = 'unregistered',
+    Registering = 'registering',
+    Registered = 'registered',
   }
 
   /**
@@ -1523,6 +1530,20 @@ namespace Device {
     allowIncomingWhileBusy?: boolean;
 
     /**
+     * A name for the application that is instantiating the {@link Device}. This is used to improve logging
+     * in Insights by associating Insights data with a specific application, particularly in the case where
+     * one account may be connected to by multiple applications.
+     */
+    appName?: string;
+
+    /**
+     * A version for the application that is instantiating the {@link Device}. This is used to improve logging
+     * in Insights by associating Insights data with a specific version of the given application. This can help
+     * track down when application-level bugs were introduced.
+     */
+    appVersion?: string;
+
+    /**
      * Whether to enable close protection, to prevent users from accidentally
      * navigating away from the page during a call. If string, the value will
      * be used as a custom message.
@@ -1547,6 +1568,14 @@ namespace Device {
     dscp?: boolean;
 
     /**
+     * The edge value corresponds to the geographic location that the client
+     * will use to connect to Twilio infrastructure. The default value is
+     * "roaming" which automatically selects an edge based on the latency of the
+     * client relative to available edges.
+     */
+    edge?: string[] | string;
+
+    /**
      * Experimental feature.
      * Whether to use ICE Aggressive nomination.
      */
@@ -1568,64 +1597,9 @@ namespace Device {
     maxAverageBitrate?: number;
 
     /**
-     * MediaStreamConstraints to pass to getUserMedia when making or accepting a Call.
-     * @private
-     */
-    rtcConstraints?: Connection.AcceptOptions['rtcConstraints'];
-
-    /**
      * A mapping of custom sound URLs by sound name.
      */
     sounds?: Partial<Record<Device.SoundName, string>>;
-  }
-
-  export interface RegisterOptions {
-    /**
-     * A name for the application that is instantiating the {@link Device}. This is used to improve logging
-     * in Insights by associating Insights data with a specific application, particularly in the case where
-     * one account may be connected to by multiple applications.
-     */
-    appName?: string;
-
-    /**
-     * A version for the application that is instantiating the {@link Device}. This is used to improve logging
-     * in Insights by associating Insights data with a specific version of the given application. This can help
-     * track down when application-level bugs were introduced.
-     */
-    appVersion?: string;
-
-    /**
-     * The max amount of time in milliseconds to allow stream (re)-connect
-     * backoffs.
-     * @private
-     */
-    backoffMaxMs?: number;
-
-    /**
-     * Chunder gateway URI override.
-     * @private
-     */
-    chunderw?: string | string[];
-
-    /**
-     * The edge value corresponds to the geographic location that the client
-     * will use to connect to Twilio infrastructure. The default value is
-     * "roaming" which automatically selects an edge based on the latency of the
-     * client relative to available edges.
-     */
-    edge?: string[] | string;
-
-    /**
-     * Hostname of the event gateway to connect to.
-     * @private
-     */
-    eventgw?: string;
-
-    /**
-     * Whether or not to publish events to insights using {@link Device._publisher}.
-     * @private
-     */
-    publishEvents?: boolean;
   }
 }
 

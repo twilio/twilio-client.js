@@ -10,60 +10,77 @@ The formula used to calculate the mean-opinion score (MOS) has
 been fixed for extreme network conditions. These fixes should not change score
 values for nominal network conditions.
 
-### Device Listening
+### Device Events
 
-Formerly, `Device.registerPresence` and `Device.unregisterPresence` were used to
-notify the Twilio backend whether or not the `Device` was listening for calls.
-
-Now, `Device.listen(shouldListen: boolean)` has replaced both functions where
-`Device.listen(true)` replaces `Device.registerPresence` and vice-versa. It is
-not necessary to call `Device.listen(true)` after registering the device
-using `Device.register(token: string, options?: Device.Options)`.
-
-### Device Call Signature
-
-To modernize the SDK, the call signature and usage of `Device` has changed.
+The events emitted by the `Device` are now exposed as the `Device.EventName`
+enum.
 
 ```ts
-new Device(options?: Device.Options);
-Device.setOptions(options: Device.Options);
-async Device.register(token: string, options: Device.RegisterOptions);
+export enum EventName {
+  Error = 'error',
+  Incoming = 'incoming',
+  Unregistered = 'unregistered',
+  Registering = 'registering',
+  Registered = 'registered',
+}
 ```
 
-If `Device` is constructed without any parameters, then it will be instantiated
-with default options. Then, to connect the `Device` to the Twilio servers, a
-call to `Device.register` must be performed.
+Note that `unregistered`, `registering`, and `registered` have replaced
+`offline` and `ready`.
 
-`Device.register` returns a `Promise<this>` such that when the `Device` has
-received a signal from the Twilio backend that the signaling service has
-successfully connected, the returned `Promise<this>` will resolve with the
-ready to use device.
+### Device Usage
 
-`Device.setOptions` may be called when there are no connections maintained by
-the `Device`.
-
-Example Usage:
+The construction signature and usage of `Device` has changed.
 
 ```ts
-const token = '...';
-const customOptions = { ... };
-const customRegisterOptions = { edge: 'ashburn', ... };
-const device = new Device();
-device.on(Device.EventName.Ready, (readyDevice: Device) => {
-  /* use device here */
-});
-device.setOptions(customOptions);
-device.register(token, customRegisterOptions);
+new Device(token: string, options?: Device.Options): Device;
 
-// Or...
+async Device.updateOptions(options: Device.Options): Promise<void>;
+async Device.register(): Promise<void>;
+async Device.connect(options?: Device.ConnectOptions): Promise<Call>;
+```
 
+- `Device.updateOptions` may be called when there are no calls maintained by
+the `Device`. Updating options that change the `Device`'s connection to the
+Twilio backend will cause a re-registration if the `Device` is registered when
+calling `Device.updateOptions`.
+
+- `Device.register` returns a Promise that resolves when the `Device` has
+successfully connected to the Twilio backend and the `Device` is registered.
+
+- `Device.connect` returns a Promise that resolves with a `Call` when the
+`Device` has successfully connected to the Twilio backend and a call has been
+made.
+
+#### Listening for incoming calls:
+```ts
 const token = '...';
-const customOptions = { ... };
-const customRegisterOptions = { edge: 'ashburn', ... };
-const device = new Device();
-device.setOptions(customOptions);
-const readyDevice = await device.register(token, customRegisterOptions);
-/* use device here */
+const options = { edge: 'ashburn', ... };
+const device = new Device(token, options);
+
+device.on(Device.EventName.Incoming, call => { /* use `call` here */ });
+await device.register(token, customRegisterOptions);
+```
+
+#### Making an outgoing call:
+```ts
+const token = '...';
+const options = { edge: 'ashburn', ... };
+const device = new Device(token, options);
+
+const call = await device.call({ To: 'foobar' });
+```
+
+#### Using a device for both incoming and outgoing calls:
+```ts
+const token = '...';
+const options = { edge: 'ashburn', ... };
+const device = new Device(token, options);
+
+device.on(Device.EventName.Incoming, call => { /* use `call` here */ });
+await device.register();
+
+const call = await device.call({ To: 'foobar' });
 ```
 
 New Features
@@ -71,11 +88,11 @@ New Features
 
 ### Device Options
 
-The SDK now allows `Device` options to be changed after initial set up. The
-passable `Device` options have changed significantly; options that cause a
-change in the connection to the Twilio backend (such as signaling edge, insights
-options, etc.) are now separated and consolidated within a new interface
-`Device.RegisterOptions`.
+The SDK now allows `Device` options to be changed after initial set up using
+`async Device.updateOptions(options?: Device.Options)`. It will return a Promise
+that resolves when the options have been successfully updated within the
+`Device`. If the `Device` is registered before calling `Device.updateOptions`,
+the `Device` will re-register before resolving the returned Promise.
 
 Example usage:
 
@@ -84,14 +101,12 @@ const token = '...';
 const device = new Device(token);
 
 const options1 = { ... };
-device.setOptions(options1);
-device.once(Device.EventName.Ready, (dev: Device) => { /* use device here */ });
+device.updateOptions(options1);
 
 ...
 
 const options2 = { ... };
-device.setOptions(options2);
-device.once(Device.EventName.Ready, (dev: Device) => { /* use device here */ });
+device.updateOptions(options2);
 ```
 
 ### LogLevel Module
@@ -132,7 +147,7 @@ API Changes
 The arguments for `Device.connect()` and `Connection.accept()` have been standardized
 to the following options objects:
 
-```
+```ts
 interface Device.ConnectOptions extends Connection.AcceptOptions {
  /**
   * A flat object containing key:value pairs to be sent to the TwiML app.
@@ -141,7 +156,7 @@ interface Device.ConnectOptions extends Connection.AcceptOptions {
 }
 ```
 
-```
+```ts
 interface Connection.AcceptOptions {
   /**
    * An RTCConfiguration to pass to the RTCPeerConnection constructor.
@@ -156,12 +171,12 @@ interface Connection.AcceptOptions {
 ```
 
 Note that these now take a [MediaStreamConstraints](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamConstraints) rather than just the audio constraints. For example:
-```
+```ts
 device.connect({ To: 'client:alice' }, { deviceId: 'default' });
 ```
 
 might be re-written as:
-```
+```ts
 device.connect({
   params: { To: 'client:alice' },
   rtcConstraints: { audio: { deviceId: 'default' } },
@@ -170,7 +185,7 @@ device.connect({
 
 ### Removal of Deprecated Device Options
 
-As part of 2.x, some deprecated `Device` options have been removed. This includes:
+Some deprecated `Device` options have been removed. This includes:
 
 * `enableIceRestart`
 * `enableRingingState`

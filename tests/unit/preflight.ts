@@ -1,4 +1,5 @@
 import Connection from '../../lib/twilio/connection';
+import Device from '../../lib/twilio/device';
 import { PreflightTest } from '../../lib/twilio/preflight/preflight';
 import { EventEmitter } from 'events';
 import { SinonFakeTimers } from 'sinon';
@@ -25,9 +26,14 @@ describe('PreflightTest', () => {
   let wait: any;
 
   const getDeviceFactory = (context: any) => {
-    const factory = function(this: any, options: PreflightTest.Options) {
+    const factory = function(
+      this: any,
+      token: string,
+      options: PreflightTest.Options,
+    ) {
       Object.assign(this, context);
-      this.setOptions(options);
+      this.updateToken(token);
+      this.updateOptions(options);
       device = this;
     };
     inherits(factory, EventEmitter);
@@ -95,13 +101,14 @@ describe('PreflightTest', () => {
         disconnect: sinon.stub(),
         outgoing: sinon.stub(),
       },
-      connect: sinon.stub().returns(connection),
+      connect: sinon.stub().returns(Promise.resolve(connection)),
       destroy: sinon.stub(),
       disconnectAll: sinon.stub(),
       edge: null,
       region: sinon.stub().returns('foobar-region'),
-      register: sinon.stub(),
-      setOptions: sinon.stub(),
+      register: sinon.stub().returns(Promise.resolve()),
+      updateOptions: sinon.stub(),
+      updateToken: sinon.stub(),
     };
     edgeStub = sinon.stub().returns('foobar-edge');
     sinon.stub(deviceContext, 'edge').get(edgeStub);
@@ -129,77 +136,61 @@ describe('PreflightTest', () => {
   describe('constructor', () => {
     it('should pass defaults to device', () => {
       const preflight = new PreflightTest('foo', options);
-      sinon.assert.calledWith(deviceContext.setOptions, {
+      sinon.assert.calledOnceWithExactly(deviceContext.updateOptions, {
         codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
+        edge: 'roaming',
         fileInputStream: undefined,
         logLevel: 'error',
         preflight: true,
-      });
-      sinon.assert.calledWith(deviceContext.register, 'foo', {
-        edge: 'roaming',
       });
     });
 
     it('should pass codecPreferences to device', () => {
       options.codecPreferences = [Connection.Codec.PCMU];
       const preflight = new PreflightTest('foo', options);
-      sinon.assert.calledWith(deviceContext.setOptions, {
+      sinon.assert.calledOnceWithExactly(deviceContext.updateOptions, {
         codecPreferences: options.codecPreferences,
+        edge: 'roaming',
         fileInputStream: undefined,
         logLevel: 'error',
         preflight: true,
-      });
-      sinon.assert.calledWith(deviceContext.register, 'foo', {
-        edge: 'roaming',
       });
     });
 
     it('should pass logLevel to device', () => {
       options.logLevel = 'debug';
       const preflight = new PreflightTest('foo', options);
-      sinon.assert.calledWith(deviceContext.setOptions, {
+      sinon.assert.calledOnceWithExactly(deviceContext.updateOptions, {
         codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
-        fileInputStream: undefined,
-        logLevel: 'debug',
-        preflight: true,
-      });
-      sinon.assert.calledWith(deviceContext.register, 'foo', {
         edge: 'roaming',
+        fileInputStream: undefined,
+        logLevel: options.logLevel,
+        preflight: true,
       });
     });
 
     it('should pass edge to device', () => {
       options.edge = 'ashburn';
       const preflight = new PreflightTest('foo', options);
-      sinon.assert.calledWith(deviceContext.setOptions, {
+      sinon.assert.calledOnceWithExactly(deviceContext.updateOptions, {
         codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
+        edge: options.edge,
         fileInputStream: undefined,
         logLevel: 'error',
         preflight: true,
       });
       sinon.assert.calledOnce(edgeStub);
-      sinon.assert.calledWith(deviceContext.register, 'foo', {
-        edge: options.edge,
-      });
     });
 
-    it('should pass rtcConfiguration to device.connect', () => {
+    it('should pass rtcConfiguration to device', () => {
       options.rtcConfiguration = {foo: 'foo', iceServers: 'bar'};
       const preflight = new PreflightTest('foo', options);
-      device.emit('ready');
-      return wait().then(() => {
-        sinon.assert.calledWith(deviceContext.setOptions, {
-          codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
-          fileInputStream: undefined,
-          logLevel: 'error',
-          preflight: true,
-        });
-        sinon.assert.calledWith(deviceContext.register, 'foo', {
-          edge: 'roaming',
-        });
-        sinon.assert.calledWith(deviceContext.connect, {
-          rtcConfiguration: options.rtcConfiguration,
-        });
+      sinon.assert.calledWith(deviceContext.updateOptions, {
+        codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
+        edge: 'roaming',
+        fileInputStream: undefined,
+        logLevel: 'error',
+        preflight: true,
       });
     });
   });
@@ -239,30 +230,27 @@ describe('PreflightTest', () => {
 
     it('should set fakeMicInput to false by default', () => {
       preflight = new PreflightTest('foo', options);
-      sinon.assert.calledWith(deviceContext.setOptions, {
+      sinon.assert.calledOnceWithExactly(deviceContext.updateOptions, {
         codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
+        edge: 'roaming',
         fileInputStream: undefined,
         logLevel: 'error',
         preflight: true,
       });
-      sinon.assert.calledWith(deviceContext.register, 'foo', {
-        edge: 'roaming',
-      });
+      sinon.assert.calledOnceWithExactly(deviceContext.register);
     });
 
-    it('should pass file input if fakeMicInput is true', () => {
+    it('should pass file input if fakeMicInput is true', async () => {
       preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
-      return wait().then(() => {
-        sinon.assert.calledWith(deviceContext.setOptions, {
-          codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
-          fileInputStream: stream,
-          logLevel: 'error',
-          preflight: true,
-        });
-        sinon.assert.calledWith(deviceContext.register, 'foo', {
-          edge: 'roaming',
-        });
+      await clock.tickAsync(1000);
+      sinon.assert.calledOnceWithExactly(deviceContext.updateOptions, {
+        codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
+        edge: 'roaming',
+        fileInputStream: stream,
+        logLevel: 'error',
+        preflight: true,
       });
+      sinon.assert.calledOnceWithExactly(deviceContext.register);
     });
 
     it('should call play', () => {
@@ -276,89 +264,82 @@ describe('PreflightTest', () => {
       sinon.assert.calledWithExactly(audioInstance.setAttribute, 'crossorigin', 'anonymous');
     });
 
-    it('should mute device sounds', () => {
+    it('should mute device sounds', async () => {
       preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
-      return wait().then(() => {
-        device.emit('ready');
-        sinon.assert.calledOnce(deviceContext.audio.disconnect);
-        sinon.assert.calledOnce(deviceContext.audio.outgoing);
-        sinon.assert.calledWithExactly(deviceContext.audio.disconnect, false);
-        sinon.assert.calledWithExactly(deviceContext.audio.outgoing, false);
-      });
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(1000);
+      sinon.assert.calledOnce(deviceContext.audio.disconnect);
+      sinon.assert.calledOnce(deviceContext.audio.outgoing);
+      sinon.assert.calledWithExactly(deviceContext.audio.disconnect, false);
+      sinon.assert.calledWithExactly(deviceContext.audio.outgoing, false);
     });
 
-    it('should end test after echo duration', () => {
+    it('should end test after echo duration', async () => {
       preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
-      return wait().then(() => {
-        device.emit('ready');
-
-        clock.tick(19000);
-        sinon.assert.notCalled(deviceContext.disconnectAll);
-        clock.tick(1000);
-        sinon.assert.calledOnce(deviceContext.disconnectAll);
-      });
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(19000);
+      sinon.assert.notCalled(deviceContext.disconnectAll);
+      await clock.tickAsync(1000);
+      sinon.assert.calledOnce(deviceContext.disconnectAll);
     });
 
-    it('should not start timer if fakeMicInput is false', () => {
+    it('should not start timer if fakeMicInput is false', async () => {
       preflight = new PreflightTest('foo', options);
-      return wait().then(() => {
-        device.emit('ready');
-
-        clock.tick(19000);
-        sinon.assert.notCalled(deviceContext.disconnectAll);
-        clock.tick(20000);
-        sinon.assert.notCalled(deviceContext.disconnectAll);
-      });
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(19000);
+      sinon.assert.notCalled(deviceContext.disconnectAll);
+      await clock.tickAsync(20000);
+      sinon.assert.notCalled(deviceContext.disconnectAll);
     });
 
-    it('should clear echo timer on completed', () => {
+    it('should clear echo timer on completed', async () => {
       preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
-      device.emit('ready');
+
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(1000);
       connection.emit('sample', testSamples[0]);
-      return wait().then(() => {
-        clock.tick(5000);
-        device.emit('disconnect');
-        clock.tick(1000);
-        device.emit('offline');
+      await clock.tickAsync(1000);
 
-        clock.tick(20000);
-        sinon.assert.notCalled(deviceContext.disconnectAll);
-      });
+      await clock.tickAsync(5000);
+      connection.emit('disconnect');
+      await clock.tickAsync(1000);
+      device.emit(Device.EventName.Unregistered);
+
+      await clock.tickAsync(20000);
+      sinon.assert.notCalled(deviceContext.disconnectAll);
     });
 
-    it('should clear echo timer on failed', () => {
+    it('should clear echo timer on failed', async () => {
       preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
 
-      return wait().then(() => {
-        device.emit('ready');
-        clock.tick(5000);
-        preflight.stop();
-        device.emit('offline');
-        clock.tick(20000);
-        sinon.assert.notCalled(deviceContext.disconnectAll);
-      });
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(5000);
+      preflight.stop();
+      device.emit(Device.EventName.Unregistered);
+      await clock.tickAsync(20000);
+      sinon.assert.notCalled(deviceContext.disconnectAll);
     });
 
-    it('should not mute media stream if fakeMicInput is false', () => {
+    it('should not mute media stream if fakeMicInput is false', async () => {
       preflight = new PreflightTest('foo', options);
 
-      return wait().then(() => {
-        device.emit('ready');
-        connection.emit('volume');
-        assert(!connectionContext['_mediaHandler'].outputs.get('default').audio.muted);
-        assert(!connectionContext['_mediaHandler'].outputs.get('foo').audio.muted);
-      });
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(1000);
+      connection.emit('volume');
+      await clock.tickAsync(1000);
+      assert(!connectionContext['_mediaHandler'].outputs.get('default').audio.muted);
+      assert(!connectionContext['_mediaHandler'].outputs.get('foo').audio.muted);
     });
 
-    it('should mute media stream if fakeMicInput is true', () => {
+    it('should mute media stream if fakeMicInput is true', async () => {
       preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
 
-      return wait().then(() => {
-        device.emit('ready');
-        connection.emit('volume');
-        assert(connectionContext['_mediaHandler'].outputs.get('default').audio.muted);
-        assert(connectionContext['_mediaHandler'].outputs.get('foo').audio.muted);
-      });
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(1000);
+      connection.emit('volume');
+      await clock.tickAsync(1000);
+      assert(connectionContext['_mediaHandler'].outputs.get('default').audio.muted);
+      assert(connectionContext['_mediaHandler'].outputs.get('foo').audio.muted);
     });
   });
 
@@ -367,14 +348,15 @@ describe('PreflightTest', () => {
       const onSample = sinon.stub();
       const preflight = new PreflightTest('foo', options);
       preflight.on('sample', onSample);
-      device.emit('ready');
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(1000);
 
       const count = 10;
       const sample = {foo: 'foo', bar: 'bar', mos: 1};
       for (let i = 1; i <= count; i++) {
         const data = {...sample, count: i};
         connection.emit('sample', data);
-        await wait();
+        await clock.tickAsync(1000);
         sinon.assert.callCount(onSample, i);
         sinon.assert.calledWithExactly(onSample, data);
         assert.deepEqual(preflight.latestSample, data)
@@ -388,14 +370,16 @@ describe('PreflightTest', () => {
       preflight = new PreflightTest('foo', options);
     });
 
-    it('should emit warning', () => {
+    it('should emit warning', async () => {
       const onWarning = sinon.stub();
       preflight.on('warning', onWarning);
-      device.emit('ready');
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(1000);
 
       const data = {foo: 'foo', bar: 'bar'};
 
       connection.emit('warning', 'foo', data);
+      await clock.tickAsync(1000);
 
       sinon.assert.calledOnce(onWarning);
       sinon.assert.calledWithExactly(onWarning, {
@@ -405,51 +389,58 @@ describe('PreflightTest', () => {
       });
     });
 
-    it('should emit a warning the first time Insights fails to publish', () => {
+    it('should emit a warning the first time Insights fails to publish', async () => {
       const onWarning = sinon.stub();
       preflight.on('warning', onWarning);
-      device.emit('ready');
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(1000);
 
       publisher.emit('error');
+      await clock.tickAsync(1000);
       sinon.assert.calledOnce(onWarning);
       sinon.assert.calledWithExactly(onWarning, {
         description: 'Received an error when attempting to connect to Insights gateway',
         name: 'insights-connection-error',
       });
+
       publisher.emit('error');
+      await clock.tickAsync(1000);
       sinon.assert.calledOnce(onWarning);
     });
   });
 
   describe('on connected', () => {
-    it('should emit connected', () => {
+    it('should emit connected', async () => {
       const onConnected = sinon.stub();
       const preflight = new PreflightTest('foo', options);
 
       preflight.on('connected', onConnected);
-      device.emit('ready');
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(1000);
 
       connection.emit('accept');
+      await clock.tickAsync(1000);
       assert.equal(preflight.status, PreflightTest.Status.Connected);
       sinon.assert.calledOnce(onConnected);
     });
 
-    it('should populate callsid', () => {
+    it('should populate callsid', async () => {
       const preflight = new PreflightTest('foo', options);
-      device.emit('ready');
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(1000);
       connection.emit('accept');
+      await clock.tickAsync(1000);
 
       assert.equal(preflight.callSid, CALL_SID);
     });
 
-    it('should clear singaling timeout timer', () => {
+    it('should clear singaling timeout timer', async () => {
       const onFailed = sinon.stub();
       const preflight = new PreflightTest('foo', options);
 
       preflight.on('failed', onFailed);
-      device.emit('ready');
-
-      clock.tick(15000);
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(15000);
 
       sinon.assert.notCalled(onFailed);
     });
@@ -463,29 +454,29 @@ describe('PreflightTest', () => {
       preflight['_rtcIceCandidateStatsReport'] = rtcIceCandidateStatsReport;
     });
 
-    it('should clear signaling timeout timer', () => {
+    it('should clear signaling timeout timer', async () => {
       const onFailed = sinon.stub();
       preflight.on('failed', onFailed);
 
-      device.emit('ready');
-      clock.tick(5000);
-      device.emit('disconnect');
-      clock.tick(1000);
-      device.emit('offline');
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(5000);
+      connection.emit('disconnect');
+      await clock.tickAsync(1000);
+      device.emit(Device.EventName.Unregistered);
 
-      clock.tick(15000);
+      await clock.tickAsync(15000);
       sinon.assert.notCalled(onFailed);
     });
 
-    it('should end call after device disconnects', () => {
+    it('should end call after device disconnects', async () => {
       const onCompleted = sinon.stub();
       preflight.on('completed', onCompleted);
-      device.emit('ready');
-      clock.tick(14000);
-      device.emit('disconnect');
-      clock.tick(1000);
-      device.emit('offline');
-      clock.tick(10);
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(14000);
+      connection.emit('disconnect');
+      await clock.tickAsync(1000);
+      device.emit(Device.EventName.Unregistered);
+      await clock.tickAsync(10);
 
       // endTime - startTime = duration. Should be equal to the total clock ticks
       assert(preflight.endTime! - preflight.startTime === 15010);
@@ -493,15 +484,15 @@ describe('PreflightTest', () => {
       sinon.assert.called(onCompleted);
     });
 
-    it('should release all handlers', () => {
+    it('should release all handlers', async () => {
       const onCompleted = sinon.stub();
       preflight.on('completed', onCompleted);
-      device.emit('ready');
-      clock.tick(14000);
-      device.emit('disconnect');
-      clock.tick(1000);
-      device.emit('offline');
-      clock.tick(1000);
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(14000);
+      connection.emit('disconnect');
+      await clock.tickAsync(1000);
+      device.emit(Device.EventName.Unregistered);
+      await clock.tickAsync(1000);
       assert.equal(device.eventNames().length, 0);
       assert.equal(connection.eventNames().length, 0);
     });
@@ -588,14 +579,15 @@ describe('PreflightTest', () => {
         };
 
         preflight.on('completed', onCompleted);
-        device.emit('ready');
+        device.emit(Device.EventName.Registered);
+        await clock.tickAsync(0);
 
         // Populate samples
         for (let i = 0; i < testSamples.length; i++) {
           const sample = testSamples[i];
           const data = {...sample};
           connection.emit('sample', data);
-          await wait();
+          await clock.tickAsync(1);
         }
         // Populate warnings
         connection.emit('warning', 'foo', warningData);
@@ -606,37 +598,40 @@ describe('PreflightTest', () => {
         connection['_mediaHandler'].onpcconnectionstatechange('connecting');
         connection['_mediaHandler'].ondtlstransportstatechange('connecting');
         connection['_mediaHandler'].oniceconnectionstatechange('checking');
-        clock.tick(1000);
+        await clock.tickAsync(1000);
 
         connection['_mediaHandler'].onpcconnectionstatechange('connected');
         connection['_mediaHandler'].ondtlstransportstatechange('connected');
         connection['_mediaHandler'].oniceconnectionstatechange('connected');
         connection['_mediaHandler'].onsignalingstatechange('stable');
 
-        clock.tick(13000);
-        device.emit('disconnect');
+        await clock.tickAsync(13000);
+        connection.emit('disconnect');
 
-        clock.tick(1000);
-        device.emit('offline');
-        clock.tick(1000);
+        await clock.tickAsync(1000);
+        device.emit(Device.EventName.Unregistered);
+        await clock.tickAsync(1000);
       });
     });
 
     describe('call quality', () => {
-      it('should not include callQuality if stats are missing', (done) => {
-        const onCompleted = (results: PreflightTest.Report) => {
-          assert(!results.callQuality);
-          done();
-        };
+      it('should not include callQuality if stats are missing', async () => {
+        const completePromise = new Promise(resolve => {
+          preflight.on('completed', (results: PreflightTest.Report) => {
+            assert(!results.callQuality);
+            resolve();
+          });
+        });
 
-        preflight.on('completed', onCompleted);
-        device.emit('ready');
+        device.emit(Device.EventName.Registered);
 
-        clock.tick(13000);
-        device.emit('disconnect');
-        clock.tick(1000);
-        device.emit('offline');
-        clock.tick(1000);
+        await clock.tickAsync(13000);
+        connection.emit('disconnect');
+        await clock.tickAsync(1000);
+        device.emit(Device.EventName.Unregistered);
+        await clock.tickAsync(1000);
+
+        await completePromise;
       });
 
       // Test data for different mos and expected quality
@@ -656,45 +651,48 @@ describe('PreflightTest', () => {
         [3.000, PreflightTest.CallQuality.Degraded],
         [2.900, PreflightTest.CallQuality.Degraded],
       ].forEach(([averageMos, callQuality]) => {
-        it(`should report quality as ${callQuality} if average mos is ${averageMos}`, () => {
-          return new Promise(async (resolve) => {
-            const onCompleted = (results: PreflightTest.Report) => {
+        it(`should report quality as ${callQuality} if average mos is ${averageMos}`, async () => {
+          const completePromise = new Promise(resolve => {
+            preflight.on('completed', (results: PreflightTest.Report) => {
               assert.equal(results.callQuality, callQuality);
               resolve();
-            };
-
-            preflight.on('completed', onCompleted);
-            device.emit('ready');
-
-            for (let i = 0; i < 10; i++) {
-              connection.emit('sample', {
-                rtt: 1,
-                jitter: 1,
-                mos: averageMos,
-              });
-              await wait();
-            }
-
-            clock.tick(13000);
-            device.emit('disconnect');
-            clock.tick(1000);
-            device.emit('offline');
-            clock.tick(1000);
+            });
           });
+
+          device.emit(Device.EventName.Registered);
+          await clock.tickAsync(0);
+
+          for (let i = 0; i < 10; i++) {
+            connection.emit('sample', {
+              rtt: 1,
+              jitter: 1,
+              mos: averageMos,
+            });
+            await clock.tickAsync(1);
+          }
+
+          await clock.tickAsync(13000);
+          connection.emit('disconnect');
+          await clock.tickAsync(5000);
+          device.emit(Device.EventName.Unregistered);
+          await clock.tickAsync(5000);
+
+          await completePromise;
         });
       })
     });
 
     describe('ice candidates', () => {
       const passPreflight = async () => {
-        device.emit('ready');
+        device.emit(Device.EventName.Registered);
+        await clock.tickAsync(0);
+
         connection.emit('sample', testSamples[0]);
-        await wait();
-        clock.tick(25000);
-        device.emit('disconnect');
-        clock.tick(1000);
-        device.emit('offline');
-        clock.tick(1000);
+        await clock.tickAsync(25000);
+        connection.emit('disconnect');
+        await clock.tickAsync(1000);
+        device.emit(Device.EventName.Unregistered);
+        await clock.tickAsync(1000);
       };
 
       let candidateInfo: any;
@@ -796,69 +794,70 @@ describe('PreflightTest', () => {
   });
 
   describe('on failed', () => {
-    it('should clear signaling timeout timer', () => {
+    it('should clear signaling timeout timer', async () => {
       const onFailed = sinon.stub();
       const preflight = new PreflightTest('foo', options);
 
       preflight.on('failed', onFailed);
-      device.emit('ready');
-      clock.tick(5000);
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(5000);
 
       preflight.stop();
-      device.emit('offline');
+      device.emit(Device.EventName.Unregistered);
 
-      clock.tick(15000);
+      await clock.tickAsync(15000);
 
       sinon.assert.calledOnce(onFailed);
     });
 
-    it('should timeout after 10s by default', () => {
+    it('should timeout after 10s by default', async () => {
       const onFailed = sinon.stub();
       const preflight = new PreflightTest('foo', options);
       preflight.on('failed', onFailed);
 
-      clock.tick(9999);
+      await clock.tickAsync(9999);
       sinon.assert.notCalled(onFailed);
-      clock.tick(1);
+      await clock.tickAsync(1);
       sinon.assert.calledOnce(onFailed);
       sinon.assert.calledWithExactly(onFailed, { code: 31901, message: "WebSocket - Connection Timeout" });
     });
 
-    it('should use timeout param', () => {
+    it('should use timeout param', async () => {
       const onFailed = sinon.stub();
       const preflight = new PreflightTest('foo', Object.assign({ signalingTimeoutMs: 3000 }, options));
       preflight.on('failed', onFailed);
 
-      clock.tick(2999);
+      await clock.tickAsync(2999);
       sinon.assert.notCalled(onFailed);
-      clock.tick(1);
+      await clock.tickAsync(1);
       sinon.assert.calledOnce(onFailed);
       sinon.assert.calledWithExactly(onFailed, { code: 31901, message: "WebSocket - Connection Timeout" });
     });
 
-    it('should emit failed if Device failed to initialized', () => {
-      deviceContext.setOptions = () => {
+    it('should emit failed if Device failed to initialized', async () => {
+      deviceContext.updateOptions = () => {
         throw 'foo';
       };
 
       const onFailed = sinon.stub();
       const preflight = new PreflightTest('foo', options);
       preflight.on('failed', onFailed);
-      clock.tick(1);
+      await clock.tickAsync(1);
       assert.equal(preflight.status, PreflightTest.Status.Failed);
       sinon.assert.calledOnce(onFailed);
       sinon.assert.calledWithExactly(onFailed, 'foo');
     });
 
-    it('should emit failed when test is stopped and destroy device', () => {
+    it('should emit failed when test is stopped and destroy device', async () => {
       const onFailed = sinon.stub();
       const preflight = new PreflightTest('foo', options);
       preflight.on('failed', onFailed);
-      device.emit('ready');
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(0);
 
       preflight.stop();
-      device.emit('offline');
-      clock.tick(1000);
+      device.emit(Device.EventName.Unregistered);
+      await clock.tickAsync(1000);
 
       assert.equal(preflight.status, PreflightTest.Status.Failed);
       sinon.assert.calledOnce(deviceContext.destroy);
@@ -869,13 +868,15 @@ describe('PreflightTest', () => {
       });
     });
 
-    it(`should emit failed on fatal device errors and destroy device`, () => {
+    it(`should emit failed on fatal device errors and destroy device`, async () => {
       const onFailed = sinon.stub();
       const preflight = new PreflightTest('foo', options);
       preflight.on('failed', onFailed);
-      device.emit('ready');
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(0);
 
       device.emit('error', { code: 123 });
+      await clock.tickAsync(0);
 
       assert.equal(preflight.status, PreflightTest.Status.Failed);
       sinon.assert.calledOnce(deviceContext.destroy);
@@ -883,7 +884,7 @@ describe('PreflightTest', () => {
       sinon.assert.calledWithExactly(onFailed, { code: 123 });
     });
 
-    it('should listen to device error once', () => {
+    it('should listen to device error once', async () => {
       const onFailed = sinon.stub();
       const preflight = new PreflightTest('foo', options);
       preflight.on('failed', onFailed);
@@ -895,9 +896,14 @@ describe('PreflightTest', () => {
       device.on('error', sinon.stub());
 
       // Triggers the test
-      device.emit('ready');
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(0);
+
       device.emit('error', { code: 123 });
+      await clock.tickAsync(0);
+
       device.emit('error', { code: 123 });
+      await clock.tickAsync(0);
 
       assert.equal(preflight.status, PreflightTest.Status.Failed);
       sinon.assert.calledOnce(deviceContext.destroy);
@@ -905,36 +911,37 @@ describe('PreflightTest', () => {
       sinon.assert.calledWithExactly(onFailed, { code: 123 });
     });
 
-    it('should stop test', () => {
+    it('should stop test', async () => {
       const onCompleted = sinon.stub();
       const preflight = new PreflightTest('foo', options);
       preflight.on('completed', onCompleted);
-      device.emit('ready');
+      device.emit(Device.EventName.Registered);
 
-      clock.tick(5000);
+      await clock.tickAsync(5000);
       preflight.stop();
-      device.emit('offline');
+      device.emit(Device.EventName.Unregistered);
 
-      clock.tick(15000);
-      device.emit('offline');
-      clock.tick(1000);
+      await clock.tickAsync(15000);
+      device.emit(Device.EventName.Unregistered);
+      await clock.tickAsync(1000);
       assert.equal(preflight.status, PreflightTest.Status.Failed);
       sinon.assert.notCalled(onCompleted);
     });
 
-    it('should release all handlers', () => {
+    it('should release all handlers', async () => {
       const preflight = new PreflightTest('foo', options);
-      device.emit('ready');
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(0);
 
       preflight.stop();
-      device.emit('offline');
-      clock.tick(1000);
+      device.emit(Device.EventName.Unregistered);
+      await clock.tickAsync(1000);
 
       assert.equal(device.eventNames().length, 0);
       assert.equal(connection.eventNames().length, 0);
     });
 
-    it('should not emit completed event', () => {
+    it('should not emit completed event', async () => {
       const onCompleted = sinon.stub();
       const onFailed = sinon.stub();
       const preflight = new PreflightTest('foo', options);
@@ -942,14 +949,14 @@ describe('PreflightTest', () => {
       preflight.on(PreflightTest.Events.Completed, onCompleted);
       preflight.on(PreflightTest.Events.Failed, onFailed);
 
-      device.emit('ready');
-      clock.tick(1000);
-      device.emit('disconnect');
-      clock.tick(1000);
-      device.emit('offline');
-      clock.tick(1);
+      device.emit(Device.EventName.Registered);
+      await clock.tickAsync(1000);
+      connection.emit('disconnect');
+      await clock.tickAsync(1000);
+      device.emit(Device.EventName.Unregistered);
+      await clock.tickAsync(1);
       device.emit('error', { code: 123 });
-      clock.tick(1000);
+      await clock.tickAsync(1000);
 
       return wait().then(() => {
         sinon.assert.notCalled(onCompleted);
@@ -995,8 +1002,10 @@ describe('PreflightTest', () => {
       it('should return an object if there are mos samples', async () => {
         const preflight = new PreflightTest('foo', options);
 
-        device.emit('ready');
-        [{
+        device.emit(Device.EventName.Registered);
+        await clock.tickAsync(0);
+
+        for (const sample of [{
           jitter: 100, mos: null, rtt: 1,
         }, {
           jitter: 0, mos: null, rtt: 0,
@@ -1008,11 +1017,10 @@ describe('PreflightTest', () => {
           jitter: 2, mos: 4, rtt: 0.03,
         }, {
           jitter: 3, mos: 3, rtt: 0.02,
-        }].map(createSample).forEach(
-          (sample: RTCSample) => connection.emit('sample', sample),
-        );
-
-        await wait();
+        }].map(createSample)) {
+          connection.emit('sample', sample);
+          await clock.tickAsync(0);
+        }
 
         const rtcStats = preflight['_getRTCStats']();
         assert.deepEqual(rtcStats, {
@@ -1037,7 +1045,9 @@ describe('PreflightTest', () => {
       it('should return undefined if there are no mos samples', async () => {
         const preflight = new PreflightTest('foo', options);
 
-        device.emit('ready');
+        device.emit(Device.EventName.Registered);
+        await clock.tickAsync(0);
+
         [{
           jitter: 100, mos: null, rtt: 1,
         }, {
@@ -1048,7 +1058,7 @@ describe('PreflightTest', () => {
           (sample: RTCSample) => connection.emit('sample', sample),
         );
 
-        await wait();
+        await clock.tickAsync(0);
 
         const rtcStats = preflight['_getRTCStats']();
         assert.equal(rtcStats, undefined);
