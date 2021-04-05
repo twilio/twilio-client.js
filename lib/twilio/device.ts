@@ -606,6 +606,13 @@ class Device extends EventEmitter {
   }
 
   /**
+   * Whether the Device is currently on an active Call.
+   */
+  get isBusy(): boolean {
+    return !!this.activeConnection;
+  }
+
+  /**
    * Register the `Device` to the Twilio backend, allowing it to receive calls.
    */
   async register(): Promise<void> {
@@ -676,13 +683,38 @@ class Device extends EventEmitter {
    * Set the options used within the {@link Device}.
    * @param options
    */
-  async updateOptions(options: Device.Options = { }): Promise<void> {
-    if (this._connections.length > 0 || this.activeConnection) {
-      this._log.warn('Existing Device has ongoing connections; ignoring new options.');
-      return;
+  updateOptions(options: Device.Options = { }): void {
+    this._options = { ...this._defaultOptions, ...this._options, ...options };
+
+    const originalChunderURIs: Set<string> = new Set(this._chunderURIs);
+
+    const chunderw = typeof this._options.chunderw === 'string'
+      ? [this._options.chunderw]
+      : Array.isArray(this._options.chunderw) && this._options.chunderw;
+
+    const newChunderURIs = this._chunderURIs = (
+      chunderw || getChunderURIs(
+        this._options.edge,
+        undefined,
+        this._log.warn.bind(this._log),
+      )
+    ).map((uri: string) => `wss://${uri}/signal`);
+
+    let hasChunderURIsChanged =
+      originalChunderURIs.size !== newChunderURIs.length;
+
+    if (!hasChunderURIsChanged) {
+      for (const uri of newChunderURIs) {
+        if (!originalChunderURIs.has(uri)) {
+          hasChunderURIsChanged = true;
+          break;
+        }
+      }
     }
 
-    this._options = { ...this._defaultOptions, ...options };
+    if (this.isBusy && hasChunderURIsChanged) {
+      throw new InvalidStateError('Cannot change Edge while on an active Call');
+    }
 
     this._log.setDefaultLevel(
       typeof this._options.logLevel === 'number'
@@ -714,41 +746,15 @@ class Device extends EventEmitter {
     }
 
     this._setupAudioHelper();
-
     this._setupPublisher();
-
-    const originalChunderURIs: Set<string> = new Set(this._chunderURIs);
-
-    const chunderw = typeof this._options.chunderw === 'string'
-      ? [this._options.chunderw]
-      : Array.isArray(this._options.chunderw) && this._options.chunderw;
-
-    const newChunderURIs = this._chunderURIs = (
-      chunderw || getChunderURIs(
-        this._options.edge,
-        undefined,
-        this._log.warn.bind(this._log),
-      )
-    ).map((uri: string) => `wss://${uri}/signal`);
-
-    let hasChunderURIsChanged =
-      originalChunderURIs.size !== newChunderURIs.length;
-
-    if (!hasChunderURIsChanged) {
-      for (const uri of newChunderURIs) {
-        if (!originalChunderURIs.has(uri)) {
-          hasChunderURIsChanged = true;
-          break;
-        }
-      }
-    }
 
     if (hasChunderURIsChanged && this._streamConnectedPromise) {
       const shouldReRegister = this.state === Device.State.Registered;
-      await this._setupStream();
-      if (shouldReRegister) {
-        await this.register();
-      }
+      this._setupStream().then(async () => {
+        if (shouldReRegister) {
+          await this.register();
+        }
+      });
     }
 
     // Setup close protection and make sure we clean up ongoing calls on unload.
