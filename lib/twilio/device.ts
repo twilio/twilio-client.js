@@ -628,7 +628,7 @@ class Device extends EventEmitter {
 
     const stream = await (this._streamConnectedPromise || this._setupStream());
     const streamReadyPromise = new Promise(resolve => {
-      stream.on('ready', resolve);
+      this.once(Device.State.Registered, resolve);
     });
     await this._sendPresence(true);
     await streamReadyPromise;

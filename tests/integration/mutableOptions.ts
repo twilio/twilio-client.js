@@ -32,8 +32,16 @@ describe('mutable options', function() {
     await device.register();
     assert.equal(device.edge, 'sydney');
 
-    await device.updateOptions({ edge: 'ashburn' });
-    assert.equal(device.edge, 'ashburn');
+    device.updateOptions({ edge: 'ashburn' });
+    return new Promise((resolve, reject) => {
+      device.once('registered', () => {
+        if (device.edge === 'ashburn') {
+          resolve();
+        } else {
+          reject(new Error('Expected ashburn, got ' + device.edge));
+        }
+      });
+    });
   });
 
   context('ongoing connections', function() {
@@ -84,14 +92,15 @@ describe('mutable options', function() {
       receiver.destroy();
     });
 
-    it('should not allow updating options while connections are ongoing', function() {
+    it('should not allow updating edge while connections are ongoing', function() {
       const logSpy = sinon.spy();
       caller['_log'].warn = logSpy;
 
-      caller.updateOptions();
-      assert.equal(logSpy.args.filter(
-        ([message]) => message === 'Existing Device has ongoing connections; ignoring new options.',
-      ).length, 1);
+      try {
+        caller.updateOptions({ edge: 'ashburn' });
+      } catch(e) {
+        assert.equal(e.message, 'Cannot change Edge while on an active Call');
+      }
     });
 
     it('should allow updating options after all connections have ended', function() {
@@ -99,11 +108,7 @@ describe('mutable options', function() {
       caller['_log'].warn = logSpy;
 
       callerConnection.disconnect();
-
-      caller.updateOptions();
-      assert.equal(logSpy.args.filter(
-        ([message]) => message === 'Existing Device has ongoing connections; ignoring new options.',
-      ).length, 0);
+      caller.updateOptions({ edge: 'ashburn' });
     });
   });
 });
