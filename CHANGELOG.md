@@ -1,19 +1,64 @@
 2.0.0 (In Progress)
 ===================
 
-Changes
+Breaking API Changes
 -------
 
-### MOS Calculation Formula
+### Device singleton behavior removed
+Device must now be instantiated before it can be used. Calling `Device.setup()` will no longer
+work; instead, a new `Device` must be instantiated via `new Device(token, options?)`.
 
-The formula used to calculate the mean-opinion score (MOS) has
-been fixed for extreme network conditions. These fixes should not change score
-values for nominal network conditions.
+### Connection renamed to Call
+As Connection is an overloaded and ambiguous term, the class has been renamed Call to better
+indicate what the object represents and be more consistent with Mobile SDKs and our REST APIs.
 
-### Device Events
+### Signaling connection now lazy loaded
+`Device.setup()` has been removed, and `new Device(...)` will not automatically begin
+connecting to signaling. There is no need to listen for `Device.on('ready')`. Instead,
+the signaling connection will automatically be acquired in one of two scenarios:
 
-The events emitted by the `Device` are now exposed as the `Device.EventName`
-enum.
+1. The application calls `Device.connect()`, creating an outbound Call. In this case,
+the state of the signaling connection will be represented in the Call.
+2. The application calls `Device.register()`, which will register the client to listen
+for incoming calls at the identity specified in the AccessToken.
+
+#### Note on token expiration
+As long as outgoing calls are expected to be made, or incoming calls are expected to be received,
+the token supplied to `Device` should be fresh and not expired. This can be done by setting a
+timer in the application to call `updateToken` with the new token shortly before the prior
+token expires. This is important, because signaling connection is lazy loaded and will fail if
+the token is not valid at the time of creation.
+
+Example:
+```ts
+const TTL = 600000; // Assuming our endpoint issues tokens for 600 seconds (10 minutes)
+const REFRESH_TIMER = TTL - 30000; // We update our token 30 seconds before expiration;
+const interval = setInterval(async () => {
+  const newToken = await getNewTokenViaAjax();
+  device.updateToken(newToken);
+}, REFRESH_TIMER);
+```
+
+### Device states changed
+
+The Device states have changed. The states were: `[Ready, Busy, Offline]`. These
+have been changed to more accurately and clearly represent the states of the
+Device. There are two changes to Device state:
+1. The states themselves have changed to `[Registered, Registering, Unregistered]`. This
+removes the idea of "Busy" from the state, as technically the Device can have an active
+Call whether it is registered or not, depending on the use case. The Device will always
+starty as `Unregistered`. In this state, it can still make outbound Calls. Once `Device.register()`
+has been called, this state will change to `Registering` and finally `Registered`. If
+`Device.unregister()` is called the state will revert to `Unregistered`. If the signaling
+connection is lost, the state will transition to `Registering` or `Unregistered' depending
+on whether or not the connection can be re-established.
+2. The busy state has been moved to a boolean, `Device.isBusy`. This is a very basic
+shortcut for the logic `return !!device.activeConnection`.
+
+### Device events changed
+
+The events emitted by the `Device` are represented by the `Device.EventName`
+enum and represent the new Device states:
 
 ```ts
 export enum EventName {
@@ -26,135 +71,51 @@ export enum EventName {
 ```
 
 Note that `unregistered`, `registering`, and `registered` have replaced
-`offline` and `ready`.
+`offline` and `ready`. Although frequently used to represent connected or disconnected,
+`ready` and `offline` actually were meant to represent `registered` and `unregistered`,
+which was quite ambiguous and a primary reason for the change.
 
-### Device Usage
+### Device usage changes
 
-The construction signature and usage of `Device` has changed.
+The construction signature and usage of `Device` has changed. These are the new API signatures:
 
 ```ts
+/**
+ * Create a new Device. This is synchronous and will not open a signaling socket immediately.
+ */
 new Device(token: string, options?: Device.Options): Device;
 
-async Device.updateOptions(options: Device.Options): Promise<void>;
+/**
+ * Promise resolves when the Device has successfully registered.
+ */
 async Device.register(): Promise<void>;
+/**
+ * Promise resolves when the Device has successfully unregistered.
+ */
+async Device.unregister(): Promise<void>;
+/**
+ * Promise resolves when signaling is established and a Call has been created.
+ */
 async Device.connect(options?: Device.ConnectOptions): Promise<Call>;
 ```
 
-- `Device.updateOptions` may be called when there are no calls maintained by
-the `Device`. Updating options that change the `Device`'s connection to the
-Twilio backend will cause a re-registration if the `Device` is registered when
-calling `Device.updateOptions`.
-
-- `Device.register` returns a Promise that resolves when the `Device` has
-successfully connected to the Twilio backend and the `Device` is registered.
-
-- `Device.connect` returns a Promise that resolves with a `Call` when the
-`Device` has successfully connected to the Twilio backend and a call has been
-made.
-
 #### Listening for incoming calls:
 ```ts
-const token = '...';
-const options = { edge: 'ashburn', ... };
-const device = new Device(token, options);
+const device = new Device(token, { edge: 'ashburn' });
 
 device.on(Device.EventName.Incoming, call => { /* use `call` here */ });
-await device.register(token, customRegisterOptions);
+await device.register();
 ```
 
 #### Making an outgoing call:
 ```ts
-const token = '...';
-const options = { edge: 'ashburn', ... };
-const device = new Device(token, options);
-
-const call = await device.call({ To: 'foobar' });
+const device = new Device(token, { edge: 'ashburn' });
+const call = await device.connect({ To: 'alice' });
 ```
 
-#### Using a device for both incoming and outgoing calls:
-```ts
-const token = '...';
-const options = { edge: 'ashburn', ... };
-const device = new Device(token, options);
-
-device.on(Device.EventName.Incoming, call => { /* use `call` here */ });
-await device.register();
-
-const call = await device.call({ To: 'foobar' });
-```
-
-New Features
-------------
-
-### Device Options
-
-The SDK now allows `Device` options to be changed after initial set up using
-`async Device.updateOptions(options?: Device.Options)`. It will return a Promise
-that resolves when the options have been successfully updated within the
-`Device`. If the `Device` is registered before calling `Device.updateOptions`,
-the `Device` will re-register before resolving the returned Promise.
-
-Example usage:
-
-```ts
-const token = '...';
-const device = new Device(token);
-
-const options1 = { ... };
-device.updateOptions(options1);
-
-...
-
-const options2 = { ... };
-device.updateOptions(options2);
-```
-
-### LogLevel Module
-
-The SDK now uses the [`loglevel`](https://github.com/pimterry/loglevel) module. This exposes several new features for the SDK, including the ability to intercept log messages with custom handlers and the ability to set logging levels after instantiating a `Device`. To get an instance of the `loglevel` `Logger` class used internally by the SDK, there are several options.
-
-If your project uses the `Twilio` window global:
-```js
-const logger = Twilio.Logger;
-...
-logger.setLogLevel('DEBUG');
-```
-
-Or if you use the `NPM` package in a JS or TS project:
-```ts
-import { Logger as TwilioClientLogger } from 'twilio-client.js`;
-...
-TwilioClientLogger.setLogLevel('DEBUG');
-```
-
-Please see the original [`loglevel`](https://github.com/pimterry/loglevel) project for more documentation on usage.
-
-
-API Changes
--------
-
-### Connection Deprecations
-
-- Removed `Connection.mediaStream`. To access the MediaStreams, use `Connection.getRemoteStream()` and `Connection.getLocalStream()`
-- Removed `Connection.message` in favor of the newer `Connection.customParameters`. Where `.message` was an Object, `.customParameters` is a `Map`.
-- Removed the following private members from the public interface:
-   - `Connection.options`
-   - `Connection.pstream`
-   - `Connection.sendHangup`
-- Fixed `Connection.on('cancel')` logic so that we no longer emit `cancel` in response to `Connection.ignore()`.
-
-### Device#ConnectOptions and Connection#AcceptOptions
+### Device#ConnectOptions and Connection#AcceptOptions standardized
 The arguments for `Device.connect()` and `Connection.accept()` have been standardized
 to the following options objects:
-
-```ts
-interface Device.ConnectOptions extends Connection.AcceptOptions {
- /**
-  * A flat object containing key:value pairs to be sent to the TwiML app.
-  */
-  params?: Record<string, string>;
-}
-```
 
 ```ts
 interface Connection.AcceptOptions {
@@ -167,6 +128,15 @@ interface Connection.AcceptOptions {
    * MediaStreamConstraints to pass to getUserMedia when making or accepting a Call.
    */
   rtcConstraints?: MediaStreamConstraints;
+}
+```
+
+```ts
+interface Device.ConnectOptions extends Connection.AcceptOptions {
+ /**
+  * A flat object containing key:value pairs to be sent to the TwiML app.
+  */
+  params?: Record<string, string>;
 }
 ```
 
@@ -183,7 +153,66 @@ device.connect({
 });
 ```
 
-### Removal of Deprecated Device Options
+New Features
+------------
+
+### Device Options
+
+Previously, `Device.setup()` could only be used the set options once. Now, we've added
+`Device.updateOptions(options: Device.Options)` which will allow changing
+the Device options without instantiating a new Device. Note that the `edge` cannot be changed
+during an active Call.
+
+Example usage:
+
+```ts
+const options = { edge: 'ashburn' };
+const device = new Device(token, options);
+
+// Later...
+
+device.updateOptions({ allowIncomingWhileBusy: true });
+```
+
+The resulting (non-default) options would now be:
+```ts
+{
+  allowIncomingWhileBusy: true,
+  edge: 'ashburn',
+}
+```
+
+### LogLevel Module
+
+The SDK now uses the [`loglevel`](https://github.com/pimterry/loglevel) module. This exposes
+several new features for the SDK, including the ability to intercept log messages with custom
+handlers and the ability to set logging levels after instantiating a `Device`. To get an instance
+of the `loglevel` `Logger` class used internally by the SDK:
+
+```ts
+import { Logger as TwilioClientLogger } from '@twilio/voice-client-sdk';
+...
+TwilioClientLogger.setLogLevel('DEBUG');
+```
+
+Please see the original [`loglevel`](https://github.com/pimterry/loglevel) project for more
+documentation on usage.
+
+
+Deprecations
+------------
+
+### Connection Deprecations
+
+- Removed `Connection.mediaStream`. To access the MediaStreams, use `Connection.getRemoteStream()` and `Connection.getLocalStream()`
+- Removed `Connection.message` in favor of the newer `Connection.customParameters`. Where `.message` was an Object, `.customParameters` is a `Map`.
+- Removed the following private members from the public interface:
+   - `Connection.options`
+   - `Connection.pstream`
+   - `Connection.sendHangup`
+- Fixed `Connection.on('cancel')` logic so that we no longer emit `cancel` in response to `Connection.ignore()`.
+
+### Device Option Deprecations
 
 Some deprecated `Device` options have been removed. This includes:
 
@@ -211,6 +240,15 @@ export interface Options {
   sounds?: Partial<Record<Device.SoundName, string>>;
 }
 ```
+
+Fixes
+-----
+
+### MOS Calculation Formula
+
+The formula used to calculate the mean-opinion score (MOS) has been fixed for
+extreme network conditions. These fixes will not affect scores for nominal
+network conditions.
 
 1.14.0 (Jan 27, 2021)
 ====================

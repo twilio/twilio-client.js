@@ -361,6 +361,21 @@ describe('Device', function() {
       });
 
       describe('.updateOptions()', () => {
+        it('should additively set options', () => {
+          device.updateOptions({
+            appName: 'foobar',
+            allowIncomingWhileBusy: true,
+          });
+          assert.equal(device['_options'].allowIncomingWhileBusy, true);
+          assert.equal(device['_options'].appName, 'foobar');
+
+          device.updateOptions({
+            appName: 'baz',
+          });
+          assert.equal(device['_options'].allowIncomingWhileBusy, true);
+          assert.equal(device['_options'].appName, 'baz');
+        });
+
         it('should set up an audio helper', () => {
           const spy = device['_setupAudioHelper'] = sinon.spy(device['_setupAudioHelper']);
           device.updateOptions({});
