@@ -5,7 +5,7 @@
  * @publicapi
  */
 import { EventEmitter } from 'events';
-import Connection from '../connection';
+import Call from '../call';
 import Device, { IExtendedDeviceOptions } from '../device';
 import { NotSupportedError } from '../errors';
 import { RTCSampleTotals } from '../rtc/sample';
@@ -59,7 +59,7 @@ export declare interface PreflightTest {
   failedEvent(error: Device.Error | DOMError): void;
 
   /**
-   * Raised when the [[Connection]] gets a webrtc sample object. This event is published every second.
+   * Raised when the [[Call]] gets a webrtc sample object. This event is published every second.
    * @param sample
    * @example `preflight.on('sample', sample => console.log(sample))`
    * @event
@@ -67,7 +67,7 @@ export declare interface PreflightTest {
   sampleEvent(sample: RTCSample): void;
 
   /**
-   * Raised whenever the [[Connection]] encounters a warning.
+   * Raised whenever the [[Call]] encounters a warning.
    * @param name - The name of the warning.
    * @example `preflight.on('warning', (name, data) => console.log({ name, data }))`
    * @event
@@ -80,14 +80,14 @@ export declare interface PreflightTest {
  */
 export class PreflightTest extends EventEmitter {
   /**
+   * The {@link Call} for this test call
+   */
+  private _call: Call;
+
+  /**
    * Callsid generated for this test call
    */
   private _callSid: string | undefined;
-
-  /**
-   * The {@link Connection} for this test call
-   */
-  private _connection: Connection;
 
   /**
    * The {@link Device} for this test call
@@ -129,7 +129,7 @@ export class PreflightTest extends EventEmitter {
    * The options passed to {@link PreflightTest} constructor
    */
   private _options: PreflightTest.ExtendedOptions = {
-    codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
+    codecPreferences: [Call.Codec.PCMU, Call.Codec.Opus],
     edge: 'roaming',
     fakeMicInput: false,
     logLevel: 'error',
@@ -394,11 +394,11 @@ export class PreflightTest extends EventEmitter {
     clearTimeout(this._echoTimer);
     clearTimeout(this._signalingTimeoutTimer);
 
-    this._connection = await this._device.connect({
+    this._call = await this._device.connect({
       rtcConfiguration: this._options.rtcConfiguration,
     });
     this._networkTiming.signaling = { start: Date.now() };
-    this._setupConnectionHandlers(this._connection);
+    this._setupCallHandlers(this._call);
 
     this._edge = this._device.edge || undefined;
     if (this._options.fakeMicInput) {
@@ -411,12 +411,12 @@ export class PreflightTest extends EventEmitter {
       }
     }
 
-    this._connection.once('disconnect', () => {
+    this._call.once('disconnect', () => {
       this._device.once(Device.EventName.Unregistered, () => this._onUnregistered());
       this._device.destroy();
     });
 
-    const publisher = this._connection['_publisher'] as any;
+    const publisher = this._call['_publisher'] as any;
     publisher.on('error', () => {
       if (!this._hasInsightsErrored) {
         this._emitWarning('insights-connection-error',
@@ -464,10 +464,10 @@ export class PreflightTest extends EventEmitter {
   }
 
   /**
-   * Clean up all handlers for device and connection
+   * Clean up all handlers for device and call
    */
   private _releaseHandlers(): void {
-    [this._device, this._connection].forEach((emitter: EventEmitter) => {
+    [this._device, this._call].forEach((emitter: EventEmitter) => {
       if (emitter) {
         emitter.eventNames().forEach((name: string) => emitter.removeAllListeners(name));
       }
@@ -475,35 +475,35 @@ export class PreflightTest extends EventEmitter {
   }
 
   /**
-   * Setup the event handlers for the {@link Connection} of the test call
-   * @param connection
+   * Setup the event handlers for the {@link Call} of the test call
+   * @param call
    */
-  private _setupConnectionHandlers(connection: Connection): void {
+  private _setupCallHandlers(call: Call): void {
     if (this._options.fakeMicInput) {
       // When volume events start emitting, it means all audio outputs have been created.
       // Let's mute them if we're using fake mic input.
-      connection.once('volume', () => {
-        connection['_mediaHandler'].outputs
+      call.once('volume', () => {
+        call['_mediaHandler'].outputs
           .forEach((output: AudioOutput) => output.audio.muted = true);
       });
     }
 
-    connection.on('warning', (name: string, data: RTCWarning) => {
+    call.on('warning', (name: string, data: RTCWarning) => {
       this._emitWarning(name, 'Received an RTCWarning. See .rtcWarning for the RTCWarning', data);
     });
 
-    connection.once('accept', () => {
-      this._callSid = connection['_mediaHandler'].callSid;
+    call.once('accept', () => {
+      this._callSid = call['_mediaHandler'].callSid;
       this._status = PreflightTest.Status.Connected;
       this.emit(PreflightTest.Events.Connected);
     });
 
-    connection.on('sample', async (sample) => {
+    call.on('sample', async (sample) => {
       // RTC Stats are ready. We only need to get ICE candidate stats report once.
       if (!this._latestSample) {
         this._rtcIceCandidateStatsReport = await (
           this._options.getRTCIceCandidateStatsReport || getRTCIceCandidateStatsReport
-        )(connection['_mediaHandler'].version.pc);
+        )(call['_mediaHandler'].version.pc);
       }
 
       this._latestSample = sample;
@@ -528,9 +528,9 @@ export class PreflightTest extends EventEmitter {
      }].forEach(({type, reportLabel}) => {
 
       const handlerName = `on${type}statechange`;
-      const originalHandler = connection['_mediaHandler'][handlerName];
+      const originalHandler = call['_mediaHandler'][handlerName];
 
-      connection['_mediaHandler'][handlerName] = (state: string) => {
+      call['_mediaHandler'][handlerName] = (state: string) => {
         const timing = (this._networkTiming as any)[reportLabel]
           = (this._networkTiming as any)[reportLabel] || { start: 0 };
 
@@ -656,12 +656,12 @@ export namespace PreflightTest {
    */
   export enum Status {
     /**
-     * Connection to Twilio has initiated.
+     * Call to Twilio has initiated.
      */
     Connecting = 'connecting',
 
     /**
-     * Connection to Twilio has been established.
+     * Call to Twilio has been established.
      */
     Connected = 'connected',
 
@@ -737,7 +737,7 @@ export namespace PreflightTest {
      * from most to least preferred.
      * @default ['pcmu','opus']
      */
-    codecPreferences?: Connection.Codec[];
+    codecPreferences?: Call.Codec[];
 
     /**
      * Specifies which Twilio Data Center to use when initiating the test call.

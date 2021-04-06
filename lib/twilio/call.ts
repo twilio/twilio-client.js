@@ -93,21 +93,21 @@ const WARNING_PREFIXES: Record<string, string> = {
 };
 
 /**
- * A {@link Connection} represents a media and signaling connection to a TwiML application.
+ * A {@link Call} represents a media and signaling connection to a TwiML application.
  * @publicapi
  */
-class Connection extends EventEmitter {
+class Call extends EventEmitter {
   /**
-   * String representation of the {@link Connection} class.
+   * String representation of the {@link Call} class.
    * @private
    */
-  static toString = () => '[Twilio.Connection class]';
+  static toString = () => '[Twilio.Call class]';
 
   /**
    * Returns caller verification information about the caller.
    * If no caller verification information is available this will return null.
    */
-  readonly callerInfo: Connection.CallerInfo | null;
+  readonly callerInfo: Call.CallerInfo | null;
 
   /**
    * The custom parameters sent to (outgoing) or received by (incoming) the TwiML app.
@@ -115,14 +115,14 @@ class Connection extends EventEmitter {
   readonly customParameters: Map<string, string>;
 
   /**
-   * Whether this {@link Connection} is incoming or outgoing.
+   * Whether this {@link Call} is incoming or outgoing.
    */
-  get direction(): Connection.CallDirection {
+  get direction(): Call.CallDirection {
     return this._direction;
   }
 
   /**
-   * Audio codec used for this {@link Connection}. Expecting {@link Connection.Codec} but
+   * Audio codec used for this {@link Call}. Expecting {@link Call.Codec} but
    * will copy whatever we get from RTC stats.
    */
   get codec(): string {
@@ -140,15 +140,15 @@ class Connection extends EventEmitter {
   parameters: Record<string, string> = { };
 
   /**
-   * Audio codec used for this {@link Connection}. Expecting {@link Connection.Codec} but
+   * Audio codec used for this {@link Call}. Expecting {@link Call.Codec} but
    * will copy whatever we get from RTC stats.
    */
   private _codec: string;
 
   /**
-   * Whether this {@link Connection} is incoming or outgoing.
+   * Whether this {@link Call} is incoming or outgoing.
    */
-  private readonly _direction: Connection.CallDirection;
+  private readonly _direction: Call.CallDirection;
 
   /**
    * The number of times input volume has been the same consecutively.
@@ -186,7 +186,7 @@ class Connection extends EventEmitter {
   private _log: Log = Log.getInstance();
 
   /**
-   * The MediaHandler (Twilio PeerConnection) this {@link Connection} is using for
+   * The MediaHandler (Twilio PeerConnection) this {@link Call} is using for
    * media signaling.
    */
   private _mediaHandler: IPeerConnection;
@@ -205,7 +205,7 @@ class Connection extends EventEmitter {
    * A batch of metrics samples to send to Insights. Gets cleared after
    * each send and appended to on each new sample.
    */
-  private readonly _metricsSamples: Connection.CallMetrics[] = [];
+  private readonly _metricsSamples: Call.CallMetrics[] = [];
 
   /**
    * An instance of StatsMonitor.
@@ -213,9 +213,9 @@ class Connection extends EventEmitter {
   private readonly _monitor: StatsMonitor;
 
   /**
-   * Options passed to this {@link Connection}.
+   * Options passed to this {@link Call}.
    */
-  private _options: Connection.Options = {
+  private _options: Call.Options = {
     MediaHandler: PeerConnection,
     offerSdp: null,
     shouldPlayDisconnect: () => true,
@@ -237,7 +237,7 @@ class Connection extends EventEmitter {
   private readonly _publisher: IPublisher;
 
   /**
-   * Whether the {@link Connection} should send a hangup on disconnect.
+   * Whether the {@link Call} should send a hangup on disconnect.
    */
   private _shouldSendHangup: boolean = true;
 
@@ -247,9 +247,9 @@ class Connection extends EventEmitter {
   private readonly _soundcache: Map<Device.SoundName, ISound> = new Map();
 
   /**
-   * State of the {@link Connection}.
+   * State of the {@link Call}.
    */
-  private _status: Connection.State = Connection.State.Pending;
+  private _status: Call.State = Call.State.Pending;
 
   /**
    * @constructor
@@ -257,7 +257,7 @@ class Connection extends EventEmitter {
    * @param config - Mandatory configuration options
    * @param [options] - Optional settings
    */
-  constructor(config: Connection.Config, options?: Connection.Options) {
+  constructor(config: Call.Config, options?: Call.Options) {
     super();
 
     this._isUnifiedPlanDefault = config.isUnifiedPlanDefault;
@@ -273,9 +273,9 @@ class Connection extends EventEmitter {
       this.parameters = this._options.callParameters;
     }
 
-    this._direction = this.parameters.CallSid ? Connection.CallDirection.Incoming : Connection.CallDirection.Outgoing;
+    this._direction = this.parameters.CallSid ? Call.CallDirection.Incoming : Call.CallDirection.Outgoing;
 
-    if (this._direction === Connection.CallDirection.Incoming && this.parameters) {
+    if (this._direction === Call.CallDirection.Incoming && this.parameters) {
       this.callerInfo = this.parameters.StirStatus
         ? { isVerified: this.parameters.StirStatus === 'TN-Validation-Passed-A' }
         : null;
@@ -291,7 +291,7 @@ class Connection extends EventEmitter {
 
     const publisher = this._publisher = config.publisher;
 
-    if (this._direction === Connection.CallDirection.Incoming) {
+    if (this._direction === Call.CallDirection.Incoming) {
       publisher.info('connection', 'incoming', null, this);
     } else {
       publisher.info('connection', 'outgoing', { preflight: this._options.preflight }, this);
@@ -306,7 +306,7 @@ class Connection extends EventEmitter {
 
     monitor.on('warning', (data: RTCWarning, wasCleared?: boolean) => {
       if (data.name === 'bytesSent' || data.name === 'bytesReceived') {
-        this._onMediaFailure(Connection.MediaFailure.LowBytes);
+        this._onMediaFailure(Call.MediaFailure.LowBytes);
       }
       this._reemitWarning(data, wasCleared);
     });
@@ -379,9 +379,9 @@ class Connection extends EventEmitter {
       this._publisher.post(level, 'ice-connection-state', state, null, this);
     };
 
-    this._mediaHandler.onicegatheringfailure = (type: Connection.IceGatheringFailureReason): void => {
+    this._mediaHandler.onicegatheringfailure = (type: Call.IceGatheringFailureReason): void => {
       this._publisher.warn('ice-gathering-state', type, null, this);
-      this._onMediaFailure(Connection.MediaFailure.IceGatheringFailed);
+      this._onMediaFailure(Call.MediaFailure.IceGatheringFailed);
     };
 
     this._mediaHandler.onicegatheringstatechange = (state: string): void => {
@@ -399,16 +399,16 @@ class Connection extends EventEmitter {
       }, this);
       this.emit('warning', 'ice-connectivity-lost');
 
-      this._onMediaFailure(Connection.MediaFailure.ConnectionDisconnected);
+      this._onMediaFailure(Call.MediaFailure.ConnectionDisconnected);
     };
 
     this._mediaHandler.onfailed = (msg: string): void => {
-      this._onMediaFailure(Connection.MediaFailure.ConnectionFailed);
+      this._onMediaFailure(Call.MediaFailure.ConnectionFailed);
     };
 
     this._mediaHandler.onconnected = (): void => {
       // First time _mediaHandler is connected, but ICE Gathering issued an ICE restart and succeeded.
-      if (this._status === Connection.State.Reconnecting) {
+      if (this._status === Call.State.Reconnecting) {
         this._onMediaReconnected();
       }
     };
@@ -426,14 +426,8 @@ class Connection extends EventEmitter {
       if (e.disconnect === true) {
         this._disconnect(e.info && e.info.message);
       }
-      const error: Connection.Error = {
-        code: e.info.code,
-        connection: this,
-        info: e.info,
-        message: e.info.message || 'Error with mediastream',
-        twilioError: e.info.twilioError,
-      };
 
+      const error = e.info.twilioError || new GeneralErrors.UnknownError(e.info.message);
       this._log.error('Received an error from MediaStream:', e);
       this.emit('error', error);
     };
@@ -447,9 +441,9 @@ class Connection extends EventEmitter {
       // for _status 'open', we'd accidentally close the PeerConnection.
       //
       // See <https://code.google.com/p/webrtc/issues/detail?id=4996>.
-      if (this._status === Connection.State.Open || this._status === Connection.State.Reconnecting) {
+      if (this._status === Call.State.Open || this._status === Call.State.Reconnecting) {
         return;
-      } else if (this._status === Connection.State.Ringing || this._status === Connection.State.Connecting) {
+      } else if (this._status === Call.State.Ringing || this._status === Call.State.Connecting) {
         this.mute(false);
         this._maybeTransitionToOpen();
       } else {
@@ -459,7 +453,7 @@ class Connection extends EventEmitter {
     };
 
     this._mediaHandler.onclose = () => {
-      this._status = Connection.State.Closed;
+      this._status = Call.State.Closed;
       if (this._options.shouldPlayDisconnect && this._options.shouldPlayDisconnect()
         // Don't play disconnect sound if this was from a cancel event. i.e. the call
         // was ignored or hung up even before it was answered.
@@ -472,6 +466,8 @@ class Connection extends EventEmitter {
       this._publishMetrics();
 
       if (!this._isCancelled) {
+        // tslint:disable no-console
+        console.info('DISCONNECT!!');
         this.emit('disconnect', this);
       }
     };
@@ -515,11 +511,11 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Accept the incoming {@link Connection}.
+   * Accept the incoming {@link Call}.
    * @param [options]
    */
-  accept(options?: Connection.AcceptOptions): void {
-    if (this._status !== Connection.State.Pending) {
+  accept(options?: Call.AcceptOptions): void {
+    if (this._status !== Call.State.Pending) {
       return;
     }
 
@@ -528,10 +524,10 @@ class Connection extends EventEmitter {
     const rtcConstraints = options.rtcConstraints || this._options.rtcConstraints || { };
     const audioConstraints = rtcConstraints.audio || { audio: true };
 
-    this._status = Connection.State.Connecting;
+    this._status = Call.State.Connecting;
 
     const connect = () => {
-      if (this._status !== Connection.State.Connecting) {
+      if (this._status !== Call.State.Connecting) {
         // call must have been canceled
         this._cleanupEventListeners();
         this._mediaHandler.close();
@@ -540,7 +536,7 @@ class Connection extends EventEmitter {
 
       const onAnswer = (pc: RTCPeerConnection) => {
         // Report that the call was answered, and directionality
-        const eventName = this._direction === Connection.CallDirection.Incoming
+        const eventName = this._direction === Call.CallDirection.Incoming
           ? 'accepted-by-local'
           : 'accepted-by-remote';
         this._publisher.info('connection', eventName, null, this);
@@ -567,7 +563,7 @@ class Connection extends EventEmitter {
 
       this._pstream.addListener('hangup', this._onHangup);
 
-      if (this._direction === Connection.CallDirection.Incoming) {
+      if (this._direction === Call.CallDirection.Incoming) {
         this._isAnswered = true;
         this._mediaHandler.answerIncomingCall(this.parameters.CallSid, this._options.offerSdp,
           rtcConstraints, rtcConfiguration, onAnswer);
@@ -631,7 +627,7 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Disconnect from the {@link Connection}.
+   * Disconnect from the {@link Call}.
    */
   disconnect(): void {
     this._disconnect();
@@ -652,20 +648,20 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Ignore the incoming {@link Connection}.
+   * Ignore the incoming {@link Call}.
    */
   ignore(): void {
-    if (this._status !== Connection.State.Pending) {
+    if (this._status !== Call.State.Pending) {
       return;
     }
 
-    this._status = Connection.State.Closed;
+    this._status = Call.State.Closed;
     this._mediaHandler.ignore(this.parameters.CallSid);
     this._publisher.info('connection', 'ignored-by-local', null, this);
   }
 
   /**
-   * Check whether connection is muted
+   * Check whether call is muted
    */
   isMuted(): boolean {
     return this._mediaHandler.isMuted;
@@ -697,17 +693,17 @@ class Connection extends EventEmitter {
    *   experienced on the call. Can be: ['one-way-audio', 'choppy-audio',
    *   'dropped-call', 'audio-latency', 'noisy-call', 'echo']
    */
-  postFeedback(score?: Connection.FeedbackScore, issue?: Connection.FeedbackIssue): Promise<void> {
+  postFeedback(score?: Call.FeedbackScore, issue?: Call.FeedbackIssue): Promise<void> {
     if (typeof score === 'undefined' || score === null) {
       return this._postFeedbackDeclined();
     }
 
-    if (!Object.values(Connection.FeedbackScore).includes(score)) {
-      throw new InvalidArgumentError(`Feedback score must be one of: ${Object.values(Connection.FeedbackScore)}`);
+    if (!Object.values(Call.FeedbackScore).includes(score)) {
+      throw new InvalidArgumentError(`Feedback score must be one of: ${Object.values(Call.FeedbackScore)}`);
     }
 
-    if (typeof issue !== 'undefined' && issue !== null && !Object.values(Connection.FeedbackIssue).includes(issue)) {
-      throw new InvalidArgumentError(`Feedback issue must be one of: ${Object.values(Connection.FeedbackIssue)}`);
+    if (typeof issue !== 'undefined' && issue !== null && !Object.values(Call.FeedbackIssue).includes(issue)) {
+      throw new InvalidArgumentError(`Feedback issue must be one of: ${Object.values(Call.FeedbackIssue)}`);
     }
 
     return this._publisher.info('feedback', 'received', {
@@ -717,15 +713,15 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Reject the incoming {@link Connection}.
+   * Reject the incoming {@link Call}.
    */
   reject(): void {
-    if (this._status !== Connection.State.Pending) {
+    if (this._status !== Call.State.Pending) {
       return;
     }
 
     this._pstream.reject(this.parameters.CallSid);
-    this._status = Connection.State.Closed;
+    this._status = Call.State.Closed;
     this.emit('reject');
     this._mediaHandler.reject(this.parameters.CallSid);
     this._publisher.info('connection', 'rejected-by-local', null, this);
@@ -797,34 +793,30 @@ class Connection extends EventEmitter {
     if (this._pstream !== null && this._pstream.status !== 'disconnected') {
       this._pstream.dtmf(this.parameters.CallSid, digits);
     } else {
-      const error = {
-        code: 31000,
-        connection: this,
-        message: 'Could not send DTMF: Signaling channel is disconnected',
-      };
+      const error = new GeneralErrors.ConnectionError('Could not send DTMF: Signaling channel is disconnected');
       this.emit('error', error);
     }
   }
 
   /**
-   * Get the current {@link Connection} status.
+   * Get the current {@link Call} status.
    */
-  status(): Connection.State {
+  status(): Call.State {
     return this._status;
   }
 
   /**
-   * String representation of {@link Connection} instance.
+   * String representation of {@link Call} instance.
    * @private
    */
-  toString = () => '[Twilio.Connection instance]';
+  toString = () => '[Twilio.Call instance]';
 
   /**
    * Check the volume passed, emitting a warning if one way audio is detected or cleared.
    * @param currentVolume - The current volume for this direction
-   * @param streakFieldName - The name of the field on the {@link Connection} object that tracks how many times the
+   * @param streakFieldName - The name of the field on the {@link Call} object that tracks how many times the
    *   current value has been repeated consecutively.
-   * @param lastValueFieldName - The name of the field on the {@link Connection} object that tracks the most recent
+   * @param lastValueFieldName - The name of the field on the {@link Call} object that tracks the most recent
    *   volume for this direction
    * @param direction - The directionality of this audio track, either 'input' or 'output'
    * @returns The current streak; how many times in a row the same value has been polled.
@@ -865,14 +857,14 @@ class Connection extends EventEmitter {
     // Basically, there's a sequencing problem with the way PeerConnection raises
     // the
     //
-    //   Cannot establish connection. Client is disconnected
+    //   Cannot establish call. Client is disconnected
     //
-    // error in Connection#accept. It calls PeerConnection#onerror, which emits
-    // the error event on Connection. An error handler on Connection then calls
-    // cleanupEventListeners, but then control returns to Connection#accept. It's
+    // error in Call#accept. It calls PeerConnection#onerror, which emits
+    // the error event on Call. An error handler on Call then calls
+    // cleanupEventListeners, but then control returns to Call#accept. It's
     // at this point that we add a listener for the answer event that never gets
     // removed. setTimeout will allow us to rerun cleanup again, _after_
-    // Connection#accept returns.
+    // Call#accept returns.
     cleanup();
     setTimeout(cleanup, 0);
   }
@@ -901,17 +893,17 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Disconnect the {@link Connection}.
-   * @param message - A message explaining why the {@link Connection} is being disconnected.
+   * Disconnect the {@link Call}.
+   * @param message - A message explaining why the {@link Call} is being disconnected.
    * @param wasRemote - Whether the disconnect was triggered locally or remotely.
    */
   private _disconnect(message?: string | null, wasRemote?: boolean): void {
     message = typeof message === 'string' ? message : null;
 
-    if (this._status !== Connection.State.Open
-        && this._status !== Connection.State.Connecting
-        && this._status !== Connection.State.Reconnecting
-        && this._status !== Connection.State.Ringing) {
+    if (this._status !== Call.State.Open
+        && this._status !== Call.State.Connecting
+        && this._status !== Call.State.Reconnecting
+        && this._status !== Call.State.Ringing) {
       return;
     }
 
@@ -938,7 +930,7 @@ class Connection extends EventEmitter {
     const groupSuffix = wasCleared ? '-cleared' : '-raised';
     const groupName = `${groupPrefix}warning${groupSuffix}`;
 
-    // Ignore constant input if the Connection is muted (Expected)
+    // Ignore constant input if the Call is muted (Expected)
     if (warningName === 'constant-audio-input-level' && this.isMuted()) {
       return;
     }
@@ -975,17 +967,17 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Transition to {@link ConnectionStatus.Open} if criteria is met.
+   * Transition to {@link CallStatus.Open} if criteria is met.
    */
   private _maybeTransitionToOpen(): void {
     if (this._mediaHandler && this._mediaHandler.status === 'open' && this._isAnswered) {
-      this._status = Connection.State.Open;
+      this._status = Call.State.Open;
       this.emit('accept', this);
     }
   }
 
   /**
-   * Called when the {@link Connection} is answered.
+   * Called when the {@link Call} is answered.
    * @param payload
    */
   private _onAnswer = (payload: Record<string, any>): void => {
@@ -1003,7 +995,7 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Called when the {@link Connection} is cancelled.
+   * Called when the {@link Call} is cancelled.
    * @param payload
    */
   private _onCancel = (payload: Record<string, any>): void => {
@@ -1015,20 +1007,20 @@ class Connection extends EventEmitter {
       this._cleanupEventListeners();
       this._mediaHandler.close();
 
-      this._status = Connection.State.Closed;
+      this._status = Call.State.Closed;
       this.emit('cancel');
       this._pstream.removeListener('cancel', this._onCancel);
     }
   }
 
   /**
-   * Called when the {@link Connection} is hung up.
+   * Called when the {@link Call} is hung up.
    * @param payload
    */
   private _onHangup = (payload: Record<string, any>): void => {
     /**
      *  see if callsid passed in message matches either callsid or outbound id
-     *  connection should always have either callsid or outbound id
+     *  call should always have either callsid or outbound id
      *  if no callsid passed hangup anyways
      */
     if (payload.callsid && (this.parameters.CallSid || this.outboundConnectionId)) {
@@ -1037,18 +1029,13 @@ class Connection extends EventEmitter {
         return;
       }
     } else if (payload.callsid) {
-      // hangup is for another connection
+      // hangup is for another call
       return;
     }
 
     this._log.info('Received HANGUP from gateway');
     if (payload.error) {
-      const error = {
-        code: payload.error.code || 31000,
-        connection: this,
-        message: payload.error.message || 'Error sent from gateway in HANGUP',
-        twilioError: new GeneralErrors.ConnectionError(),
-      };
+      const error = new GeneralErrors.ConnectionError('Error sent from gateway in HANGUP');
       this._log.error('Received an error from the gateway:', error);
       this.emit('error', error);
     }
@@ -1063,10 +1050,10 @@ class Connection extends EventEmitter {
    * Manages all media-related states and takes action base on the states
    * @param type - Type of media failure
    */
-  private _onMediaFailure = (type: Connection.MediaFailure): void => {
+  private _onMediaFailure = (type: Call.MediaFailure): void => {
     const {
       ConnectionDisconnected, ConnectionFailed, IceGatheringFailed, LowBytes,
-    } = Connection.MediaFailure;
+    } = Call.MediaFailure;
 
     // These types signifies the end of a single ICE cycle
     const isEndOfIceCycle = type === ConnectionFailed || type === IceGatheringFailed;
@@ -1079,7 +1066,7 @@ class Connection extends EventEmitter {
     }
 
     // Ignore subsequent requests if ice restart is in progress
-    if (this._status === Connection.State.Reconnecting) {
+    if (this._status === Call.State.Reconnecting) {
 
       // This is a retry. Previous ICE Restart failed
       if (isEndOfIceCycle) {
@@ -1126,7 +1113,7 @@ class Connection extends EventEmitter {
       this._publisher.info('connection', 'reconnecting', null, this);
 
       this._mediaReconnectStartTime = Date.now();
-      this._status = Connection.State.Reconnecting;
+      this._status = Call.State.Reconnecting;
       this._mediaReconnectBackoff.reset();
       this._mediaReconnectBackoff.backoff();
 
@@ -1135,35 +1122,35 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Called when media connection is restored
+   * Called when media call is restored
    */
   private _onMediaReconnected = (): void => {
     // Only trigger once.
     // This can trigger on pc.onIceConnectionChange and pc.onConnectionChange.
-    if (this._status !== Connection.State.Reconnecting) {
+    if (this._status !== Call.State.Reconnecting) {
       return;
     }
     this._log.info('ICE Connection reestablished.');
     this._publisher.info('connection', 'reconnected', null, this);
 
-    this._status = Connection.State.Open;
+    this._status = Call.State.Open;
     this.emit('reconnected');
   }
 
   /**
-   * When we get a RINGING signal from PStream, update the {@link Connection} status.
+   * When we get a RINGING signal from PStream, update the {@link Call} status.
    * @param payload
    */
   private _onRinging = (payload: Record<string, any>): void => {
     this._setCallSid(payload);
 
     // If we're not in 'connecting' or 'ringing' state, this event was received out of order.
-    if (this._status !== Connection.State.Connecting && this._status !== Connection.State.Ringing) {
+    if (this._status !== Call.State.Connecting && this._status !== Call.State.Ringing) {
       return;
     }
 
     const hasEarlyMedia = !!payload.sdp;
-    this._status = Connection.State.Ringing;
+    this._status = Call.State.Ringing;
     this._publisher.info('connection', 'outgoing-ringing', { hasEarlyMedia }, this);
     this.emit('ringing', hasEarlyMedia);
   }
@@ -1174,7 +1161,7 @@ class Connection extends EventEmitter {
    * @param sample
    */
   private _onRTCSample = (sample: RTCSample): void => {
-    const callMetrics: Connection.CallMetrics = {
+    const callMetrics: Call.CallMetrics = {
       ...sample,
       inputVolume: this._latestInputVolume,
       outputVolume: this._latestOutputVolume,
@@ -1223,7 +1210,7 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Re-emit an StatsMonitor warning as a {@link Connection}.warning or .warning-cleared event.
+   * Re-emit an StatsMonitor warning as a {@link Call}.warning or .warning-cleared event.
    * @param warningData
    * @param wasCleared - Whether this is a -cleared or -raised event.
    */
@@ -1272,76 +1259,76 @@ class Connection extends EventEmitter {
   }
 }
 
-namespace Connection {
+namespace Call {
   /**
-   * Emitted when the {@link Connection} is accepted.
-   * @param connection - The {@link Connection}.
-   * @example `connection.on('accept', connection => { })`
+   * Emitted when the {@link Call} is accepted.
+   * @param call - The {@link Call}.
+   * @example `call.on('accept', call => { })`
    * @event
    */
-  declare function acceptEvent(connection: Connection): void;
+  declare function acceptEvent(call: Call): void;
 
   /**
-   * Emitted when the {@link Connection} is canceled.
-   * @example `connection.on('cancel', () => { })`
+   * Emitted when the {@link Call} is canceled.
+   * @example `call.on('cancel', () => { })`
    * @event
    */
   declare function cancelEvent(): void;
 
   /**
-   * Emitted when the {@link Connection} is disconnected.
-   * @param connection - The {@link Connection}.
-   * @example `connection.on('disconnect', connection => { })`
+   * Emitted when the {@link Call} is disconnected.
+   * @param call - The {@link Call}.
+   * @example `call.on('disconnect', call => { })`
    * @event
    */
-  declare function disconnectEvent(connection: Connection): void;
+  declare function disconnectEvent(call: Call): void;
 
   /**
-   * Emitted when the {@link Connection} receives an error.
+   * Emitted when the {@link Call} receives an error.
    * @param error
-   * @example `connection.on('error', error => { })`
+   * @example `call.on('error', error => { })`
    * @event
    */
-  declare function errorEvent(error: Connection.Error): void;
+  declare function errorEvent(error: Call.Error): void;
 
   /**
-   * Emitted when the {@link Connection} is muted or unmuted.
-   * @param isMuted - Whether the {@link Connection} is muted.
-   * @param connection - The {@link Connection}.
-   * @example `connection.on('mute', (isMuted, connection) => { })`
+   * Emitted when the {@link Call} is muted or unmuted.
+   * @param isMuted - Whether the {@link Call} is muted.
+   * @param call - The {@link Call}.
+   * @example `call.on('mute', (isMuted, call) => { })`
    * @event
    */
-  declare function muteEvent(isMuted: boolean, connection: Connection): void;
+  declare function muteEvent(isMuted: boolean, call: Call): void;
 
   /**
-   * Emitted when the {@link Connection} is rejected.
-   * @param connection - The {@link Connection}.
-   * @example `connection.on('reject', connection => { })`
+   * Emitted when the {@link Call} is rejected.
+   * @param call - The {@link Call}.
+   * @example `call.on('reject', call => { })`
    * @event
    */
-  declare function rejectEvent(connection: Connection): void;
+  declare function rejectEvent(call: Call): void;
 
   /**
    * Emitted every 50ms with the current input and output volumes, as a percentage of maximum
    * volume, between -100dB and -30dB. Represented by a floating point number.
    * @param inputVolume - A floating point number between 0.0 and 1.0 inclusive.
    * @param outputVolume - A floating point number between 0.0 and 1.0 inclusive.
-   * @example `connection.on('volume', (inputVolume, outputVolume) => { })`
+   * @example `call.on('volume', (inputVolume, outputVolume) => { })`
    * @event
    */
   declare function volumeEvent(inputVolume: number, outputVolume: number): void;
 
   /**
-   * Emitted when the {@link Connection} gets a webrtc sample object.
+   * Emitted when the {@link Call} gets a webrtc sample object.
    * This event is published every second.
    * @param sample
-   * @example `connection.on('sample', sample => { })`
+   * @example `call.on('sample', sample => { })`
    * @event
    */
   declare function sampleEvent(sample: RTCSample): void;
 
   /**
-   * Possible states of the {@link Connection}.
+   * Possible states of the {@link Call}.
    */
   export enum State {
     Closed = 'closed',
@@ -1354,7 +1341,7 @@ namespace Connection {
 
   /**
    * Different issues that may have been experienced during a call, that can be
-   * reported to Twilio Insights via {@link Connection}.postFeedback().
+   * reported to Twilio Insights via {@link Call}.postFeedback().
    */
   export enum FeedbackIssue {
     AudioLatency = 'audio-latency',
@@ -1367,7 +1354,7 @@ namespace Connection {
 
   /**
    * A rating of call quality experienced during a call, to be reported to Twilio Insights
-   * via {@link Connection}.postFeedback().
+   * via {@link Call}.postFeedback().
    */
   export enum FeedbackScore {
     One = 1,
@@ -1378,7 +1365,7 @@ namespace Connection {
   }
 
   /**
-   * The directionality of the {@link Connection}, whether incoming or outgoing.
+   * The directionality of the {@link Call}, whether incoming or outgoing.
    */
   export enum CallDirection {
     Incoming = 'INCOMING',
@@ -1427,18 +1414,18 @@ namespace Connection {
   }
 
   /**
-   * The error format used by errors emitted from {@link Connection}.
+   * The error format used by errors emitted from {@link Call}.
    */
   export interface Error {
+    /**
+     * Reference to the {@link Call}
+     */
+    call: Call;
+
     /**
      * Error code
      */
     code: number;
-
-    /**
-     * Reference to the {@link Connection}
-     */
-    connection: Connection;
 
     /**
      * The info object from rtc/peerconnection. May contain code and message (duplicated here).
@@ -1470,7 +1457,7 @@ namespace Connection {
   }
 
   /**
-   * Mandatory config options to be passed to the {@link Connection} constructor.
+   * Mandatory config options to be passed to the {@link Call} constructor.
    * @private
    */
   export interface Config {
@@ -1506,14 +1493,14 @@ namespace Connection {
   }
 
   /**
-   * Options to be passed to the {@link Connection} constructor.
+   * Options to be passed to the {@link Call} constructor.
    * @private
    */
   export interface Options {
     /**
-     * A method to call before Connection.accept is processed.
+     * A method to call before Call.accept is processed.
      */
-    beforeAccept?: (connection: Connection) => void;
+    beforeAccept?: (call: Call) => void;
 
     /**
      * Custom format context parameters associated with this call.
@@ -1646,4 +1633,4 @@ function generateTempCallSid() {
   });
 }
 
-export default Connection;
+export default Call;

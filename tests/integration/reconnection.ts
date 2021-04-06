@@ -1,4 +1,4 @@
-import Connection from '../../lib/twilio/connection';
+import Call from '../../lib/twilio/call';
 import Device from '../../lib/twilio/device';
 import { generateAccessToken } from '../lib/token';
 import { expectEvent, isFirefox, runDockerCommand, waitFor } from '../lib/util';
@@ -15,8 +15,8 @@ const USE_CASE_TIMEOUT = 180000;
 describe('Reconnection', function() {
   this.timeout(SUITE_TIMEOUT);
 
-  let connection1: Connection;
-  let connection2: Connection;
+  let call1: Call;
+  let call2: Call;
   let device1: Device;
   let device2: Device;
   let identity1: string;
@@ -30,10 +30,10 @@ describe('Reconnection', function() {
   // events faster than the other. We will then run the test on the device
   // who gets it first. The other device will receive hangup event which is
   // not part of this test.
-  const bindTestPerConnection = (test: CB) => {
+  const bindTestPerCall = (test: CB) => {
     return Promise.race([
-      test(connection1),
-      test(connection2)
+      test(call1),
+      test(call2)
     ]);
   };
 
@@ -59,14 +59,14 @@ describe('Reconnection', function() {
     await device2.register();
 
     const incomingPromise = new Promise(resolve => {
-      device2.once(Device.EventName.Incoming, (connection) => {
-        connection2 = connection;
-        connection.accept();
+      device2.once(Device.EventName.Incoming, (call) => {
+        call2 = call;
+        call.accept();
         resolve();
       });
     });
 
-    connection1 = await device1.connect({
+    call1 = await device1.connect({
       params: { To: identity2, Custom1: 'foo + bar', Custom2: undefined, Custom3: '我不吃蛋' } as any,
     });
 
@@ -102,14 +102,14 @@ describe('Reconnection', function() {
 
       it('should trigger reconnecting', async () => {
         await runDockerCommand('blockMediaPorts');
-        await waitFor(bindTestPerConnection((conn: Connection) => expectEvent('reconnecting', conn)
-          .then(() => assert(conn.status() === Connection.State.Reconnecting))), EVENT_TIMEOUT);
+        await waitFor(bindTestPerCall((call: Call) => expectEvent('reconnecting', call)
+          .then(() => assert(call.status() === Call.State.Reconnecting))), EVENT_TIMEOUT);
       });
 
       it('should trigger reconnected', async () => {
         await runDockerCommand('unblockMediaPorts');
-        await waitFor(bindTestPerConnection((conn: Connection) => expectEvent('reconnected', conn)
-        .then(() => assert(conn.status() === Connection.State.Open))), EVENT_TIMEOUT);
+        await waitFor(bindTestPerCall((call: Call) => expectEvent('reconnected', call)
+        .then(() => assert(call.status() === Call.State.Open))), EVENT_TIMEOUT);
       });
 
       // Firefox only allows reconnection once as it doesn't update iceConnectionState
@@ -117,17 +117,17 @@ describe('Reconnection', function() {
       if (!isFirefox()) {
         it('should trigger reconnecting after reconnected', async () => {
           await runDockerCommand('blockMediaPorts');
-          await waitFor(bindTestPerConnection((conn: Connection) => expectEvent('reconnecting', conn)
-            .then(() => assert(conn.status() === Connection.State.Reconnecting))), EVENT_TIMEOUT);
+          await waitFor(bindTestPerCall((call: Call) => expectEvent('reconnecting', call)
+            .then(() => assert(call.status() === Call.State.Reconnecting))), EVENT_TIMEOUT);
         });
       }
 
-      it('should disconnect call with error 31003', async () => {
+      it('should disconnect call with error 53405', async () => {
         await runDockerCommand('blockMediaPorts');
-        await waitFor(bindTestPerConnection((conn: Connection) => Promise.all([
-          expectEvent('disconnect', conn),
-          new Promise((resolve) => conn.once('error', (error) => error.code === 31003 && resolve()))
-        ]).then(() =>  assert(conn.status() === Connection.State.Closed))), RTP_TIMEOUT);
+        await waitFor(bindTestPerCall((call: Call) => Promise.all([
+          expectEvent('disconnect', call),
+          new Promise((resolve) => call.on('error', (error) => error.code === 53405 && resolve())),
+        ]).then(() =>  assert(call.status() === Call.State.Closed))), RTP_TIMEOUT);
       });
     });
   });
@@ -147,11 +147,11 @@ describe('Reconnection', function() {
       await waitFor(bindTestPerDevice((device: Device) => expectEvent(Device.EventName.Unregistered, device)), EVENT_TIMEOUT);
     });
 
-    it('should disconnect call with error 31003', () => {
-      return waitFor(bindTestPerConnection((conn: Connection) => Promise.all([
-        expectEvent('disconnect', conn),
-        new Promise((resolve) => conn.once('error', (error) => error.code === 31003 && resolve())),
-      ]).then(() =>  assert(conn.status() === Connection.State.Closed))), RTP_TIMEOUT);
+    it('should disconnect call with error 53405', () => {
+      return waitFor(bindTestPerCall((call: Call) => Promise.all([
+        expectEvent('disconnect', call),
+        new Promise((resolve) => call.on('error', (error) => error.code === 53405 && resolve())),
+      ]).then(() =>  assert(call.status() === Call.State.Closed))), RTP_TIMEOUT);
     });
 
     it('should trigger device.registered after network resumes', async () => {

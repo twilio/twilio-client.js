@@ -3,7 +3,7 @@ import { generateAccessToken } from '../lib/token';
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
 import { PreflightTest } from '../../lib/twilio/preflight/preflight';
-import Connection from '../../lib/twilio/connection';
+import Call from '../../lib/twilio/call';
 
 const DURATION_PADDING = 1000;
 const EVENT_TIMEOUT = 30000;
@@ -15,7 +15,7 @@ describe('Preflight Test', function() {
   let callerIdentity: string;
   let callerToken: string;
   let callerDevice: Device;
-  let callerConnection: Connection;
+  let callerCall: Call;
   let receiverIdentity: string;
   let receiverDevice: Device;
   let preflight: PreflightTest;
@@ -60,8 +60,8 @@ describe('Preflight Test', function() {
   describe('when test finishes', function() {
     before(async () => {
       await setupDevices();
-      receiverDevice.on('incoming', (conn: Connection) => {
-        conn.accept();
+      receiverDevice.on('incoming', (call: Call) => {
+        call.accept();
       });
       preflight = Device.runPreflight(callerToken);
       callerDevice = preflight['_device'];
@@ -82,7 +82,7 @@ describe('Preflight Test', function() {
 
     it('should emit connected event', () => {
       return waitFor(expectEvent('connected', preflight).then(() => {
-        callerConnection = preflight['_connection'];
+        callerCall = preflight['_call'];
       }), EVENT_TIMEOUT);
     });
 
@@ -91,7 +91,7 @@ describe('Preflight Test', function() {
     });
 
     it('should set default codePreferences', () => {
-      assert.deepEqual(callerDevice['_options'].codecPreferences, [Connection.Codec.PCMU, Connection.Codec.Opus]);
+      assert.deepEqual(callerDevice['_options'].codecPreferences, [Call.Codec.PCMU, Call.Codec.Opus]);
     });
 
     it('should emit warning event', () => {
@@ -101,7 +101,7 @@ describe('Preflight Test', function() {
         threshold: { name: 'maxDuration' }
       }
       setTimeout(() => {
-        callerConnection['_monitor'].emit('warning', rtcWarning);
+        callerCall['_monitor'].emit('warning', rtcWarning);
       }, 5);
 
       return waitFor(expectEvent('warning', preflight).then((warning: any) => {
@@ -139,11 +139,11 @@ describe('Preflight Test', function() {
   describe('when using non-default codec options', () => {
     before(async () => {
       await setupDevices();
-      receiverDevice.on('incoming', (conn: Connection) => {
-        conn.accept();
+      receiverDevice.on('incoming', (call: Call) => {
+        call.accept();
       });
       preflight = Device.runPreflight(callerToken, {
-        codecPreferences: [Connection.Codec.PCMU],
+        codecPreferences: [Call.Codec.PCMU],
       });
       callerDevice = preflight['_device'];
 
@@ -160,7 +160,7 @@ describe('Preflight Test', function() {
     });
 
     it('should use codecPreferences passed in', () => {
-      assert.deepEqual(callerDevice['_options'].codecPreferences, [Connection.Codec.PCMU]);
+      assert.deepEqual(callerDevice['_options'].codecPreferences, [Call.Codec.PCMU]);
     });
   });
 
@@ -175,8 +175,8 @@ describe('Preflight Test', function() {
 
         before(async () => {
           await setupDevices();
-          receiverDevice.on('incoming', (conn: Connection) => {
-            conn.accept();
+          receiverDevice.on('incoming', (call: Call) => {
+            call.accept();
           });
           preflight = Device.runPreflight(callerToken, {
             edge: selectedEdge,
@@ -212,8 +212,8 @@ describe('Preflight Test', function() {
     const FAIL_DELAY = 1000;
     before(async () => {
       await setupDevices();
-      receiverDevice.on('incoming', (conn: Connection) => {
-        conn.accept();
+      receiverDevice.on('incoming', (call: Call) => {
+        call.accept();
       });
       preflight = Device.runPreflight(callerToken);
       callerDevice = preflight['_device'];
@@ -263,8 +263,8 @@ describe('Preflight Test', function() {
       describe(`code: ${error.code}`, () => {
         before(async () => {
           await setupDevices();
-          receiverDevice.on('incoming', (conn: Connection) => {
-            conn.accept();
+          receiverDevice.on('incoming', (call: Call) => {
+            call.accept();
           });
           preflight = Device.runPreflight(callerToken);
           callerDevice = preflight['_device'];

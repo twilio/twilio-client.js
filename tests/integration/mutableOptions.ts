@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as sinon from 'sinon';
-import Connection from '../../lib/twilio/connection';
+import Call from '../../lib/twilio/call';
 import Device from '../../lib/twilio/device';
 import { generateAccessToken } from '../lib/token';
 
@@ -44,18 +44,18 @@ describe('mutable options', function() {
     });
   });
 
-  context('ongoing connections', function() {
+  context('ongoing calls', function() {
     this.timeout(30000);
 
     let caller: Device;
     let callerId: string;
     let callerToken: string;
-    let callerConnection: Connection;
+    let callerCall: Call;
 
     let receiver: Device;
     let receiverId: string;
     let receiverToken: string;
-    let receiverConnection: Connection;
+    let receiverCall: Call;
 
     beforeEach(async function() {
       const timestamp = Date.now();
@@ -71,13 +71,13 @@ describe('mutable options', function() {
         return [dev, id, t];
       }));
 
-      const receiverConnPromise = new Promise<Connection>(resolve => {
+      const receiverConnPromise = new Promise<Call>(resolve => {
         receiver.once(Device.EventName.Incoming, resolve);
       });
 
-      callerConnection = await caller.connect({ params: { To: receiverId } });
-      receiverConnection = await receiverConnPromise;
-      receiverConnection.accept();
+      callerCall = await caller.connect({ params: { To: receiverId } });
+      receiverCall = await receiverConnPromise;
+      receiverCall.accept();
 
       await waitFor(1000);
     });
@@ -103,11 +103,11 @@ describe('mutable options', function() {
       }
     });
 
-    it('should allow updating options after all connections have ended', function() {
+    it('should allow updating options after all calls have ended', function() {
       const logSpy = sinon.spy();
       caller['_log'].warn = logSpy;
 
-      callerConnection.disconnect();
+      callerCall.disconnect();
       caller.updateOptions({ edge: 'ashburn' });
     });
   });

@@ -1,4 +1,4 @@
-import Connection from '../../lib/twilio/connection';
+import Call from '../../lib/twilio/call';
 import Device from '../../lib/twilio/device';
 import { PreflightTest } from '../../lib/twilio/preflight/preflight';
 import { EventEmitter } from 'events';
@@ -12,8 +12,8 @@ describe('PreflightTest', () => {
   const CALL_SID = 'foo-bar';
 
   let clock: SinonFakeTimers;
-  let connection: any;
-  let connectionContext: any;
+  let call: any;
+  let callContext: any;
   let device: any;
   let deviceFactory: any;
   let deviceContext: any;
@@ -80,7 +80,7 @@ describe('PreflightTest', () => {
     const outputs = new Map();
     outputs.set('default', { audio: {} });
     outputs.set('foo', { audio: {} });
-    connectionContext = {
+    callContext = {
       _mediaHandler: {
         callSid: CALL_SID,
         version: { pc: {} },
@@ -93,15 +93,15 @@ describe('PreflightTest', () => {
       _monitor: monitor,
       _publisher: publisher,
     };
-    connection = new EventEmitter();
-    Object.assign(connection, connectionContext);
+    call = new EventEmitter();
+    Object.assign(call, callContext);
 
     deviceContext = {
       audio: {
         disconnect: sinon.stub(),
         outgoing: sinon.stub(),
       },
-      connect: sinon.stub().returns(Promise.resolve(connection)),
+      connect: sinon.stub().returns(Promise.resolve(call)),
       destroy: sinon.stub(),
       disconnectAll: sinon.stub(),
       edge: null,
@@ -137,7 +137,7 @@ describe('PreflightTest', () => {
     it('should pass defaults to device', () => {
       const preflight = new PreflightTest('foo', options);
       sinon.assert.calledOnceWithExactly(deviceContext.updateOptions, {
-        codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
+        codecPreferences: [Call.Codec.PCMU, Call.Codec.Opus],
         edge: 'roaming',
         fileInputStream: undefined,
         logLevel: 'error',
@@ -146,7 +146,7 @@ describe('PreflightTest', () => {
     });
 
     it('should pass codecPreferences to device', () => {
-      options.codecPreferences = [Connection.Codec.PCMU];
+      options.codecPreferences = [Call.Codec.PCMU];
       const preflight = new PreflightTest('foo', options);
       sinon.assert.calledOnceWithExactly(deviceContext.updateOptions, {
         codecPreferences: options.codecPreferences,
@@ -161,7 +161,7 @@ describe('PreflightTest', () => {
       options.logLevel = 'debug';
       const preflight = new PreflightTest('foo', options);
       sinon.assert.calledOnceWithExactly(deviceContext.updateOptions, {
-        codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
+        codecPreferences: [Call.Codec.PCMU, Call.Codec.Opus],
         edge: 'roaming',
         fileInputStream: undefined,
         logLevel: options.logLevel,
@@ -173,7 +173,7 @@ describe('PreflightTest', () => {
       options.edge = 'ashburn';
       const preflight = new PreflightTest('foo', options);
       sinon.assert.calledOnceWithExactly(deviceContext.updateOptions, {
-        codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
+        codecPreferences: [Call.Codec.PCMU, Call.Codec.Opus],
         edge: options.edge,
         fileInputStream: undefined,
         logLevel: 'error',
@@ -186,7 +186,7 @@ describe('PreflightTest', () => {
       options.rtcConfiguration = {foo: 'foo', iceServers: 'bar'};
       const preflight = new PreflightTest('foo', options);
       sinon.assert.calledWith(deviceContext.updateOptions, {
-        codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
+        codecPreferences: [Call.Codec.PCMU, Call.Codec.Opus],
         edge: 'roaming',
         fileInputStream: undefined,
         logLevel: 'error',
@@ -231,7 +231,7 @@ describe('PreflightTest', () => {
     it('should set fakeMicInput to false by default', () => {
       preflight = new PreflightTest('foo', options);
       sinon.assert.calledOnceWithExactly(deviceContext.updateOptions, {
-        codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
+        codecPreferences: [Call.Codec.PCMU, Call.Codec.Opus],
         edge: 'roaming',
         fileInputStream: undefined,
         logLevel: 'error',
@@ -244,7 +244,7 @@ describe('PreflightTest', () => {
       preflight = new PreflightTest('foo', {...options, fakeMicInput: true });
       await clock.tickAsync(1000);
       sinon.assert.calledOnceWithExactly(deviceContext.updateOptions, {
-        codecPreferences: [Connection.Codec.PCMU, Connection.Codec.Opus],
+        codecPreferences: [Call.Codec.PCMU, Call.Codec.Opus],
         edge: 'roaming',
         fileInputStream: stream,
         logLevel: 'error',
@@ -297,11 +297,11 @@ describe('PreflightTest', () => {
 
       device.emit(Device.EventName.Registered);
       await clock.tickAsync(1000);
-      connection.emit('sample', testSamples[0]);
+      call.emit('sample', testSamples[0]);
       await clock.tickAsync(1000);
 
       await clock.tickAsync(5000);
-      connection.emit('disconnect');
+      call.emit('disconnect');
       await clock.tickAsync(1000);
       device.emit(Device.EventName.Unregistered);
 
@@ -325,10 +325,10 @@ describe('PreflightTest', () => {
 
       device.emit(Device.EventName.Registered);
       await clock.tickAsync(1000);
-      connection.emit('volume');
+      call.emit('volume');
       await clock.tickAsync(1000);
-      assert(!connectionContext['_mediaHandler'].outputs.get('default').audio.muted);
-      assert(!connectionContext['_mediaHandler'].outputs.get('foo').audio.muted);
+      assert(!callContext['_mediaHandler'].outputs.get('default').audio.muted);
+      assert(!callContext['_mediaHandler'].outputs.get('foo').audio.muted);
     });
 
     it('should mute media stream if fakeMicInput is true', async () => {
@@ -336,10 +336,10 @@ describe('PreflightTest', () => {
 
       device.emit(Device.EventName.Registered);
       await clock.tickAsync(1000);
-      connection.emit('volume');
+      call.emit('volume');
       await clock.tickAsync(1000);
-      assert(connectionContext['_mediaHandler'].outputs.get('default').audio.muted);
-      assert(connectionContext['_mediaHandler'].outputs.get('foo').audio.muted);
+      assert(callContext['_mediaHandler'].outputs.get('default').audio.muted);
+      assert(callContext['_mediaHandler'].outputs.get('foo').audio.muted);
     });
   });
 
@@ -355,7 +355,7 @@ describe('PreflightTest', () => {
       const sample = {foo: 'foo', bar: 'bar', mos: 1};
       for (let i = 1; i <= count; i++) {
         const data = {...sample, count: i};
-        connection.emit('sample', data);
+        call.emit('sample', data);
         await clock.tickAsync(1000);
         sinon.assert.callCount(onSample, i);
         sinon.assert.calledWithExactly(onSample, data);
@@ -378,7 +378,7 @@ describe('PreflightTest', () => {
 
       const data = {foo: 'foo', bar: 'bar'};
 
-      connection.emit('warning', 'foo', data);
+      call.emit('warning', 'foo', data);
       await clock.tickAsync(1000);
 
       sinon.assert.calledOnce(onWarning);
@@ -418,7 +418,7 @@ describe('PreflightTest', () => {
       device.emit(Device.EventName.Registered);
       await clock.tickAsync(1000);
 
-      connection.emit('accept');
+      call.emit('accept');
       await clock.tickAsync(1000);
       assert.equal(preflight.status, PreflightTest.Status.Connected);
       sinon.assert.calledOnce(onConnected);
@@ -428,7 +428,7 @@ describe('PreflightTest', () => {
       const preflight = new PreflightTest('foo', options);
       device.emit(Device.EventName.Registered);
       await clock.tickAsync(1000);
-      connection.emit('accept');
+      call.emit('accept');
       await clock.tickAsync(1000);
 
       assert.equal(preflight.callSid, CALL_SID);
@@ -460,7 +460,7 @@ describe('PreflightTest', () => {
 
       device.emit(Device.EventName.Registered);
       await clock.tickAsync(5000);
-      connection.emit('disconnect');
+      call.emit('disconnect');
       await clock.tickAsync(1000);
       device.emit(Device.EventName.Unregistered);
 
@@ -473,7 +473,7 @@ describe('PreflightTest', () => {
       preflight.on('completed', onCompleted);
       device.emit(Device.EventName.Registered);
       await clock.tickAsync(14000);
-      connection.emit('disconnect');
+      call.emit('disconnect');
       await clock.tickAsync(1000);
       device.emit(Device.EventName.Unregistered);
       await clock.tickAsync(10);
@@ -489,12 +489,12 @@ describe('PreflightTest', () => {
       preflight.on('completed', onCompleted);
       device.emit(Device.EventName.Registered);
       await clock.tickAsync(14000);
-      connection.emit('disconnect');
+      call.emit('disconnect');
       await clock.tickAsync(1000);
       device.emit(Device.EventName.Unregistered);
       await clock.tickAsync(1000);
       assert.equal(device.eventNames().length, 0);
-      assert.equal(connection.eventNames().length, 0);
+      assert.equal(call.eventNames().length, 0);
     });
 
     it('should provide report', () => {
@@ -586,27 +586,27 @@ describe('PreflightTest', () => {
         for (let i = 0; i < testSamples.length; i++) {
           const sample = testSamples[i];
           const data = {...sample};
-          connection.emit('sample', data);
+          call.emit('sample', data);
           await clock.tickAsync(1);
         }
         // Populate warnings
-        connection.emit('warning', 'foo', warningData);
+        call.emit('warning', 'foo', warningData);
         // Populate callsid
-        connection.emit('accept');
+        call.emit('accept');
 
         // Populate network timings
-        connection['_mediaHandler'].onpcconnectionstatechange('connecting');
-        connection['_mediaHandler'].ondtlstransportstatechange('connecting');
-        connection['_mediaHandler'].oniceconnectionstatechange('checking');
+        call['_mediaHandler'].onpcconnectionstatechange('connecting');
+        call['_mediaHandler'].ondtlstransportstatechange('connecting');
+        call['_mediaHandler'].oniceconnectionstatechange('checking');
         await clock.tickAsync(1000);
 
-        connection['_mediaHandler'].onpcconnectionstatechange('connected');
-        connection['_mediaHandler'].ondtlstransportstatechange('connected');
-        connection['_mediaHandler'].oniceconnectionstatechange('connected');
-        connection['_mediaHandler'].onsignalingstatechange('stable');
+        call['_mediaHandler'].onpcconnectionstatechange('connected');
+        call['_mediaHandler'].ondtlstransportstatechange('connected');
+        call['_mediaHandler'].oniceconnectionstatechange('connected');
+        call['_mediaHandler'].onsignalingstatechange('stable');
 
         await clock.tickAsync(13000);
-        connection.emit('disconnect');
+        call.emit('disconnect');
 
         await clock.tickAsync(1000);
         device.emit(Device.EventName.Unregistered);
@@ -626,7 +626,7 @@ describe('PreflightTest', () => {
         device.emit(Device.EventName.Registered);
 
         await clock.tickAsync(13000);
-        connection.emit('disconnect');
+        call.emit('disconnect');
         await clock.tickAsync(1000);
         device.emit(Device.EventName.Unregistered);
         await clock.tickAsync(1000);
@@ -663,7 +663,7 @@ describe('PreflightTest', () => {
           await clock.tickAsync(0);
 
           for (let i = 0; i < 10; i++) {
-            connection.emit('sample', {
+            call.emit('sample', {
               rtt: 1,
               jitter: 1,
               mos: averageMos,
@@ -672,7 +672,7 @@ describe('PreflightTest', () => {
           }
 
           await clock.tickAsync(13000);
-          connection.emit('disconnect');
+          call.emit('disconnect');
           await clock.tickAsync(5000);
           device.emit(Device.EventName.Unregistered);
           await clock.tickAsync(5000);
@@ -687,9 +687,9 @@ describe('PreflightTest', () => {
         device.emit(Device.EventName.Registered);
         await clock.tickAsync(0);
 
-        connection.emit('sample', testSamples[0]);
+        call.emit('sample', testSamples[0]);
         await clock.tickAsync(25000);
-        connection.emit('disconnect');
+        call.emit('disconnect');
         await clock.tickAsync(1000);
         device.emit(Device.EventName.Unregistered);
         await clock.tickAsync(1000);
@@ -938,7 +938,7 @@ describe('PreflightTest', () => {
       await clock.tickAsync(1000);
 
       assert.equal(device.eventNames().length, 0);
-      assert.equal(connection.eventNames().length, 0);
+      assert.equal(call.eventNames().length, 0);
     });
 
     it('should not emit completed event', async () => {
@@ -951,7 +951,7 @@ describe('PreflightTest', () => {
 
       device.emit(Device.EventName.Registered);
       await clock.tickAsync(1000);
-      connection.emit('disconnect');
+      call.emit('disconnect');
       await clock.tickAsync(1000);
       device.emit(Device.EventName.Unregistered);
       await clock.tickAsync(1);
@@ -1018,7 +1018,7 @@ describe('PreflightTest', () => {
         }, {
           jitter: 3, mos: 3, rtt: 0.02,
         }].map(createSample)) {
-          connection.emit('sample', sample);
+          call.emit('sample', sample);
           await clock.tickAsync(0);
         }
 
@@ -1055,7 +1055,7 @@ describe('PreflightTest', () => {
         }, {
           jitter: 0, mos: null, rtt: 0,
         }].map(createSample).forEach(
-          (sample: RTCSample) => connection.emit('sample', sample),
+          (sample: RTCSample) => call.emit('sample', sample),
         );
 
         await clock.tickAsync(0);

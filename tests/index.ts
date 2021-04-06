@@ -72,7 +72,6 @@ root.navigator = {
 };
 
 root.RTCPeerConnection = root.window.RTCPeerConnection = function() { };
-
 require('./audiohelper');
 require('./outputdevicecollection');
 require('./eventpublisher');
@@ -87,7 +86,7 @@ require('./sdp');
 
 require('./unit/asyncQueue');
 require('./unit/icecandidate');
-require('./unit/connection');
+require('./unit/call');
 require('./unit/device');
 require('./unit/deferred');
 require('./unit/preflight');
