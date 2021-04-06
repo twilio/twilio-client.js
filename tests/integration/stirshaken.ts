@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
-import Connection from '../../lib/twilio/connection';
+import Call from '../../lib/twilio/call';
 import Device from '../../lib/twilio/device';
 import * as env from '../env';
 import { generateAccessToken } from '../lib/token';
@@ -73,32 +73,32 @@ describe('SHAKEN/STIR', function() {
       });
 
       describe('and device 2 accepts', () => {
-        let connection1: Connection;
-        let connection2: Connection;
+        let call1: Call;
+        let call2: Call;
 
         beforeEach(() => {
-          const conn1: Connection | undefined | null = device1.activeConnection || device1.connections[0];
-          const conn2: Connection | undefined | null = device2.activeConnection || device2.connections[0];
+          const conn1: Call | undefined | null = device1.activeCall || device1.calls[0];
+          const conn2: Call | undefined | null = device2.activeCall || device2.calls[0];
 
           if (!conn1 || !conn2) {
-            throw new Error(`Connections weren't both open at beforeEach`);
+            throw new Error(`Calls weren't both open at beforeEach`);
           }
 
-          connection1 = conn1;
-          connection2 = conn2;
+          call1 = conn1;
+          call2 = conn2;
         });
 
-        it('should set callerInfo to null on origin connection', () => {
-          assert.equal(connection1!.callerInfo, null);
+        it('should set callerInfo to null on origin call', () => {
+          assert.equal(call1!.callerInfo, null);
         });
 
-        it('should show isVerified on aliceStir connection', () => {
-          assert.equal(connection2!.callerInfo!.isVerified, true);
+        it('should show isVerified on aliceStir call', () => {
+          assert.equal(call2!.callerInfo!.isVerified, true);
         });
 
         it('should reject the call', (done) => {
-          connection1.once('disconnect', () => done());
-          connection2.reject();
+          call1.once('disconnect', () => done());
+          call2.reject();
         });
       });
     });

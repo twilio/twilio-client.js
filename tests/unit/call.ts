@@ -1,24 +1,24 @@
-import Connection from '../../lib/twilio/connection';
+import Call from '../../lib/twilio/call';
 import Device from '../../lib/twilio/device';
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
 import { SinonFakeTimers, SinonSpy, SinonStubbedInstance } from 'sinon';
 import * as sinon from 'sinon';
-import { MediaErrors } from '../../lib/twilio/errors';
+import { GeneralErrors, MediaErrors } from '../../lib/twilio/errors';
 
 const Util = require('../../lib/twilio/util');
 
 /* tslint:disable-next-line */
-describe('Connection', function() {
+describe('Call', function() {
   let audioHelper: any;
   let callback: Function;
   let clock: SinonFakeTimers;
-  let config: Connection.Config;
-  let conn: Connection;
+  let config: Call.Config;
+  let conn: Call;
   let getUserMedia: (constraints: MediaStreamConstraints) => Promise<MediaStream>;
   let mediaHandler: any;
   let monitor: any;
-  let options: Connection.Options;
+  let options: Call.Options;
   let pstream: any;
   let publisher: any;
   let rtcConfig: RTCConfiguration;
@@ -82,18 +82,18 @@ describe('Connection', function() {
       StatsMonitor,
     };
 
-    conn = new Connection(config, options);
+    conn = new Call(config, options);
   });
 
   describe('constructor', () => {
     it('should set .parameters to options.callParameters', () => {
       const callParameters = { foo: 'bar' };
-      conn = new Connection(config, Object.assign(options, { callParameters }));
+      conn = new Call(config, Object.assign(options, { callParameters }));
       assert.equal(conn.parameters, callParameters);
     });
 
     it('should convert options.twimlParams to .customParameters as a Map<string, string>', () => {
-      conn = new Connection(config, Object.assign(options, { twimlParams: {
+      conn = new Call(config, Object.assign(options, { twimlParams: {
         foo: 'bar',
         baz: 123,
       }}));
@@ -103,19 +103,19 @@ describe('Connection', function() {
 
     context('when incoming', () => {
       it('should send incoming event to insights', () => {
-        conn = new Connection(config, Object.assign(options, { callParameters: {
+        conn = new Call(config, Object.assign(options, { callParameters: {
           CallSid: 'CA123'
         }}));
         assert.equal(publisher.info.lastCall.args[1], 'incoming');
       });
 
       it('should populate the .callerInfo fields appropriately when StirStatus is A', () => {
-        conn = new Connection(config, Object.assign(options, { callParameters: {
+        conn = new Call(config, Object.assign(options, { callParameters: {
           StirStatus: 'TN-Validation-Passed-A',
           CallSid: 'CA123',
           From: '929-321-2323',
         }}));
-        let callerInfo: Connection.CallerInfo;
+        let callerInfo: Call.CallerInfo;
         if (conn.callerInfo !== null) {
           callerInfo = conn.callerInfo;
           assert.equal(callerInfo.isVerified, true);
@@ -125,12 +125,12 @@ describe('Connection', function() {
       });
 
       it('should populate the .callerInfo fields appropriately when StirStatus is B', () => {
-        conn = new Connection(config, Object.assign(options, { callParameters: {
+        conn = new Call(config, Object.assign(options, { callParameters: {
           StirStatus: 'TN-Validation-Passed-B',
           CallSid: 'CA123',
           From: '1-929-321-2323',
         }}));
-        let callerInfo: Connection.CallerInfo;
+        let callerInfo: Call.CallerInfo;
         if (conn.callerInfo !== null) {
           callerInfo = conn.callerInfo;
           assert.equal(callerInfo.isVerified, false);
@@ -140,12 +140,12 @@ describe('Connection', function() {
       });
 
       it('should populate the .callerInfo fields appropriately when StirStatus is C', () => {
-        conn = new Connection(config, Object.assign(options, { callParameters: {
+        conn = new Call(config, Object.assign(options, { callParameters: {
           StirStatus: 'TN-Validation-Passed-C',
           CallSid: 'CA123',
           From: '1 (929) 321-2323',
         }}));
-        let callerInfo: Connection.CallerInfo;
+        let callerInfo: Call.CallerInfo;
         if (conn.callerInfo !== null) {
           callerInfo = conn.callerInfo;
           assert.equal(callerInfo.isVerified, false);
@@ -155,12 +155,12 @@ describe('Connection', function() {
       });
 
       it('should populate the .callerInfo fields appropriately when StirStatus is failed-A', () => {
-        conn = new Connection(config, Object.assign(options, { callParameters: {
+        conn = new Call(config, Object.assign(options, { callParameters: {
           StirStatus: 'TN-Validation-Failed-A',
           CallSid: 'CA123',
           From: '1 (929) 321 2323',
         }}));
-        let callerInfo: Connection.CallerInfo;
+        let callerInfo: Call.CallerInfo;
         if (conn.callerInfo !== null) {
           callerInfo = conn.callerInfo;
           assert.equal(callerInfo.isVerified, false);
@@ -170,12 +170,12 @@ describe('Connection', function() {
       });
 
       it('should populate the .callerInfo fields appropriately when StirStatus is failed-B', () => {
-        conn = new Connection(config, Object.assign(options, { callParameters: {
+        conn = new Call(config, Object.assign(options, { callParameters: {
           StirStatus: 'TN-Validation-Failed-B',
           CallSid: 'CA123',
           From: '1 929 321 2323',
         }}));
-        let callerInfo: Connection.CallerInfo;
+        let callerInfo: Call.CallerInfo;
         if (conn.callerInfo !== null) {
           callerInfo = conn.callerInfo;
           assert.equal(callerInfo.isVerified, false);
@@ -185,12 +185,12 @@ describe('Connection', function() {
       });
 
       it('should populate the .callerInfo fields appropriately when StirStatus is failed-C', () => {
-        conn = new Connection(config, Object.assign(options, { callParameters: {
+        conn = new Call(config, Object.assign(options, { callParameters: {
           StirStatus: 'TN-Validation-Failed-C',
           CallSid: 'CA123',
           From: '19293212323',
         }}));
-        let callerInfo: Connection.CallerInfo;
+        let callerInfo: Call.CallerInfo;
         if (conn.callerInfo !== null) {
           callerInfo = conn.callerInfo;
           assert.equal(callerInfo.isVerified, false);
@@ -200,12 +200,12 @@ describe('Connection', function() {
       });
 
       it('should populate the .callerInfo fields appropriately when StirStatus is no-validation', () => {
-        conn = new Connection(config, Object.assign(options, { callParameters: {
+        conn = new Call(config, Object.assign(options, { callParameters: {
           StirStatus: 'TN-No-Validation',
           CallSid: 'CA123',
           From: '+19293212323',
         }}));
-        let callerInfo: Connection.CallerInfo;
+        let callerInfo: Call.CallerInfo;
         if (conn.callerInfo !== null) {
           callerInfo = conn.callerInfo;
           assert.equal(callerInfo.isVerified, false);
@@ -215,7 +215,7 @@ describe('Connection', function() {
       });
 
       it('should set .callerInfo to null when StirStatus is undefined', () => {
-        conn = new Connection(config, Object.assign(options, { callParameters: {
+        conn = new Call(config, Object.assign(options, { callParameters: {
           CallSid: 'CA123',
           From: '19293212323',
         }}));
@@ -224,12 +224,12 @@ describe('Connection', function() {
 
       describe('when From is not a number', () => {
         it('should populate the .callerInfo fields appropriately when StirStatus is A', () => {
-          conn = new Connection(config, Object.assign(options, { callParameters: {
+          conn = new Call(config, Object.assign(options, { callParameters: {
             StirStatus: 'TN-Validation-Passed-A',
             CallSid: 'CA123',
             From: 'client:alice',
           }}));
-          let callerInfo: Connection.CallerInfo;
+          let callerInfo: Call.CallerInfo;
           if (conn.callerInfo !== null) {
             callerInfo = conn.callerInfo;
             assert.equal(callerInfo.isVerified, true);
@@ -239,12 +239,12 @@ describe('Connection', function() {
         });
 
         it('should populate the .callerInfo fields appropriately when StirStatus is failed-A', () => {
-          conn = new Connection(config, Object.assign(options, { callParameters: {
+          conn = new Call(config, Object.assign(options, { callParameters: {
             StirStatus: 'TN-Validation-Failed-A',
             CallSid: 'CA123',
             From: 'client:alice',
           }}));
-          let callerInfo: Connection.CallerInfo;
+          let callerInfo: Call.CallerInfo;
           if (conn.callerInfo !== null) {
             callerInfo = conn.callerInfo;
             assert.equal(callerInfo.isVerified, false);
@@ -256,13 +256,13 @@ describe('Connection', function() {
 
       describe('when additional parameters are supplied', () => {
         it('should populate the .callerInfo fields appropriately when DisplayName is supplied', () => {
-          conn = new Connection(config, Object.assign(options, { callParameters: {
+          conn = new Call(config, Object.assign(options, { callParameters: {
             StirStatus: 'TN-Validation-Passed-A',
             CallSid: 'CA123',
             From: 'client:alice',
             DisplayName: 'foo bar baz',
           }}));
-          let callerInfo: Connection.CallerInfo;
+          let callerInfo: Call.CallerInfo;
           if (conn.callerInfo !== null) {
             callerInfo = conn.callerInfo;
             assert.equal(callerInfo.isVerified, true);
@@ -272,13 +272,13 @@ describe('Connection', function() {
         });
 
         it('should populate the .callerInfo fields appropriately when a long string is supplied', () => {
-          conn = new Connection(config, Object.assign(options, { callParameters: {
+          conn = new Call(config, Object.assign(options, { callParameters: {
             StirStatus: 'TN-Validation-Passed-A',
             CallSid: 'CA123',
             From: 'client:alice',
             DisplayName: Array(100).fill('foo bar baz').join(','),
           }}));
-          let callerInfo: Connection.CallerInfo;
+          let callerInfo: Call.CallerInfo;
           if (conn.callerInfo !== null) {
             callerInfo = conn.callerInfo;
             assert.equal(callerInfo.isVerified, true);
@@ -291,14 +291,14 @@ describe('Connection', function() {
 
     context('when outgoing', () => {
       it('should send outgoing event to insights', () => {
-        conn = new Connection(config, Object.assign(options, { preflight: true }));
+        conn = new Call(config, Object.assign(options, { preflight: true }));
         const args = publisher.info.lastCall.args;
         assert.equal(args[1], 'outgoing');
         assert.deepEqual(args[2], { preflight: true })
       });
 
       it('should not populate the .callerInfo fields, instead return null', () => {
-        conn = new Connection(config, Object.assign(options, { callParameters: {
+        conn = new Call(config, Object.assign(options, { callParameters: {
           StirStatus: 'TN-Validation-Passed-A',
         }}));
         assert.equal(conn.callerInfo, null);
@@ -307,14 +307,14 @@ describe('Connection', function() {
 
     it('should set .direction to CallDirection.Outgoing if there is no CallSid', () => {
       const callParameters = { foo: 'bar' };
-      conn = new Connection(config, Object.assign(options, { callParameters }));
-      assert.equal(conn.direction, Connection.CallDirection.Outgoing);
+      conn = new Call(config, Object.assign(options, { callParameters }));
+      assert.equal(conn.direction, Call.CallDirection.Outgoing);
     });
 
     it('should set .direction to CallDirection.Incoming if there is a CallSid', () => {
       const callParameters = { CallSid: 'CA1234' };
-      conn = new Connection(config, Object.assign(options, { callParameters }));
-      assert.equal(conn.direction, Connection.CallDirection.Incoming);
+      conn = new Call(config, Object.assign(options, { callParameters }));
+      assert.equal(conn.direction, Call.CallDirection.Incoming);
     });
 
     it('should disable monitor warnings', () => {
@@ -331,11 +331,11 @@ describe('Connection', function() {
 
   describe('.accept', () => {
     [
-      Connection.State.Open,
-      Connection.State.Connecting,
-      Connection.State.Ringing,
-      Connection.State.Closed,
-    ].forEach((state: Connection.State) => {
+      Call.State.Open,
+      Call.State.Connecting,
+      Call.State.Ringing,
+      Call.State.Closed,
+    ].forEach((state: Call.State) => {
       context(`when state is ${state}`, () => {
         beforeEach(() => {
           (conn as any)['_status'] = state;
@@ -355,7 +355,7 @@ describe('Connection', function() {
 
     it('should transition state to Connecting', () => {
       conn.accept();
-      assert.equal(conn.status(), Connection.State.Connecting);
+      assert.equal(conn.status(), Call.State.Connecting);
     });
 
     context('when getInputStream is not present', () => {
@@ -366,7 +366,7 @@ describe('Connection', function() {
 
       it('should call mediaHandler.openWithConstraints with options.audioConstraints if no args', () => {
         Object.assign(options, { rtcConstraints: { audio: { bar: 'baz' } } });
-        conn = new Connection(config, options);
+        conn = new Call(config, options);
         conn.accept();
         sinon.assert.calledWith(mediaHandler.openWithConstraints, { bar: 'baz' });
       });
@@ -397,7 +397,7 @@ describe('Connection', function() {
       beforeEach(() => {
         getInputStream = sinon.spy(() => 'foo');
         Object.assign(options, { getInputStream });
-        conn = new Connection(config, options);
+        conn = new Call(config, options);
 
         mediaHandler.setInputTracksFromStream = sinon.spy(() => {
           const p = Promise.resolve();
@@ -429,7 +429,7 @@ describe('Connection', function() {
               sdpSemantics: 'unified-plan',
             },
           });
-          conn = new Connection(config, options);
+          conn = new Call(config, options);
 
           mediaHandler.setInputTracksFromStream = sinon.spy(() => {
             const p = Promise.resolve();
@@ -506,7 +506,7 @@ describe('Connection', function() {
             k: '0',
             l: 'a$b&c?d=e',
           };
-          conn = new Connection(config, options);
+          conn = new Call(config, options);
 
           mediaHandler.setInputTracksFromStream = sinon.spy(() => {
             const p = Promise.resolve();
@@ -568,10 +568,10 @@ describe('Connection', function() {
         });
       });
 
-      context('if connection state transitions before connect finishes', () => {
+      context('if call state transitions before connect finishes', () => {
         beforeEach(() => {
           mediaHandler.setInputTracksFromStream = sinon.spy(() => {
-            (conn as any)['_status'] = Connection.State.Closed;
+            (conn as any)['_status'] = Call.State.Closed;
             const p = Promise.resolve();
             wait = p.then(() => Promise.resolve());
             return p;
@@ -603,7 +603,7 @@ describe('Connection', function() {
         getInputStream = sinon.spy(() => 'foo');
 
         Object.assign(options, { getInputStream });
-        conn = new Connection(config, options);
+        conn = new Call(config, options);
 
         mediaHandler.setInputTracksFromStream = sinon.spy(() => {
           const p = Promise.reject({ code: 31208 });
@@ -628,7 +628,7 @@ describe('Connection', function() {
         getInputStream = sinon.spy(() => 'foo');
 
         Object.assign(options, { getInputStream });
-        conn = new Connection(config, options);
+        conn = new Call(config, options);
 
         mediaHandler.setInputTracksFromStream = sinon.spy(() => {
           const p = Promise.reject({ });
@@ -648,10 +648,10 @@ describe('Connection', function() {
 
   describe('.disconnect()', () => {
     [
-      Connection.State.Open,
-      Connection.State.Connecting,
-      Connection.State.Ringing,
-    ].forEach((state: Connection.State) => {
+      Call.State.Open,
+      Call.State.Connecting,
+      Call.State.Ringing,
+    ].forEach((state: Call.State) => {
       context(`when state is ${state}`, () => {
         beforeEach(() => {
           (conn as any)['_status'] = state;
@@ -683,9 +683,9 @@ describe('Connection', function() {
     });
 
     [
-      Connection.State.Pending,
-      Connection.State.Closed,
-    ].forEach((state: Connection.State) => {
+      Call.State.Pending,
+      Call.State.Closed,
+    ].forEach((state: Call.State) => {
       context(`when state is ${state}`, () => {
         beforeEach(() => {
           (conn as any)['_status'] = state;
@@ -725,7 +725,7 @@ describe('Connection', function() {
 
       it('should transition state to closed', () => {
         conn.ignore();
-        assert.equal(conn.status(), Connection.State.Closed);
+        assert.equal(conn.status(), Call.State.Closed);
       });
 
       it('should publish an event to insights', () => {
@@ -735,12 +735,12 @@ describe('Connection', function() {
     });
 
     [
-      Connection.State.Closed,
-      Connection.State.Connecting,
-      Connection.State.Open,
-      Connection.State.Ringing,
-    ].forEach((state: Connection.State) => {
-      context(`when connection state is ${state}`, () => {
+      Call.State.Closed,
+      Call.State.Connecting,
+      Call.State.Open,
+      Call.State.Ringing,
+    ].forEach((state: Call.State) => {
+      context(`when call state is ${state}`, () => {
         beforeEach(() => {
           (conn as any)['_status'] = state;
         });
@@ -905,12 +905,12 @@ describe('Connection', function() {
     });
 
     [
-      Connection.State.Closed,
-      Connection.State.Connecting,
-      Connection.State.Open,
-      Connection.State.Ringing,
-    ].forEach((state: Connection.State) => {
-      context(`when connection state is ${state}`, () => {
+      Call.State.Closed,
+      Call.State.Connecting,
+      Call.State.Open,
+      Call.State.Ringing,
+    ].forEach((state: Call.State) => {
+      context(`when call state is ${state}`, () => {
         beforeEach(() => {
           (conn as any)['_status'] = state;
         });
@@ -947,8 +947,8 @@ describe('Connection', function() {
       sinon.assert.calledWith(publisher.info, 'feedback', 'received-none');
     });
 
-    Object.values(Connection.FeedbackScore).forEach((score: Connection.FeedbackScore) => {
-      Object.values(Connection.FeedbackIssue).forEach((issue: Connection.FeedbackIssue) => {
+    Object.values(Call.FeedbackScore).forEach((score: Call.FeedbackScore) => {
+      Object.values(Call.FeedbackIssue).forEach((issue: Call.FeedbackIssue) => {
         it(`should call publisher.info with feedback received-none when called with ${score} and ${issue}`, () => {
           conn.postFeedback(score, issue);
           sinon.assert.calledWith(publisher.info, 'feedback', 'received', {
@@ -964,7 +964,7 @@ describe('Connection', function() {
     });
 
     it('should throw if issue is invalid', () => {
-      assert.throws(() => { (conn as any)['postFeedback'](Connection.FeedbackScore.Five, 'foo'); });
+      assert.throws(() => { (conn as any)['postFeedback'](Call.FeedbackScore.Five, 'foo'); });
     });
   });
 
@@ -1156,14 +1156,7 @@ describe('Connection', function() {
 
       it('should emit an error event', (done) => {
         conn.on('error', (error) => {
-          assert.deepEqual(error, {
-            code: 123,
-            connection: conn,
-            info: baseError.info,
-            message: 'foo',
-            twilioError: 'bar'
-          });
-
+          assert.deepEqual(error, 'bar');
           done();
         });
 
@@ -1172,10 +1165,10 @@ describe('Connection', function() {
 
       context('when error.disconnect is true', () => {
         [
-          Connection.State.Open,
-          Connection.State.Connecting,
-          Connection.State.Ringing,
-        ].forEach((state: Connection.State) => {
+          Call.State.Open,
+          Call.State.Connecting,
+          Call.State.Ringing,
+        ].forEach((state: Call.State) => {
           context(`and state is ${state}`, () => {
             beforeEach(() => {
               (conn as any)['_status'] = state;
@@ -1194,9 +1187,9 @@ describe('Connection', function() {
         });
 
         [
-          Connection.State.Pending,
-          Connection.State.Closed,
-        ].forEach((state: Connection.State) => {
+          Call.State.Pending,
+          Call.State.Closed,
+        ].forEach((state: Call.State) => {
           context(`and state is ${state}`, () => {
             beforeEach(() => {
               (conn as any)['_status'] = state;
@@ -1219,7 +1212,7 @@ describe('Connection', function() {
     describe('mediaHandler.onopen', () => {
       context('when state is open', () => {
         beforeEach(() => {
-          (conn as any)['_status'] = Connection.State.Open;
+          (conn as any)['_status'] = Call.State.Open;
         });
 
         it(`should not call mediaHandler.close`, () => {
@@ -1227,7 +1220,7 @@ describe('Connection', function() {
           sinon.assert.notCalled(mediaHandler.close);
         });
 
-        it(`should not call connection.mute(false)`, () => {
+        it(`should not call call.mute(false)`, () => {
           conn.mute = sinon.spy();
           mediaHandler.onopen();
           sinon.assert.notCalled(conn.mute as SinonSpy);
@@ -1235,9 +1228,9 @@ describe('Connection', function() {
       });
 
       [
-        Connection.State.Ringing,
-        Connection.State.Connecting,
-      ].forEach((state: Connection.State) => {
+        Call.State.Ringing,
+        Call.State.Connecting,
+      ].forEach((state: Call.State) => {
         context(`when state is ${state}`, () => {
           beforeEach(() => {
             (conn as any)['_status'] = state;
@@ -1248,35 +1241,35 @@ describe('Connection', function() {
             sinon.assert.notCalled(mediaHandler.close);
           });
 
-          it(`should call connection.mute(false)`, () => {
+          it(`should call call.mute(false)`, () => {
             conn.mute = sinon.spy();
             mediaHandler.onopen();
             sinon.assert.calledWith(conn.mute as SinonSpy, false);
           });
 
-          context('when this connection is answered', () => {
+          context('when this call is answered', () => {
             beforeEach(() => {
               mediaHandler.status = 'open';
               conn['_isAnswered'] = true;
             });
 
-            it('should emit Connection.accept event', (done) => {
+            it('should emit Call.accept event', (done) => {
               conn.on('accept', () => done());
               mediaHandler.onopen();
             });
 
             it('should transition to open', () => {
               mediaHandler.onopen();
-              assert.equal(conn.status(), Connection.State.Open);
+              assert.equal(conn.status(), Call.State.Open);
             });
           });
 
-          context('when this connection is not answered', () => {
+          context('when this call is not answered', () => {
             beforeEach(() => {
               mediaHandler.status = 'open';
             });
 
-            it('should not emit Connection.accept event', () => {
+            it('should not emit Call.accept event', () => {
               conn.on('accept', () => { throw new Error('Expected to not emit accept event'); });
               mediaHandler.onopen();
               clock.tick(1);
@@ -1291,9 +1284,9 @@ describe('Connection', function() {
       });
 
       [
-        Connection.State.Pending,
-        Connection.State.Closed,
-      ].forEach((state: Connection.State) => {
+        Call.State.Pending,
+        Call.State.Closed,
+      ].forEach((state: Call.State) => {
         context(`when state is ${state}`, () => {
           beforeEach(() => {
             (conn as any)['_status'] = state;
@@ -1304,7 +1297,7 @@ describe('Connection', function() {
             sinon.assert.calledOnce(mediaHandler.close);
           });
 
-          it(`should not call connection.mute(false)`, () => {
+          it(`should not call call.mute(false)`, () => {
             conn.mute = sinon.spy();
             mediaHandler.onopen();
             sinon.assert.notCalled(conn.mute as SinonSpy);
@@ -1316,7 +1309,7 @@ describe('Connection', function() {
     describe('mediaHandler.onclose', () => {
       it('should transition to closed', () => {
         mediaHandler.onclose();
-        assert.equal(conn.status(), Connection.State.Closed);
+        assert.equal(conn.status(), Call.State.Closed);
       });
 
       it('should call monitor.disable', () => {
@@ -1325,8 +1318,8 @@ describe('Connection', function() {
       });
 
       it('should emit a disconnect event', (done) => {
-        conn.on('disconnect', (connection) => {
-          assert.equal(conn, connection);
+        conn.on('disconnect', (call) => {
+          assert.equal(conn, call);
           done();
         });
 
@@ -1339,13 +1332,13 @@ describe('Connection', function() {
       });
 
       it('should play the disconnect ringtone if shouldPlayDisconnect returns true', () => {
-        conn = new Connection(config, Object.assign({ shouldPlayDisconnect: () => true }, options));
+        conn = new Call(config, Object.assign({ shouldPlayDisconnect: () => true }, options));
         mediaHandler.onclose();
         sinon.assert.calledOnce(soundcache.get(Device.SoundName.Disconnect).play);
       });
 
       it('should not play the disconnect ringtone if shouldPlayDisconnect returns false', () => {
-        conn = new Connection(config, Object.assign({ shouldPlayDisconnect: () => false }, options));
+        conn = new Call(config, Object.assign({ shouldPlayDisconnect: () => false }, options));
         mediaHandler.onclose();
         sinon.assert.notCalled(soundcache.get(Device.SoundName.Disconnect).play);
       });
@@ -1354,7 +1347,7 @@ describe('Connection', function() {
     describe('pstream.transportClose event', () => {
       it('should re-emit transportClose event', () => {
         const callback = sinon.stub();
-        conn = new Connection(config, Object.assign({
+        conn = new Call(config, Object.assign({
           callParameters: { CallSid: 'CA123' }
         }, options));
 
@@ -1376,12 +1369,12 @@ describe('Connection', function() {
       let closeStub: any;
       let publishStub: any;
 
-      const initConnection = () => {
+      const initCall = () => {
         cleanupStub = sinon.stub();
         closeStub = sinon.stub();
         publishStub = sinon.stub();
 
-        conn = new Connection(config, Object.assign({
+        conn = new Call(config, Object.assign({
           callParameters: { CallSid: 'CA123' }
         }, options));
 
@@ -1395,12 +1388,12 @@ describe('Connection', function() {
         };
       };
 
-      beforeEach(initConnection);
+      beforeEach(initCall);
 
       context('when the callsid matches', () => {
         it('should transition to closed', () => {
           pstream.emit('cancel', { callsid: 'CA123' });
-          assert.equal(conn.status(), Connection.State.Closed);
+          assert.equal(conn.status(), Call.State.Closed);
         });
 
         it('should emit a cancel event', (done) => {
@@ -1426,7 +1419,7 @@ describe('Connection', function() {
 
         it('should not play disconnect sound', () => {
           options.shouldPlayDisconnect = () => true;
-          initConnection();
+          initCall();
           conn['_mediaHandler'].close = () => mediaHandler.onclose();
           pstream.emit('cancel', { callsid: 'CA123' });
 
@@ -1439,7 +1432,7 @@ describe('Connection', function() {
       context('when the callsid does not match', () => {
         it('should not transition to closed', () => {
           pstream.emit('cancel', { callsid: 'foo' });
-          assert.equal(conn.status(), Connection.State.Pending);
+          assert.equal(conn.status(), Call.State.Pending);
         });
 
         it('should not emit a cancel event', () => {
@@ -1452,7 +1445,7 @@ describe('Connection', function() {
     describe('pstream.hangup event', () => {
       context('when callsid matches', () => {
         beforeEach((done) => {
-          conn = new Connection(config, Object.assign({
+          conn = new Call(config, Object.assign({
             callParameters: { CallSid: 'CA123' }
           }, options));
           mediaHandler.makeOutgoingCall = () => done();
@@ -1480,20 +1473,14 @@ describe('Connection', function() {
             message: 'foo',
           }});
 
-          sinon.assert.calledWithMatch(callback, {
-            code: 123,
-            message: 'foo',
-            connection: conn,
-          });
-
           const rVal = callback.firstCall.args[0];
-          assert.equal(rVal.twilioError.code, 31005);
+          assert.equal(rVal.code, 31005);
         });
       });
 
       context('when callsid does not match', () => {
         beforeEach((done) => {
-          conn = new Connection(config, Object.assign({
+          conn = new Call(config, Object.assign({
             callParameters: { CallSid: 'CA987' }
           }, options));
           mediaHandler.makeOutgoingCall = () => done();
@@ -1515,16 +1502,16 @@ describe('Connection', function() {
     });
 
     describe('pstream.ringing event', () => {
-      [Connection.State.Connecting, Connection.State.Ringing].forEach((state: Connection.State) => {
+      [Call.State.Connecting, Call.State.Ringing].forEach((state: Call.State) => {
         context(`when state is ${state}`, () => {
           beforeEach(() => {
-            conn = new Connection(config, options);
+            conn = new Call(config, options);
             (conn as any)['_status'] = state;
           });
 
           it('should set status to ringing', () => {
             pstream.emit('ringing', { callsid: 'ABC123', });
-            assert.equal(conn.status(), Connection.State.Ringing);
+            assert.equal(conn.status(), Call.State.Ringing);
           });
 
           it('should publish an outgoing-ringing event with hasEarlyMedia: false if no sdp', () => {
@@ -1816,7 +1803,7 @@ describe('Connection', function() {
   describe('on media failed', () => {
     beforeEach(() => {
       mediaHandler.iceRestart = sinon.stub();
-      conn = new Connection(config, Object.assign(options));
+      conn = new Call(config, Object.assign(options));
       conn['_mediaReconnectBackoff'] = {
         backoff: () => mediaHandler.iceRestart(),
         reset: sinon.stub(),
@@ -1842,15 +1829,15 @@ describe('Connection', function() {
       });
 
       it('should publish warning on ICE Gathering timeout', () => {
-        mediaHandler.onicegatheringfailure(Connection.IceGatheringFailureReason.Timeout);
+        mediaHandler.onicegatheringfailure(Call.IceGatheringFailureReason.Timeout);
         sinon.assert.calledWith(publisher.warn, 'ice-gathering-state',
-          Connection.IceGatheringFailureReason.Timeout, null);
+          Call.IceGatheringFailureReason.Timeout, null);
       });
 
       it('should publish warning on ICE Gathering none', () => {
-        mediaHandler.onicegatheringfailure(Connection.IceGatheringFailureReason.None);
+        mediaHandler.onicegatheringfailure(Call.IceGatheringFailureReason.None);
         sinon.assert.calledWith(publisher.warn, 'ice-gathering-state',
-          Connection.IceGatheringFailureReason.None, null);
+          Call.IceGatheringFailureReason.None, null);
       });
     });
 

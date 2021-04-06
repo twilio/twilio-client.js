@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import Connection from '../../lib/twilio/connection';
+import Call from '../../lib/twilio/call';
 import Device from '../../lib/twilio/device';
 import { generateAccessToken } from '../lib/token';
 import { expectEvent, isFirefox } from '../lib/util';
@@ -55,37 +55,37 @@ maybeSkip('ICE Nomination', function() {
     }
   };
 
-  const getConnectionDuration = (direction: Connection.CallDirection): Promise<number> => new Promise(async (resolve) => {
+  const getCallDuration = (direction: Call.CallDirection): Promise<number> => new Promise(async (resolve) => {
     let start: number;
     let device = device1;
 
-    if (direction === Connection.CallDirection.Incoming) {
+    if (direction === Call.CallDirection.Incoming) {
       device = device2;
     }
 
     // We don't currently expose ice connection state changes.
-    // Let's hook to makeConnection and subscribe to events
-    const makeConnection = device['_makeConnection'].bind(device);
-    (device['_makeConnection'] as any) = async (...params: any) => {
-      const conn = await makeConnection(...params);
-      conn['_mediaHandler'].oniceconnectionstatechange = (state: string) => {
+    // Let's hook to makeCall and subscribe to events
+    const makeCall = device['_makeCall'].bind(device);
+    (device['_makeCall'] as any) = async (...params: any) => {
+      const call = await makeCall(...params);
+      call['_mediaHandler'].oniceconnectionstatechange = (state: string) => {
         if (state === 'checking') {
           start = Date.now();
         }
       };
-      conn['_mediaHandler'].onpcconnectionstatechange = (state: string) => {
+      call['_mediaHandler'].onpcconnectionstatechange = (state: string) => {
         if (state === 'connected') {
           const duration = Date.now() - start;
           resolve(duration);
         }
       };
-      return conn;
+      return call;
     };
 
     await device1.connect({ params: { To: identity2 } });
-    const conn2 = await expectEvent('incoming', device2);
+    const call2 = await expectEvent('incoming', device2);
 
-    conn2.accept();
+    call2.accept();
   });
 
   before(async () => {
@@ -98,7 +98,7 @@ maybeSkip('ICE Nomination', function() {
       device2Options.edge = edge;
       await setupDevices();
 
-      const duration = await getConnectionDuration(Connection.CallDirection.Incoming);
+      const duration = await getCallDuration(Call.CallDirection.Incoming);
       durations.push(duration);
       destroyDevices();
 
@@ -112,14 +112,14 @@ maybeSkip('ICE Nomination', function() {
     console.log(JSON.stringify({ lowDelayEdge, highDelayEdge }, null, 2));
   });
 
-  [Connection.CallDirection.Incoming, Connection.CallDirection.Outgoing].forEach(direction => {
+  [Call.CallDirection.Incoming, Call.CallDirection.Outgoing].forEach(direction => {
     describe(`for ${direction} calls`, function() {
       this.timeout(SUITE_TIMEOUT);
 
       let deviceOptions: Device.Options;
 
       beforeEach(() => {
-        deviceOptions = direction === Connection.CallDirection.Outgoing ? device1Options : device2Options;
+        deviceOptions = direction === Call.CallDirection.Outgoing ? device1Options : device2Options;
       });
 
       afterEach(() => {
@@ -131,7 +131,7 @@ maybeSkip('ICE Nomination', function() {
       it('should not have a significant dtls handshake delay when using low-delay region and aggressive nomination is false', async () => {
         deviceOptions.edge = lowDelayEdge;
         await setupDevices();
-        await getConnectionDuration(direction).then(duration => {
+        await getCallDuration(direction).then(duration => {
           assert(duration < CONNECTION_DELAY_THRESHOLD);
         });
       });
@@ -140,7 +140,7 @@ maybeSkip('ICE Nomination', function() {
         deviceOptions.edge = lowDelayEdge;
         deviceOptions.forceAggressiveIceNomination = true;
         await setupDevices();
-        await getConnectionDuration(direction).then(duration => {
+        await getCallDuration(direction).then(duration => {
           assert(duration < CONNECTION_DELAY_THRESHOLD);
         });
       });
@@ -149,7 +149,7 @@ maybeSkip('ICE Nomination', function() {
       it.skip('should have a significant dtls handshake delay when using high-delay region and aggressive nomination is false', async () => {
         deviceOptions.edge = highDelayEdge;
         await setupDevices();
-        await getConnectionDuration(direction).then(duration => {
+        await getCallDuration(direction).then(duration => {
           assert(duration > CONNECTION_DELAY_THRESHOLD);
         });
       });
@@ -157,7 +157,7 @@ maybeSkip('ICE Nomination', function() {
         deviceOptions.edge = highDelayEdge;
         deviceOptions.forceAggressiveIceNomination = true;
         await setupDevices();
-        await getConnectionDuration(direction).then(duration => {
+        await getCallDuration(direction).then(duration => {
           assert(duration < CONNECTION_DELAY_THRESHOLD);
         });
       });

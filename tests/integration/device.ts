@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { EventEmitter } from 'events';
-import Connection from '../../lib/twilio/connection';
+import Call from '../../lib/twilio/call';
 import Device from '../../lib/twilio/device';
 import { generateAccessToken } from '../lib/token';
 
@@ -51,49 +51,49 @@ describe('Device', function() {
     });
 
     describe('and device 2 accepts', () => {
-      let connection1: Connection;
-      let connection2: Connection;
+      let call1: Call;
+      let call2: Call;
 
       beforeEach(() => {
-        const conn1: Connection | undefined | null = device1.activeConnection || device1.connections[0];
-        const conn2: Connection | undefined | null = device2.activeConnection || device2.connections[0];
+        const conn1: Call | undefined | null = device1.activeCall || device1.calls[0];
+        const conn2: Call | undefined | null = device2.activeCall || device2.calls[0];
 
         if (!conn1 || !conn2) {
-          throw new Error(`Connections weren't both open at beforeEach`);
+          throw new Error(`Calls weren't both open at beforeEach`);
         }
 
-        connection1 = conn1;
-        connection2 = conn2;
+        call1 = conn1;
+        call2 = conn2;
       });
 
       it('should connect the call', (done) => {
-        connection2.once('accept', () => done());
-        connection2.accept();
+        call2.once('accept', () => done());
+        call2.accept();
       });
 
       it('should stay open 3 seconds', (done) => {
         function fail() {
-          connection1.removeListener('disconnect', fail);
-          connection2.removeListener('disconnect', fail);
-          done(new Error('Expected the connection to stay open for 3 seconds'));
+          call1.removeListener('disconnect', fail);
+          call2.removeListener('disconnect', fail);
+          done(new Error('Expected the call to stay open for 3 seconds'));
         }
 
-        connection1.once('disconnect', fail);
-        connection2.once('disconnect', fail);
+        call1.once('disconnect', fail);
+        call2.once('disconnect', fail);
 
         setTimeout(() => {
-          connection1.removeListener('disconnect', fail);
-          connection2.removeListener('disconnect', fail);
+          call1.removeListener('disconnect', fail);
+          call2.removeListener('disconnect', fail);
           done();
         }, 3000);
       });
 
-      it('should set callerInfo to null on both connections', () => {
-        assert.equal(connection1!.callerInfo, null);
-        assert.equal(connection2!.callerInfo, null);
+      it('should set callerInfo to null on both calls', () => {
+        assert.equal(call1!.callerInfo, null);
+        assert.equal(call2!.callerInfo, null);
       });
 
-      it('should be using the PCMU codec for both connections', (done) => {
+      it('should be using the PCMU codec for both calls', (done) => {
         let codec1: string | null | undefined = null;
 
         function setCodec(sample: any) {
@@ -108,8 +108,8 @@ describe('Device', function() {
           }
         }
 
-        const monitor1: any = connection1['_monitor'];
-        const monitor2: any = connection2['_monitor'];
+        const monitor1: any = call1['_monitor'];
+        const monitor2: any = call2['_monitor'];
         if (!monitor1 || !monitor2) {
           done(new Error('Missing monitor'));
         }
@@ -118,7 +118,7 @@ describe('Device', function() {
       });
 
       it('should update network priority to high if supported', () => {
-        const conn = device2 && device2.activeConnection;
+        const conn = device2 && device2.activeCall;
         if (!conn || !conn['_mediaHandler'] || !conn['_mediaHandler']._sender) {
           throw new Error('Expected sender to be present');
         }
@@ -137,7 +137,7 @@ describe('Device', function() {
       });
 
       it('should receive the correct custom parameters from the TwiML app', () => {
-        assert.deepEqual(Array.from(connection2.customParameters.entries()), [
+        assert.deepEqual(Array.from(call2.customParameters.entries()), [
           ['duplicate', '123456'],
           ['custom + param', '我不吃蛋'],
           ['foobar', 'some + value'],
@@ -148,7 +148,7 @@ describe('Device', function() {
       });
 
       it('should post metrics', (done) => {
-        const publisher = connection1['_publisher'];
+        const publisher = call1['_publisher'];
         (publisher as any)['_request'] = { post: (params: any, err: Function) => {
           if (/EndpointMetrics$/.test(params.url)) {
             done();
@@ -157,8 +157,8 @@ describe('Device', function() {
       });
 
       it('should hang up', (done) => {
-        connection1.once('disconnect', () => done());
-        connection2.disconnect();
+        call1.once('disconnect', () => done());
+        call2.disconnect();
       });
     });
   });
