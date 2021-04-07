@@ -2,7 +2,7 @@
 ===================
 
 Breaking API Changes
--------
+--------------------
 
 ### Device singleton behavior removed
 Device must now be instantiated before it can be used. Calling `Device.setup()` will no longer
@@ -87,10 +87,12 @@ new Device(token: string, options?: Device.Options): Device;
 
 /**
  * Promise resolves when the Device has successfully registered.
+ * Replaces Device.registerPresence()
  */
 async Device.register(): Promise<void>;
 /**
  * Promise resolves when the Device has successfully unregistered.
+ * Replaces Device.unregisterPresence()
  */
 async Device.unregister(): Promise<void>;
 /**
@@ -113,12 +115,12 @@ const device = new Device(token, { edge: 'ashburn' });
 const call = await device.connect({ To: 'alice' });
 ```
 
-### Device#ConnectOptions and Connection#AcceptOptions standardized
-The arguments for `Device.connect()` and `Connection.accept()` have been standardized
+### Device#CallOptions and Call#AcceptOptions standardized
+The arguments for `Device.connect()` and `Call.accept()` have been standardized
 to the following options objects:
 
 ```ts
-interface Connection.AcceptOptions {
+interface Call.AcceptOptions {
   /**
    * An RTCConfiguration to pass to the RTCPeerConnection constructor.
    */
@@ -132,7 +134,7 @@ interface Connection.AcceptOptions {
 ```
 
 ```ts
-interface Device.ConnectOptions extends Connection.AcceptOptions {
+interface Device.ConnectOptions extends Call.AcceptOptions {
  /**
   * A flat object containing key:value pairs to be sent to the TwiML app.
   */
@@ -151,6 +153,62 @@ device.connect({
   params: { To: 'client:alice' },
   rtcConstraints: { audio: { deviceId: 'default' } },
 });
+```
+
+### Moved to new Error format
+For backward compatibility, the new error format was attached to the old format under `error.twilioError`:
+```ts
+class oldError extends Error {
+  //...
+  code: number;
+  message: string;
+  twilioError: TwilioError;
+}
+```
+
+The new Error format is:
+```ts
+class TwilioError extends Error {
+  /**
+   * A list of possible causes for the Error.
+   */
+  causes: string[];
+
+  /**
+   * The numerical code associated with this Error.
+   */
+  code: number;
+
+  /**
+   * A description of what the Error means.
+   */
+  description: string;
+
+  /**
+   * An explanation of when the Error may be observed.
+   */
+  explanation: string;
+
+  /**
+   * Any further information discovered and passed along at run-time.
+   */
+  message: string;
+
+  /**
+   * The name of this Error.
+   */
+  name: string;
+
+  /**
+   * The original Error received from the external system, if any.
+   */
+  originalError?: Error;
+
+  /**
+   * A list of potential solutions for the Error.
+   */
+  solutions: string[];
+}
 ```
 
 New Features
@@ -235,7 +293,6 @@ export interface Options {
   edge?: string[] | string;
   forceAggressiveIceNomination?: boolean;
   maxAverageBitrate?: number;
-  region?: string;
   rtcConfiguration?: RTCConfiguration;
   sounds?: Partial<Record<Device.SoundName, string>>;
 }
