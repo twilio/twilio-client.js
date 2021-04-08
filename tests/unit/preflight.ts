@@ -1,5 +1,6 @@
 import Call from '../../lib/twilio/call';
 import Device from '../../lib/twilio/device';
+import { TwilioError } from '../../lib/twilio/errors';
 import { PreflightTest } from '../../lib/twilio/preflight/preflight';
 import { EventEmitter } from 'events';
 import { SinonFakeTimers } from 'sinon';
@@ -819,7 +820,7 @@ describe('PreflightTest', () => {
       sinon.assert.notCalled(onFailed);
       await clock.tickAsync(1);
       sinon.assert.calledOnce(onFailed);
-      sinon.assert.calledWithExactly(onFailed, { code: 31901, message: "WebSocket - Connection Timeout" });
+      assert.equal((onFailed.args[0][0] as TwilioError).code, 53000);
     });
 
     it('should use timeout param', async () => {
@@ -831,7 +832,7 @@ describe('PreflightTest', () => {
       sinon.assert.notCalled(onFailed);
       await clock.tickAsync(1);
       sinon.assert.calledOnce(onFailed);
-      sinon.assert.calledWithExactly(onFailed, { code: 31901, message: "WebSocket - Connection Timeout" });
+      assert.equal((onFailed.args[0][0] as TwilioError).code, 53000);
     });
 
     it('should emit failed if Device failed to initialized', async () => {
@@ -862,10 +863,7 @@ describe('PreflightTest', () => {
       assert.equal(preflight.status, PreflightTest.Status.Failed);
       sinon.assert.calledOnce(deviceContext.destroy);
       sinon.assert.calledOnce(onFailed);
-      sinon.assert.calledWithExactly(onFailed, {
-        code: 31008,
-        message: 'Call cancelled',
-      });
+      assert.equal((onFailed.args[0][0] as TwilioError).code, 31008);
     });
 
     it(`should emit failed on fatal device errors and destroy device`, async () => {

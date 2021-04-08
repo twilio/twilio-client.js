@@ -7,7 +7,13 @@
 import { EventEmitter } from 'events';
 import Device from './device';
 import DialtonePlayer from './dialtonePlayer';
-import { GeneralErrors, InvalidArgumentError, MediaErrors, TwilioError } from './errors';
+import {
+  GeneralErrors,
+  InvalidArgumentError,
+  MediaErrors,
+  TwilioError,
+  UserMediaErrors,
+} from './errors';
 import Log from './log';
 import { IceCandidate, RTCIceCandidate } from './rtc/icecandidate';
 import RTCSample from './rtc/sample';
@@ -593,14 +599,11 @@ class Call extends EventEmitter {
 
       connect();
     }, (error: Record<string, any>) => {
-      let message;
-      let code;
+      let twilioError;
 
       if (error.code === 31208
         || ['PermissionDeniedError', 'NotAllowedError'].indexOf(error.name) !== -1) {
-        code = 31208;
-        message = 'User denied access to microphone, or the web browser did not allow microphone '
-          + 'access at this address.';
+        twilioError = new UserMediaErrors.PermissionDeniedError();
         this._publisher.error('get-user-media', 'denied', {
           data: {
             audioConstraints,
@@ -608,10 +611,7 @@ class Call extends EventEmitter {
           },
         }, this);
       } else {
-        code = 31201;
-        message = `Error occurred while accessing microphone: ${error.name}${error.message
-          ? ` (${error.message})`
-          : ''}`;
+        twilioError = new UserMediaErrors.AcquisitionFailedError();
 
         this._publisher.error('get-user-media', 'failed', {
           data: {
@@ -622,7 +622,7 @@ class Call extends EventEmitter {
       }
 
       this._disconnect();
-      this.emit('error', { message, code });
+      this.emit('error', twilioError);
     });
   }
 
@@ -1103,11 +1103,7 @@ class Call extends EventEmitter {
       || (type === ConnectionDisconnected && hasLowBytesWarning)
       || isEndOfIceCycle) {
 
-      const mediaReconnectionError = {
-        code: 53405,
-        message: 'Media connection failed.',
-        twilioError: new MediaErrors.ConnectionError(),
-      };
+      const mediaReconnectionError = new MediaErrors.ConnectionError('Media connection failed.');
       this._log.warn('ICE Connection disconnected.');
       this._publisher.warn('connection', 'error', mediaReconnectionError, this);
       this._publisher.info('connection', 'reconnecting', null, this);
@@ -1289,7 +1285,7 @@ namespace Call {
    * @example `call.on('error', error => { })`
    * @event
    */
-  declare function errorEvent(error: Call.Error): void;
+  declare function errorEvent(error: TwilioError): void;
 
   /**
    * Emitted when the {@link Call} is muted or unmuted.
@@ -1411,36 +1407,6 @@ namespace Call {
      * MediaStreamConstraints to pass to getUserMedia when making or accepting a Call.
      */
     rtcConstraints?: MediaStreamConstraints;
-  }
-
-  /**
-   * The error format used by errors emitted from {@link Call}.
-   */
-  export interface Error {
-    /**
-     * Reference to the {@link Call}
-     */
-    call: Call;
-
-    /**
-     * Error code
-     */
-    code: number;
-
-    /**
-     * The info object from rtc/peerconnection. May contain code and message (duplicated here).
-     */
-    info: { code?: number, message?: string };
-
-    /**
-     * Error message
-     */
-    message: string;
-
-    /**
-     * Twilio Voice related error
-     */
-    twilioError?: TwilioError;
   }
 
   /**

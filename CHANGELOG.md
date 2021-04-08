@@ -211,6 +211,13 @@ class TwilioError extends Error {
 }
 ```
 
+#### Affected Error Codes
+With the transition, the following error codes have changed:
+- 31003 -> 53405 | When ICE connection fails
+- 31201 -> 31402 | When getting user media fails
+- 31208 -> 31401 | When user denies access to user media
+- 31901 -> 53000 | When websocket times out in preflight
+
 New Features
 ------------
 

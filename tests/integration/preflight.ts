@@ -4,6 +4,7 @@ import * as assert from 'assert';
 import { EventEmitter } from 'events';
 import { PreflightTest } from '../../lib/twilio/preflight/preflight';
 import Call from '../../lib/twilio/call';
+import { TwilioError } from '../../lib/twilio/errors';
 
 const DURATION_PADDING = 1000;
 const EVENT_TIMEOUT = 30000;
@@ -237,10 +238,7 @@ describe('Preflight Test', function() {
         preflight.stop();
       }, FAIL_DELAY);
       return waitFor(expectEvent('failed', preflight).then(error => {
-        assert.deepEqual(error, {
-          code: 31008,
-          message: 'Call cancelled',
-        });
+        assert.equal((error as TwilioError).code, 31008);
       }), EVENT_TIMEOUT);
     });
 
