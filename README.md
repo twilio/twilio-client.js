@@ -1,4 +1,4 @@
-@twilio/voice-client
+@twilio/voice-client-sdk
 ====================
 
 [![Travis Build Status](https://travis-ci.org/twilio/twilio-client.js.svg?branch=master)](https://travis-ci.org/twilio/twilio-client.js) [![NPM](https://img.shields.io/npm/v/twilio-client.svg)](https://www.npmjs.com/package/twilio-client)
@@ -22,20 +22,20 @@ Installation
 We recommend using `npm` to add the Client SDK as a dependency.
 
 ```
-npm install @twilio/voice-client --save
+npm install @twilio/voice-client-sdk --save
 ```
 
 Using this method, you can `import` the Voice Client SDK using ES Module or TypeScript syntax:
 
 ```js
-import { Device } from '@twilio/voice-client';
+import { Device } from '@twilio/voice-client-sdk';
 
 ```
 
 Or using CommonJS:
 
 ```js
-const Device = require('@twilio/voice-client').Device;
+const Device = require('@twilio/voice-client-sdk').Device;
 ```
 
 ### CDN

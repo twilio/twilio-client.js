@@ -1,5 +1,5 @@
 {
-  "name": "@twilio/voice-client",
+  "name": "@twilio/voice-client-sdk",
   "version": "2.0.0-dev",
   "description": "Twilio Voice Client SDK",
   "main": "./es5/twilio.js",
