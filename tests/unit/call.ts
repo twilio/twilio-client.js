@@ -1825,7 +1825,7 @@ describe('Call', function() {
         });
 
         const rVal = callback.firstCall.args[0];
-        assert.equal(rVal.twilioError.code, 53405);
+        assert.equal(rVal.code, 53405);
       });
 
       it('should publish warning on ICE Gathering timeout', () => {
@@ -1907,7 +1907,7 @@ describe('Call', function() {
       });
 
       const rVal = callback.firstCall.args[0];
-      assert.equal(rVal.twilioError.code, 53405);
+      assert.equal(rVal.code, 53405);
     });
 
     it('should emit reconnected on ice reconnected', () => {

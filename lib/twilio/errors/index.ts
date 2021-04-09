@@ -11,6 +11,7 @@ import {
   MediaErrors,
   SignalingErrors,
   TwilioError,
+  UserMediaErrors,
 } from './generated';
 
 // Application errors that can be avoided by good app logic
@@ -57,4 +58,5 @@ export {
   MediaErrors,
   SignalingErrors,
   TwilioError,
+  UserMediaErrors,
 };

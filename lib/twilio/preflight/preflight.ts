@@ -7,7 +7,12 @@
 import { EventEmitter } from 'events';
 import Call from '../call';
 import Device, { IExtendedDeviceOptions } from '../device';
-import { NotSupportedError } from '../errors';
+import {
+  GeneralErrors,
+  NotSupportedError,
+  SignalingErrors,
+  TwilioError,
+} from '../errors';
 import { RTCSampleTotals } from '../rtc/sample';
 import RTCSample from '../rtc/sample';
 import { getRTCIceCandidateStatsReport } from '../rtc/stats';
@@ -56,7 +61,7 @@ export declare interface PreflightTest {
    * @example `preflight.on('failed', error => console.log(error))`
    * @event
    */
-  failedEvent(error: Device.Error | DOMError): void;
+  failedEvent(error: TwilioError | DOMError): void;
 
   /**
    * Raised when the [[Call]] gets a webrtc sample object. This event is published every second.
@@ -197,10 +202,7 @@ export class PreflightTest extends EventEmitter {
    * Stops the current test and raises a failed event.
    */
   stop(): void {
-    const error: Device.Error = {
-      code: 31008,
-      message: 'Call cancelled',
-    };
+    const error = new GeneralErrors.CallCancelledError();
     if (this._device) {
       this._device.once(Device.EventName.Unregistered, () => this._onFailed(error));
       this._device.destroy();
@@ -357,7 +359,7 @@ export class PreflightTest extends EventEmitter {
         this._onDeviceRegistered();
       });
 
-      this._device.once(Device.EventName.Error, (error: Device.Error) => {
+      this._device.once(Device.EventName.Error, (error: TwilioError) => {
         this._onDeviceError(error);
       });
 
@@ -371,10 +373,7 @@ export class PreflightTest extends EventEmitter {
     }
 
     this._signalingTimeoutTimer = setTimeout(() => {
-      this._onDeviceError({
-        code: 31901,
-        message: 'WebSocket - Connection Timeout',
-      });
+      this._onDeviceError(new SignalingErrors.ConnectionError('WebSocket Connection Timeout'));
     }, options.signalingTimeoutMs);
   }
 
@@ -382,7 +381,7 @@ export class PreflightTest extends EventEmitter {
    * Called on {@link Device} error event
    * @param error
    */
-  private _onDeviceError(error: Device.Error): void {
+  private _onDeviceError(error: TwilioError): void {
     this._device.destroy();
     this._onFailed(error);
   }
@@ -430,7 +429,7 @@ export class PreflightTest extends EventEmitter {
    * Called when there is a fatal error
    * @param error
    */
-  private _onFailed(error: Device.Error | DOMError): void {
+  private _onFailed(error: TwilioError | DOMError): void {
     clearTimeout(this._echoTimer);
     clearTimeout(this._signalingTimeoutTimer);
     this._releaseHandlers();

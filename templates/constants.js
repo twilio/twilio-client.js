@@ -16,6 +16,7 @@ module.exports.USED_ERRORS = [
   'AuthorizationErrors.AccessTokenInvalid',
   'AuthorizationErrors.AuthenticationFailed',
   'ClientErrors.BadRequest',
+  'GeneralErrors.CallCancelledError',
   'GeneralErrors.ConnectionError',
   'GeneralErrors.TransportError',
   'GeneralErrors.UnknownError',
@@ -24,4 +25,6 @@ module.exports.USED_ERRORS = [
   'MediaErrors.ConnectionError',
   'SignalingErrors.ConnectionDisconnected',
   'SignalingErrors.ConnectionError',
+  'UserMediaErrors.PermissionDeniedError',
+  'UserMediaErrors.AcquisitionFailedError',
 ];

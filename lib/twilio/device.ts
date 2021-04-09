@@ -943,7 +943,7 @@ class Device extends EventEmitter {
       this._publisher.info('settings', 'edge', data, call);
     });
 
-    call.addListener('error', (error: Call.Error) => {
+    call.addListener('error', (error: TwilioError) => {
       if (call.status() === 'closed') {
         this._removeCall(call);
       }
@@ -1483,37 +1483,6 @@ namespace Device {
    * Names of all togglable sounds.
    */
   export type ToggleableSound = Device.SoundName.Incoming | Device.SoundName.Outgoing | Device.SoundName.Disconnect;
-
-  /**
-   * The error format used by errors emitted from {@link Device}.
-   */
-  export interface Error {
-    /**
-     * Reference to the {@link Call}
-     * This is usually available if the error is coming from {@link Call}
-     */
-    call?: Call;
-
-    /**
-     * Error code
-     */
-    code: number;
-
-    /**
-     * The info object from rtc/peerconnection or eventpublisher. May contain code and message (duplicated here).
-     */
-    info?: { code?: number, message?: string };
-
-    /**
-     * Error message
-     */
-    message: string;
-
-    /**
-     * Twilio Voice related error
-     */
-    twilioError?: TwilioError;
-  }
 
   /**
    * Options to be passed to {@link Device.connect}.

@@ -119,6 +119,25 @@ export namespace GeneralErrors {
     }
   }
 
+  export class CallCancelledError extends TwilioError {
+    causes: string[] = [
+      'The incoming call was cancelled because it was not answered in time or it was accepted/rejected by another application instance registered with the same identity.',
+    ];
+    code: number = 31008;
+    description: string = 'Call cancelled';
+    explanation: string = 'Unable to answer because the call has ended';
+    solutions: string[] = [];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super(messageOrError, originalError);
+      Object.setPrototypeOf(this, GeneralErrors.CallCancelledError.prototype);
+    }
+  }
+
   export class TransportError extends TwilioError {
     causes: string[] = [];
     code: number = 31009;
@@ -133,6 +152,54 @@ export namespace GeneralErrors {
     constructor(messageOrError?: string | Error, originalError?: Error) {
       super(messageOrError, originalError);
       Object.setPrototypeOf(this, GeneralErrors.TransportError.prototype);
+    }
+  }
+}
+
+export namespace UserMediaErrors {
+  export class PermissionDeniedError extends TwilioError {
+    causes: string[] = [
+      'The user denied the getUserMedia request.',
+      'The browser denied the getUserMedia request.',
+    ];
+    code: number = 31401;
+    description: string = 'UserMedia Permission Denied Error';
+    explanation: string = 'The browser or end-user denied permissions to user media. Therefore we were unable to acquire input audio.';
+    solutions: string[] = [
+      'The user should accept the request next time prompted. If the browser saved the deny, the user should change that permission in their browser.',
+      'The user should to verify that the browser has permission to access the microphone at this address.',
+    ];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super(messageOrError, originalError);
+      Object.setPrototypeOf(this, UserMediaErrors.PermissionDeniedError.prototype);
+    }
+  }
+
+  export class AcquisitionFailedError extends TwilioError {
+    causes: string[] = [
+      'NotFoundError - The deviceID specified was not found.',
+      'The getUserMedia constraints were overconstrained and no devices matched.',
+    ];
+    code: number = 31402;
+    description: string = 'UserMedia Acquisition Failed Error';
+    explanation: string = 'The browser and end-user allowed permissions, however getting the media failed. Usually this is due to bad constraints, but can sometimes fail due to browser, OS or hardware issues.';
+    solutions: string[] = [
+      'Ensure the deviceID being specified exists.',
+      'Try acquiring media with fewer constraints.',
+    ];
+
+    constructor();
+    constructor(message: string);
+    constructor(originalError: Error);
+    constructor(message: string, originalError?: Error);
+    constructor(messageOrError?: string | Error, originalError?: Error) {
+      super(messageOrError, originalError);
+      Object.setPrototypeOf(this, UserMediaErrors.AcquisitionFailedError.prototype);
     }
   }
 }
@@ -258,7 +325,10 @@ export const errorsByCode: ReadonlyMap<number, any> = new Map([
   [ 31400, ClientErrors.BadRequest ],
   [ 31000, GeneralErrors.UnknownError ],
   [ 31005, GeneralErrors.ConnectionError ],
+  [ 31008, GeneralErrors.CallCancelledError ],
   [ 31009, GeneralErrors.TransportError ],
+  [ 31401, UserMediaErrors.PermissionDeniedError ],
+  [ 31402, UserMediaErrors.AcquisitionFailedError ],
   [ 53000, SignalingErrors.ConnectionError ],
   [ 53001, SignalingErrors.ConnectionDisconnected ],
   [ 53400, MediaErrors.ClientLocalDescFailed ],
