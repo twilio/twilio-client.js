@@ -363,8 +363,8 @@ describe('Device', function() {
       describe('.updateOptions()', () => {
         it('should additively set options', () => {
           device.updateOptions({
-            appName: 'foobar',
             allowIncomingWhileBusy: true,
+            appName: 'foobar',
           });
           assert.equal(device['_options'].allowIncomingWhileBusy, true);
           assert.equal(device['_options'].appName, 'foobar');
@@ -939,6 +939,67 @@ describe('Device', function() {
           beforeEach(beforeEachHook);
 
           afterEach(afterEachHook);
+
+          describe('.connect()', () => {
+            it('should throw if the device is destroyed', () => {
+              device.destroy();
+              assert.rejects(() => device.connect());
+            });
+          });
+
+          describe('.destroy()', () => {
+            it('should throw if the device is destroyed', () => {
+              device.destroy();
+              assert.throws(() => device.destroy());
+            });
+
+            it('should set the state to destroyed', () => {
+              device.destroy();
+              assert.equal(device.state, Device.State.Destroyed);
+            });
+
+            it('should not emit an event', () => {
+              const destroyListener = sinon.stub();
+              device.on('destroyed', destroyListener);
+              device.destroy();
+              sinon.assert.notCalled(destroyListener);
+            });
+          });
+
+          describe('.disconnectAll()', () => {
+            it('should throw if the device is destroyed', () => {
+              device.destroy();
+              assert.throws(() => device.disconnectAll());
+            });
+          });
+
+          describe('.register()', () => {
+            it('should throw if the device is destroyed', () => {
+              device.destroy();
+              assert.rejects(() => device.register());
+            });
+          });
+
+          describe('.unregister()', () => {
+            it('should throw if the device is destroyed', () => {
+              device.destroy();
+              assert.rejects(() => device.unregister());
+            });
+          });
+
+          describe('.updateOptions()', () => {
+            it('should throw if the device is destroyed', () => {
+              device.destroy();
+              assert.throws(() => device.updateOptions());
+            });
+          });
+
+          describe('.updateToken()', () => {
+            it('should throw if the device is destroyed', () => {
+              device.destroy();
+              assert.throws(() => device.updateToken(''));
+            });
+          });
 
           describe('._setState(state?)', () => {
             const eventStates: Array<[Device.EventName, Device.State, Device.State]> = [

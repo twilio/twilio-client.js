@@ -409,7 +409,7 @@ class Device extends EventEmitter {
   /**
    * A map from {@link Device.State} to {@link Device.EventName}.
    */
-  private readonly _stateEventMapping: Record<Device.State, Device.EventName> = {
+  private readonly _stateEventMapping: Partial<Record<Device.State, Device.EventName>> = {
     [Device.State.Unregistered]: Device.EventName.Unregistered,
     [Device.State.Registering]: Device.EventName.Registering,
     [Device.State.Registered]: Device.EventName.Registered,
@@ -533,6 +533,8 @@ class Device extends EventEmitter {
    * @param options
    */
   async connect(options: Device.ConnectOptions = { }): Promise<Call> {
+    this._throwIfDestroyed();
+
     if (this._activeCall) {
       throw new InvalidStateError('A Call is already active');
     }
@@ -563,6 +565,8 @@ class Device extends EventEmitter {
    * Destroy the {@link Device}, freeing references to be garbage collected.
    */
   destroy(): void {
+    this._throwIfDestroyed();
+
     this.disconnectAll();
     this._stopRegistrationTimer();
 
@@ -583,12 +587,16 @@ class Device extends EventEmitter {
       window.removeEventListener('unload', this._boundDestroy);
       window.removeEventListener('pagehide', this._boundDestroy);
     }
+
+    this._setState(Device.State.Destroyed);
   }
 
   /**
    * Disconnect all {@link Call}s.
    */
   disconnectAll(): void {
+    this._throwIfDestroyed();
+
     const calls = this._calls.splice(0);
     calls.forEach((call: Call) => call.disconnect());
 
@@ -616,6 +624,8 @@ class Device extends EventEmitter {
    * Register the `Device` to the Twilio backend, allowing it to receive calls.
    */
   async register(): Promise<void> {
+    this._throwIfDestroyed();
+
     if (this.state !== Device.State.Unregistered) {
       this._log.error(
         `Attempt to register when device is in state "${this.state}". ` +
@@ -661,6 +671,8 @@ class Device extends EventEmitter {
    * calls.
    */
   async unregister(): Promise<void> {
+    this._throwIfDestroyed();
+
     if (this.state !== Device.State.Registered) {
       this._log.error(
         `Attempt to unregister when device is in state "${this.state}". ` +
@@ -684,6 +696,8 @@ class Device extends EventEmitter {
    * @param options
    */
   updateOptions(options: Device.Options = { }): void {
+    this._throwIfDestroyed();
+
     this._options = { ...this._defaultOptions, ...this._options, ...options };
 
     const originalChunderURIs: Set<string> = new Set(this._chunderURIs);
@@ -773,6 +787,8 @@ class Device extends EventEmitter {
    * @param token
    */
   updateToken(token: string) {
+    this._throwIfDestroyed();
+
     if (typeof token !== 'string') {
       throw new InvalidArgumentError(INVALID_TOKEN_MESSAGE);
     }
@@ -1185,7 +1201,10 @@ class Device extends EventEmitter {
     }
 
     this._state = state;
-    this.emit(this._stateEventMapping[state]);
+    const event = this._stateEventMapping[state];
+    if (event) {
+      this.emit(event);
+    }
   }
 
   /**
@@ -1330,6 +1349,15 @@ class Device extends EventEmitter {
   }
 
   /**
+   * Throw an error if the {@link Device} is destroyed.
+   */
+  private _throwIfDestroyed(): void {
+    if (this.state === Device.State.Destroyed) {
+      throw new InvalidStateError('Device has been destroyed.');
+    }
+  }
+
+  /**
    * Update the input stream being used for calls so that any current call and all future calls
    * will use the new input stream.
    * @param inputStream
@@ -1453,6 +1481,7 @@ namespace Device {
    * All possible {@link Device} states.
    */
   export enum State {
+    Destroyed = 'destroyed',
     Unregistered = 'unregistered',
     Registering = 'registering',
     Registered = 'registered',
