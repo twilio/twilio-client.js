@@ -205,7 +205,9 @@ export class PreflightTest extends EventEmitter {
     const error = new GeneralErrors.CallCancelledError();
     if (this._device) {
       this._device.once(Device.EventName.Unregistered, () => this._onFailed(error));
-      this._device.destroy();
+      if (this._device.state !== Device.State.Destroyed) {
+        this._device.destroy();
+      }
     } else {
       this._onFailed(error);
     }
@@ -382,7 +384,9 @@ export class PreflightTest extends EventEmitter {
    * @param error
    */
   private _onDeviceError(error: TwilioError): void {
-    this._device.destroy();
+    if (this._device.state !== Device.State.Destroyed) {
+      this._device.destroy();
+    }
     this._onFailed(error);
   }
 
@@ -412,7 +416,9 @@ export class PreflightTest extends EventEmitter {
 
     this._call.once('disconnect', () => {
       this._device.once(Device.EventName.Unregistered, () => this._onUnregistered());
-      this._device.destroy();
+      if (this._device.state !== Device.State.Destroyed) {
+        this._device.destroy();
+      }
     });
 
     const publisher = this._call['_publisher'] as any;
