@@ -409,7 +409,8 @@ class Device extends EventEmitter {
   /**
    * A map from {@link Device.State} to {@link Device.EventName}.
    */
-  private readonly _stateEventMapping: Partial<Record<Device.State, Device.EventName>> = {
+  private readonly _stateEventMapping: Record<Device.State, Device.EventName> = {
+    [Device.State.Destroyed]: Device.EventName.Destroyed,
     [Device.State.Unregistered]: Device.EventName.Unregistered,
     [Device.State.Registering]: Device.EventName.Registering,
     [Device.State.Registered]: Device.EventName.Registered,
@@ -1201,10 +1202,7 @@ class Device extends EventEmitter {
     }
 
     this._state = state;
-    const event = this._stateEventMapping[state];
-    if (event) {
-      this.emit(event);
-    }
+    this.emit(this._stateEventMapping[state]);
   }
 
   /**
@@ -1472,6 +1470,7 @@ namespace Device {
   export enum EventName {
     Error = 'error',
     Incoming = 'incoming',
+    Destroyed = 'destroyed',
     Unregistered = 'unregistered',
     Registering = 'registering',
     Registered = 'registered',

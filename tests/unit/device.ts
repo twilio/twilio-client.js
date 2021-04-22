@@ -958,11 +958,11 @@ describe('Device', function() {
               assert.equal(device.state, Device.State.Destroyed);
             });
 
-            it('should not emit an event', () => {
+            it('should emit an event', () => {
               const destroyListener = sinon.stub();
-              device.on('destroyed', destroyListener);
+              device.on(Device.EventName.Destroyed, destroyListener);
               device.destroy();
-              sinon.assert.notCalled(destroyListener);
+              sinon.assert.calledOnce(destroyListener);
             });
           });
 
