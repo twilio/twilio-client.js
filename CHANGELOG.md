@@ -44,7 +44,7 @@ const interval = setInterval(async () => {
 The Device states have changed. The states were: `[Ready, Busy, Offline]`. These
 have been changed to more accurately and clearly represent the states of the
 Device. There are two changes to Device state:
-1. The states themselves have changed to `[Registered, Registering, Unregistered]`. This
+1. The states themselves have changed to `[Registered, Registering, Unregistered, Destroyed]`. This
 removes the idea of "Busy" from the state, as technically the Device can have an active
 Call whether it is registered or not, depending on the use case. The Device will always
 starty as `Unregistered`. In this state, it can still make outbound Calls. Once `Device.register()`
@@ -52,6 +52,11 @@ has been called, this state will change to `Registering` and finally `Registered
 `Device.unregister()` is called the state will revert to `Unregistered`. If the signaling
 connection is lost, the state will transition to `Registering` or `Unregistered' depending
 on whether or not the connection can be re-established.
+
+The `destroyed` state represents a `Device` that has been "destroyed" by calling
+`Device.destroy`. The device should be considered unusable at this point and a
+new one should be constructed for further use.
+
 2. The busy state has been moved to a boolean, `Device.isBusy`. This is a very basic
 shortcut for the logic `return !!device.activeConnection`.
 
@@ -62,6 +67,7 @@ enum and represent the new Device states:
 
 ```ts
 export enum EventName {
+  Destroyed = 'destroyed',
   Error = 'error',
   Incoming = 'incoming',
   Unregistered = 'unregistered',
@@ -74,6 +80,9 @@ Note that `unregistered`, `registering`, and `registered` have replaced
 `offline` and `ready`. Although frequently used to represent connected or disconnected,
 `ready` and `offline` actually were meant to represent `registered` and `unregistered`,
 which was quite ambiguous and a primary reason for the change.
+
+When the device is destroyed using `Device.destroy`, a `"destroyed"` event will
+be emitted.
 
 ### Device usage changes
 
@@ -88,15 +97,18 @@ new Device(token: string, options?: Device.Options): Device;
 /**
  * Promise resolves when the Device has successfully registered.
  * Replaces Device.registerPresence()
+ * Can reject if the Device is unusable, i.e. "destroyed".
  */
 async Device.register(): Promise<void>;
 /**
  * Promise resolves when the Device has successfully unregistered.
  * Replaces Device.unregisterPresence()
+ * Can reject if the Device is unusable, i.e. "destroyed".
  */
 async Device.unregister(): Promise<void>;
 /**
  * Promise resolves when signaling is established and a Call has been created.
+ * Can reject if the Device is unusable, i.e. "destroyed".
  */
 async Device.connect(options?: Device.ConnectOptions): Promise<Call>;
 ```
@@ -246,6 +258,9 @@ The resulting (non-default) options would now be:
   edge: 'ashburn',
 }
 ```
+
+This function will throw with an `InvalidStateError` if the Device has been
+destroyed beforehand.
 
 ### LogLevel Module
 
