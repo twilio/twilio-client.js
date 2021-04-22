@@ -410,6 +410,7 @@ class Device extends EventEmitter {
    * A map from {@link Device.State} to {@link Device.EventName}.
    */
   private readonly _stateEventMapping: Record<Device.State, Device.EventName> = {
+    [Device.State.Destroyed]: Device.EventName.Destroyed,
     [Device.State.Unregistered]: Device.EventName.Unregistered,
     [Device.State.Registering]: Device.EventName.Registering,
     [Device.State.Registered]: Device.EventName.Registered,
@@ -533,6 +534,8 @@ class Device extends EventEmitter {
    * @param options
    */
   async connect(options: Device.ConnectOptions = { }): Promise<Call> {
+    this._throwIfDestroyed();
+
     if (this._activeCall) {
       throw new InvalidStateError('A Call is already active');
     }
@@ -583,6 +586,8 @@ class Device extends EventEmitter {
       window.removeEventListener('unload', this._boundDestroy);
       window.removeEventListener('pagehide', this._boundDestroy);
     }
+
+    this._setState(Device.State.Destroyed);
   }
 
   /**
@@ -617,11 +622,10 @@ class Device extends EventEmitter {
    */
   async register(): Promise<void> {
     if (this.state !== Device.State.Unregistered) {
-      this._log.error(
+      throw new InvalidStateError(
         `Attempt to register when device is in state "${this.state}". ` +
         `Must be "${Device.State.Unregistered}".`,
       );
-      return;
     }
 
     this._setState(Device.State.Registering);
@@ -662,11 +666,10 @@ class Device extends EventEmitter {
    */
   async unregister(): Promise<void> {
     if (this.state !== Device.State.Registered) {
-      this._log.error(
+      throw new InvalidStateError(
         `Attempt to unregister when device is in state "${this.state}". ` +
         `Must be "${Device.State.Registered}".`,
       );
-      return;
     }
 
     this._shouldReRegister = false;
@@ -684,6 +687,12 @@ class Device extends EventEmitter {
    * @param options
    */
   updateOptions(options: Device.Options = { }): void {
+    if (this.state === Device.State.Destroyed) {
+      throw new InvalidStateError(
+        `Attempt to "updateOptions" when device is in state "${this.state}".`,
+      );
+    }
+
     this._options = { ...this._defaultOptions, ...this._options, ...options };
 
     const originalChunderURIs: Set<string> = new Set(this._chunderURIs);
@@ -773,6 +782,12 @@ class Device extends EventEmitter {
    * @param token
    */
   updateToken(token: string) {
+    if (this.state === Device.State.Destroyed) {
+      throw new InvalidStateError(
+        `Attempt to "updateToken" when device is in state "${this.state}".`,
+      );
+    }
+
     if (typeof token !== 'string') {
       throw new InvalidArgumentError(INVALID_TOKEN_MESSAGE);
     }
@@ -1330,6 +1345,15 @@ class Device extends EventEmitter {
   }
 
   /**
+   * Throw an error if the {@link Device} is destroyed.
+   */
+  private _throwIfDestroyed(): void {
+    if (this.state === Device.State.Destroyed) {
+      throw new InvalidStateError('Device has been destroyed.');
+    }
+  }
+
+  /**
    * Update the input stream being used for calls so that any current call and all future calls
    * will use the new input stream.
    * @param inputStream
@@ -1444,6 +1468,7 @@ namespace Device {
   export enum EventName {
     Error = 'error',
     Incoming = 'incoming',
+    Destroyed = 'destroyed',
     Unregistered = 'unregistered',
     Registering = 'registering',
     Registered = 'registered',
@@ -1453,6 +1478,7 @@ namespace Device {
    * All possible {@link Device} states.
    */
   export enum State {
+    Destroyed = 'destroyed',
     Unregistered = 'unregistered',
     Registering = 'registering',
     Registered = 'registered',

@@ -9,7 +9,7 @@ function waitFor(n: number, reject?: boolean) {
 }
 
 describe('mutable options', function() {
-  let device: Device;
+  let device: Device | null = null;
   let token: string;
 
   beforeEach(() => {
@@ -21,24 +21,25 @@ describe('mutable options', function() {
     if (device) {
       device.disconnectAll();
       device.destroy();
+      device = null;
     }
   });
 
   it('should update edge', async function() {
     this.timeout(10000);
 
-    device = new Device(token, { edge: 'sydney' });
+    const dev = device = new Device(token, { edge: 'sydney' });
 
-    await device.register();
-    assert.equal(device.edge, 'sydney');
+    await dev.register();
+    assert.equal(dev.edge, 'sydney');
 
-    device.updateOptions({ edge: 'ashburn' });
+    dev.updateOptions({ edge: 'ashburn' });
     return new Promise((resolve, reject) => {
-      device.once('registered', () => {
-        if (device.edge === 'ashburn') {
+      dev.once('registered', () => {
+        if (dev.edge === 'ashburn') {
           resolve();
         } else {
-          reject(new Error('Expected ashburn, got ' + device.edge));
+          reject(new Error('Expected ashburn, got ' + dev.edge));
         }
       });
     });
@@ -98,7 +99,7 @@ describe('mutable options', function() {
 
       try {
         caller.updateOptions({ edge: 'ashburn' });
-      } catch(e) {
+      } catch (e) {
         assert.equal(e.message, 'Cannot change Edge while on an active Call');
       }
     });
