@@ -15,10 +15,10 @@ describe('Preflight Test', function() {
 
   let callerIdentity: string;
   let callerToken: string;
-  let callerDevice: Device | null = null;
+  let callerDevice: Device;
   let callerCall: Call;
   let receiverIdentity: string;
-  let receiverDevice: Device | null = null;
+  let receiverDevice: Device;
   let preflight: PreflightTest;
 
   const expectEvent = (eventName: string, emitter: EventEmitter) => {
@@ -47,23 +47,21 @@ describe('Preflight Test', function() {
   };
 
   const destroyDevices = () => {
-    if (callerDevice && callerDevice.state !== Device.State.Destroyed) {
+    if (callerDevice) {
       callerDevice.disconnectAll();
       callerDevice.destroy();
-      callerDevice = null;
     }
 
-    if (receiverDevice && receiverDevice.state !== Device.State.Destroyed) {
+    if (receiverDevice) {
       receiverDevice.disconnectAll();
       receiverDevice.destroy();
-      receiverDevice = null;
     }
   };
 
   describe('when test finishes', function() {
     before(async () => {
       await setupDevices();
-      receiverDevice!.on('incoming', (call: Call) => {
+      receiverDevice.on('incoming', (call: Call) => {
         call.accept();
       });
       preflight = Device.runPreflight(callerToken);
@@ -94,7 +92,7 @@ describe('Preflight Test', function() {
     });
 
     it('should set default codePreferences', () => {
-      assert.deepEqual(callerDevice!['_options'].codecPreferences, [Call.Codec.PCMU, Call.Codec.Opus]);
+      assert.deepEqual(callerDevice['_options'].codecPreferences, [Call.Codec.PCMU, Call.Codec.Opus]);
     });
 
     it('should emit warning event', () => {
@@ -118,7 +116,7 @@ describe('Preflight Test', function() {
     });
 
     it('should emit completed event', () => {
-      setTimeout(() => receiverDevice!.disconnectAll(), 20000);
+      setTimeout(() => receiverDevice.disconnectAll(), 20000);
       return waitFor(expectEvent('completed', preflight).then((report: PreflightTest.Report) => {
         assert(!!report);
         assert(!!report.callSid);
@@ -142,7 +140,7 @@ describe('Preflight Test', function() {
   describe('when using non-default codec options', () => {
     before(async () => {
       await setupDevices();
-      receiverDevice!.on('incoming', (call: Call) => {
+      receiverDevice.on('incoming', (call: Call) => {
         call.accept();
       });
       preflight = Device.runPreflight(callerToken, {
@@ -163,7 +161,7 @@ describe('Preflight Test', function() {
     });
 
     it('should use codecPreferences passed in', () => {
-      assert.deepEqual(callerDevice!['_options'].codecPreferences, [Call.Codec.PCMU]);
+      assert.deepEqual(callerDevice['_options'].codecPreferences, [Call.Codec.PCMU]);
     });
   });
 
@@ -178,7 +176,7 @@ describe('Preflight Test', function() {
 
         before(async () => {
           await setupDevices();
-          receiverDevice!.on('incoming', (call: Call) => {
+          receiverDevice.on('incoming', (call: Call) => {
             call.accept();
           });
           preflight = Device.runPreflight(callerToken, {
@@ -195,7 +193,7 @@ describe('Preflight Test', function() {
             return (callerDevice as any).connectOverride({ params: { To: receiverIdentity } });
           };
 
-          setTimeout(() => receiverDevice!.disconnectAll(), 5000);
+          setTimeout(() => receiverDevice.disconnectAll(), 5000);
           report = await waitForReport;
         });
 
@@ -215,7 +213,7 @@ describe('Preflight Test', function() {
     const FAIL_DELAY = 1000;
     before(async () => {
       await setupDevices();
-      receiverDevice!.on('incoming', (call: Call) => {
+      receiverDevice.on('incoming', (call: Call) => {
         call.accept();
       });
       preflight = Device.runPreflight(callerToken);
@@ -263,7 +261,7 @@ describe('Preflight Test', function() {
       describe(`code: ${error.code}`, () => {
         before(async () => {
           await setupDevices();
-          receiverDevice!.on('incoming', (call: Call) => {
+          receiverDevice.on('incoming', (call: Call) => {
             call.accept();
           });
           preflight = Device.runPreflight(callerToken);
@@ -285,7 +283,7 @@ describe('Preflight Test', function() {
 
         it('should emit failed event on fatal error', () => {
           setTimeout(() => {
-            callerDevice!.emit('error', error);
+            callerDevice.emit('error', error);
           }, FAIL_DELAY);
           return waitFor(expectEvent('failed', preflight).then(emittedError => {
             assert.equal(emittedError, error);

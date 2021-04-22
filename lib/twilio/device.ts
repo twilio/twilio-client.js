@@ -566,8 +566,6 @@ class Device extends EventEmitter {
    * Destroy the {@link Device}, freeing references to be garbage collected.
    */
   destroy(): void {
-    this._throwIfDestroyed();
-
     this.disconnectAll();
     this._stopRegistrationTimer();
 
@@ -596,8 +594,6 @@ class Device extends EventEmitter {
    * Disconnect all {@link Call}s.
    */
   disconnectAll(): void {
-    this._throwIfDestroyed();
-
     const calls = this._calls.splice(0);
     calls.forEach((call: Call) => call.disconnect());
 
@@ -625,14 +621,11 @@ class Device extends EventEmitter {
    * Register the `Device` to the Twilio backend, allowing it to receive calls.
    */
   async register(): Promise<void> {
-    this._throwIfDestroyed();
-
     if (this.state !== Device.State.Unregistered) {
-      this._log.error(
+      throw new InvalidStateError(
         `Attempt to register when device is in state "${this.state}". ` +
         `Must be "${Device.State.Unregistered}".`,
       );
-      return;
     }
 
     this._setState(Device.State.Registering);
@@ -672,14 +665,11 @@ class Device extends EventEmitter {
    * calls.
    */
   async unregister(): Promise<void> {
-    this._throwIfDestroyed();
-
     if (this.state !== Device.State.Registered) {
-      this._log.error(
+      throw new InvalidStateError(
         `Attempt to unregister when device is in state "${this.state}". ` +
         `Must be "${Device.State.Registered}".`,
       );
-      return;
     }
 
     this._shouldReRegister = false;
@@ -697,7 +687,11 @@ class Device extends EventEmitter {
    * @param options
    */
   updateOptions(options: Device.Options = { }): void {
-    this._throwIfDestroyed();
+    if (this.state === Device.State.Destroyed) {
+      throw new InvalidStateError(
+        `Attempt to "updateOptions" when device is in state "${this.state}".`,
+      );
+    }
 
     this._options = { ...this._defaultOptions, ...this._options, ...options };
 
@@ -788,7 +782,11 @@ class Device extends EventEmitter {
    * @param token
    */
   updateToken(token: string) {
-    this._throwIfDestroyed();
+    if (this.state === Device.State.Destroyed) {
+      throw new InvalidStateError(
+        `Attempt to "updateToken" when device is in state "${this.state}".`,
+      );
+    }
 
     if (typeof token !== 'string') {
       throw new InvalidArgumentError(INVALID_TOKEN_MESSAGE);

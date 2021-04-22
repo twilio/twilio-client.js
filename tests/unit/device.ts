@@ -948,11 +948,6 @@ describe('Device', function() {
           });
 
           describe('.destroy()', () => {
-            it('should throw if the device is destroyed', () => {
-              device.destroy();
-              assert.throws(() => device.destroy());
-            });
-
             it('should set the state to destroyed', () => {
               device.destroy();
               assert.equal(device.state, Device.State.Destroyed);
@@ -963,13 +958,6 @@ describe('Device', function() {
               device.on(Device.EventName.Destroyed, destroyListener);
               device.destroy();
               sinon.assert.calledOnce(destroyListener);
-            });
-          });
-
-          describe('.disconnectAll()', () => {
-            it('should throw if the device is destroyed', () => {
-              device.destroy();
-              assert.throws(() => device.disconnectAll());
             });
           });
 
