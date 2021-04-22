@@ -1040,7 +1040,7 @@ class Device extends EventEmitter {
     const { code } = error;
     let { twilioError } = error;
 
-    if (!twilioError && typeof code === 'number') {
+    if (typeof code === 'number') {
       if (code === 31201) {
         twilioError = new AuthorizationErrors.AuthenticationFailed();
       } else if (code === 31204) {
