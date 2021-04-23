@@ -193,6 +193,7 @@ var Device = /** @class */ (function (_super) {
          * A map from {@link Device.State} to {@link Device.EventName}.
          */
         _this._stateEventMapping = (_b = {},
+            _b[Device.State.Destroyed] = Device.EventName.Destroyed,
             _b[Device.State.Unregistered] = Device.EventName.Unregistered,
             _b[Device.State.Registering] = Device.EventName.Registering,
             _b[Device.State.Registered] = Device.EventName.Registered,
@@ -268,7 +269,7 @@ var Device = /** @class */ (function (_super) {
             var call = (typeof callsid === 'string' && _this._findCall(callsid)) || undefined;
             var code = error.code;
             var twilioError = error.twilioError;
-            if (!twilioError && typeof code === 'number') {
+            if (typeof code === 'number') {
                 if (code === 31201) {
                     twilioError = new errors_1.AuthorizationErrors.AuthenticationFailed();
                 }
@@ -578,6 +579,7 @@ var Device = /** @class */ (function (_super) {
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
+                        this._throwIfDestroyed();
                         if (this._activeCall) {
                             throw new errors_1.InvalidStateError('A Call is already active');
                         }
@@ -628,6 +630,7 @@ var Device = /** @class */ (function (_super) {
             window.removeEventListener('unload', this._boundDestroy);
             window.removeEventListener('pagehide', this._boundDestroy);
         }
+        this._setState(Device.State.Destroyed);
     };
     /**
      * Disconnect all {@link Call}s.
@@ -671,9 +674,8 @@ var Device = /** @class */ (function (_super) {
                 switch (_a.label) {
                     case 0:
                         if (this.state !== Device.State.Unregistered) {
-                            this._log.error("Attempt to register when device is in state \"" + this.state + "\". " +
+                            throw new errors_1.InvalidStateError("Attempt to register when device is in state \"" + this.state + "\". " +
                                 ("Must be \"" + Device.State.Unregistered + "\"."));
-                            return [2 /*return*/];
                         }
                         this._setState(Device.State.Registering);
                         return [4 /*yield*/, (this._streamConnectedPromise || this._setupStream())];
@@ -731,9 +733,8 @@ var Device = /** @class */ (function (_super) {
                 switch (_a.label) {
                     case 0:
                         if (this.state !== Device.State.Registered) {
-                            this._log.error("Attempt to unregister when device is in state \"" + this.state + "\". " +
+                            throw new errors_1.InvalidStateError("Attempt to unregister when device is in state \"" + this.state + "\". " +
                                 ("Must be \"" + Device.State.Registered + "\"."));
-                            return [2 /*return*/];
                         }
                         this._shouldReRegister = false;
                         return [4 /*yield*/, this._streamConnectedPromise];
@@ -760,6 +761,9 @@ var Device = /** @class */ (function (_super) {
     Device.prototype.updateOptions = function (options) {
         var _this = this;
         if (options === void 0) { options = {}; }
+        if (this.state === Device.State.Destroyed) {
+            throw new errors_1.InvalidStateError("Attempt to \"updateOptions\" when device is in state \"" + this.state + "\".");
+        }
         this._options = __assign(__assign(__assign({}, this._defaultOptions), this._options), options);
         var originalChunderURIs = new Set(this._chunderURIs);
         var chunderw = typeof this._options.chunderw === 'string'
@@ -832,6 +836,9 @@ var Device = /** @class */ (function (_super) {
      * @param token
      */
     Device.prototype.updateToken = function (token) {
+        if (this.state === Device.State.Destroyed) {
+            throw new errors_1.InvalidStateError("Attempt to \"updateToken\" when device is in state \"" + this.state + "\".");
+        }
         if (typeof token !== 'string') {
             throw new errors_1.InvalidArgumentError(INVALID_TOKEN_MESSAGE);
         }
@@ -1186,6 +1193,14 @@ var Device = /** @class */ (function (_super) {
         }
     };
     /**
+     * Throw an error if the {@link Device} is destroyed.
+     */
+    Device.prototype._throwIfDestroyed = function () {
+        if (this.state === Device.State.Destroyed) {
+            throw new errors_1.InvalidStateError('Device has been destroyed.');
+        }
+    };
+    /**
      * Update the device IDs of output devices being used to play the incoming ringtone through.
      * @param sinkIds - An array of device IDs
      */
@@ -1234,6 +1249,7 @@ var Device = /** @class */ (function (_super) {
     (function (EventName) {
         EventName["Error"] = "error";
         EventName["Incoming"] = "incoming";
+        EventName["Destroyed"] = "destroyed";
         EventName["Unregistered"] = "unregistered";
         EventName["Registering"] = "registering";
         EventName["Registered"] = "registered";
@@ -1243,6 +1259,7 @@ var Device = /** @class */ (function (_super) {
      */
     var State;
     (function (State) {
+        State["Destroyed"] = "destroyed";
         State["Unregistered"] = "unregistered";
         State["Registering"] = "registering";
         State["Registered"] = "registered";

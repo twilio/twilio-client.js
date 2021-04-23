@@ -1,4 +1,4 @@
-/*! @twilio/voice-client-sdk.js 2.0.0-rc1
+/*! @twilio/voice-client-sdk.js 2.0.0-rc2
 
 The following license applies to all parts of this software except as
 documented below.
@@ -1875,7 +1875,7 @@ exports.default = Call;
  * This file is generated on build. To make changes, see /templates/constants.js
  */
 var PACKAGE_NAME = '@twilio/voice-client-sdk';
-var RELEASE_VERSION = '2.0.0-rc1';
+var RELEASE_VERSION = '2.0.0-rc2';
 var SOUNDS_BASE_URL = 'https://sdk.twilio.com/js/client/sounds/releases/1.0.0';
 module.exports.COWBELL_AUDIO_URL = SOUNDS_BASE_URL + "/cowbell.mp3?cache=" + RELEASE_VERSION;
 module.exports.ECHO_TEST_DURATION = 20000;
@@ -2147,6 +2147,7 @@ var Device = /** @class */ (function (_super) {
          * A map from {@link Device.State} to {@link Device.EventName}.
          */
         _this._stateEventMapping = (_b = {},
+            _b[Device.State.Destroyed] = Device.EventName.Destroyed,
             _b[Device.State.Unregistered] = Device.EventName.Unregistered,
             _b[Device.State.Registering] = Device.EventName.Registering,
             _b[Device.State.Registered] = Device.EventName.Registered,
@@ -2222,7 +2223,7 @@ var Device = /** @class */ (function (_super) {
             var call = (typeof callsid === 'string' && _this._findCall(callsid)) || undefined;
             var code = error.code;
             var twilioError = error.twilioError;
-            if (!twilioError && typeof code === 'number') {
+            if (typeof code === 'number') {
                 if (code === 31201) {
                     twilioError = new errors_1.AuthorizationErrors.AuthenticationFailed();
                 }
@@ -2532,6 +2533,7 @@ var Device = /** @class */ (function (_super) {
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
+                        this._throwIfDestroyed();
                         if (this._activeCall) {
                             throw new errors_1.InvalidStateError('A Call is already active');
                         }
@@ -2582,6 +2584,7 @@ var Device = /** @class */ (function (_super) {
             window.removeEventListener('unload', this._boundDestroy);
             window.removeEventListener('pagehide', this._boundDestroy);
         }
+        this._setState(Device.State.Destroyed);
     };
     /**
      * Disconnect all {@link Call}s.
@@ -2625,9 +2628,8 @@ var Device = /** @class */ (function (_super) {
                 switch (_a.label) {
                     case 0:
                         if (this.state !== Device.State.Unregistered) {
-                            this._log.error("Attempt to register when device is in state \"" + this.state + "\". " +
+                            throw new errors_1.InvalidStateError("Attempt to register when device is in state \"" + this.state + "\". " +
                                 ("Must be \"" + Device.State.Unregistered + "\"."));
-                            return [2 /*return*/];
                         }
                         this._setState(Device.State.Registering);
                         return [4 /*yield*/, (this._streamConnectedPromise || this._setupStream())];
@@ -2685,9 +2687,8 @@ var Device = /** @class */ (function (_super) {
                 switch (_a.label) {
                     case 0:
                         if (this.state !== Device.State.Registered) {
-                            this._log.error("Attempt to unregister when device is in state \"" + this.state + "\". " +
+                            throw new errors_1.InvalidStateError("Attempt to unregister when device is in state \"" + this.state + "\". " +
                                 ("Must be \"" + Device.State.Registered + "\"."));
-                            return [2 /*return*/];
                         }
                         this._shouldReRegister = false;
                         return [4 /*yield*/, this._streamConnectedPromise];
@@ -2714,6 +2715,9 @@ var Device = /** @class */ (function (_super) {
     Device.prototype.updateOptions = function (options) {
         var _this = this;
         if (options === void 0) { options = {}; }
+        if (this.state === Device.State.Destroyed) {
+            throw new errors_1.InvalidStateError("Attempt to \"updateOptions\" when device is in state \"" + this.state + "\".");
+        }
         this._options = __assign(__assign(__assign({}, this._defaultOptions), this._options), options);
         var originalChunderURIs = new Set(this._chunderURIs);
         var chunderw = typeof this._options.chunderw === 'string'
@@ -2786,6 +2790,9 @@ var Device = /** @class */ (function (_super) {
      * @param token
      */
     Device.prototype.updateToken = function (token) {
+        if (this.state === Device.State.Destroyed) {
+            throw new errors_1.InvalidStateError("Attempt to \"updateToken\" when device is in state \"" + this.state + "\".");
+        }
         if (typeof token !== 'string') {
             throw new errors_1.InvalidArgumentError(INVALID_TOKEN_MESSAGE);
         }
@@ -3140,6 +3147,14 @@ var Device = /** @class */ (function (_super) {
         }
     };
     /**
+     * Throw an error if the {@link Device} is destroyed.
+     */
+    Device.prototype._throwIfDestroyed = function () {
+        if (this.state === Device.State.Destroyed) {
+            throw new errors_1.InvalidStateError('Device has been destroyed.');
+        }
+    };
+    /**
      * Update the device IDs of output devices being used to play the incoming ringtone through.
      * @param sinkIds - An array of device IDs
      */
@@ -3188,6 +3203,7 @@ var Device = /** @class */ (function (_super) {
     (function (EventName) {
         EventName["Error"] = "error";
         EventName["Incoming"] = "incoming";
+        EventName["Destroyed"] = "destroyed";
         EventName["Unregistered"] = "unregistered";
         EventName["Registering"] = "registering";
         EventName["Registered"] = "registered";
@@ -3197,6 +3213,7 @@ var Device = /** @class */ (function (_super) {
      */
     var State;
     (function (State) {
+        State["Destroyed"] = "destroyed";
         State["Unregistered"] = "unregistered";
         State["Registering"] = "registering";
         State["Registered"] = "registered";
@@ -7254,7 +7271,7 @@ PeerConnection.enabled = RTCPC.test();
 
 module.exports = PeerConnection;
 },{"../errors":12,"../log":15,"../util":35,"./rtcpc":27,"./sdp":28}],27:[function(require,module,exports){
-(function (global){
+(function (global){(function (){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -7451,7 +7468,7 @@ function promisifySet(fn, ctx) {
 }
 
 module.exports = RTCPC;
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"../log":15,"../util":35,"./sdp":28,"rtcpeerconnection-shim":56}],28:[function(require,module,exports){
 'use strict';
 
@@ -8805,7 +8822,7 @@ var StatsMonitor = /** @class */ (function (_super) {
 exports.default = StatsMonitor;
 
 },{"./errors":12,"./rtc/mos":25,"./rtc/stats":29,"./util":35,"events":48}],35:[function(require,module,exports){
-(function (global){
+(function (global){(function (){
 /**
  * Exception class.
  * @class
@@ -8940,7 +8957,7 @@ exports.isUnifiedPlanDefault = isUnifiedPlanDefault;
 exports.queryToJson = queryToJson;
 exports.flatMap = flatMap;
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],36:[function(require,module,exports){
 "use strict";
 /**
@@ -13892,7 +13909,7 @@ module.exports = function(window, edgeVersion) {
 };
 
 },{"sdp":57}],57:[function(require,module,exports){
- /* eslint-env node */
+/* eslint-env node */
 'use strict';
 
 // SDP helpers.
@@ -14072,8 +14089,8 @@ SDPUtils.parseExtmap = function(line) {
 SDPUtils.writeExtmap = function(headerExtension) {
   return 'a=extmap:' + (headerExtension.id || headerExtension.preferredId) +
       (headerExtension.direction && headerExtension.direction !== 'sendrecv'
-          ? '/' + headerExtension.direction
-          : '') +
+        ? '/' + headerExtension.direction
+        : '') +
       ' ' + headerExtension.uri + '\r\n';
 };
 
@@ -14188,7 +14205,7 @@ SDPUtils.parseFingerprint = function(line) {
 //   get the fingerprint line as input. See also getIceParameters.
 SDPUtils.getDtlsParameters = function(mediaSection, sessionpart) {
   var lines = SDPUtils.matchPrefix(mediaSection + sessionpart,
-      'a=fingerprint:');
+    'a=fingerprint:');
   // Note: a=setup line is ignored since we use the 'auto' role.
   // Note2: 'algorithm' is not case sensitive except in Edge.
   return {
@@ -14205,22 +14222,76 @@ SDPUtils.writeDtlsParameters = function(params, setupType) {
   });
   return sdp;
 };
+
+// Parses a=crypto lines into
+//   https://rawgit.com/aboba/edgertc/master/msortc-rs4.html#dictionary-rtcsrtpsdesparameters-members
+SDPUtils.parseCryptoLine = function(line) {
+  var parts = line.substr(9).split(' ');
+  return {
+    tag: parseInt(parts[0], 10),
+    cryptoSuite: parts[1],
+    keyParams: parts[2],
+    sessionParams: parts.slice(3),
+  };
+};
+
+SDPUtils.writeCryptoLine = function(parameters) {
+  return 'a=crypto:' + parameters.tag + ' ' +
+    parameters.cryptoSuite + ' ' +
+    (typeof parameters.keyParams === 'object'
+      ? SDPUtils.writeCryptoKeyParams(parameters.keyParams)
+      : parameters.keyParams) +
+    (parameters.sessionParams ? ' ' + parameters.sessionParams.join(' ') : '') +
+    '\r\n';
+};
+
+// Parses the crypto key parameters into
+//   https://rawgit.com/aboba/edgertc/master/msortc-rs4.html#rtcsrtpkeyparam*
+SDPUtils.parseCryptoKeyParams = function(keyParams) {
+  if (keyParams.indexOf('inline:') !== 0) {
+    return null;
+  }
+  var parts = keyParams.substr(7).split('|');
+  return {
+    keyMethod: 'inline',
+    keySalt: parts[0],
+    lifeTime: parts[1],
+    mkiValue: parts[2] ? parts[2].split(':')[0] : undefined,
+    mkiLength: parts[2] ? parts[2].split(':')[1] : undefined,
+  };
+};
+
+SDPUtils.writeCryptoKeyParams = function(keyParams) {
+  return keyParams.keyMethod + ':'
+    + keyParams.keySalt +
+    (keyParams.lifeTime ? '|' + keyParams.lifeTime : '') +
+    (keyParams.mkiValue && keyParams.mkiLength
+      ? '|' + keyParams.mkiValue + ':' + keyParams.mkiLength
+      : '');
+};
+
+// Extracts all SDES paramters.
+SDPUtils.getCryptoParameters = function(mediaSection, sessionpart) {
+  var lines = SDPUtils.matchPrefix(mediaSection + sessionpart,
+    'a=crypto:');
+  return lines.map(SDPUtils.parseCryptoLine);
+};
+
 // Parses ICE information from SDP media section or sessionpart.
 // FIXME: for consistency with other functions this should only
 //   get the ice-ufrag and ice-pwd lines as input.
 SDPUtils.getIceParameters = function(mediaSection, sessionpart) {
-  var lines = SDPUtils.splitLines(mediaSection);
-  // Search in session part, too.
-  lines = lines.concat(SDPUtils.splitLines(sessionpart));
-  var iceParameters = {
-    usernameFragment: lines.filter(function(line) {
-      return line.indexOf('a=ice-ufrag:') === 0;
-    })[0].substr(12),
-    password: lines.filter(function(line) {
-      return line.indexOf('a=ice-pwd:') === 0;
-    })[0].substr(10)
+  var ufrag = SDPUtils.matchPrefix(mediaSection + sessionpart,
+    'a=ice-ufrag:')[0];
+  var pwd = SDPUtils.matchPrefix(mediaSection + sessionpart,
+    'a=ice-pwd:')[0];
+  if (!(ufrag && pwd)) {
+    return null;
+  }
+  return {
+    usernameFragment: ufrag.substr(12),
+    password: pwd.substr(10),
   };
-  return iceParameters;
 };
 
 // Serializes ICE parameters to SDP.
@@ -14242,15 +14313,15 @@ SDPUtils.parseRtpParameters = function(mediaSection) {
   for (var i = 3; i < mline.length; i++) { // find all codecs from mline[3..]
     var pt = mline[i];
     var rtpmapline = SDPUtils.matchPrefix(
-        mediaSection, 'a=rtpmap:' + pt + ' ')[0];
+      mediaSection, 'a=rtpmap:' + pt + ' ')[0];
     if (rtpmapline) {
       var codec = SDPUtils.parseRtpMap(rtpmapline);
       var fmtps = SDPUtils.matchPrefix(
-          mediaSection, 'a=fmtp:' + pt + ' ');
+        mediaSection, 'a=fmtp:' + pt + ' ');
       // Only the first a=fmtp:<pt> is considered.
       codec.parameters = fmtps.length ? SDPUtils.parseFmtp(fmtps[0]) : {};
       codec.rtcpFeedback = SDPUtils.matchPrefix(
-          mediaSection, 'a=rtcp-fb:' + pt + ' ')
+        mediaSection, 'a=rtcp-fb:' + pt + ' ')
         .map(SDPUtils.parseRtcpFb);
       description.codecs.push(codec);
       // parse FEC mechanisms from rtpmap lines.
@@ -14326,22 +14397,22 @@ SDPUtils.parseRtpEncodingParameters = function(mediaSection) {
 
   // filter a=ssrc:... cname:, ignore PlanB-msid
   var ssrcs = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
-  .map(function(line) {
-    return SDPUtils.parseSsrcMedia(line);
-  })
-  .filter(function(parts) {
-    return parts.attribute === 'cname';
-  });
+    .map(function(line) {
+      return SDPUtils.parseSsrcMedia(line);
+    })
+    .filter(function(parts) {
+      return parts.attribute === 'cname';
+    });
   var primarySsrc = ssrcs.length > 0 && ssrcs[0].ssrc;
   var secondarySsrc;
 
   var flows = SDPUtils.matchPrefix(mediaSection, 'a=ssrc-group:FID')
-  .map(function(line) {
-    var parts = line.substr(17).split(' ');
-    return parts.map(function(part) {
-      return parseInt(part, 10);
+    .map(function(line) {
+      var parts = line.substr(17).split(' ');
+      return parts.map(function(part) {
+        return parseInt(part, 10);
+      });
     });
-  });
   if (flows.length > 0 && flows[0].length > 1 && flows[0][0] === primarySsrc) {
     secondarySsrc = flows[0][1];
   }
@@ -14398,12 +14469,12 @@ SDPUtils.parseRtcpParameters = function(mediaSection) {
   // Gets the first SSRC. Note tha with RTX there might be multiple
   // SSRCs.
   var remoteSsrc = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
-      .map(function(line) {
-        return SDPUtils.parseSsrcMedia(line);
-      })
-      .filter(function(obj) {
-        return obj.attribute === 'cname';
-      })[0];
+    .map(function(line) {
+      return SDPUtils.parseSsrcMedia(line);
+    })
+    .filter(function(obj) {
+      return obj.attribute === 'cname';
+    })[0];
   if (remoteSsrc) {
     rtcpParameters.cname = remoteSsrc.value;
     rtcpParameters.ssrc = remoteSsrc.ssrc;
@@ -14433,16 +14504,76 @@ SDPUtils.parseMsid = function(mediaSection) {
     return {stream: parts[0], track: parts[1]};
   }
   var planB = SDPUtils.matchPrefix(mediaSection, 'a=ssrc:')
-  .map(function(line) {
-    return SDPUtils.parseSsrcMedia(line);
-  })
-  .filter(function(msidParts) {
-    return msidParts.attribute === 'msid';
-  });
+    .map(function(line) {
+      return SDPUtils.parseSsrcMedia(line);
+    })
+    .filter(function(msidParts) {
+      return msidParts.attribute === 'msid';
+    });
   if (planB.length > 0) {
     parts = planB[0].value.split(' ');
     return {stream: parts[0], track: parts[1]};
   }
+};
+
+// SCTP
+// parses draft-ietf-mmusic-sctp-sdp-26 first and falls back
+// to draft-ietf-mmusic-sctp-sdp-05
+SDPUtils.parseSctpDescription = function(mediaSection) {
+  var mline = SDPUtils.parseMLine(mediaSection);
+  var maxSizeLine = SDPUtils.matchPrefix(mediaSection, 'a=max-message-size:');
+  var maxMessageSize;
+  if (maxSizeLine.length > 0) {
+    maxMessageSize = parseInt(maxSizeLine[0].substr(19), 10);
+  }
+  if (isNaN(maxMessageSize)) {
+    maxMessageSize = 65536;
+  }
+  var sctpPort = SDPUtils.matchPrefix(mediaSection, 'a=sctp-port:');
+  if (sctpPort.length > 0) {
+    return {
+      port: parseInt(sctpPort[0].substr(12), 10),
+      protocol: mline.fmt,
+      maxMessageSize: maxMessageSize
+    };
+  }
+  var sctpMapLines = SDPUtils.matchPrefix(mediaSection, 'a=sctpmap:');
+  if (sctpMapLines.length > 0) {
+    var parts = SDPUtils.matchPrefix(mediaSection, 'a=sctpmap:')[0]
+      .substr(10)
+      .split(' ');
+    return {
+      port: parseInt(parts[0], 10),
+      protocol: parts[1],
+      maxMessageSize: maxMessageSize
+    };
+  }
+};
+
+// SCTP
+// outputs the draft-ietf-mmusic-sctp-sdp-26 version that all browsers
+// support by now receiving in this format, unless we originally parsed
+// as the draft-ietf-mmusic-sctp-sdp-05 format (indicated by the m-line
+// protocol of DTLS/SCTP -- without UDP/ or TCP/)
+SDPUtils.writeSctpDescription = function(media, sctp) {
+  var output = [];
+  if (media.protocol !== 'DTLS/SCTP') {
+    output = [
+      'm=' + media.kind + ' 9 ' + media.protocol + ' ' + sctp.protocol + '\r\n',
+      'c=IN IP4 0.0.0.0\r\n',
+      'a=sctp-port:' + sctp.port + '\r\n'
+    ];
+  } else {
+    output = [
+      'm=' + media.kind + ' 9 ' + media.protocol + ' ' + sctp.port + '\r\n',
+      'c=IN IP4 0.0.0.0\r\n',
+      'a=sctpmap:' + sctp.port + ' ' + sctp.protocol + ' 65535\r\n'
+    ];
+  }
+  if (sctp.maxMessageSize !== undefined) {
+    output.push('a=max-message-size:' + sctp.maxMessageSize + '\r\n');
+  }
+  return output.join('');
 };
 
 // Generate a session ID for SDP.
@@ -14480,12 +14611,12 @@ SDPUtils.writeMediaSection = function(transceiver, caps, type, stream) {
 
   // Map ICE parameters (ufrag, pwd) to SDP.
   sdp += SDPUtils.writeIceParameters(
-      transceiver.iceGatherer.getLocalParameters());
+    transceiver.iceGatherer.getLocalParameters());
 
   // Map DTLS parameters to SDP.
   sdp += SDPUtils.writeDtlsParameters(
-      transceiver.dtlsTransport.getLocalParameters(),
-      type === 'offer' ? 'actpass' : 'active');
+    transceiver.dtlsTransport.getLocalParameters(),
+    type === 'offer' ? 'actpass' : 'active');
 
   sdp += 'a=mid:' + transceiver.mid + '\r\n';
 
@@ -14637,7 +14768,7 @@ module.exports = function isBuffer(arg) {
     && typeof arg.readUInt8 === 'function';
 }
 },{}],60:[function(require,module,exports){
-(function (process,global){
+(function (process,global){(function (){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -15225,7 +15356,7 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+}).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./support/isBuffer":59,"_process":53,"inherits":58}]},{},[3]);
 ;
   var Voice = bundle(3);

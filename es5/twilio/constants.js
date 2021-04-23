@@ -2,7 +2,7 @@
  * This file is generated on build. To make changes, see /templates/constants.js
  */
 var PACKAGE_NAME = '@twilio/voice-client-sdk';
-var RELEASE_VERSION = '2.0.0-rc1';
+var RELEASE_VERSION = '2.0.0-rc2';
 var SOUNDS_BASE_URL = 'https://sdk.twilio.com/js/client/sounds/releases/1.0.0';
 module.exports.COWBELL_AUDIO_URL = SOUNDS_BASE_URL + "/cowbell.mp3?cache=" + RELEASE_VERSION;
 module.exports.ECHO_TEST_DURATION = 20000;

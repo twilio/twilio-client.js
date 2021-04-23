@@ -447,6 +447,10 @@ declare class Device extends EventEmitter {
      */
     private _stopRegistrationTimer;
     /**
+     * Throw an error if the {@link Device} is destroyed.
+     */
+    private _throwIfDestroyed;
+    /**
      * Update the input stream being used for calls so that any current call and all future calls
      * will use the new input stream.
      * @param inputStream
@@ -477,6 +481,7 @@ declare namespace Device {
     enum EventName {
         Error = "error",
         Incoming = "incoming",
+        Destroyed = "destroyed",
         Unregistered = "unregistered",
         Registering = "registering",
         Registered = "registered"
@@ -485,6 +490,7 @@ declare namespace Device {
      * All possible {@link Device} states.
      */
     enum State {
+        Destroyed = "destroyed",
         Unregistered = "unregistered",
         Registering = "registering",
         Registered = "registered"
