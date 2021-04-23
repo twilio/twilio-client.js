@@ -1057,21 +1057,21 @@ class Device extends EventEmitter {
 
     if (typeof code === 'number') {
       if (code === 31201) {
-        twilioError = new AuthorizationErrors.AuthenticationFailed({ originalError });
+        twilioError = new AuthorizationErrors.AuthenticationFailed(originalError);
       } else if (code === 31204) {
-        twilioError = new AuthorizationErrors.AccessTokenInvalid({ originalError });
+        twilioError = new AuthorizationErrors.AccessTokenInvalid(originalError);
       } else if (code === 31205) {
         // Stop trying to register presence after token expires
         this._stopRegistrationTimer();
-        twilioError = new AuthorizationErrors.AccessTokenExpired({ originalError });
+        twilioError = new AuthorizationErrors.AccessTokenExpired(originalError);
       } else if (hasErrorByCode(code)) {
-        twilioError = new (getErrorByCode(code))({ originalError });
+        twilioError = new (getErrorByCode(code))(originalError);
       }
     }
 
     if (!twilioError) {
       this._log.error('Unknown signaling error: ', originalError);
-      twilioError = new GeneralErrors.UnknownError({ customMessage, originalError });
+      twilioError = new GeneralErrors.UnknownError(customMessage, originalError);
     }
 
     this._log.info('Received error: ', twilioError);
@@ -1089,7 +1089,7 @@ class Device extends EventEmitter {
     }
 
     if (!payload.callsid || !payload.sdp) {
-      this.emit(Device.EventName.Error, new ClientErrors.BadRequest({ customMessage: 'Malformed invite from gateway' }));
+      this.emit(Device.EventName.Error, new ClientErrors.BadRequest('Malformed invite from gateway'));
       return;
     }
 

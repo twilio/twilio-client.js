@@ -45,16 +45,19 @@ export default class TwilioError extends Error {
    */
   solutions: string[];
 
-  constructor({ customMessage, originalError }: TwilioErrorParameters = { }) {
+  constructor(messageOrError?: string | Error | object, error?: Error | object) {
     super();
     Object.setPrototypeOf(this, TwilioError.prototype);
 
-    this.message = `${this.name} (${this.code}): ${customMessage || this.explanation}`;
+    const message: string = typeof messageOrError === 'string'
+      ? messageOrError
+      : this.explanation;
+
+    const originalError: Error | object | undefined = typeof messageOrError === 'object'
+      ? messageOrError
+      : error;
+
+    this.message = `${this.name} (${this.code}): ${message}`;
     this.originalError = originalError;
   }
-}
-
-export interface TwilioErrorParameters {
-  customMessage?: string;
-  originalError?: object;
 }

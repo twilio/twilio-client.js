@@ -4,10 +4,8 @@ import { getErrorByCode, MediaErrors, TwilioError } from '../../lib/twilio/error
 /* tslint:disable-next-line */
 describe('Errors', function() {
   describe('constructor', () => {
-    it('should use customMessage', () => {
-      const error: TwilioError = new MediaErrors.ConnectionError({
-        customMessage: 'foobar',
-      });
+    it('should use message', () => {
+      const error: TwilioError = new MediaErrors.ConnectionError('foobar');
       assert(error instanceof Error);
       assertTwilioError(error);
       assert(error instanceof MediaErrors.ConnectionError);
@@ -18,9 +16,7 @@ describe('Errors', function() {
 
     it('should use originalError', () => {
       const originalError = new Error('foobar');
-      const error: TwilioError = new MediaErrors.ConnectionError({
-        originalError,
-      });
+      const error: TwilioError = new MediaErrors.ConnectionError(originalError);
       assert(error instanceof Error);
       assertTwilioError(error);
       assert(error instanceof MediaErrors.ConnectionError);
@@ -29,12 +25,9 @@ describe('Errors', function() {
       assert.equal(error.originalError, originalError);
     });
 
-    it('should use both customMessage and originalError', () => {
+    it('should use both message and originalError', () => {
       const originalError = new Error('foobar');
-      const error: TwilioError = new MediaErrors.ConnectionError({
-        customMessage: 'foobar',
-        originalError,
-      });
+      const error: TwilioError = new MediaErrors.ConnectionError('foobar', originalError);
       assert(error instanceof Error);
       assertTwilioError(error);
       assert(error instanceof MediaErrors.ConnectionError);

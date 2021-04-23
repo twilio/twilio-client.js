@@ -9,7 +9,7 @@
 /**
  * This is a generated file. Any modifications here will be overwritten. See scripts/errors.js.
  */
-import TwilioError, { TwilioErrorParameters } from './twilioError';
+import TwilioError from './twilioError';
 export { TwilioError };
 
 export namespace AuthorizationErrors {
@@ -21,11 +21,23 @@ export namespace AuthorizationErrors {
     name: string = 'AccessTokenInvalid';
     solutions: string[] = [];
 
-    constructor({ customMessage, originalError }: TwilioErrorParameters = { }) {
-      super({ customMessage, originalError });
+    constructor();
+    constructor(message: string);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, AuthorizationErrors.AccessTokenInvalid.prototype);
 
-      this.message = `${this.name} (${this.code}): ${customMessage || this.explanation}`;
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
       this.originalError = originalError;
     }
   }
@@ -38,11 +50,23 @@ export namespace AuthorizationErrors {
     name: string = 'AccessTokenExpired';
     solutions: string[] = [];
 
-    constructor({ customMessage, originalError }: TwilioErrorParameters = { }) {
-      super({ customMessage, originalError });
+    constructor();
+    constructor(message: string);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, AuthorizationErrors.AccessTokenExpired.prototype);
 
-      this.message = `${this.name} (${this.code}): ${customMessage || this.explanation}`;
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
       this.originalError = originalError;
     }
   }
@@ -55,11 +79,23 @@ export namespace AuthorizationErrors {
     name: string = 'AuthenticationFailed';
     solutions: string[] = [];
 
-    constructor({ customMessage, originalError }: TwilioErrorParameters = { }) {
-      super({ customMessage, originalError });
+    constructor();
+    constructor(message: string);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, AuthorizationErrors.AuthenticationFailed.prototype);
 
-      this.message = `${this.name} (${this.code}): ${customMessage || this.explanation}`;
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
       this.originalError = originalError;
     }
   }
@@ -74,11 +110,23 @@ export namespace ClientErrors {
     name: string = 'BadRequest';
     solutions: string[] = [];
 
-    constructor({ customMessage, originalError }: TwilioErrorParameters = { }) {
-      super({ customMessage, originalError });
+    constructor();
+    constructor(message: string);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, ClientErrors.BadRequest.prototype);
 
-      this.message = `${this.name} (${this.code}): ${customMessage || this.explanation}`;
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
       this.originalError = originalError;
     }
   }
@@ -93,11 +141,23 @@ export namespace GeneralErrors {
     name: string = 'UnknownError';
     solutions: string[] = [];
 
-    constructor({ customMessage, originalError }: TwilioErrorParameters = { }) {
-      super({ customMessage, originalError });
+    constructor();
+    constructor(message: string);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, GeneralErrors.UnknownError.prototype);
 
-      this.message = `${this.name} (${this.code}): ${customMessage || this.explanation}`;
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
       this.originalError = originalError;
     }
   }
@@ -110,11 +170,23 @@ export namespace GeneralErrors {
     name: string = 'ConnectionError';
     solutions: string[] = [];
 
-    constructor({ customMessage, originalError }: TwilioErrorParameters = { }) {
-      super({ customMessage, originalError });
+    constructor();
+    constructor(message: string);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, GeneralErrors.ConnectionError.prototype);
 
-      this.message = `${this.name} (${this.code}): ${customMessage || this.explanation}`;
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
       this.originalError = originalError;
     }
   }
@@ -129,11 +201,23 @@ export namespace GeneralErrors {
     name: string = 'CallCancelledError';
     solutions: string[] = [];
 
-    constructor({ customMessage, originalError }: TwilioErrorParameters = { }) {
-      super({ customMessage, originalError });
+    constructor();
+    constructor(message: string);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, GeneralErrors.CallCancelledError.prototype);
 
-      this.message = `${this.name} (${this.code}): ${customMessage || this.explanation}`;
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
       this.originalError = originalError;
     }
   }
@@ -146,11 +230,23 @@ export namespace GeneralErrors {
     name: string = 'TransportError';
     solutions: string[] = [];
 
-    constructor({ customMessage, originalError }: TwilioErrorParameters = { }) {
-      super({ customMessage, originalError });
+    constructor();
+    constructor(message: string);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, GeneralErrors.TransportError.prototype);
 
-      this.message = `${this.name} (${this.code}): ${customMessage || this.explanation}`;
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
       this.originalError = originalError;
     }
   }
@@ -171,11 +267,23 @@ export namespace UserMediaErrors {
       'The user should to verify that the browser has permission to access the microphone at this address.',
     ];
 
-    constructor({ customMessage, originalError }: TwilioErrorParameters = { }) {
-      super({ customMessage, originalError });
+    constructor();
+    constructor(message: string);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, UserMediaErrors.PermissionDeniedError.prototype);
 
-      this.message = `${this.name} (${this.code}): ${customMessage || this.explanation}`;
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
       this.originalError = originalError;
     }
   }
@@ -194,11 +302,23 @@ export namespace UserMediaErrors {
       'Try acquiring media with fewer constraints.',
     ];
 
-    constructor({ customMessage, originalError }: TwilioErrorParameters = { }) {
-      super({ customMessage, originalError });
+    constructor();
+    constructor(message: string);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, UserMediaErrors.AcquisitionFailedError.prototype);
 
-      this.message = `${this.name} (${this.code}): ${customMessage || this.explanation}`;
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
       this.originalError = originalError;
     }
   }
@@ -213,11 +333,23 @@ export namespace SignalingErrors {
     name: string = 'ConnectionError';
     solutions: string[] = [];
 
-    constructor({ customMessage, originalError }: TwilioErrorParameters = { }) {
-      super({ customMessage, originalError });
+    constructor();
+    constructor(message: string);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, SignalingErrors.ConnectionError.prototype);
 
-      this.message = `${this.name} (${this.code}): ${customMessage || this.explanation}`;
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
       this.originalError = originalError;
     }
   }
@@ -234,11 +366,23 @@ export namespace SignalingErrors {
       'Ensure the device running your application has access to a stable Internet connection.',
     ];
 
-    constructor({ customMessage, originalError }: TwilioErrorParameters = { }) {
-      super({ customMessage, originalError });
+    constructor();
+    constructor(message: string);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, SignalingErrors.ConnectionDisconnected.prototype);
 
-      this.message = `${this.name} (${this.code}): ${customMessage || this.explanation}`;
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
       this.originalError = originalError;
     }
   }
@@ -258,11 +402,23 @@ export namespace MediaErrors {
       'If you are experiencing this error using the JavaScript SDK, ensure you are running it with a supported WebRTC implementation.',
     ];
 
-    constructor({ customMessage, originalError }: TwilioErrorParameters = { }) {
-      super({ customMessage, originalError });
+    constructor();
+    constructor(message: string);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, MediaErrors.ClientLocalDescFailed.prototype);
 
-      this.message = `${this.name} (${this.code}): ${customMessage || this.explanation}`;
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
       this.originalError = originalError;
     }
   }
@@ -281,11 +437,23 @@ export namespace MediaErrors {
       'If you are experiencing this error using the JavaScript SDK, ensure you are running it with a supported WebRTC implementation.',
     ];
 
-    constructor({ customMessage, originalError }: TwilioErrorParameters = { }) {
-      super({ customMessage, originalError });
+    constructor();
+    constructor(message: string);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, MediaErrors.ClientRemoteDescFailed.prototype);
 
-      this.message = `${this.name} (${this.code}): ${customMessage || this.explanation}`;
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
       this.originalError = originalError;
     }
   }
@@ -305,11 +473,23 @@ export namespace MediaErrors {
       'If you\'ve provided custom ICE Servers then ensure that the URLs and credentials are valid.',
     ];
 
-    constructor({ customMessage, originalError }: TwilioErrorParameters = { }) {
-      super({ customMessage, originalError });
+    constructor();
+    constructor(message: string);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, MediaErrors.ConnectionError.prototype);
 
-      this.message = `${this.name} (${this.code}): ${customMessage || this.explanation}`;
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
       this.originalError = originalError;
     }
   }

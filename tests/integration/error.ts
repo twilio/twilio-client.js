@@ -1,8 +1,8 @@
 import * as assert from 'assert';
-import { Error } from '../../lib/twilio';
+import { TwilioError } from '../../lib/twilio';
 
-describe('Error', () => {
+describe('TwilioError', () => {
   it('the exposed errors should be defined', () => {
-    assert(Error);
+    assert(TwilioError);
   });
 });
