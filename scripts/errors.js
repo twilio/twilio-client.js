@@ -13,7 +13,7 @@ let output = `/* tslint:disable max-classes-per-file max-line-length */
 /**
  * This is a generated file. Any modifications here will be overwritten. See scripts/errors.js.
  */
-import TwilioError from './twilioError';
+import TwilioError, { TwilioErrorParameters } from './twilioError';
 export { TwilioError };
 \n`;
 
@@ -28,15 +28,15 @@ const generateDefinition = (code, subclassName, errorName, error) => `\
     code: number = ${code};
     description: string = '${escapeQuotes(error.description)}';
     explanation: string = '${escapeQuotes(error.explanation)}';
+    name: string = '${escapeQuotes(errorName)}';
     solutions: string[] = ${generateStringArray(error.solutions)};
 
-    constructor();
-    constructor(message: string);
-    constructor(originalError: Error);
-    constructor(message: string, originalError?: Error);
-    constructor(messageOrError?: string | Error, originalError?: Error) {
-      super(messageOrError, originalError);
+    constructor({ customMessage, originalError }: TwilioErrorParameters = { }) {
+      super({ customMessage, originalError });
       Object.setPrototypeOf(this, ${subclassName}Errors.${errorName}.prototype);
+
+      this.message = \`\${this.name} (\${this.code}): \${customMessage || this.explanation}\`;
+      this.originalError = originalError;
     }
   }`;
 

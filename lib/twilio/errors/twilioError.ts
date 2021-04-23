@@ -36,28 +36,25 @@ export default class TwilioError extends Error {
   name: string;
 
   /**
-   * The original Error received from the external system, if any.
+   * The original error object received from the external system, if any.
    */
-  originalError?: Error;
+  originalError?: object;
 
   /**
    * A list of potential solutions for the Error.
    */
   solutions: string[];
 
-  constructor(messageOrError?: string | Error, originalError?: Error) {
+  constructor({ customMessage, originalError }: TwilioErrorParameters = { }) {
     super();
-    if (typeof messageOrError === 'string') {
-      this.message = messageOrError;
-      if (originalError instanceof Error) {
-        this.originalError = originalError;
-      }
-    } else if (messageOrError instanceof Error) {
-      this.originalError = messageOrError;
-    } else if (typeof messageOrError === 'undefined') {
-      this.message = this.explanation;
-    }
-
     Object.setPrototypeOf(this, TwilioError.prototype);
+
+    this.message = `${this.name} (${this.code}): ${customMessage || this.explanation}`;
+    this.originalError = originalError;
   }
+}
+
+export interface TwilioErrorParameters {
+  customMessage?: string;
+  originalError?: object;
 }

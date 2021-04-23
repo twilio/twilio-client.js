@@ -524,7 +524,7 @@ describe('Device', function() {
           sinon.assert.calledWith(spy, 'error');
           const errorObject = spy.getCall(0).args[1];
           assert.equal(31005, errorObject.code);
-          assert.equal('foobar', errorObject.message);
+          assert.equal('ConnectionError (31005): A connection error occurred during the call', errorObject.message);
         });
       });
 

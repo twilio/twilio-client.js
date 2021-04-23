@@ -373,7 +373,7 @@ export class PreflightTest extends EventEmitter {
     }
 
     this._signalingTimeoutTimer = setTimeout(() => {
-      this._onDeviceError(new SignalingErrors.ConnectionError('WebSocket Connection Timeout'));
+      this._onDeviceError(new SignalingErrors.ConnectionError({ customMessage: 'WebSocket Connection Timeout' }));
     }, options.signalingTimeoutMs);
   }
 
