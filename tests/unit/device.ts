@@ -510,11 +510,21 @@ describe('Device', function() {
 
         it('should emit the proper error even if a twilioError is passed', () => {
           const spy = device.emit = sinon.spy();
-          pstream.emit('error', { error: { code: 31005 }, twilioError: new GeneralErrors.UnknownError() });
+          pstream.emit('error', { error: { code: 31005, twilioError: new GeneralErrors.UnknownError() } });
           sinon.assert.calledOnce(spy);
           sinon.assert.calledWith(spy, 'error');
           const errorObject = spy.getCall(0).args[1];
           assert.equal(31005, errorObject.code);
+        });
+
+        it('should emit the proper error message', () => {
+          const spy = device.emit = sinon.spy();
+          pstream.emit('error', { error: { code: 31005, message: 'foobar', twilioError: new GeneralErrors.UnknownError() } });
+          sinon.assert.calledOnce(spy);
+          sinon.assert.calledWith(spy, 'error');
+          const errorObject = spy.getCall(0).args[1];
+          assert.equal(31005, errorObject.code);
+          assert.equal('foobar', errorObject.message);
         });
       });
 

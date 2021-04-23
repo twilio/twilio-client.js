@@ -1052,26 +1052,26 @@ class Device extends EventEmitter {
     const call: Call | undefined =
       (typeof callsid === 'string' && this._findCall(callsid)) || undefined;
 
-    const { code } = error;
+    const { code, message } = error;
     let { twilioError } = error;
 
     if (typeof code === 'number') {
       if (code === 31201) {
-        twilioError = new AuthorizationErrors.AuthenticationFailed();
+        twilioError = new AuthorizationErrors.AuthenticationFailed(message);
       } else if (code === 31204) {
-        twilioError = new AuthorizationErrors.AccessTokenInvalid();
+        twilioError = new AuthorizationErrors.AccessTokenInvalid(message);
       } else if (code === 31205) {
         // Stop trying to register presence after token expires
         this._stopRegistrationTimer();
-        twilioError = new AuthorizationErrors.AccessTokenExpired();
+        twilioError = new AuthorizationErrors.AccessTokenExpired(message);
       } else if (hasErrorByCode(code)) {
-        twilioError = new (getErrorByCode(code))();
+        twilioError = new (getErrorByCode(code))(message);
       }
     }
 
     if (!twilioError) {
       this._log.error('Unknown signaling error: ', error);
-      twilioError = new GeneralErrors.UnknownError();
+      twilioError = new GeneralErrors.UnknownError(message);
     }
 
     this._log.info('Received error: ', twilioError);
