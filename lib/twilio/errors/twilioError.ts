@@ -54,6 +54,8 @@ export default class TwilioError extends Error {
       }
     } else if (messageOrError instanceof Error) {
       this.originalError = messageOrError;
+    } else if (typeof messageOrError === 'undefined') {
+      this.message = this.explanation;
     }
 
     Object.setPrototypeOf(this, TwilioError.prototype);

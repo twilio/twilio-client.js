@@ -30,7 +30,7 @@ describe('Errors', function() {
 
     it('should allow no params', () => {
       const error: TwilioError = new MediaErrors.ConnectionError();
-      assert.equal(error.message, '');
+      assert.equal(error.message, MediaErrors.ConnectionError.prototype.explanation);
       assert.equal(error.originalError, undefined);
     });
   });
