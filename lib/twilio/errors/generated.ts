@@ -18,15 +18,27 @@ export namespace AuthorizationErrors {
     code: number = 20101;
     description: string = 'Invalid access token';
     explanation: string = 'Twilio was unable to validate your Access Token';
+    name: string = 'AccessTokenInvalid';
     solutions: string[] = [];
 
     constructor();
     constructor(message: string);
-    constructor(originalError: Error);
-    constructor(message: string, originalError?: Error);
-    constructor(messageOrError?: string | Error, originalError?: Error) {
-      super(messageOrError, originalError);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, AuthorizationErrors.AccessTokenInvalid.prototype);
+
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
+      this.originalError = originalError;
     }
   }
 
@@ -35,15 +47,27 @@ export namespace AuthorizationErrors {
     code: number = 20104;
     description: string = 'Access token expired or expiration date invalid';
     explanation: string = 'The Access Token provided to the Twilio API has expired, the expiration time specified in the token was invalid, or the expiration time specified was too far in the future';
+    name: string = 'AccessTokenExpired';
     solutions: string[] = [];
 
     constructor();
     constructor(message: string);
-    constructor(originalError: Error);
-    constructor(message: string, originalError?: Error);
-    constructor(messageOrError?: string | Error, originalError?: Error) {
-      super(messageOrError, originalError);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, AuthorizationErrors.AccessTokenExpired.prototype);
+
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
+      this.originalError = originalError;
     }
   }
 
@@ -52,15 +76,27 @@ export namespace AuthorizationErrors {
     code: number = 20151;
     description: string = 'Authentication Failed';
     explanation: string = 'The Authentication with the provided JWT failed';
+    name: string = 'AuthenticationFailed';
     solutions: string[] = [];
 
     constructor();
     constructor(message: string);
-    constructor(originalError: Error);
-    constructor(message: string, originalError?: Error);
-    constructor(messageOrError?: string | Error, originalError?: Error) {
-      super(messageOrError, originalError);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, AuthorizationErrors.AuthenticationFailed.prototype);
+
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
+      this.originalError = originalError;
     }
   }
 }
@@ -71,15 +107,27 @@ export namespace ClientErrors {
     code: number = 31400;
     description: string = 'Bad Request (HTTP/SIP)';
     explanation: string = 'The request could not be understood due to malformed syntax.';
+    name: string = 'BadRequest';
     solutions: string[] = [];
 
     constructor();
     constructor(message: string);
-    constructor(originalError: Error);
-    constructor(message: string, originalError?: Error);
-    constructor(messageOrError?: string | Error, originalError?: Error) {
-      super(messageOrError, originalError);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, ClientErrors.BadRequest.prototype);
+
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
+      this.originalError = originalError;
     }
   }
 }
@@ -90,15 +138,27 @@ export namespace GeneralErrors {
     code: number = 31000;
     description: string = 'Unknown Error';
     explanation: string = 'An unknown error has occurred. See error details for more information.';
+    name: string = 'UnknownError';
     solutions: string[] = [];
 
     constructor();
     constructor(message: string);
-    constructor(originalError: Error);
-    constructor(message: string, originalError?: Error);
-    constructor(messageOrError?: string | Error, originalError?: Error) {
-      super(messageOrError, originalError);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, GeneralErrors.UnknownError.prototype);
+
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
+      this.originalError = originalError;
     }
   }
 
@@ -107,15 +167,27 @@ export namespace GeneralErrors {
     code: number = 31005;
     description: string = 'Connection error';
     explanation: string = 'A connection error occurred during the call';
+    name: string = 'ConnectionError';
     solutions: string[] = [];
 
     constructor();
     constructor(message: string);
-    constructor(originalError: Error);
-    constructor(message: string, originalError?: Error);
-    constructor(messageOrError?: string | Error, originalError?: Error) {
-      super(messageOrError, originalError);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, GeneralErrors.ConnectionError.prototype);
+
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
+      this.originalError = originalError;
     }
   }
 
@@ -126,15 +198,27 @@ export namespace GeneralErrors {
     code: number = 31008;
     description: string = 'Call cancelled';
     explanation: string = 'Unable to answer because the call has ended';
+    name: string = 'CallCancelledError';
     solutions: string[] = [];
 
     constructor();
     constructor(message: string);
-    constructor(originalError: Error);
-    constructor(message: string, originalError?: Error);
-    constructor(messageOrError?: string | Error, originalError?: Error) {
-      super(messageOrError, originalError);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, GeneralErrors.CallCancelledError.prototype);
+
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
+      this.originalError = originalError;
     }
   }
 
@@ -143,15 +227,27 @@ export namespace GeneralErrors {
     code: number = 31009;
     description: string = 'Transport error';
     explanation: string = 'No transport available to send or receive messages';
+    name: string = 'TransportError';
     solutions: string[] = [];
 
     constructor();
     constructor(message: string);
-    constructor(originalError: Error);
-    constructor(message: string, originalError?: Error);
-    constructor(messageOrError?: string | Error, originalError?: Error) {
-      super(messageOrError, originalError);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, GeneralErrors.TransportError.prototype);
+
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
+      this.originalError = originalError;
     }
   }
 }
@@ -165,6 +261,7 @@ export namespace UserMediaErrors {
     code: number = 31401;
     description: string = 'UserMedia Permission Denied Error';
     explanation: string = 'The browser or end-user denied permissions to user media. Therefore we were unable to acquire input audio.';
+    name: string = 'PermissionDeniedError';
     solutions: string[] = [
       'The user should accept the request next time prompted. If the browser saved the deny, the user should change that permission in their browser.',
       'The user should to verify that the browser has permission to access the microphone at this address.',
@@ -172,11 +269,22 @@ export namespace UserMediaErrors {
 
     constructor();
     constructor(message: string);
-    constructor(originalError: Error);
-    constructor(message: string, originalError?: Error);
-    constructor(messageOrError?: string | Error, originalError?: Error) {
-      super(messageOrError, originalError);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, UserMediaErrors.PermissionDeniedError.prototype);
+
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
+      this.originalError = originalError;
     }
   }
 
@@ -188,6 +296,7 @@ export namespace UserMediaErrors {
     code: number = 31402;
     description: string = 'UserMedia Acquisition Failed Error';
     explanation: string = 'The browser and end-user allowed permissions, however getting the media failed. Usually this is due to bad constraints, but can sometimes fail due to browser, OS or hardware issues.';
+    name: string = 'AcquisitionFailedError';
     solutions: string[] = [
       'Ensure the deviceID being specified exists.',
       'Try acquiring media with fewer constraints.',
@@ -195,11 +304,22 @@ export namespace UserMediaErrors {
 
     constructor();
     constructor(message: string);
-    constructor(originalError: Error);
-    constructor(message: string, originalError?: Error);
-    constructor(messageOrError?: string | Error, originalError?: Error) {
-      super(messageOrError, originalError);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, UserMediaErrors.AcquisitionFailedError.prototype);
+
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
+      this.originalError = originalError;
     }
   }
 }
@@ -210,15 +330,27 @@ export namespace SignalingErrors {
     code: number = 53000;
     description: string = 'Signaling connection error';
     explanation: string = 'Raised whenever a signaling connection error occurs that is not covered by a more specific error code.';
+    name: string = 'ConnectionError';
     solutions: string[] = [];
 
     constructor();
     constructor(message: string);
-    constructor(originalError: Error);
-    constructor(message: string, originalError?: Error);
-    constructor(messageOrError?: string | Error, originalError?: Error) {
-      super(messageOrError, originalError);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, SignalingErrors.ConnectionError.prototype);
+
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
+      this.originalError = originalError;
     }
   }
 
@@ -229,17 +361,29 @@ export namespace SignalingErrors {
     code: number = 53001;
     description: string = 'Signaling connection disconnected';
     explanation: string = 'Raised whenever the signaling connection is unexpectedly disconnected.';
+    name: string = 'ConnectionDisconnected';
     solutions: string[] = [
       'Ensure the device running your application has access to a stable Internet connection.',
     ];
 
     constructor();
     constructor(message: string);
-    constructor(originalError: Error);
-    constructor(message: string, originalError?: Error);
-    constructor(messageOrError?: string | Error, originalError?: Error) {
-      super(messageOrError, originalError);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, SignalingErrors.ConnectionDisconnected.prototype);
+
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
+      this.originalError = originalError;
     }
   }
 }
@@ -253,17 +397,29 @@ export namespace MediaErrors {
     code: number = 53400;
     description: string = 'Client is unable to create or apply a local media description';
     explanation: string = 'Raised whenever a Client is unable to create or apply a local media description.';
+    name: string = 'ClientLocalDescFailed';
     solutions: string[] = [
       'If you are experiencing this error using the JavaScript SDK, ensure you are running it with a supported WebRTC implementation.',
     ];
 
     constructor();
     constructor(message: string);
-    constructor(originalError: Error);
-    constructor(message: string, originalError?: Error);
-    constructor(messageOrError?: string | Error, originalError?: Error) {
-      super(messageOrError, originalError);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, MediaErrors.ClientLocalDescFailed.prototype);
+
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
+      this.originalError = originalError;
     }
   }
 
@@ -276,17 +432,29 @@ export namespace MediaErrors {
     code: number = 53402;
     description: string = 'Client is unable to apply a remote media description';
     explanation: string = 'Raised whenever the Client receives a remote media description but is unable to apply it.';
+    name: string = 'ClientRemoteDescFailed';
     solutions: string[] = [
       'If you are experiencing this error using the JavaScript SDK, ensure you are running it with a supported WebRTC implementation.',
     ];
 
     constructor();
     constructor(message: string);
-    constructor(originalError: Error);
-    constructor(message: string, originalError?: Error);
-    constructor(messageOrError?: string | Error, originalError?: Error) {
-      super(messageOrError, originalError);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, MediaErrors.ClientRemoteDescFailed.prototype);
+
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
+      this.originalError = originalError;
     }
   }
 
@@ -298,6 +466,7 @@ export namespace MediaErrors {
     code: number = 53405;
     description: string = 'Media connection failed';
     explanation: string = 'Raised by the Client or Server whenever a media connection fails.';
+    name: string = 'ConnectionError';
     solutions: string[] = [
       'If the problem persists, try connecting to another region.',
       'Check your Client\'s network connectivity.',
@@ -306,11 +475,22 @@ export namespace MediaErrors {
 
     constructor();
     constructor(message: string);
-    constructor(originalError: Error);
-    constructor(message: string, originalError?: Error);
-    constructor(messageOrError?: string | Error, originalError?: Error) {
-      super(messageOrError, originalError);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, MediaErrors.ConnectionError.prototype);
+
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = `${this.name} (${this.code}): ${message}`;
+      this.originalError = originalError;
     }
   }
 }

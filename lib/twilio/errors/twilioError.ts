@@ -36,26 +36,28 @@ export default class TwilioError extends Error {
   name: string;
 
   /**
-   * The original Error received from the external system, if any.
+   * The original error object received from the external system, if any.
    */
-  originalError?: Error;
+  originalError?: object;
 
   /**
    * A list of potential solutions for the Error.
    */
   solutions: string[];
 
-  constructor(messageOrError?: string | Error, originalError?: Error) {
+  constructor(messageOrError?: string | Error | object, error?: Error | object) {
     super();
-    if (typeof messageOrError === 'string') {
-      this.message = messageOrError;
-      if (originalError instanceof Error) {
-        this.originalError = originalError;
-      }
-    } else if (messageOrError instanceof Error) {
-      this.originalError = messageOrError;
-    }
-
     Object.setPrototypeOf(this, TwilioError.prototype);
+
+    const message: string = typeof messageOrError === 'string'
+      ? messageOrError
+      : this.explanation;
+
+    const originalError: Error | object | undefined = typeof messageOrError === 'object'
+      ? messageOrError
+      : error;
+
+    this.message = `${this.name} (${this.code}): ${message}`;
+    this.originalError = originalError;
   }
 }

@@ -1045,33 +1045,33 @@ class Device extends EventEmitter {
   private _onSignalingError = (payload: Record<string, any>) => {
     if (typeof payload !== 'object') { return; }
 
-    const { error, callsid } = payload;
+    const { error: originalError, callsid } = payload;
 
-    if (typeof error !== 'object') { return; }
+    if (typeof originalError !== 'object') { return; }
 
     const call: Call | undefined =
       (typeof callsid === 'string' && this._findCall(callsid)) || undefined;
 
-    const { code } = error;
-    let { twilioError } = error;
+    const { code, message: customMessage } = originalError;
+    let { twilioError } = originalError;
 
     if (typeof code === 'number') {
       if (code === 31201) {
-        twilioError = new AuthorizationErrors.AuthenticationFailed();
+        twilioError = new AuthorizationErrors.AuthenticationFailed(originalError);
       } else if (code === 31204) {
-        twilioError = new AuthorizationErrors.AccessTokenInvalid();
+        twilioError = new AuthorizationErrors.AccessTokenInvalid(originalError);
       } else if (code === 31205) {
         // Stop trying to register presence after token expires
         this._stopRegistrationTimer();
-        twilioError = new AuthorizationErrors.AccessTokenExpired();
+        twilioError = new AuthorizationErrors.AccessTokenExpired(originalError);
       } else if (hasErrorByCode(code)) {
-        twilioError = new (getErrorByCode(code))();
+        twilioError = new (getErrorByCode(code))(originalError);
       }
     }
 
     if (!twilioError) {
-      this._log.error('Unknown signaling error: ', error);
-      twilioError = new GeneralErrors.UnknownError();
+      this._log.error('Unknown signaling error: ', originalError);
+      twilioError = new GeneralErrors.UnknownError(customMessage, originalError);
     }
 
     this._log.info('Received error: ', twilioError);

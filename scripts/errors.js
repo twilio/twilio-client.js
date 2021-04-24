@@ -28,15 +28,27 @@ const generateDefinition = (code, subclassName, errorName, error) => `\
     code: number = ${code};
     description: string = '${escapeQuotes(error.description)}';
     explanation: string = '${escapeQuotes(error.explanation)}';
+    name: string = '${escapeQuotes(errorName)}';
     solutions: string[] = ${generateStringArray(error.solutions)};
 
     constructor();
     constructor(message: string);
-    constructor(originalError: Error);
-    constructor(message: string, originalError?: Error);
-    constructor(messageOrError?: string | Error, originalError?: Error) {
-      super(messageOrError, originalError);
+    constructor(error: Error | object);
+    constructor(message: string, error: Error | object);
+    constructor(messageOrError?: string | Error | object, error?: Error | object) {
+      super(messageOrError, error);
       Object.setPrototypeOf(this, ${subclassName}Errors.${errorName}.prototype);
+
+      const message: string = typeof messageOrError === 'string'
+        ? messageOrError
+        : this.explanation;
+
+      const originalError: Error | object | undefined = typeof messageOrError === 'object'
+        ? messageOrError
+        : error;
+
+      this.message = \`\${this.name} (\${this.code}): \${message}\`;
+      this.originalError = originalError;
     }
   }`;
 

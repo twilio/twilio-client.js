@@ -1818,11 +1818,9 @@ describe('Call', function() {
         conn.on('reconnecting', callback);
         mediaHandler.onicegatheringfailure();
 
+        const mediaReconnectionError = new MediaErrors.ConnectionError('Media connection failed.');
         sinon.assert.callCount(callback, 1);
-        sinon.assert.calledWithMatch(callback, {
-          code: 53405,
-          message: 'Media connection failed.',
-        });
+        assert.deepEqual(callback.args[0][0], mediaReconnectionError);
 
         const rVal = callback.firstCall.args[0];
         assert.equal(rVal.code, 53405);
@@ -1900,11 +1898,9 @@ describe('Call', function() {
       mediaHandler.ondisconnected();
       mediaHandler.onfailed();
 
+      const mediaReconnectionError = new MediaErrors.ConnectionError('Media connection failed.');
       sinon.assert.callCount(callback, 1);
-      sinon.assert.calledWithMatch(callback, {
-        code: 53405,
-        message: 'Media connection failed.',
-      });
+      assert.deepEqual(callback.args[0][0], mediaReconnectionError);
 
       const rVal = callback.firstCall.args[0];
       assert.equal(rVal.code, 53405);

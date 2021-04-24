@@ -1,36 +1,48 @@
-import { getErrorByCode, MediaErrors, TwilioError } from '../../lib/twilio/errors';
 import * as assert from 'assert';
+import { getErrorByCode, MediaErrors, TwilioError } from '../../lib/twilio/errors';
 
 /* tslint:disable-next-line */
 describe('Errors', function() {
   describe('constructor', () => {
-    it('should create an instance of the Error', () => {
+    it('should use message', () => {
       const error: TwilioError = new MediaErrors.ConnectionError('foobar');
       assert(error instanceof Error);
       assertTwilioError(error);
       assert(error instanceof MediaErrors.ConnectionError);
       assert.equal(error.code, 53405);
-      assert.equal(error.message, 'foobar');
+      assert.equal(error.message, 'ConnectionError (53405): foobar');
       assert.equal(error.originalError, undefined);
     });
 
-    it('should use first param as originalError if of type Error', () => {
-      const err = new Error('foobar');
-      const error: TwilioError = new MediaErrors.ConnectionError(err);
-      assert.equal(error.message, '');
-      assert.equal(error.originalError, err);
+    it('should use originalError', () => {
+      const originalError = new Error('foobar');
+      const error: TwilioError = new MediaErrors.ConnectionError(originalError);
+      assert(error instanceof Error);
+      assertTwilioError(error);
+      assert(error instanceof MediaErrors.ConnectionError);
+      assert.equal(error.code, 53405);
+      assert.equal(error.message, 'ConnectionError (53405): Raised by the Client or Server whenever a media connection fails.');
+      assert.equal(error.originalError, originalError);
     });
 
-    it('should use both params', () => {
-      const err = new Error('foobar');
-      const error: TwilioError = new MediaErrors.ConnectionError('foobar', err);
-      assert.equal(error.message, 'foobar');
-      assert.equal(error.originalError, err);
+    it('should use both message and originalError', () => {
+      const originalError = new Error('foobar');
+      const error: TwilioError = new MediaErrors.ConnectionError('foobar', originalError);
+      assert(error instanceof Error);
+      assertTwilioError(error);
+      assert(error instanceof MediaErrors.ConnectionError);
+      assert.equal(error.code, 53405);
+      assert.equal(error.message, 'ConnectionError (53405): foobar');
+      assert.equal(error.originalError, originalError);
     });
 
     it('should allow no params', () => {
       const error: TwilioError = new MediaErrors.ConnectionError();
-      assert.equal(error.message, '');
+      assert(error instanceof Error);
+      assertTwilioError(error);
+      assert(error instanceof MediaErrors.ConnectionError);
+      assert.equal(error.code, 53405);
+      assert.equal(error.message, 'ConnectionError (53405): Raised by the Client or Server whenever a media connection fails.');
       assert.equal(error.originalError, undefined);
     });
   });
