@@ -1,6 +1,6 @@
 {
   "name": "@twilio/voice-client-sdk",
-  "version": "2.0.0-rc3",
+  "version": "2.0.0-dev",
   "description": "Twilio Voice Client SDK",
   "main": "./es5/twilio.js",
   "types": "./es5/twilio.d.ts",
