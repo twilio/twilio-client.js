@@ -6,11 +6,8 @@ aspects of the API may change before GA. If you'd prefer, you can use the
 
 If you're interested in testing out the 2.0 pilot, see our [migration guide](https://www.twilio.com/docs/voice/client/migrating-to-js-voice-sdk-20).
 
-For help
 @twilio/voice-sdk
 ====================
-
-
 
 [![Travis Build Status](https://travis-ci.org/twilio/twilio.js.svg?branch=master)](https://travis-ci.org/twilio/twilio-voice.js) [![NPM](https://img.shields.io/npm/v/twilio-voice.svg)](https://www.npmjs.com/package/twilio-voice)
 
