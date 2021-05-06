@@ -1,3 +1,8 @@
+## Twilio is currently running a public pilot phase for 2.0!
+This repository is the current stable version of Twilio's Javascript Client SDK. We recently released a 2.0 pilot to gather customer feedback.
+In this phase, it is possible that some aspects of the 2.0 API may change before GA. If you're interested in trying it out, see the
+[2.0 pilot version of the SDK](https://github.com/twilio/twilio-voice.js).
+
 twilio-client.js
 ================
 
