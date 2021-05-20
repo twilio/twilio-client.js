@@ -3,6 +3,15 @@ This repository is the current stable version of Twilio's Javascript Client SDK.
 In this phase, it is possible that some aspects of the 2.0 API may change before GA. If you're interested in trying it out, see the
 [2.0 pilot version of the SDK](https://github.com/twilio/twilio-voice.js).
 
+This new major version cleans up a lot of the legacy API, such as:
+- Removing deprecated methods
+- Renaming classes and methods to be less ambiguous
+- Implementing the new features from 1.x as defaults rather than behind feature flags
+- Completely moving to the new TwilioError class which is standardized between Voice SDKs and contains much more detailed information about errors
+
+Additionally, new features from this point onward will only be added to the 2.0 project, and not be backported to 1.x, so anyone looking to use the
+latest features will want to be moved to the new 2.0 API.
+
 twilio-client.js
 ================
 
