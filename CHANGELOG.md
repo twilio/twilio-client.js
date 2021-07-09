@@ -1,3 +1,10 @@
+2.0.1 (July 9, 2021)
+====================
+
+This patch increment was necessary because the 2.0.0 pilot artifact was erroneously published to npm. It is
+now removed from npm so that it is not mistakenly used. The first npm artifact will be 2.0.1.
+
+
 2.0.0 (July 7, 2021) - Release
 ==============================
 
