@@ -87,7 +87,7 @@ describe('SHAKEN/STIR', function() {
           assert.equal(call2!.callerInfo!.isVerified, true);
         });
 
-        it('should reject the call', (done) => {
+        xit('should reject the call', (done) => {
           call1.once('disconnect', () => done());
           call2.reject();
         });
