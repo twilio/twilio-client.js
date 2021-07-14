@@ -1,7 +1,11 @@
-## Twilio is currently running a public pilot phase for 2.0!
-This repository is the current stable version of Twilio's Javascript Client SDK. We recently released a 2.0 pilot to gather customer feedback.
-In this phase, it is possible that some aspects of the 2.0 API may change before GA. If you're interested in trying it out, see the
-[2.0 pilot version of the SDK](https://github.com/twilio/twilio-voice.js).
+### Deprecation Notice
+This repository does not contain the latest version of Twilio's Javascript Voice SDK. Although this major version will continue to be
+supported, it will no longer receive new features. We recommend all users to upgrade to [2.0](https://github.com/twilio/twilio-voice.js) at their earliest convenience, in order
+to receive access to new features as they arrive.
+
+## Twilio's JavaScript Voice SDK 2.0 is now GA!
+This repository contains an outdated version of Twilio's Javascript Client SDK. We 2.0 as Generally Available. You can find
+the new repository containing the JavaScript Voice SDK 2.0 [here](https://github.com/twilio/twilio-voice.js).
 
 This new major version cleans up a lot of the legacy API, such as:
 - Removing deprecated methods
@@ -11,6 +15,8 @@ This new major version cleans up a lot of the legacy API, such as:
 
 Additionally, new features from this point onward will only be added to the 2.0 project, and not be backported to 1.x, so anyone looking to use the
 latest features will want to be moved to the new 2.0 API.
+
+Existing customers can review our migration guide [here](https://www.twilio.com/docs/voice/sdks/javascript/migrating-to-js-voice-sdk-20).
 
 twilio-client.js
 ================
