@@ -5,8 +5,8 @@ to be supported, it will no longer receive new features. We recommend that all u
 they arrive.
 
 ## Twilio's JavaScript Voice SDK 2.0 is now GA!
-This repository contains an outdated version of Twilio's Javascript Client SDK. We 2.0 as Generally Available. You can find
-the new repository containing the JavaScript Voice SDK 2.0 [here](https://github.com/twilio/twilio-voice.js).
+This repository contains an outdated version of Twilio's Javascript Client SDK. We have now released 2.0 as Generally Available.
+You can find the new repository containing the JavaScript Voice SDK 2.0 [here](https://github.com/twilio/twilio-voice.js).
 
 This new major version cleans up a lot of the legacy API, such as:
 - Removing deprecated methods
