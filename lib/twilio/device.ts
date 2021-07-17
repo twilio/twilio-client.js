@@ -1269,6 +1269,7 @@ class Device extends EventEmitter {
     this.stream.addListener('invite', this._onSignalingInvite);
     this.stream.addListener('offline', this._onSignalingOffline);
     this.stream.addListener('ready', this._onSignalingReady);
+    this.stream.open();
   }
 
   /**
