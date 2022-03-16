@@ -5,7 +5,10 @@
  * @internalapi
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-var LogLevelModule = require("loglevel");
+// Fixed AMD issue by importing library into local repo, just as here:
+// https://github.com/twilio/twilio-video.js/pull/1352/files
+// See discussion here: https://github.com/twilio/twilio-client.js/issues/188
+var LogLevelModule = require("./vendor/loglevel");
 var constants_1 = require("./constants");
 /**
  * {@link Log} provides logging features throught the sdk using loglevel module

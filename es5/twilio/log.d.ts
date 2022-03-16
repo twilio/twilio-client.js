@@ -3,7 +3,7 @@
  * @module Voice
  * @internalapi
  */
-import * as LogLevelModule from 'loglevel';
+import * as LogLevelModule from './vendor/loglevel';
 /**
  * Options that may be passed to the {@link Log} constructor for internal testing.
  * @private

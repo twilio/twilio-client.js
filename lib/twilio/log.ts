@@ -4,8 +4,11 @@
  * @internalapi
  */
 
-import * as LogLevelModule from 'loglevel';
-import { PACKAGE_NAME } from './constants';
+ import { PACKAGE_NAME } from './constants';
+// Fixed AMD issue by importing library into local repo, just as here:
+// https://github.com/twilio/twilio-video.js/pull/1352/files
+// See discussion here: https://github.com/twilio/twilio-client.js/issues/188
+import * as LogLevelModule from './vendor/loglevel';
 
 /**
  * Options that may be passed to the {@link Log} constructor for internal testing.
