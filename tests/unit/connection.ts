@@ -32,7 +32,6 @@ describe('Connection', function() {
     mediaStream.answerIncomingCall = sinon.spy((a: any, b: any, c: any, d: RTCConfiguration, cb: Function) => {
       callback = cb;
       rtcConfig = d;
-      return Promise.reject('no');
     });
     mediaStream.openWithConstraints = sinon.spy(() => Promise.resolve());
     mediaStream.stream = Symbol('stream');

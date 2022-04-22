@@ -267,7 +267,7 @@ describe('AudioHelper', () => {
             const fakeStream = {
               spy,
               getTracks() { return [
-                { stop: spy }, 
+                { stop: spy },
                 { stop: spy }
               ]; }
             };
@@ -351,7 +351,7 @@ describe('AudioHelper', () => {
 
         it('should set .audioConstraints to null', () => {
           audio.unsetAudioConstraints();
-          assert.equal(audio.audioConstraints, null); 
+          assert.equal(audio.audioConstraints, null);
         });
 
         it('should return the result of _setInputDevice', () => {
@@ -497,7 +497,7 @@ describe('AudioHelper', () => {
         };
         audio.speakerDevices = {
           get: () => ({ size: 0 }),
-          set: sinon.stub().returns(Promise.reject())
+          set: sinon.stub().rejects('foobar')
         };
         audio._log.warn = sinon.stub();
         audio.isOutputSelectionSupported = true;
