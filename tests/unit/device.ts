@@ -13,6 +13,8 @@ import { EventEmitter } from 'events';
 import { SinonFakeTimers, SinonSpy, SinonStubbedInstance } from 'sinon';
 import * as sinon from 'sinon';
 
+const root = global as any;
+
 const ClientCapability = require('twilio').jwt.ClientCapability;
 
 const NOT_INITIALIZED_ERROR = /Call Device.setup/;
