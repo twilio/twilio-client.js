@@ -90,6 +90,8 @@ class AudioHelper extends EventEmitter {
    */
   private _audioContext?: AudioContext;
 
+  private _enumerateDevices: any;
+
   /**
    * The `getUserMedia()` function to use.
    */
@@ -165,9 +167,12 @@ class AudioHelper extends EventEmitter {
     this._getUserMedia = getUserMedia;
     this._mediaDevices = options.mediaDevices || defaultMediaDevices;
     this._onActiveInputChanged = onActiveInputChanged;
+    this._enumerateDevices = typeof options.enumerateDevices === 'function'
+      ? options.enumerateDevices
+      : this._mediaDevices && this._mediaDevices.enumerateDevices;
 
     const isAudioContextSupported: boolean = !!(options.AudioContext || options.audioContext);
-    const isEnumerationSupported: boolean = !!(this._mediaDevices && this._mediaDevices.enumerateDevices);
+    const isEnumerationSupported: boolean = !!(this._enumerateDevices);
     const isSetSinkSupported: boolean = typeof options.setSinkId === 'function';
     this.isOutputSelectionSupported = isEnumerationSupported && isSetSinkSupported;
     this.isVolumeSupported = isAudioContextSupported;
@@ -277,7 +282,7 @@ class AudioHelper extends EventEmitter {
    * @private
    */
   _unbind(): void {
-    if (!this._mediaDevices) {
+    if (!this._mediaDevices || !this._enumerateDevices) {
       throw new NotSupportedError('Enumeration is not supported');
     }
 
@@ -386,7 +391,7 @@ class AudioHelper extends EventEmitter {
    * Initialize output device enumeration.
    */
   private _initializeEnumeration(): void {
-    if (!this._mediaDevices) {
+    if (!this._mediaDevices || !this._enumerateDevices) {
       throw new NotSupportedError('Enumeration is not supported');
     }
 
@@ -499,11 +504,11 @@ class AudioHelper extends EventEmitter {
    * Update the available input and output devices
    */
   private _updateAvailableDevices = (): Promise<void> => {
-    if (!this._mediaDevices) {
+    if (!this._enumerateDevices) {
       return Promise.reject('Enumeration not supported');
     }
 
-    return this._mediaDevices.enumerateDevices().then((devices: MediaDeviceInfo[]) => {
+    return this._enumerateDevices().then((devices: MediaDeviceInfo[]) => {
       this._updateDevices(devices.filter((d: MediaDeviceInfo) => d.kind === 'audiooutput'),
         this.availableOutputDevices,
         this._removeLostOutput);
@@ -591,8 +596,13 @@ class AudioHelper extends EventEmitter {
       this._inputVolumeSource.disconnect();
     }
 
-    this._inputVolumeSource = this._audioContext.createMediaStreamSource(this._inputStream);
-    this._inputVolumeSource.connect(this._inputVolumeAnalyser);
+    try {
+      this._inputVolumeSource = this._audioContext.createMediaStreamSource(this._inputStream);
+      this._inputVolumeSource.connect(this._inputVolumeAnalyser);
+    } catch (ex) {
+      this._log.warn('Unable to update volume source', ex);
+      delete this._inputVolumeSource;
+    }
   }
 
   /**
@@ -675,6 +685,8 @@ namespace AudioHelper {
      * TODO: Remove / refactor in 2.0. (CLIENT-5302)
      */
     enabledSounds?: Record<Device.ToggleableSound, boolean>;
+
+    enumerateDevices?: any;
 
     /**
      * A custom MediaDevices instance to use.

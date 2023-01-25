@@ -324,6 +324,7 @@ class Connection extends EventEmitter {
 
     this.mediaStream = new (this.options.MediaStream || this.options.mediaStreamFactory)
       (config.audioHelper, config.pstream, config.getUserMedia, {
+        RTCPeerConnection: this.options.RTCPeerConnection,
         codecPreferences: this.options.codecPreferences,
         dscp: this.options.dscp,
         enableIceRestart: this.options.enableIceRestart,
@@ -341,6 +342,10 @@ class Connection extends EventEmitter {
       this._latestInputVolume = inputVolume;
       this._latestOutputVolume = outputVolume;
     });
+
+    this.mediaStream.onaudio = (remoteAudio: typeof Audio) => {
+      this.emit('audio', remoteAudio);
+    };
 
     this.mediaStream.onvolume = (inputVolume: number, outputVolume: number,
                                  internalInputVolume: number, internalOutputVolume: number) => {
@@ -1753,6 +1758,8 @@ namespace Connection {
      * The format of this object depends on browser.
      */
     rtcConstraints?: MediaStreamConstraints;
+
+    RTCPeerConnection?: any;
 
     /**
      * The region passed to {@link Device} on setup.

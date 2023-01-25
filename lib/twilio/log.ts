@@ -54,7 +54,12 @@ class Log {
    * @param [options] - Optional settings
    */
   constructor(options?: LogOptions) {
-    this._log = (options && options.LogLevelModule ? options.LogLevelModule : LogLevelModule).getLogger(PACKAGE_NAME);
+    try {
+      this._log = (options && options.LogLevelModule ? options.LogLevelModule : LogLevelModule).getLogger(PACKAGE_NAME);
+    } catch {
+      console.warn('Cannot create custom logger');
+      this._log = console as any;
+    }
   }
 
   /**
@@ -85,7 +90,7 @@ class Log {
    * Set a default log level to disable all logging below the given level
    */
   setDefaultLevel(level: LogLevelModule.LogLevelDesc): void {
-    this._log.setDefaultLevel(level);
+    this._log.setDefaultLevel && this._log.setDefaultLevel(level);
   }
 
   /**

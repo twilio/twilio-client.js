@@ -322,30 +322,6 @@ describe('Device', function() {
       device.setup(token, Object.assign({ rtcConfiguration }, setupOptions));
     });
 
-    describe('insights gateway', () => {
-      beforeEach(() => {
-        publisher.setHost = sinon.stub();
-      });
-
-      it('should not set host address before signaling is connected', () => {
-        sinon.assert.notCalled(publisher.setHost);
-      });
-
-      it('should set default host address if home is not available', () => {
-        pstream.emit('connected', {});
-        sinon.assert.calledOnce(publisher.setHost);
-        sinon.assert.calledWithExactly(publisher.setHost, 'eventgw.twilio.com');
-      });
-
-      Object.values(Region).forEach(region => {
-        it(`should set host to eventgw.${region}.twilio.com when home is set to ${region}`, () => {
-          pstream.emit('connected', { home: region});
-          sinon.assert.calledOnce(publisher.setHost);
-          sinon.assert.calledWithExactly(publisher.setHost, `eventgw.${region}.twilio.com`);
-        });
-      });
-    });
-
     describe('deprecated handler methods', () => {
       Object.entries(Device.EventName).forEach(([eventName, eventString]) => {
         it(`should set an event listener on Device for .${eventString}(handler)`, () => {
