@@ -21,7 +21,6 @@ import {
 import Log from './log';
 import { PreflightTest } from './preflight/preflight';
 import {
-  createEventGatewayURI,
   getChunderURIs,
   getRegionShortcode,
   Region,
@@ -374,6 +373,7 @@ class Device extends EventEmitter {
     debug: false,
     dscp: true,
     enableIceRestart: false,
+    eventgw: 'eventgw.twilio.com',
     forceAggressiveIceNomination: false,
     iceServers: [],
     noRegister: false,
@@ -517,6 +517,8 @@ class Device extends EventEmitter {
     this._disconnectAll();
     this._stopRegistrationTimer();
 
+    EventEmitter.prototype.removeAllListeners.call(this);
+
     if (this.audio) {
       this.audio._unbind();
     }
@@ -535,8 +537,6 @@ class Device extends EventEmitter {
       window.removeEventListener('unload', this.destroy);
       window.removeEventListener('pagehide', this.destroy);
     }
-
-    EventEmitter.prototype.removeAllListeners.call(this);
   }
 
   /**
@@ -768,19 +768,14 @@ class Device extends EventEmitter {
       this.soundcache.set(name as Device.SoundName, sound);
     }
 
-    const publisherOptions = {
+    this._publisher = (this.options.Publisher || Publisher)('twilio-js-sdk', token, {
       defaultPayload: this._createDefaultPayload,
+      host: this.options.eventgw,
       metadata: {
         app_name: this.options.appName,
         app_version: this.options.appVersion,
       },
-    } as any;
-
-    if (this.options.eventgw) {
-      publisherOptions.host = this.options.eventgw;
-    }
-
-    this._publisher = (this.options.Publisher || Publisher)('twilio-js-sdk', token, publisherOptions);
+    } as any);
 
     if (this.options.publishEvents === false) {
       this._publisher.disable();
@@ -1122,7 +1117,6 @@ class Device extends EventEmitter {
     const region = getRegionShortcode(payload.region);
     this._edge = regionToEdge[region as Region] || payload.region;
     this._region = region || payload.region;
-    this._publisher.setHost(createEventGatewayURI(payload.home));
     this._sendPresence();
   }
 
