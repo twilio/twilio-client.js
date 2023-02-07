@@ -8,7 +8,6 @@ describe('EventPublisher', () => {
   before(() => {
     const options = {
       defaultPayload: createDefaultFakePayload,
-      host: 'foo',
       request: fakeRequest,
       metadata: {
         app_name: 'foo',
@@ -27,7 +26,7 @@ describe('EventPublisher', () => {
     it('should set the correct properties', () => {
       assert.equal(publisher._defaultPayload, createDefaultFakePayload);
       assert.equal(publisher._isEnabled, true);
-      assert.equal(publisher._host, 'foo');
+      assert.equal(publisher._host, 'eventgw.twilio.com');
       assert.equal(publisher._request, fakeRequest);
       assert.equal(publisher.isEnabled, true);
       assert.equal(publisher.productName, 'test');
@@ -46,7 +45,6 @@ describe('EventPublisher', () => {
       connection = new FakeConnection();
       mock = { 
         _defaultPayload() { return { }; },
-        _host: 'foo',
         _post: EventPublisher.prototype._post,
         _request: { post: sinon.spy((a, cb) => { cb(); }) },
         token: 'abc123'
@@ -68,31 +66,6 @@ describe('EventPublisher', () => {
       EventPublisher.prototype.post.apply(mock, params).catch(() => {
         sinon.assert.calledWith(mock.emit, 'error', 'foo');
         done()
-      });
-    });
-
-    describe('setHost', () => {
-      beforeEach(() => {
-        mock = {
-          _defaultPayload() { return { }; },
-          _post: EventPublisher.prototype._post,
-          _request: { post: sinon.spy((a, cb) => { cb(); }) },
-          token: 'abc123'
-        };
-      });
-
-      it('should not post a request if host is empty', () => {
-        return EventPublisher.prototype.post.apply(mock, params).then(() => {
-          sinon.assert.notCalled(mock._request.post);
-        });
-      });
-
-      it('should post a request after setting the host', () => {
-        EventPublisher.prototype.setHost.call(mock, 'foo');
-        return EventPublisher.prototype.post.apply(mock, params).then(() => {
-          sinon.assert.calledOnce(mock._request.post);
-          assert.equal(mock._request.post.args[0][0].url, 'https://foo/v4/EndpointEvents');
-        });
       });
     });
 
@@ -148,7 +121,6 @@ describe('EventPublisher', () => {
   ['debug', 'info', 'warn', 'error'].forEach((level, i) => {
     const publisher = new EventPublisher('test', 'token', {
       defaultPayload: createDefaultFakePayload,
-      host: 'foo',
       request: fakeRequest
     });
     const publishLevel = `${level.toUpperCase()}${level === 'warn' ? 'ING' : ''}`

@@ -233,17 +233,10 @@ export const defaultEdge: Edge = Edge.Roaming;
 export const defaultChunderRegionURI: string = 'chunderw-vpc-gll.twilio.com';
 
 /**
- * The default event gateway URI to publish to.
- * @constant
- * @private
- */
-const defaultEventGatewayURI: string = 'eventgw.twilio.com';
-
-/**
  * String template for a region chunder URI
  * @param region - The region.
  */
-function createChunderRegionURI(region: string): string {
+function createChunderRegionUri(region: string): string {
   return region === defaultRegion
     ? defaultChunderRegionURI
     : `chunderw-vpc-gll-${region}.twilio.com`;
@@ -253,14 +246,8 @@ function createChunderRegionURI(region: string): string {
  * String template for an edge chunder URI
  * @param edge - The edge.
  */
-function createChunderEdgeURI(edge: string): string {
+function createChunderEdgeUri(edge: string): string {
   return `voice-js.${edge}.twilio.com`;
-}
-
-export function createEventGatewayURI(region: string): string {
-  return region
-    ? `eventgw.${region}.twilio.com`
-    : defaultEventGatewayURI;
 }
 
 /**
@@ -325,14 +312,14 @@ export function getChunderURIs(
       );
     }
 
-    uris = [createChunderRegionURI(chunderRegion)];
+    uris = [createChunderRegionUri(chunderRegion)];
   } else if (edge) {
     const edgeValues = Object.values(Edge) as string[];
     const edgeParams = Array.isArray(edge) ? edge : [edge];
 
     uris = edgeParams.map((param: Edge) => edgeValues.includes(param)
-      ? createChunderRegionURI(edgeToRegion[param])
-      : createChunderEdgeURI(param));
+      ? createChunderRegionUri(edgeToRegion[param])
+      : createChunderEdgeUri(param));
   } else {
     uris = [defaultChunderRegionURI];
   }
