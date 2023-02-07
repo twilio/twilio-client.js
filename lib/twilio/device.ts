@@ -790,9 +790,10 @@ class Device extends EventEmitter {
     }
 
     this.audio = new (this.options.AudioHelper || AudioHelper)
-        (this._updateSinkIds, this._updateInputStream, getUserMedia, {
+        (this._updateSinkIds, this._updateInputStream, this.options.getUserMedia || getUserMedia, {
       audioContext: Device.audioContext,
       enabledSounds: this._enabledSounds,
+      enumerateDevices: this.options.enumerateDevices,
     }) as AudioHelper;
 
     this.audio.on('deviceChange', (lostActiveDevices: MediaDeviceInfo[]) => {
@@ -983,7 +984,7 @@ class Device extends EventEmitter {
 
     const config: Connection.Config = {
       audioHelper: this.audio,
-      getUserMedia,
+      getUserMedia: this.options.getUserMedia || getUserMedia,
       isUnifiedPlanDefault: Device._isUnifiedPlanDefault,
       pstream: this.stream,
       publisher: this._publisher,
@@ -994,6 +995,7 @@ class Device extends EventEmitter {
       MediaStream: this.options.MediaStream
         || this.options.mediaStreamFactory
         || rtc.PeerConnection,
+      RTCPeerConnection: this.options.RTCPeerConnection,
       audioConstraints: this.options.audioConstraints,
       beforeAccept: (conn: Connection) => {
         if (!this._activeConnection || this._activeConnection === conn) {
@@ -1622,6 +1624,8 @@ namespace Device {
      */
     enableRingingState?: boolean;
 
+    enumerateDevices?: any;
+
     /**
      * Whether or not to override the local DTMF sounds with fake dialtones. This won't affect
      * the DTMF tone sent over the connection, but will prevent double-send issues caused by
@@ -1634,6 +1638,8 @@ namespace Device {
      * Whether to use ICE Aggressive nomination.
      */
     forceAggressiveIceNomination?: boolean;
+
+    getUserMedia?: any;
 
     /**
      * The maximum average audio bitrate to use, in bits per second (bps) based on
@@ -1683,6 +1689,8 @@ namespace Device {
      * An RTCConfiguration to pass to the RTCPeerConnection constructor.
      */
     rtcConfiguration?: RTCConfiguration;
+
+    RTCPeerConnection?: any;
 
     /**
      * A mapping of custom sound URLs by sound name.

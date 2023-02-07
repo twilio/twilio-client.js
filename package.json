@@ -11,6 +11,9 @@
     "voice",
     "voip"
   ],
+  "engines": {
+    "node": ">= 12"
+  },
   "repository": {
     "type": "git",
     "url": "git@github.com:twilio/twilio-client.js.git"
@@ -22,7 +25,7 @@
     "build:dev": "ENV=dev npm run build",
     "build:dist": "node ./scripts/build.js ./lib/browser.js ./LICENSE.md ./dist/twilio.js",
     "build:dist-min": "uglifyjs ./dist/twilio.js -o ./dist/twilio.min.js --comments \"/^! twilio-client.js/\" -b beautify=false,ascii_only=true",
-    "build:release": "npm-run-all lint build test:webpack test:es5 status",
+    "build:release": "npm-run-all lint build test:es5 status",
     "build:ts": "./node_modules/typescript/bin/tsc",
     "build:constants": "node ./scripts/constants.js",
     "clean": "rimraf ./coverage ./dist ./es5",
@@ -39,7 +42,7 @@
     "release": "release",
     "start": "node server.js",
     "status": "git status",
-    "test": "npm-run-all lint build test:unit test:webpack test:es5 test:docker",
+    "test": "npm-run-all lint build test:unit test:es5 test:docker",
     "test:docker": "chmod +x ./scripts/circleci-run-tests.sh && ./scripts/circleci-run-tests.sh",
     "test:es5": "es-check es5 \"./es5/**/*.js\" ./dist/*.js",
     "test:framework:no-framework": "mocha tests/framework/no-framework.js",
@@ -61,6 +64,7 @@
     "docs:ts"
   ],
   "devDependencies": {
+    "@types/mime": "3.0.0",
     "@types/mocha": "5.2.7",
     "@types/node": "13.1.8",
     "@types/sinon": "9.0.5",
@@ -101,7 +105,6 @@
     "twilio-release-tool": "1.0.1",
     "selenium-webdriver": "3.6.0",
     "sinon": "9.0.3",
-    "travis-multirunner": "4.6.0",
     "ts-node": "8.6.2",
     "tslint": "5.20.1",
     "twilio": "3.39.2",
