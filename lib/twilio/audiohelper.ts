@@ -171,8 +171,8 @@ class AudioHelper extends EventEmitter {
       ? options.enumerateDevices
       : this._mediaDevices && this._mediaDevices.enumerateDevices;
 
-    const isAudioContextSupported: boolean = !!(options.AudioContext || options.audioContext);
-    const isEnumerationSupported: boolean = !!(this._enumerateDevices);
+    const isAudioContextSupported: boolean = Boolean(options.AudioContext || options.audioContext);
+    const isEnumerationSupported: boolean = Boolean(this._enumerateDevices);
     const isSetSinkSupported: boolean = typeof options.setSinkId === 'function';
     this.isOutputSelectionSupported = isEnumerationSupported && isSetSinkSupported;
     this.isVolumeSupported = isAudioContextSupported;
@@ -504,7 +504,7 @@ class AudioHelper extends EventEmitter {
    * Update the available input and output devices
    */
   private _updateAvailableDevices = (): Promise<void> => {
-    if (!this._enumerateDevices) {
+    if (!this._mediaDevices || !this._enumerateDevices) {
       return Promise.reject('Enumeration not supported');
     }
 

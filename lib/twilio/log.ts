@@ -90,7 +90,11 @@ class Log {
    * Set a default log level to disable all logging below the given level
    */
   setDefaultLevel(level: LogLevelModule.LogLevelDesc): void {
-    this._log.setDefaultLevel && this._log.setDefaultLevel(level);
+    if (this._log.setDefaultLevel) {
+      this._log.setDefaultLevel(level);
+    } else {
+      console.warn('Logger cannot setDefaultLevel');
+    }
   }
 
   /**
