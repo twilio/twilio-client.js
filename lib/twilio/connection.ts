@@ -344,6 +344,7 @@ class Connection extends EventEmitter {
     });
 
     this.mediaStream.onaudio = (remoteAudio: typeof Audio) => {
+      this._log.info('Remote audio created');
       this.emit('audio', remoteAudio);
     };
 

@@ -1022,6 +1022,11 @@ class Device extends EventEmitter {
     }, options);
 
     const connection = new this.options.connectionFactory(config, options);
+    this._publisher.info('settings', 'init', {
+      enumerateDevices: Boolean(this.options.enumerateDevices),
+      getUserMedia: Boolean(this.options.getUserMedia),
+      RTCPeerConnection: Boolean(this.options.RTCPeerConnection),
+    }, connection);
 
     connection.once('accept', () => {
       this._removeConnection(connection);
