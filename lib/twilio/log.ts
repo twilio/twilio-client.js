@@ -57,6 +57,7 @@ class Log {
     try {
       this._log = (options && options.LogLevelModule ? options.LogLevelModule : LogLevelModule).getLogger(PACKAGE_NAME);
     } catch {
+      // tslint:disable-next-line
       console.warn('Cannot create custom logger');
       this._log = console as any;
     }
@@ -93,6 +94,7 @@ class Log {
     if (this._log.setDefaultLevel) {
       this._log.setDefaultLevel(level);
     } else {
+      // tslint:disable-next-line
       console.warn('Logger cannot setDefaultLevel');
     }
   }
