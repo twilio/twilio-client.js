@@ -128,14 +128,14 @@ describe('Device', function() {
       });
 
       it('should receive the correct custom parameters from the TwiML app', () => {
-        assert.deepEqual(Array.from(connection2.customParameters.entries()), [
+        assert.deepEqual(Array.from(connection2.customParameters.entries()).sort(), [
           ['duplicate', '123456'],
           ['custom + param', '我不吃蛋'],
           ['foobar', 'some + value'],
           ['custom1', 'foo + bar'],
           ['custom2', 'undefined'],
           ['custom3', '我不吃蛋'],
-        ]);
+        ].sort());
       });
 
       it('should post metrics', (done) => {
