@@ -52,10 +52,32 @@
 	<div class="row">
 		<div class="col-8 col-content">
 			<div class="tsd-panel tsd-typography">
+				<a href="#deprecation-notice" id="deprecation-notice" style="color: inherit; text-decoration: none;">
+					<h3>Deprecation Notice</h3>
+				</a>
+				<p>This repository does not contain the latest version of Twilio&#39;s Javascript Voice SDK. Although this major version will continue
+					to be supported, it will no longer receive new features. We recommend that all users upgrade to
+					<a href="https://github.com/twilio/twilio-voice.js">2.0</a> at their earliest convenience, in order to receive access to new features as
+				they arrive.</p>
+				<a href="#twilio39s-javascript-voice-sdk-20-is-now-ga" id="twilio39s-javascript-voice-sdk-20-is-now-ga" style="color: inherit; text-decoration: none;">
+					<h2>Twilio&#39;s JavaScript Voice SDK 2.0 is now GA!</h2>
+				</a>
+				<p>This repository contains an outdated version of Twilio&#39;s Javascript Client SDK. We have now released 2.0 as Generally Available.
+				You can find the new repository containing the JavaScript Voice SDK 2.0 <a href="https://github.com/twilio/twilio-voice.js">here</a>.</p>
+				<p>This new major version cleans up a lot of the legacy API, such as:</p>
+				<ul>
+					<li>Removing deprecated methods</li>
+					<li>Renaming classes and methods to be less ambiguous</li>
+					<li>Implementing the new features from 1.x as defaults rather than behind feature flags</li>
+					<li>Completely moving to the new TwilioError class which is standardized between Voice SDKs and contains much more detailed information about errors</li>
+				</ul>
+				<p>Additionally, new features from this point onward will only be added to the 2.0 project, and not be backported to 1.x, so anyone looking to use the
+				latest features will want to be moved to the new 2.0 API.</p>
+				<p>Existing customers can review our migration guide <a href="https://www.twilio.com/docs/voice/sdks/javascript/migrating-to-js-voice-sdk-20">here</a>.</p>
 				<a href="#twilio-clientjs" id="twilio-clientjs" style="color: inherit; text-decoration: none;">
 					<h1>twilio-client.js</h1>
 				</a>
-				<p><a href="https://travis-ci.org/twilio/twilio-client.js"><img src="https://travis-ci.org/twilio/twilio-client.js.svg?branch=master" alt="Travis Build Status"></a> <a href="https://www.npmjs.com/package/twilio-client"><img src="https://img.shields.io/npm/v/twilio-client.svg" alt="NPM"></a></p>
+				<p><a href="https://www.npmjs.com/package/twilio-client"><img src="https://img.shields.io/npm/v/twilio-client.svg" alt="NPM"></a> <a href="https://circleci.com/gh/twilio/twilio-client.js/tree/master"><img src="https://circleci.com/gh/twilio/twilio-client.js/tree/master.svg?style=svg&circle-token=80e91c8284c21ff16d3003702e17b903c0b32f1d" alt="CircleCI"></a></p>
 				<p>twilio-client.js allows you to add real-time voice and PSTN calling to your web apps.</p>
 				<ul>
 					<li><a href="https://twilio.github.io/twilio-client.js/index.html">API Docs</a></li>
@@ -85,7 +107,7 @@
 				</a>
 				<p>Though not recommended, releases of twilio-client.js are also hosted on a CDN and you can include
 				these directly in your web app using a &lt;script&gt; tag.</p>
-				<pre><code class="language-html"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://sdk.twilio.com/js/client/v1.13/twilio.js"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre>
+				<pre><code class="language-html"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://sdk.twilio.com/js/client/v1.14/twilio.js"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre>
 				<p>Using this method, twilio-client.js will set a browser global:</p>
 				<pre><code class="language-js"><span class="hljs-keyword">const</span> Device = Twilio.Device;</code></pre>
 				<a href="#testing" id="testing" style="color: inherit; text-decoration: none;">
