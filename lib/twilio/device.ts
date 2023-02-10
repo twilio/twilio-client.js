@@ -517,8 +517,6 @@ class Device extends EventEmitter {
     this._disconnectAll();
     this._stopRegistrationTimer();
 
-    EventEmitter.prototype.removeAllListeners.call(this);
-
     if (this.audio) {
       this.audio._unbind();
     }
@@ -537,6 +535,8 @@ class Device extends EventEmitter {
       window.removeEventListener('unload', this.destroy);
       window.removeEventListener('pagehide', this.destroy);
     }
+
+    EventEmitter.prototype.removeAllListeners.call(this);
   }
 
   /**
