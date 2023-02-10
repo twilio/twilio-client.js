@@ -1,3 +1,19 @@
+1.15.0 (In Progress)
+====================
+
+New Features
+------------
+
+### WebRTC API Overrides
+
+The SDK now allows you to override WebRTC APIs using the following `Device.Options`.
+
+- `Device.Options.enumerateDevices`
+- `Device.Options.getUserMedia`
+- `Device.Options.RTCPeerConnection`
+
+Additionally, `connection.on('audio', handler(remoteAudio))` event is now emitted after the `HTMLAudioElement` for the remote audio is created.
+
 1.14.0 (Jan 27, 2021)
 ====================
 
