@@ -286,10 +286,10 @@ class AudioHelper extends EventEmitter {
       throw new NotSupportedError('Enumeration is not supported');
     }
 
-    if (this._mediaDevices.removeEventListener) {
-      this._mediaDevices.removeEventListener('devicechange', this._updateAvailableDevices);
-      this._mediaDevices.removeEventListener('deviceinfochange', this._updateAvailableDevices);
-    }
+    // if (this._mediaDevices.removeEventListener) {
+    //   this._mediaDevices.removeEventListener('devicechange', this._updateAvailableDevices);
+    //   this._mediaDevices.removeEventListener('deviceinfochange', this._updateAvailableDevices);
+    // }
   }
 
   /**
@@ -395,10 +395,10 @@ class AudioHelper extends EventEmitter {
       throw new NotSupportedError('Enumeration is not supported');
     }
 
-    if (this._mediaDevices.addEventListener) {
-      this._mediaDevices.addEventListener('devicechange', this._updateAvailableDevices);
-      this._mediaDevices.addEventListener('deviceinfochange', this._updateAvailableDevices);
-    }
+    // if (this._mediaDevices.addEventListener) {
+    //   this._mediaDevices.addEventListener('devicechange', this._updateAvailableDevices);
+    //   this._mediaDevices.addEventListener('deviceinfochange', this._updateAvailableDevices);
+    // }
 
     this._updateAvailableDevices().then(() => {
       if (!this.isOutputSelectionSupported) { return; }
