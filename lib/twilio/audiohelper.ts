@@ -686,6 +686,9 @@ namespace AudioHelper {
      */
     enabledSounds?: Record<Device.ToggleableSound, boolean>;
 
+    /**
+     * Overrides the native MediaDevices.enumerateDevices API.
+     */
     enumerateDevices?: any;
 
     /**

@@ -1439,6 +1439,14 @@ namespace Connection {
   declare function acceptEvent(connection: Connection): void;
 
   /**
+   * Emitted after the HTMLAudioElement for the remote audio is created.
+   * @param remoteAudio - The HTMLAudioElement.
+   * @example `connection.on('audio', handler(remoteAudio))`
+   * @event
+   */
+  declare function audioEvent(remoteAudio: HTMLAudioElement): void;
+
+  /**
    * Emitted when the {@link Connection} is canceled.
    * @example `connection.on('cancel', () => { })`
    * @event
@@ -1760,6 +1768,9 @@ namespace Connection {
      */
     rtcConstraints?: MediaStreamConstraints;
 
+    /**
+     * The RTCPeerConnection passed to {@link Device} on setup.
+     */
     RTCPeerConnection?: any;
 
     /**
