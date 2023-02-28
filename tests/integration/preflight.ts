@@ -9,6 +9,8 @@ const DURATION_PADDING = 1000;
 const EVENT_TIMEOUT = 30000;
 const MAX_TIMEOUT = 300000;
 
+// TODO: https://issues.corp.twilio.com/browse/VBLOCKS-1036
+// Removed in 2.x. Will need to put it back and make sure it passes
 describe('Preflight Test', function() {
   this.timeout(MAX_TIMEOUT);
 

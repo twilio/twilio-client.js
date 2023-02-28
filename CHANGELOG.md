@@ -1,30 +1,24 @@
-1.15.0 (In progress)
+1.15.0 (Feb 28, 2023)
 ====================
 
 New Features
 ------------
 
-- ### Twilio Regional Support
+### WebRTC API Overrides (Beta)
 
-The Twilio Voice JS SDK now supports Twilio Regional. To use a home region, please specify the desired home region in the access token before passing the token to the Twilio `Device`. This home region parameter should be matched with the appropriate `edge` parameter when instantiating a Twilio `Device`. The home region determines the location of your Insights data, as opposed to the `edge` that your call connects to Twilio through.
+The SDK now allows you to override WebRTC APIs using the following options and events. If your environment supports WebRTC redirection, such as [Citrix HDX](https://www.citrix.com/solutions/vdi-and-daas/hdx/what-is-hdx.html)'s WebRTC [redirection technologies](https://www.citrix.com/blogs/2019/01/15/hdx-a-webrtc-manifesto/), your application can use this new *beta* feature for improved audio quality in those environments.
 
-If you are using the `twilio-node` helper library to mint access tokens within your backend, you can specify the `au1` home region like so:
+- `Device.Options.enumerateDevices` - Overrides the native `MediaDevices.enumerateDevices` API.
+- `Device.Options.getUserMedia` - Overrides the native `MediaDevices.getUserMedia` API.
+- `Device.Options.RTCPeerConnection` - Overrides the native `RTCPeerConnection` class.
+- `connection.on('audio', handler(remoteAudio))` - Emitted after the `HTMLAudioElement` for the remote audio is created.
 
-```ts
-const accessToken = new twilio.jwt.AccessToken(
-  credentials.accountSid,
-  credentials.apiKeySid,
-  credentials.apiKeySecret, {
-    identity,
-    ttl,
-    region: 'au1',
-  },
-);
+Known Issues
+------------
 
-const device = new Device(accessToken, {
-  edge: 'sydney',
-});
-```
+- Volume levels currently report as zero and do not reflect the actual volume levels of the call. This issue does not affect the quality of the call but, might affect application behavior if you rely on these values.
+- Only inbound calls are currently supported. Outbound calls will be available in a future release.
+- Using `Device.audio.speakerDevices` and `Device.audio.setInputDevice` will not properly switch speaker and microphone devices. You need to recreate the `Device` object or refresh the page when the default microphone or speaker device is changed.
 
 1.14.0 (Jan 27, 2021)
 ====================

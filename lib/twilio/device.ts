@@ -21,7 +21,6 @@ import {
 import Log from './log';
 import { PreflightTest } from './preflight/preflight';
 import {
-  createEventGatewayURI,
   getChunderURIs,
   getRegionShortcode,
   Region,
@@ -374,6 +373,7 @@ class Device extends EventEmitter {
     debug: false,
     dscp: true,
     enableIceRestart: false,
+    eventgw: 'eventgw.twilio.com',
     forceAggressiveIceNomination: false,
     iceServers: [],
     noRegister: false,
@@ -768,19 +768,14 @@ class Device extends EventEmitter {
       this.soundcache.set(name as Device.SoundName, sound);
     }
 
-    const publisherOptions = {
+    this._publisher = (this.options.Publisher || Publisher)('twilio-js-sdk', token, {
       defaultPayload: this._createDefaultPayload,
+      host: this.options.eventgw,
       metadata: {
         app_name: this.options.appName,
         app_version: this.options.appVersion,
       },
-    } as any;
-
-    if (this.options.eventgw) {
-      publisherOptions.host = this.options.eventgw;
-    }
-
-    this._publisher = (this.options.Publisher || Publisher)('twilio-js-sdk', token, publisherOptions);
+    } as any);
 
     if (this.options.publishEvents === false) {
       this._publisher.disable();
@@ -795,9 +790,10 @@ class Device extends EventEmitter {
     }
 
     this.audio = new (this.options.AudioHelper || AudioHelper)
-        (this._updateSinkIds, this._updateInputStream, getUserMedia, {
+        (this._updateSinkIds, this._updateInputStream, this.options.getUserMedia || getUserMedia, {
       audioContext: Device.audioContext,
       enabledSounds: this._enabledSounds,
+      enumerateDevices: this.options.enumerateDevices,
     }) as AudioHelper;
 
     this.audio.on('deviceChange', (lostActiveDevices: MediaDeviceInfo[]) => {
@@ -988,7 +984,7 @@ class Device extends EventEmitter {
 
     const config: Connection.Config = {
       audioHelper: this.audio,
-      getUserMedia,
+      getUserMedia: this.options.getUserMedia || getUserMedia,
       isUnifiedPlanDefault: Device._isUnifiedPlanDefault,
       pstream: this.stream,
       publisher: this._publisher,
@@ -999,6 +995,7 @@ class Device extends EventEmitter {
       MediaStream: this.options.MediaStream
         || this.options.mediaStreamFactory
         || rtc.PeerConnection,
+      RTCPeerConnection: this.options.RTCPeerConnection,
       audioConstraints: this.options.audioConstraints,
       beforeAccept: (conn: Connection) => {
         if (!this._activeConnection || this._activeConnection === conn) {
@@ -1025,6 +1022,11 @@ class Device extends EventEmitter {
     }, options);
 
     const connection = new this.options.connectionFactory(config, options);
+    this._publisher.info('settings', 'init', {
+      RTCPeerConnection: Boolean(this.options.RTCPeerConnection),
+      enumerateDevices: Boolean(this.options.enumerateDevices),
+      getUserMedia: Boolean(this.options.getUserMedia),
+    }, connection);
 
     connection.once('accept', () => {
       this._removeConnection(connection);
@@ -1122,7 +1124,6 @@ class Device extends EventEmitter {
     const region = getRegionShortcode(payload.region);
     this._edge = regionToEdge[region as Region] || payload.region;
     this._region = region || payload.region;
-    this._publisher.setHost(createEventGatewayURI(payload.home));
     this._sendPresence();
   }
 
@@ -1629,6 +1630,11 @@ namespace Device {
     enableRingingState?: boolean;
 
     /**
+     * Overrides the native MediaDevices.enumerateDevices API.
+     */
+    enumerateDevices?: any;
+
+    /**
      * Whether or not to override the local DTMF sounds with fake dialtones. This won't affect
      * the DTMF tone sent over the connection, but will prevent double-send issues caused by
      * using real DTMF tones for user interface. In 2.0, this will be enabled by default.
@@ -1640,6 +1646,11 @@ namespace Device {
      * Whether to use ICE Aggressive nomination.
      */
     forceAggressiveIceNomination?: boolean;
+
+    /**
+     * Overrides the native MediaDevices.getUserMedia API.
+     */
+    getUserMedia?: any;
 
     /**
      * The maximum average audio bitrate to use, in bits per second (bps) based on
@@ -1689,6 +1700,11 @@ namespace Device {
      * An RTCConfiguration to pass to the RTCPeerConnection constructor.
      */
     rtcConfiguration?: RTCConfiguration;
+
+    /**
+     * Overrides the native RTCPeerConnection class.
+     */
+    RTCPeerConnection?: any;
 
     /**
      * A mapping of custom sound URLs by sound name.
