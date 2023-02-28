@@ -6,19 +6,19 @@ New Features
 
 ### WebRTC API Overrides (Beta)
 
-The SDK now allows you to override WebRTC APIs using the following options and events. If your environment supports WebRTC redirection, such as [Citrix HDX](https://www.citrix.com/solutions/vdi-and-daas/hdx/what-is-hdx.html)'s WebRTC [redirection technologies](https://www.citrix.com/blogs/2019/01/15/hdx-a-webrtc-manifesto/), your application can use this new *beta* feature for a much improved audio quality.
+The SDK now allows you to override WebRTC APIs using the following options and events. If your environment supports WebRTC redirection, such as [Citrix HDX](https://www.citrix.com/solutions/vdi-and-daas/hdx/what-is-hdx.html)'s WebRTC [redirection technologies](https://www.citrix.com/blogs/2019/01/15/hdx-a-webrtc-manifesto/), your application can use this new *beta* feature for improved audio quality in those environments.
 
-- `Device.Options.enumerateDevices` - Overrides the native MediaDevices.enumerateDevices API.
-- `Device.Options.getUserMedia` - Overrides the native MediaDevices.getUserMedia API.
-- `Device.Options.RTCPeerConnection` - Overrides the native RTCPeerConnection class.
+- `Device.Options.enumerateDevices` - Overrides the native `MediaDevices.enumerateDevices` API.
+- `Device.Options.getUserMedia` - Overrides the native `MediaDevices.getUserMedia` API.
+- `Device.Options.RTCPeerConnection` - Overrides the native `RTCPeerConnection` class.
 - `connection.on('audio', handler(remoteAudio))` - Emitted after the `HTMLAudioElement` for the remote audio is created.
 
 Known Issues
 ------------
 
-- Volume levels currently report as zero and does not reflect the actual volume levels of the call. This issue does not affect the quality of the call but it might affect your application's behavior if you rely on these values.
-- Only inbound calls are currently supported. Outbound calls will be available on a future release.
-- No ability to switch to a different microphone and speaker device. You need to recreate the `Device` object or refresh the page when the default microphone or speaker device is changed.
+- Volume levels currently report as zero and do not reflect the actual volume levels of the call. This issue does not affect the quality of the call but, might affect application behavior if you rely on these values.
+- Only inbound calls are currently supported. Outbound calls will be available in a future release.
+- Using `Device.audio.speakerDevices` and `Device.audio.setInputDevice` will not properly switch speaker and microphone devices. You need to recreate the `Device` object or refresh the page when the default microphone or speaker device is changed.
 
 1.14.0 (Jan 27, 2021)
 ====================
