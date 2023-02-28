@@ -1629,6 +1629,9 @@ namespace Device {
      */
     enableRingingState?: boolean;
 
+    /**
+     * Overrides the native MediaDevices.enumerateDevices API.
+     */
     enumerateDevices?: any;
 
     /**
@@ -1644,6 +1647,9 @@ namespace Device {
      */
     forceAggressiveIceNomination?: boolean;
 
+    /**
+     * Overrides the native MediaDevices.getUserMedia API.
+     */
     getUserMedia?: any;
 
     /**
@@ -1695,6 +1701,9 @@ namespace Device {
      */
     rtcConfiguration?: RTCConfiguration;
 
+    /**
+     * Overrides the native RTCPeerConnection class.
+     */
     RTCPeerConnection?: any;
 
     /**
