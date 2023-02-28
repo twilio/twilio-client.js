@@ -107,6 +107,7 @@
 							<h3>Events</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-event tsd-parent-kind-class tsd-is-static"><a href="voice.connection.html#acceptevent" class="tsd-kind-icon">accept<wbr>Event</a></li>
+								<li class="tsd-kind-event tsd-parent-kind-class tsd-is-static"><a href="voice.connection.html#audioevent" class="tsd-kind-icon">audio<wbr>Event</a></li>
 								<li class="tsd-kind-event tsd-parent-kind-class tsd-is-static"><a href="voice.connection.html#cancelevent" class="tsd-kind-icon">cancel<wbr>Event</a></li>
 								<li class="tsd-kind-event tsd-parent-kind-class tsd-is-static"><a href="voice.connection.html#disconnectevent" class="tsd-kind-icon">disconnect<wbr>Event</a></li>
 								<li class="tsd-kind-event tsd-parent-kind-class tsd-is-static"><a href="voice.connection.html#errorevent" class="tsd-kind-icon">error<wbr>Event</a></li>
@@ -191,7 +192,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L1439">lib/twilio/connection.ts:1439</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L1439">lib/twilio/connection.ts:1439</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -218,6 +219,42 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-event tsd-parent-kind-class tsd-is-static">
+					<a name="audioevent" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagStatic">Static</span> audio<wbr>Event</h3>
+					<ul class="tsd-signatures tsd-kind-event tsd-parent-kind-class tsd-is-static">
+						<li class="tsd-signature tsd-kind-icon">audio<wbr>Event<span class="tsd-signature-symbol">(</span>remoteAudio<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">HTMLAudioElement</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L1447">lib/twilio/connection.ts:1447</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Emitted after the HTMLAudioElement for the remote audio is created.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>example</dt>
+									<dd><p><code>connection.on(&#39;audio&#39;, handler(remoteAudio))</code></p>
+									</dd>
+								</dl>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>remoteAudio: <span class="tsd-signature-type">HTMLAudioElement</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The HTMLAudioElement.</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-event tsd-parent-kind-class tsd-is-static">
 					<a name="cancelevent" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagStatic">Static</span> cancel<wbr>Event</h3>
 					<ul class="tsd-signatures tsd-kind-event tsd-parent-kind-class tsd-is-static">
@@ -227,7 +264,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L1446">lib/twilio/connection.ts:1446</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L1454">lib/twilio/connection.ts:1454</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -254,7 +291,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L1454">lib/twilio/connection.ts:1454</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L1462">lib/twilio/connection.ts:1462</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -290,7 +327,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L1462">lib/twilio/connection.ts:1462</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L1470">lib/twilio/connection.ts:1470</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -323,7 +360,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L1471">lib/twilio/connection.ts:1471</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L1479">lib/twilio/connection.ts:1479</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -365,7 +402,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L1479">lib/twilio/connection.ts:1479</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L1487">lib/twilio/connection.ts:1487</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -401,7 +438,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L1498">lib/twilio/connection.ts:1498</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L1506">lib/twilio/connection.ts:1506</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -435,7 +472,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L1489">lib/twilio/connection.ts:1489</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L1497">lib/twilio/connection.ts:1497</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -477,7 +514,7 @@
 					<div class="tsd-signature tsd-kind-icon">caller<wbr>Info<span class="tsd-signature-symbol">:</span> <a href="../interfaces/voice.connection.callerinfo.html" class="tsd-signature-type">CallerInfo</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L112">lib/twilio/connection.ts:112</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L112">lib/twilio/connection.ts:112</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -493,7 +530,7 @@
 					<div class="tsd-signature tsd-kind-icon">custom<wbr>Parameters<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L117">lib/twilio/connection.ts:117</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L117">lib/twilio/connection.ts:117</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -508,7 +545,7 @@
 					<div class="tsd-signature tsd-kind-icon">media<wbr>Stream<span class="tsd-signature-symbol">:</span> <a href="../modules/voice.html#ipeerconnection" class="tsd-signature-type">IPeerConnection</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L139">lib/twilio/connection.ts:139</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L139">lib/twilio/connection.ts:139</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -524,7 +561,7 @@
 					<div class="tsd-signature tsd-kind-icon">outbound<wbr>Connection<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L144">lib/twilio/connection.ts:144</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L144">lib/twilio/connection.ts:144</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -539,7 +576,7 @@
 					<div class="tsd-signature tsd-kind-icon">parameters<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L149">lib/twilio/connection.ts:149</a></li>
+							<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L149">lib/twilio/connection.ts:149</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -571,7 +608,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L130">lib/twilio/connection.ts:130</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L130">lib/twilio/connection.ts:130</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -594,7 +631,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L122">lib/twilio/connection.ts:122</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L122">lib/twilio/connection.ts:122</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -619,7 +656,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L519">lib/twilio/connection.ts:519</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L519">lib/twilio/connection.ts:519</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -648,7 +685,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L529">lib/twilio/connection.ts:529</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L529">lib/twilio/connection.ts:529</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -677,7 +714,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L540">lib/twilio/connection.ts:540</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L540">lib/twilio/connection.ts:540</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -705,7 +742,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L549">lib/twilio/connection.ts:549</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L549">lib/twilio/connection.ts:549</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -734,7 +771,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L558">lib/twilio/connection.ts:558</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L558">lib/twilio/connection.ts:558</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -756,7 +793,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L563">lib/twilio/connection.ts:563</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L563">lib/twilio/connection.ts:563</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -854,7 +891,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L683">lib/twilio/connection.ts:683</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L683">lib/twilio/connection.ts:683</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -871,7 +908,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L687">lib/twilio/connection.ts:687</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L687">lib/twilio/connection.ts:687</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -916,7 +953,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L701">lib/twilio/connection.ts:701</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L701">lib/twilio/connection.ts:701</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -929,7 +966,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L705">lib/twilio/connection.ts:705</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L705">lib/twilio/connection.ts:705</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1006,7 +1043,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L717">lib/twilio/connection.ts:717</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L717">lib/twilio/connection.ts:717</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1074,7 +1111,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L726">lib/twilio/connection.ts:726</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L726">lib/twilio/connection.ts:726</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1117,7 +1154,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L733">lib/twilio/connection.ts:733</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L733">lib/twilio/connection.ts:733</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1143,7 +1180,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L740">lib/twilio/connection.ts:740</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L740">lib/twilio/connection.ts:740</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1156,7 +1193,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L744">lib/twilio/connection.ts:744</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L744">lib/twilio/connection.ts:744</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1200,7 +1237,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L764">lib/twilio/connection.ts:764</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L764">lib/twilio/connection.ts:764</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1271,7 +1308,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L772">lib/twilio/connection.ts:772</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L772">lib/twilio/connection.ts:772</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1293,7 +1330,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L776">lib/twilio/connection.ts:776</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L776">lib/twilio/connection.ts:776</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1481,7 +1518,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L804">lib/twilio/connection.ts:804</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L804">lib/twilio/connection.ts:804</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1639,7 +1676,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L826">lib/twilio/connection.ts:826</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L826">lib/twilio/connection.ts:826</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1652,7 +1689,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L830">lib/twilio/connection.ts:830</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L830">lib/twilio/connection.ts:830</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1765,7 +1802,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L852">lib/twilio/connection.ts:852</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L852">lib/twilio/connection.ts:852</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1819,7 +1856,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L926">lib/twilio/connection.ts:926</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L926">lib/twilio/connection.ts:926</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1841,7 +1878,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L934">lib/twilio/connection.ts:934</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L934">lib/twilio/connection.ts:934</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1863,7 +1900,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L939">lib/twilio/connection.ts:939</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L939">lib/twilio/connection.ts:939</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1889,7 +1926,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L948">lib/twilio/connection.ts:948</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L948">lib/twilio/connection.ts:948</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -1977,7 +2014,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/4b6c04e/lib/twilio/connection.ts#L106">lib/twilio/connection.ts:106</a></li>
+									<li>Defined in <a href="https://github.com/twilio/twilio-client.js/blob/e040ebd/lib/twilio/connection.ts#L106">lib/twilio/connection.ts:106</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -2100,6 +2137,9 @@
 							</li>
 							<li class=" tsd-kind-event tsd-parent-kind-class tsd-is-static">
 								<a href="voice.connection.html#acceptevent" class="tsd-kind-icon">accept<wbr>Event</a>
+							</li>
+							<li class=" tsd-kind-event tsd-parent-kind-class tsd-is-static">
+								<a href="voice.connection.html#audioevent" class="tsd-kind-icon">audio<wbr>Event</a>
 							</li>
 							<li class=" tsd-kind-event tsd-parent-kind-class tsd-is-static">
 								<a href="voice.connection.html#cancelevent" class="tsd-kind-icon">cancel<wbr>Event</a>
