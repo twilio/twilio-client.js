@@ -323,6 +323,15 @@ class AudioHelper extends EventEmitter {
   }
 
   /**
+   * Replace the current input steamd with a new MediaStream.
+   * @param stream - A media stream to use as input
+   * @param device - A device to use as input
+   */
+  setInputStream(stream: MediaStream, device: MediaDeviceInfo | null): Promise<void> {
+    return this._setInputStream(stream, device);
+  }
+
+  /**
    * Unset the MediaTrackConstraints to be applied on every getUserMedia call for new input
    * device audio. The returned Promise resolves when the media is successfully reacquired,
    * or immediately if no input device is set.
@@ -492,13 +501,22 @@ class AudioHelper extends EventEmitter {
 
     const constraints = { audio: Object.assign({ deviceId: { exact: deviceId } }, this.audioConstraints) };
     return this._getUserMedia(constraints).then((stream: MediaStream) => {
-      return this._onActiveInputChanged(stream).then(() => {
-        this._replaceStream(stream);
-        this._inputDevice = device;
-        this._maybeStartPollingVolume();
-      });
+      return this._setInputStream(stream, device);
     });
   }
+
+  /**
+   * Replace the current input steamd with a new MediaStream.
+   * @param stream - A media stream to use as input
+   * @param device - A device to use as input
+   */
+   private _setInputStream(stream: MediaStream, device: MediaDeviceInfo | null): Promise<void> {
+    return this._onActiveInputChanged(stream).then(() => {
+      this._replaceStream(stream);
+      this._inputDevice = device;
+      this._maybeStartPollingVolume();
+    });
+ }
 
   /**
    * Update the available input and output devices
