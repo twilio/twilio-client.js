@@ -22,7 +22,7 @@ Existing customers can review our migration guide [here](https://www.twilio.com/
 twilio-client.js
 ================
 
-[![NPM](https://img.shields.io/npm/v/twilio-client.svg)](https://www.npmjs.com/package/twilio-client) [![CircleCI](https://circleci.com/gh/twilio/twilio-client.js/tree/master.svg?style=svg&circle-token=80e91c8284c21ff16d3003702e17b903c0b32f1d)](https://circleci.com/gh/twilio/twilio-client.js/tree/master)
+[![NPM](https://img.shields.io/npm/v/twilio-client.svg)](https://www.npmjs.com/package/twilio-client) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/twilio/twilio-client.js/tree/master.svg?style=shield)](https://circleci.com/gh/twilio/twilio-client.js/tree/master)
 
 twilio-client.js allows you to add real-time voice and PSTN calling to your web apps.
 
