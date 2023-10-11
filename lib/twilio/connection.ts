@@ -642,8 +642,8 @@ class Connection extends EventEmitter {
         data: { audioConstraints },
       }, this);
 
-      if (this._options.onGetUserMedia) {
-        this._options.onGetUserMedia();
+      if (this.options.onGetUserMedia) {
+        this.options.onGetUserMedia();
       }
 
       connect();
