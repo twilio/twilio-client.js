@@ -1014,6 +1014,7 @@ class Device extends EventEmitter {
       getInputStream: (): MediaStream | null => this.options.fileInputStream || this._connectionInputStream,
       getSinkIds: (): string[] => this._connectionSinkIds,
       maxAverageBitrate: this.options.maxAverageBitrate,
+      onGetUserMedia: () => this._onGetUserMedia(),
       preflight: this.options.preflight,
       rtcConfiguration: this.options.rtcConfiguration || { iceServers: this.options.iceServers },
       rtcConstraints: this.options.rtcConstraints,
@@ -1108,6 +1109,16 @@ class Device extends EventEmitter {
     if (!this.connections.length) {
       this.soundcache.get(Device.SoundName.Incoming).stop();
     }
+  }
+
+  /**
+   * Called after a successful getUserMedia call
+   */
+  private _onGetUserMedia = () => {
+    this.audio?._updateAvailableDevices().catch(error => {
+      // Ignore error, we don't want to break the call flow
+      this._log.warn('Unable to updateAvailableDevices after gUM call', error);
+    });
   }
 
   /**

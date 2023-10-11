@@ -1,3 +1,11 @@
+1.15.1 (In Progress)
+====================
+
+Bug Fixes
+---------
+
+- Fixed a Chrome [issue](https://bugs.chromium.org/p/chromium/issues/detail?id=1474865) where audio is choppy when another application is also using the audio devices.
+
 1.15.0 (Feb 28, 2023)
 ====================
 
