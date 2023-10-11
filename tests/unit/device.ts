@@ -30,6 +30,7 @@ describe('Device', function() {
   let publisher: any;
   let stub: SinonStubbedInstance<Device>;
   let token: string;
+  let updateAvailableDevicesStub: any;
   let updateInputStream: Function;
   let updateSinkIds: Function;
 
@@ -38,7 +39,9 @@ describe('Device', function() {
   const AudioHelper = (_updateSinkIds: Function, _updateInputStream: Function) => {
     updateInputStream = _updateInputStream;
     updateSinkIds = _updateSinkIds;
-    return audioHelper = createEmitterStub(require('../../lib/twilio/audiohelper').default);
+    const audioHelper = createEmitterStub(require('../../lib/twilio/audiohelper').default);
+    audioHelper._updateAvailableDevices = updateAvailableDevicesStub;
+    return audioHelper;
   };
   const connectionFactory = (_?: any, _connectOptions?: Record<string, any>) => {
     connectOptions = _connectOptions;
@@ -58,6 +61,7 @@ describe('Device', function() {
   });
 
   beforeEach(() => {
+    updateAvailableDevicesStub = sinon.stub().returns(Promise.reject());
     clock = sinon.useFakeTimers(Date.now());
     token = createToken('alice');
     device = new Device();
@@ -353,6 +357,12 @@ describe('Device', function() {
     });
 
     describe('.connect(params?, audioConstraints?, iceServers?)', () => {
+      it('should update device list after a getUserMediaCall', async () => {
+        await device.connect();
+        connectOptions!.onGetUserMedia();
+        sinon.assert.calledOnce(updateAvailableDevicesStub);
+      });
+
       it('should throw an error if there is already an active connection', () => {
         device.connect();
         assert.throws(() => device.connect(), /A Connection is already active/);
