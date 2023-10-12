@@ -17,7 +17,7 @@ describe('AudioHelper', () => {
     beforeEach(() => {
       audio = new AudioHelper(noop, noop, getUserMedia, { mediaDevices: {
         enumerateDevices: function(){
-          return Promise.resolve();
+          return Promise.resolve([]);
         }
       } });
     });

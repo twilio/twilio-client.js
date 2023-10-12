@@ -61,7 +61,7 @@ describe('Device', function() {
   });
 
   beforeEach(() => {
-    updateAvailableDevicesStub = sinon.stub().returns(Promise.reject());
+    updateAvailableDevicesStub = sinon.stub().returns({ catch: sinon.stub() });
     clock = sinon.useFakeTimers(Date.now());
     token = createToken('alice');
     device = new Device();
