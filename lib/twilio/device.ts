@@ -1117,7 +1117,7 @@ class Device extends EventEmitter {
   private _onGetUserMedia = () => {
     this.audio?._updateAvailableDevices().catch(error => {
       // Ignore error, we don't want to break the call flow
-      this._log.warn('Unable to updateAvailableDevices after gUM call', error);
+      this._log.warn('Unable to updateAvailableDevices after getUserMedia call', error);
     });
   }
 

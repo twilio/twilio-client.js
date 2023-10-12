@@ -512,7 +512,7 @@ class AudioHelper extends EventEmitter {
         return Promise.resolve();
       }
 
-      // If the currently active track is still in readyState `live`, gUM may return the same track
+      // If the currently active track is still in readyState `live`, getUserMedia may return the same track
       // rather than returning a fresh track.
       this._inputStream.getTracks().forEach(track => {
         track.stop();
@@ -566,7 +566,7 @@ class AudioHelper extends EventEmitter {
     });
 
     if (deviceChanged || lostDeviceIds.length) {
-      // Force a new gUM in case the underlying tracks of the active stream have changed. One
+      // Force a new getUserMedia in case the underlying tracks of the active stream have changed. One
       //   reason this might happen is when `default` is selected and set to a USB device,
       //   then that device is unplugged or plugged back in. We can't check for the 'ended'
       //   event or readyState because it is asynchronous and may take upwards of 5 seconds,
