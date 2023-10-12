@@ -7,7 +7,6 @@ import Device from './device';
 import { InvalidArgumentError, NotSupportedError } from './errors';
 import Log from './log';
 import OutputDeviceCollection from './outputdevicecollection';
-import * as defaultMediaDevices from './shims/mediadevices';
 import { average, difference, isFirefox } from './util';
 
 const MediaDeviceInfoShim = require('./shims/mediadeviceinfo');
@@ -165,11 +164,11 @@ class AudioHelper extends EventEmitter {
     }, options);
 
     this._getUserMedia = getUserMedia;
-    this._mediaDevices = options.mediaDevices || defaultMediaDevices;
+    this._mediaDevices = options.mediaDevices || navigator.mediaDevices;
     this._onActiveInputChanged = onActiveInputChanged;
     this._enumerateDevices = typeof options.enumerateDevices === 'function'
       ? options.enumerateDevices
-      : this._mediaDevices && this._mediaDevices.enumerateDevices;
+      : this._mediaDevices && this._mediaDevices.enumerateDevices.bind(this._mediaDevices);
 
     const isAudioContextSupported: boolean = Boolean(options.AudioContext || options.audioContext);
     const isEnumerationSupported: boolean = Boolean(this._enumerateDevices);
@@ -288,8 +287,39 @@ class AudioHelper extends EventEmitter {
 
     if (this._mediaDevices.removeEventListener) {
       this._mediaDevices.removeEventListener('devicechange', this._updateAvailableDevices);
-      this._mediaDevices.removeEventListener('deviceinfochange', this._updateAvailableDevices);
     }
+  }
+
+  /**
+   * Update the available input and output devices
+   * @private
+   */
+  _updateAvailableDevices = (): Promise<void> => {
+    if (!this._mediaDevices || !this._enumerateDevices) {
+      return Promise.reject('Enumeration not supported');
+    }
+
+    return this._enumerateDevices().then((devices: MediaDeviceInfo[]) => {
+      this._updateDevices(devices.filter((d: MediaDeviceInfo) => d.kind === 'audiooutput'),
+        this.availableOutputDevices,
+        this._removeLostOutput);
+
+      this._updateDevices(devices.filter((d: MediaDeviceInfo) => d.kind === 'audioinput'),
+        this.availableInputDevices,
+        this._removeLostInput);
+
+      const defaultDevice = this.availableOutputDevices.get('default')
+        || Array.from(this.availableOutputDevices.values())[0];
+
+      [this.speakerDevices, this.ringtoneDevices].forEach(outputDevices => {
+        if (!outputDevices.get().size && this.availableOutputDevices.size && this.isOutputSelectionSupported) {
+          outputDevices.set(defaultDevice.deviceId)
+            .catch((reason) => {
+              this._log.warn(`Unable to set audio output devices. ${reason}`);
+            });
+        }
+      });
+    });
   }
 
   /**
@@ -397,7 +427,6 @@ class AudioHelper extends EventEmitter {
 
     if (this._mediaDevices.addEventListener) {
       this._mediaDevices.addEventListener('devicechange', this._updateAvailableDevices);
-      this._mediaDevices.addEventListener('deviceinfochange', this._updateAvailableDevices);
     }
 
     this._updateAvailableDevices().then(() => {
@@ -483,7 +512,7 @@ class AudioHelper extends EventEmitter {
         return Promise.resolve();
       }
 
-      // If the currently active track is still in readyState `live`, gUM may return the same track
+      // If the currently active track is still in readyState `live`, getUserMedia may return the same track
       // rather than returning a fresh track.
       this._inputStream.getTracks().forEach(track => {
         track.stop();
@@ -496,37 +525,6 @@ class AudioHelper extends EventEmitter {
         this._replaceStream(stream);
         this._inputDevice = device;
         this._maybeStartPollingVolume();
-      });
-    });
-  }
-
-  /**
-   * Update the available input and output devices
-   */
-  private _updateAvailableDevices = (): Promise<void> => {
-    if (!this._mediaDevices || !this._enumerateDevices) {
-      return Promise.reject('Enumeration not supported');
-    }
-
-    return this._enumerateDevices().then((devices: MediaDeviceInfo[]) => {
-      this._updateDevices(devices.filter((d: MediaDeviceInfo) => d.kind === 'audiooutput'),
-        this.availableOutputDevices,
-        this._removeLostOutput);
-
-      this._updateDevices(devices.filter((d: MediaDeviceInfo) => d.kind === 'audioinput'),
-        this.availableInputDevices,
-        this._removeLostInput);
-
-      const defaultDevice = this.availableOutputDevices.get('default')
-        || Array.from(this.availableOutputDevices.values())[0];
-
-      [this.speakerDevices, this.ringtoneDevices].forEach(outputDevices => {
-        if (!outputDevices.get().size && this.availableOutputDevices.size && this.isOutputSelectionSupported) {
-          outputDevices.set(defaultDevice.deviceId)
-            .catch((reason) => {
-              this._log.warn(`Unable to set audio output devices. ${reason}`);
-            });
-        }
       });
     });
   }
@@ -568,7 +566,7 @@ class AudioHelper extends EventEmitter {
     });
 
     if (deviceChanged || lostDeviceIds.length) {
-      // Force a new gUM in case the underlying tracks of the active stream have changed. One
+      // Force a new getUserMedia in case the underlying tracks of the active stream have changed. One
       //   reason this might happen is when `default` is selected and set to a USB device,
       //   then that device is unplugged or plugged back in. We can't check for the 'ended'
       //   event or readyState because it is asynchronous and may take upwards of 5 seconds,
@@ -638,7 +636,6 @@ namespace AudioHelper {
    * that were lost as a result of this deviceChange event.
    * @example `device.audio.on('deviceChange', lostActiveDevices => { })`
    * @event
-   * @private
    */
   declare function deviceChangeEvent(lostActiveDevices: MediaDeviceInfo[]): void;
 
