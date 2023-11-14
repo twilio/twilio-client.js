@@ -755,7 +755,7 @@ Bug Fixes
 Unified Plan support
 --------------------
 * If you are using twilio-client.js versions 1.7.0 or older, changing audio input devices during a call will break on Safari 12.2 onwards.
-* twilio-client.js will now use the browser default SDP format. For Google Chrome 72+, Safari 12.2+ and Firefox since forever, the default format is Unified Plan. See this [advisory](https://support.twilio.com/hc/en-us/articles/360012910993-Breaking-Changes-in-Twilio-Client-JavaScript-SDKs-December-2018-) for SDP format migration impact
+* twilio-client.js will now use the browser default SDP format. For Google Chrome 72+, Safari 12.2+ and Firefox since forever, the default format is Unified Plan. See this [advisory](https://support.twilio.com/hc/en-us/articles/360026556953-Upcoming-Breaking-Changes-in-Twilio-Voice-JavaScript-SDK-Google-Chrome) for SDP format migration impact
 
 Improvements
 ------------
