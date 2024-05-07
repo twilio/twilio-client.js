@@ -858,8 +858,8 @@ class Device extends EventEmitter {
 
     // Setup close protection and make sure we clean up ongoing calls on unload.
     if (typeof window !== 'undefined' && window.addEventListener) {
-      // window.addEventListener('unload', this.destroy);
-      // window.addEventListener('pagehide', this.destroy);
+      window.addEventListener('unload', this.destroy);
+      window.addEventListener('pagehide', this.destroy);
       if (this.options.closeProtection) {
         window.addEventListener('beforeunload', this._confirmClose);
       }
