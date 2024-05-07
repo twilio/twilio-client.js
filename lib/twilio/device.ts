@@ -418,13 +418,11 @@ class Device extends EventEmitter {
   constructor(token?: string, options?: Device.Options) {
     super();
 
-    if (window) {
-      const root: any = window as any;
-      const browser: any = root.msBrowser || root.browser || root.chrome;
+    const root: any = globalThis as any;
+    const browser: any = root.msBrowser || root.browser || root.chrome;
 
-      this._isBrowserExtension = (!!browser && !!browser.runtime && !!browser.runtime.id)
-        || (!!root.safari && !!root.safari.extension);
-    }
+    this._isBrowserExtension = (!!browser && !!browser.runtime && !!browser.runtime.id)
+      || (!!root.safari && !!root.safari.extension);
 
     if (this._isBrowserExtension) {
       this._log.info('Running as browser extension.');
@@ -479,11 +477,26 @@ class Device extends EventEmitter {
    * @param handler - A handler to set on the connect event.
    */
   connect(handler: (connection: Connection) => any): null;
-  connect(paramsOrHandler?: Record<string, string> | ((connection: Connection) => any),
+  /**
+   * Reconnect to an existing connection.
+   * @param connectToken - The {@link Connection.connectToken} can be used to manually reconnect to an existing connection.
+   * A connection can be manually reconnected if it was previously received (incoming)
+   * or created (outgoing) from a {@link Device} instance.
+   * A connection is considered manually reconnected if it was created using the {@link Connection.connectToken}.
+   * It will always have a {@link Connection.direction} property set to {@link Connection.CallDirection.Outgoing}.
+   * **Warning: Only unanswered incoming connections can be manually reconnected at this time.**
+   * **Invoking this method to an already accepted connection may introduce unexpected behavior.**
+   * @param [audioConstraints]
+   * @param [rtcConfiguration] - An RTCConfiguration to override the one set in `Device.setup`.
+   */
+  connect(connectToken: string,
+          audioConstraints?: MediaTrackConstraints | boolean,
+          rtcConfiguration?: RTCConfiguration): Connection;
+  connect(paramsOrHandlerOrConnectToken?: Record<string, string> | ((connection: Connection) => any) | string,
           audioConstraints?: MediaTrackConstraints | boolean,
           rtcConfiguration?: RTCConfiguration): Connection | null {
-    if (typeof paramsOrHandler === 'function') {
-      this._addHandler(Device.EventName.Connect, paramsOrHandler);
+    if (typeof paramsOrHandlerOrConnectToken === 'function') {
+      this._addHandler(Device.EventName.Connect, paramsOrHandlerOrConnectToken);
       return null;
     }
 
@@ -493,11 +506,42 @@ class Device extends EventEmitter {
       throw new InvalidStateError('A Connection is already active');
     }
 
-    const params: Record<string, string> = paramsOrHandler || { };
+    let customParameters;
+    let parameters;
+    let signalingReconnectToken;
+
+    if (typeof paramsOrHandlerOrConnectToken === 'string') {
+      try {
+        const connectTokenParts = JSON.parse(decodeURIComponent(atob(paramsOrHandlerOrConnectToken)));
+        customParameters = connectTokenParts.customParameters;
+        parameters = connectTokenParts.parameters;
+        signalingReconnectToken = connectTokenParts.signalingReconnectToken;
+      } catch {
+        throw new InvalidArgumentError('Cannot parse connectToken');
+      }
+      if (!parameters || !parameters.CallSid || !signalingReconnectToken) {
+        throw new InvalidArgumentError('Invalid connectToken');
+      }
+    }
+
+    let isReconnect = false;
+    let twimlParams: Record<string, string> = { };
+    const connectionOptions: Connection.Options = { rtcConfiguration };
+
+    if (signalingReconnectToken && parameters) {
+      isReconnect = true;
+      connectionOptions.callParameters = parameters;
+      connectionOptions.reconnectCallSid = parameters.CallSid;
+      connectionOptions.reconnectToken = signalingReconnectToken;
+      twimlParams = customParameters || twimlParams;
+    } else {
+      twimlParams = paramsOrHandlerOrConnectToken as Record<string, string> || twimlParams;
+    }
+
     audioConstraints = audioConstraints || this.options && this.options.audioConstraints || { };
     rtcConfiguration = rtcConfiguration || this.options.rtcConfiguration;
 
-    const connection = this._activeConnection = this._makeConnection(params, { rtcConfiguration });
+    const connection = this._activeConnection = this._makeConnection(twimlParams, connectionOptions, isReconnect);
 
     // Make sure any incoming connections are ignored
     this.connections.splice(0).forEach(conn => conn.ignore());
@@ -814,8 +858,8 @@ class Device extends EventEmitter {
 
     // Setup close protection and make sure we clean up ongoing calls on unload.
     if (typeof window !== 'undefined' && window.addEventListener) {
-      window.addEventListener('unload', this.destroy);
-      window.addEventListener('pagehide', this.destroy);
+      // window.addEventListener('unload', this.destroy);
+      // window.addEventListener('pagehide', this.destroy);
       if (this.options.closeProtection) {
         window.addEventListener('beforeunload', this._confirmClose);
       }
@@ -977,7 +1021,7 @@ class Device extends EventEmitter {
    * @param twimlParams - A flat object containing key:value pairs to be sent to the TwiML app.
    * @param [options] - Options to be used to instantiate the {@link Connection}.
    */
-  private _makeConnection(twimlParams: Record<string, string>, options?: Connection.Options): Connection {
+  private _makeConnection(twimlParams: Record<string, string>, options?: Connection.Options, isReconnect: boolean = false): Connection {
     if (typeof Device._isUnifiedPlanDefault === 'undefined') {
       throw new InvalidStateError('Device has not been initialized.');
     }
@@ -1036,7 +1080,7 @@ class Device extends EventEmitter {
         this.audio._maybeStartPollingVolume();
       }
 
-      if (connection.direction === Connection.CallDirection.Outgoing && this._enabledSounds.outgoing) {
+      if (connection.direction === Connection.CallDirection.Outgoing && this._enabledSounds.outgoing && !isReconnect) {
         this.soundcache.get(Device.SoundName.Outgoing).play();
       }
 
@@ -1188,6 +1232,7 @@ class Device extends EventEmitter {
     const connection = this._makeConnection(customParameters, {
       callParameters,
       offerSdp: payload.sdp,
+      reconnectToken: payload.reconnect,
     });
 
     this.connections.push(connection);
@@ -1456,7 +1501,14 @@ namespace Device {
   declare function errorEvent(error: Connection): void;
 
   /**
-   * Emitted when an incoming {@link Connection} is received.
+   * Emitted when an incoming {@link Connection} is received. You can interact with the connection object
+   * using its public APIs, or you can forward it to a different {@link Device} using
+   * {@link Device.connect} and {@link Connection.connectToken}, enabling your application to
+   * receive multiple incoming connections for the same identity.
+   *
+   * **Important:** When forwarding a connection, the token for target device instance needs to have
+   * the same identity as the token used in the device that originally received the connection.
+   *
    * @param connection - The incoming {@link Connection}.
    * @example `device.on('incoming', connection => { })`
    * @event

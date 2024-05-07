@@ -132,6 +132,37 @@ class Connection extends EventEmitter {
   }
 
   /**
+   * The connect token is available as soon as the call is established
+   * and connected to Twilio. Use this token to reconnect to a call via the {@link Device.connect}
+   * method.
+   *
+   * For incoming calls, it is available in the call object after the {@link Device.incomingEvent} is emitted.
+   * For outgoing calls, it is available after the {@link Connection.acceptEvent} is emitted.
+   */
+  get connectToken(): string | undefined {
+    const signalingReconnectToken = this._signalingReconnectToken;
+    const callSid = this.parameters && this.parameters.CallSid ? this.parameters.CallSid : undefined;
+
+    if (!signalingReconnectToken || !callSid) {
+      return;
+    }
+
+    const customParameters = this.customParameters && typeof this.customParameters.keys === 'function' ?
+    Array.from(this.customParameters.keys()).reduce((result: Record<string, string>, key: string) => {
+      result[key] = this.customParameters.get(key)!;
+      return result;
+    }, {}) : {};
+
+    const parameters = this.parameters || {};
+
+    return btoa(encodeURIComponent(JSON.stringify({
+      customParameters,
+      parameters,
+      signalingReconnectToken,
+    })));
+  }
+
+  /**
    * The MediaStream (Twilio PeerConnection) this {@link Connection} is using for
    * media signaling.
    * @private
@@ -226,6 +257,11 @@ class Connection extends EventEmitter {
   private readonly _publisher: IPublisher;
 
   /**
+   * The signaling reconnection token used to re-establish a lost signaling connection.
+   */
+  private _signalingReconnectToken: string | undefined;
+
+  /**
    * A Map of Sounds to play.
    */
   private readonly _soundcache: Map<Device.SoundName, ISound> = new Map();
@@ -281,9 +317,14 @@ class Connection extends EventEmitter {
       this.parameters = this.options.callParameters;
     }
 
-    this._direction = this.parameters.CallSid ? Connection.CallDirection.Incoming : Connection.CallDirection.Outgoing;
+    if (this.options.reconnectToken) {
+      this._signalingReconnectToken = this.options.reconnectToken;
+    }
 
-    if (this._direction === Connection.CallDirection.Incoming && this.parameters) {
+    this._direction = this.parameters.CallSid && !this.options.reconnectCallSid ?
+      Connection.CallDirection.Incoming : Connection.CallDirection.Outgoing;
+
+    if (this.parameters) {
       this.callerInfo = this.parameters.StirStatus
         ? { isVerified: this.parameters.StirStatus === 'TN-Validation-Passed-A' }
         : null;
@@ -302,7 +343,10 @@ class Connection extends EventEmitter {
     if (this._direction === Connection.CallDirection.Incoming) {
       publisher.info('connection', 'incoming', null, this);
     } else {
-      publisher.info('connection', 'outgoing', { preflight: this.options.preflight }, this);
+      publisher.info('connection', 'outgoing', {
+        preflight: this.options.preflight,
+        reconnect: !!this.options.reconnectCallSid,
+      }, this);
     }
 
     const monitor = this._monitor = new (this.options.StatsMonitor || StatsMonitor)();
@@ -622,7 +666,8 @@ class Connection extends EventEmitter {
         const params = Array.from(this.customParameters.entries()).map(pair =>
          `${encodeURIComponent(pair[0])}=${encodeURIComponent(pair[1])}`).join('&');
         this.pstream.once('answer', this._onAnswer.bind(this));
-        this.mediaStream.makeOutgoingCall(this.pstream.token, params, this.outboundConnectionId,
+        this.mediaStream.makeOutgoingCall(params, this._signalingReconnectToken,
+          this.options.reconnectCallSid || this.outboundConnectionId,
           this.options.rtcConstraints, rtcConfiguration, onAnswer);
       }
     };
@@ -1144,6 +1189,10 @@ class Connection extends EventEmitter {
    * @param payload
    */
   private _onAnswer = (payload: Record<string, any>): void => {
+    if (typeof payload.reconnect === 'string') {
+      this._signalingReconnectToken = payload.reconnect;
+    }
+
     // answerOnBridge=false will send a 183 which we need to catch in _onRinging when
     // the enableRingingState flag is disabled. In that case, we will receive a 200 after
     // the callee accepts the call firing a second `accept` event if we don't
@@ -1760,6 +1809,16 @@ namespace Connection {
      * Whether this is a preflight call or not
      */
     preflight?: boolean;
+
+    /**
+     * The callSid to reconnect to.
+     */
+    reconnectCallSid?: string;
+
+    /**
+     * A reconnect token for the {@link Connection}.
+     */
+    reconnectToken?: string;
 
     /**
      * The Region currently connected to.
