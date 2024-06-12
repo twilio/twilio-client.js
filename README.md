@@ -1,8 +1,5 @@
-### Deprecation Notice
-This repository does not contain the latest version of Twilio's Javascript Voice SDK. Although this major version will continue
-to be supported, it will no longer receive new features. We recommend that all users upgrade to
-[2.0](https://github.com/twilio/twilio-voice.js) at their earliest convenience, in order to receive access to new features as
-they arrive.
+> [!WARNING]
+> Effective April 1, 2025, Twilio will end of life (EOL) our support for Twilio Voice JS SDK version 1.x. In an effort to offer a product with the latest and greatest features, bug fixes, and security patches, we replaced this version with a new one, Voice JS SDK 2.x, in July 2021. To avoid service interruptions, migrate from Voice JS SDK 1.x to Voice JS SDK 2.x (or greater) before April 1, 2025, following our [migration guide](https://www.twilio.com/docs/voice/sdks/javascript/migrating-to-js-voice-sdk-20).
 
 ## Twilio's JavaScript Voice SDK 2.0 is now GA!
 This repository contains an outdated version of Twilio's Javascript Client SDK. We have now released 2.0 as Generally Available.
